@@ -1,11 +1,12 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
+import { Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
-import NotFound from "@/pages/not-found";
-import Home from "@/pages/home";
+import { queryClient } from "./lib/queryClient";
+import { Toaster } from "./components/ui/toaster";
+import ErrorBoundary from "./components/ui/error-boundary";
+
+// Pages
+import Home from "./pages/home";
+import NotFound from "./pages/not-found";
 
 function Router() {
   return (
@@ -20,10 +21,10 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <Router />
-        </TooltipProvider>
+          <Toaster />
+        </div>
       </QueryClientProvider>
     </ErrorBoundary>
   );
