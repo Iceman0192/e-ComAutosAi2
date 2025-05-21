@@ -1,9 +1,18 @@
 import { useState } from 'react';
-import { SaleHistoryResponse } from '@shared/schema';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface SalesTableProps {
-  salesHistory: SaleHistoryResponse['sale_history'];
+  salesHistory: Array<{
+    id: string;
+    vin: string;
+    lot_id?: number;
+    sale_date: string;
+    purchase_price?: number;
+    sale_status: string;
+    buyer_state?: string;
+    buyer_country?: string;
+    base_site: string;
+  }>;
   selectedSaleId: string | null;
   onSelectSale: (id: string) => void;
 }

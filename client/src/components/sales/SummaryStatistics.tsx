@@ -40,10 +40,13 @@ export default function SummaryStatistics({ stats, isLoading }: SummaryStatistic
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-neutral-500 mb-1">Average Sale Price</div>
-        <div className="text-2xl font-medium">{formatCurrency(stats.averagePrice)}</div>
-        <div className={`flex items-center text-sm mt-1 ${stats.priceTrend >= 0 ? 'text-success' : 'text-error'}`}>
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center mb-2">
+          <span className="material-icons text-blue-500 mr-2">payments</span>
+          <div className="text-sm text-gray-500 font-medium">Average Sale Price</div>
+        </div>
+        <div className="text-2xl font-semibold text-gray-800">{formatCurrency(stats.averagePrice)}</div>
+        <div className={`flex items-center text-sm mt-2 ${stats.priceTrend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           <span className="material-icons text-sm">
             {stats.priceTrend >= 0 ? 'trending_up' : 'trending_down'}
           </span>
@@ -56,30 +59,39 @@ export default function SummaryStatistics({ stats, isLoading }: SummaryStatistic
         </div>
       </div>
       
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-neutral-500 mb-1">Total Sales</div>
-        <div className="text-2xl font-medium">{stats.totalSales}</div>
-        <div className="flex items-center text-success text-sm mt-1">
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center mb-2">
+          <span className="material-icons text-blue-500 mr-2">sell</span>
+          <div className="text-sm text-gray-500 font-medium">Total Sales</div>
+        </div>
+        <div className="text-2xl font-semibold text-gray-800">{stats.totalSales}</div>
+        <div className="flex items-center text-green-600 text-sm mt-2">
           <span className="material-icons text-sm">trending_up</span>
           <span className="ml-1">+{Math.floor(stats.totalSales * 0.2)} ({Math.floor(Math.random() * 10) + 20}%)</span>
         </div>
       </div>
       
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-neutral-500 mb-1">Sale Success Rate</div>
-        <div className="text-2xl font-medium">{formatPercentage(stats.successRate)}</div>
-        <div className="flex items-center text-error text-sm mt-1">
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center mb-2">
+          <span className="material-icons text-blue-500 mr-2">verified</span>
+          <div className="text-sm text-gray-500 font-medium">Sale Success Rate</div>
+        </div>
+        <div className="text-2xl font-semibold text-gray-800">{formatPercentage(stats.successRate)}</div>
+        <div className="flex items-center text-red-600 text-sm mt-2">
           <span className="material-icons text-sm">trending_down</span>
-          <span className="ml-1">-4% vs prev.</span>
+          <span className="ml-1">-4% vs prev. period</span>
         </div>
       </div>
       
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="text-sm text-neutral-500 mb-1">Days to Sell (Avg)</div>
-        <div className="text-2xl font-medium">12.5</div>
-        <div className="flex items-center text-success text-sm mt-1">
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center mb-2">
+          <span className="material-icons text-blue-500 mr-2">schedule</span>
+          <div className="text-sm text-gray-500 font-medium">Days to Sell (Avg)</div>
+        </div>
+        <div className="text-2xl font-semibold text-gray-800">12.5</div>
+        <div className="flex items-center text-green-600 text-sm mt-2">
           <span className="material-icons text-sm">trending_down</span>
-          <span className="ml-1">-2.3 days</span>
+          <span className="ml-1">-2.3 days vs prev. period</span>
         </div>
       </div>
     </div>

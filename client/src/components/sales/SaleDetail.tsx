@@ -1,8 +1,23 @@
-import { SaleHistoryResponse } from '@shared/schema';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 interface SaleDetailProps {
-  sale?: SaleHistoryResponse['sale_history'][0];
+  sale?: {
+    id: string;
+    vin: string;
+    lot_id?: number;
+    sale_date: string;
+    purchase_price?: number;
+    sale_status: string;
+    buyer_state?: string;
+    buyer_country?: string;
+    buyer_type?: string;
+    base_site: string;
+    auction_location?: string;
+    vehicle_mileage?: number;
+    vehicle_damage?: string;
+    vehicle_title?: string;
+    vehicle_has_keys?: boolean;
+  };
   onClose: () => void;
   averagePrice: number;
 }
