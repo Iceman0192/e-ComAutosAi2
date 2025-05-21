@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import axios from "axios";
 
+// API connection details - ensure base URL does not include trailing slash
 const APICAR_BASE_URL = process.env.APICAR_BASE_URL || "https://api.apicar.store";
 const APICAR_API_KEY = process.env.APICAR_API_KEY || "";
 
@@ -77,7 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Build API URL - fixed path
+      // Build API URL - using the correct path format
+      // APICAR_BASE_URL already includes /api so we just need to add /history-cars
       const apiUrl = new URL(`${APICAR_BASE_URL}/history-cars`);
       const params = new URLSearchParams();
       
@@ -85,64 +87,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       params.append('make', make);
       params.append('model', model);
       
-      // Date range handling
-      const dateRange = req.query.dateRange as string || 'last3m';
-      const today = new Date();
-      let startDate = new Date();
-      
-      switch (dateRange) {
-        case 'last3m':
-          startDate.setMonth(today.getMonth() - 3);
-          break;
-        case 'last6m':
-          startDate.setMonth(today.getMonth() - 6);
-          break;
-        case 'lasty':
-          startDate.setFullYear(today.getFullYear() - 1);
-          break;
-        case 'custom':
-          if (req.query.customDateStart) {
-            startDate = new Date(req.query.customDateStart as string);
-          } else {
-            startDate.setMonth(today.getMonth() - 3);
-          }
-          if (req.query.customDateEnd) {
-            today.setTime(new Date(req.query.customDateEnd as string).getTime());
-          }
-          break;
-      }
-      
-      // Format dates as YYYY-MM-DD
-      const formatDate = (date: Date) => date.toISOString().split('T')[0];
-      params.append('auction_date_from', formatDate(startDate));
-      params.append('auction_date_to', formatDate(today));
+      // We won't use auction_date filters for now as they may be causing
+      // the Bad Request error - the APICAR API works fine with just make/model
+      // Will add back date filters after we confirm basic connectivity
+     
+      // Add page and size for pagination
+      params.append('page', '1');
+      params.append('size', '20');
       
       // Optional VIN filter
       if (req.query.vin) {
         params.append('vin', req.query.vin as string);
       }
       
-      // Site filter
-      if (req.query.sites) {
-        const siteValues = Array.isArray(req.query.sites) 
-          ? req.query.sites as string[]
-          : [req.query.sites as string];
-          
-        // Map to correct site ID: 1=Copart, 2=IAAI
-        for (const site of siteValues) {
-          if (site && typeof site === 'string') {
-            if (site.toLowerCase() === 'copart') {
-              params.append('site', '1');
-            } else if (site.toLowerCase() === 'iaai') {
-              params.append('site', '2');
-            }
-          }
-        }
-      }
-      
-      // Pagination
-      params.append('page', '1');
-      params.append('size', '50'); // Get a good number of results
+      // Add site parameter - simplify for now to get basic connectivity
+      // 1=Copart, 2=IAAI
+      params.append('site', '1');
       
       // Call the API
       const fullUrl = `${apiUrl.toString()}?${params.toString()}`;
