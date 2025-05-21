@@ -31,7 +31,8 @@ async function cachedApiRequest(url: string): Promise<any> {
   try {
     const response = await axios.get(url, {
       headers: {
-        'Authorization': `Bearer ${APICAR_API_KEY}`,
+        'api-key': APICAR_API_KEY,
+        'Accept': '*/*',
         'Content-Type': 'application/json',
       },
     });
@@ -78,27 +79,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'VIN is required' });
       }
 
-      // Build API URL based on the correct endpoint
+      // Build the API URL based on the correct format shown in your example
       let apiUrl = `${APICAR_BASE_URL}/api/history-cars`;
       
       // Add query parameters
       const params = new URLSearchParams();
       
-      // We're going to filter by make/model since that's what the API supports
-      if (filter.vin) {
-        // In a real scenario, we'd use the VIN to get the make/model first
-        // For now, let's default to Toyota/Tacoma since that's in our example
-        params.append('make', 'Toyota');
-        params.append('model', 'Tacoma');
-      }
+      // Required parameters according to the API documentation
+      params.append('make', 'Toyota');
+      params.append('model', 'Tacoma');
       
-      // Add site parameter if specified
+      // Optional parameters
       if (filter.sites && filter.sites.length > 0) {
-        params.append('site', filter.sites[0]);
+        // Map to correct site ID: 1=Copart, 2=IAAI
+        let siteId = "1"; // Default to Copart
+        if (filter.sites[0].toLowerCase() === 'iaai') {
+          siteId = "2";
+        }
+        params.append('site', siteId);
       }
       
-      // We would add more parameters for filtering here
-      // such as date ranges, buyer location, etc.
+      // Add date filters if specified
+      if (filter.dateRange === 'custom' && filter.customDateStart && filter.customDateEnd) {
+        params.append('auction_date_from', filter.customDateStart);
+        params.append('auction_date_to', filter.customDateEnd);
+      } else {
+        // Calculate date range based on filter
+        const today = new Date();
+        let startDate = new Date();
+        
+        switch (filter.dateRange) {
+          case 'last3m':
+            startDate.setMonth(today.getMonth() - 3);
+            break;
+          case 'last6m':
+            startDate.setMonth(today.getMonth() - 6);
+            break;
+          case 'lasty':
+            startDate.setFullYear(today.getFullYear() - 1);
+            break;
+          default:
+            startDate.setMonth(today.getMonth() - 3); // Default to 3 months
+        }
+        
+        // Format dates as YYYY-MM-DD
+        const formatDate = (date: Date) => {
+          return date.toISOString().split('T')[0];
+        };
+        
+        params.append('auction_date_from', formatDate(startDate));
+        params.append('auction_date_to', formatDate(today));
+      }
+      
+      // Add pagination parameters
+      params.append('page', '1');
+      params.append('size', '30'); // Request maximum records per page
       
       apiUrl = `${apiUrl}?${params.toString()}`;
       console.log(`Trying API URL: ${apiUrl}`);
