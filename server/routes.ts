@@ -7,7 +7,7 @@ import { SaleHistoryResponseSchema, SalesFilterSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
-const APICAR_BASE_URL = process.env.APICAR_BASE_URL || "https://api.apicar.com";
+const APICAR_BASE_URL = process.env.APICAR_BASE_URL || "https://api.apicar.store";
 const APICAR_API_KEY = process.env.APICAR_API_KEY || "";
 
 // Simple in-memory cache with expiration
