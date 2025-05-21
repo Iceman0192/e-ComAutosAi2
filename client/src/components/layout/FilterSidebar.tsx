@@ -246,15 +246,6 @@ export default function FilterSidebar({
               />
               <span className="ml-2 text-sm">IAAI</span>
             </label>
-            <label className="flex items-center hover:bg-gray-100 p-2 rounded-md transition-colors">
-              <input 
-                type="checkbox" 
-                checked={sites.includes('manheim')}
-                onChange={(e) => updateSites('manheim', e.target.checked)}
-                className="text-blue-600 focus:ring-blue-500 rounded" 
-              />
-              <span className="ml-2 text-sm">Manheim</span>
-            </label>
           </div>
         </div>
         
