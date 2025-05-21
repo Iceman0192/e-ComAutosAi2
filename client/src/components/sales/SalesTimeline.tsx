@@ -1,10 +1,18 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceDot } from 'recharts';
-import { SaleHistoryResponse } from '@shared/schema';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useState } from 'react';
 
 interface SalesTimelineProps {
-  salesHistory: SaleHistoryResponse['sale_history'];
+  salesHistory: Array<{
+    id: string;
+    vin: string;
+    sale_date: string;
+    purchase_price?: number;
+    sale_status: string;
+    buyer_state?: string;
+    buyer_country?: string;
+    base_site: string;
+  }>;
   priceTrend: Array<{ month: string; avgPrice: number }>;
 }
 
