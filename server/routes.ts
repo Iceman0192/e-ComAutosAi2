@@ -139,6 +139,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       params.append('size', '30'); // Request maximum records per page
       
       apiUrl = `${apiUrl}?${params.toString()}`;
+      // Check for and prevent double "api" in the URL path
+      if (apiUrl.includes('/api/api/')) {
+        apiUrl = apiUrl.replace('/api/api/', '/api/');
+      }
       console.log(`Trying API URL: ${apiUrl}`);
       
       // Fetch data from API

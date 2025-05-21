@@ -22,8 +22,40 @@ export default function MobileFilters({
     customDateEnd,
     setCustomDateEnd,
     vin,
-    setVin
+    setVin,
+    make,
+    setMake,
+    model,
+    setModel,
+    saleStatus,
+    setSaleStatus,
+    priceMin,
+    setPriceMin,
+    priceMax,
+    setPriceMax,
+    buyerLocation,
+    setBuyerLocation,
+    sites,
+    setSites
   } = filterState;
+  
+  // Helper function to update sale status
+  const updateSaleStatus = (status: string, checked: boolean) => {
+    if (checked) {
+      setSaleStatus([...saleStatus, status]);
+    } else {
+      setSaleStatus(saleStatus.filter(s => s !== status));
+    }
+  };
+
+  // Helper function to update sites
+  const updateSites = (site: string, checked: boolean) => {
+    if (checked) {
+      setSites([...sites, site]);
+    } else {
+      setSites(sites.filter(s => s !== site));
+    }
+  };
 
   return (
     <div 
