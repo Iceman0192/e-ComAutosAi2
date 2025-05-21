@@ -57,12 +57,16 @@ export default function Home() {
     odometer_to: maxMileage
   };
   
-  // Fetch data
+  // State to track if a search has been performed
+  const [hasSearched, setHasSearched] = useState(false);
+  
+  // Fetch data - will only execute when triggered by button click
   const { data, isLoading, error, refetch } = useSalesHistory(filterState);
   
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
-    refetch();
+    setHasSearched(true); // Mark that a search has been performed
+    refetch(); // Explicitly trigger the data fetch
   };
   
   // Location options for dropdown
@@ -289,7 +293,13 @@ export default function Home() {
         
         {/* Results Area */}
         <ErrorBoundary>
-          {isLoading ? (
+          {!hasSearched ? (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <p className="text-gray-700 dark:text-gray-300">
+                Fill in your search criteria above and click "Search Vehicle History" to view results.
+              </p>
+            </div>
+          ) : isLoading ? (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow">
               <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
               <p className="mt-4 text-gray-700 dark:text-gray-300">Loading sales history data...</p>

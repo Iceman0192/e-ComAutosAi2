@@ -32,9 +32,9 @@ export function useSalesHistory(filterState: FilterState) {
       if (filterState.year_from !== undefined) params.append('year_from', filterState.year_from.toString());
       if (filterState.year_to !== undefined) params.append('year_to', filterState.year_to.toString());
       
-      // Auction date range parameters
-      if (filterState.auction_date_from) params.append('auction_date_from', filterState.auction_date_from);
-      if (filterState.auction_date_to) params.append('auction_date_to', filterState.auction_date_to);
+      // Sale date range parameters (renamed from auction_date to match API expectations)
+      if (filterState.auction_date_from) params.append('sale_date_from', filterState.auction_date_from);
+      if (filterState.auction_date_to) params.append('sale_date_to', filterState.auction_date_to);
       
       // Pagination parameters
       if (filterState.page !== undefined) params.append('page', filterState.page.toString());
@@ -59,6 +59,7 @@ export function useSalesHistory(filterState: FilterState) {
 
       return response.data;
     },
-    enabled: Boolean(filterState.make || filterState.model) // Require at least make or model
+    // IMPORTANT: Only enabled when explicitly triggered
+    enabled: false // This prevents automatic fetching on component mount
   });
 }
