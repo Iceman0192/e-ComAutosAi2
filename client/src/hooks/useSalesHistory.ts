@@ -3,8 +3,31 @@ import { SaleHistoryResponse } from "@shared/schema";
 import { FilterState } from "./useFilterState";
 
 interface SalesHistoryData {
-  salesHistory: SaleHistoryResponse['sale_history'];
-  vehicle?: SaleHistoryResponse['vehicle'];
+  salesHistory: Array<{
+    id: string;
+    vin: string;
+    lot_number?: string;
+    sale_date: string;
+    purchase_price?: number;
+    sale_status: string;
+    buyer_state?: string;
+    base_site: string;
+    year?: number;
+    make?: string;
+    model?: string;
+    trim?: string;
+    mileage?: number;
+    title_status?: string;
+  }>;
+  vehicle?: {
+    vin: string;
+    make: string;
+    model: string;
+    year: number;
+    trim?: string;
+    mileage?: number;
+    title_status?: string;
+  };
   stats: {
     totalSales: number;
     averagePrice: number;
