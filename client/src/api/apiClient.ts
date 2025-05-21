@@ -67,19 +67,43 @@ export interface Vehicle {
 
 export interface SalesRecord {
   id: string;
-  vin: string;
   lot_id?: number;
+  vin: string;
   sale_date: string;
-  purchase_price?: number;
   sale_status: string;
+  purchase_price?: number;
   buyer_state?: string;
   buyer_country?: string;
+  buyer_type?: string;
   base_site: string;
   auction_location?: string;
-  vehicle_mileage?: number;
-  vehicle_damage?: string;
+  
+  // Vehicle specific data that might be included directly in sales record
+  year?: number;
+  make?: string;
+  model?: string;
+  series?: string;
+  trim?: string;
+  odometer?: number;
+  vehicle_type?: string;
+  damage_pr?: string;
+  damage_sec?: string;
+  fuel?: string;
+  drive?: string;
+  transmission?: string;
+  color?: string;
+  keys?: string;
+  title?: string;
+  location?: string;
   vehicle_title?: string;
+  vehicle_damage?: string;
+  vehicle_mileage?: number;
   vehicle_has_keys?: boolean;
+  
+  // Image and media links
+  link_img_small?: string[];
+  link_img_hd?: string[];
+  link?: string;
 }
 
 export interface SalesStatistics {
