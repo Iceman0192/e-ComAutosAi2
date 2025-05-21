@@ -125,44 +125,29 @@ export interface SalesHistoryData {
 /**
  * Fetch sales history data based on filters
  */
-export async function fetchSalesHistory(filters: {
-  make: string;
-  model: string;
-  vin?: string;
-  dateRange?: string;
-  customDateStart?: string;
-  customDateEnd?: string;
-  saleStatus?: string[];
-  priceMin?: number;
-  priceMax?: number;
-  buyerLocation?: string;
-  sites?: string[];
-}): Promise<ApiResponse<SalesHistoryData>> {
-  // Build the URL with query parameters
-  const params = new URLSearchParams();
+export async function fetchSalesHistory(params: URLSearchParams | Object): Promise<ApiResponse<SalesHistoryData>> {
+  // Build query string (handle both URLSearchParams and plain objects)
+  let queryString: string;
   
-  if (filters.make) params.append('make', filters.make);
-  if (filters.model) params.append('model', filters.model);
-  if (filters.vin) params.append('vin', filters.vin);
-  if (filters.dateRange) params.append('dateRange', filters.dateRange);
-  
-  if (filters.dateRange === 'custom') {
-    if (filters.customDateStart) params.append('customDateStart', filters.customDateStart);
-    if (filters.customDateEnd) params.append('customDateEnd', filters.customDateEnd);
+  if (params instanceof URLSearchParams) {
+    queryString = params.toString();
+  } else {
+    // Convert object to URLSearchParams
+    const searchParams = new URLSearchParams();
+    
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          value.forEach(item => searchParams.append(key, item.toString()));
+        } else {
+          searchParams.append(key, value.toString());
+        }
+      }
+    }
+    
+    queryString = searchParams.toString();
   }
   
-  if (filters.saleStatus && filters.saleStatus.length > 0) {
-    filters.saleStatus.forEach(status => params.append('saleStatus', status));
-  }
-  
-  if (filters.priceMin !== undefined) params.append('priceMin', filters.priceMin.toString());
-  if (filters.priceMax !== undefined) params.append('priceMax', filters.priceMax.toString());
-  if (filters.buyerLocation) params.append('buyerLocation', filters.buyerLocation);
-  
-  if (filters.sites && filters.sites.length > 0) {
-    filters.sites.forEach(site => params.append('sites', site));
-  }
-  
-  const endpoint = `/api/sales-history?${params.toString()}`;
+  const endpoint = `/api/sales-history?${queryString}`;
   return apiFetch<SalesHistoryData>(endpoint);
 }
