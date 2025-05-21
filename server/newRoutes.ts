@@ -78,8 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Build API URL with the exact format that works with curl
-      const apiUrl = new URL(`${APICAR_BASE_URL}/api/history-cars`);
+      // Build API URL with correct endpoint path format
+      const apiUrl = new URL(`${APICAR_BASE_URL}/history-cars`);
       const params = new URLSearchParams();
       
       // SIMPLIFIED API REQUEST - Use only essential parameters we confirmed work with API
