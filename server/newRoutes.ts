@@ -82,13 +82,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const apiUrl = new URL(`${APICAR_BASE_URL}/api/history-cars`);
       const params = new URLSearchParams();
       
-      // Add all required search parameters
+      // Add all required search parameters - only make is absolutely required
       params.append('make', make);
       
-      // Only add model parameter if it's provided and not undefined
+      // Only add model parameter if it's provided and valid
       if (model && model !== 'undefined' && model !== '') {
         params.append('model', model);
       }
+      
+      // Don't add undefined values to avoid API errors
+      const cleanParams = (key: string, value: any) => {
+        if (value && value !== 'undefined' && value !== '') {
+          params.append(key, value.toString());
+        }
+      };
       
       // Site parameter (1=Copart, 2=IAAI)
       params.append('site', '1');
@@ -100,34 +107,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Year range parameters
-      if (req.query.year_from) {
-        params.append('year_from', req.query.year_from as string);
-      }
-      if (req.query.year_to) {
-        params.append('year_to', req.query.year_to as string);
-      }
+      // Use our clean params helper for all optional parameters
       
-      // Auction date range parameters
+      // Year range parameters
+      cleanParams('year_from', req.query.year_from);
+      cleanParams('year_to', req.query.year_to);
+      
+      // Sale date parameters (rename auction_date to sale_date for API)
       if (req.query.auction_date_from) {
-        params.append('auction_date_from', req.query.auction_date_from as string);
+        cleanParams('sale_date_from', req.query.auction_date_from);
       } else {
         // Default to 3 months ago if not specified
         const defaultStartDate = new Date();
         defaultStartDate.setMonth(defaultStartDate.getMonth() - 3);
-        params.append('auction_date_from', defaultStartDate.toISOString().split('T')[0]);
+        params.append('sale_date_from', defaultStartDate.toISOString().split('T')[0]);
       }
       
       if (req.query.auction_date_to) {
-        params.append('auction_date_to', req.query.auction_date_to as string);
+        cleanParams('sale_date_to', req.query.auction_date_to);
       } else {
         // Default to today if not specified
-        params.append('auction_date_to', new Date().toISOString().split('T')[0]);
+        params.append('sale_date_to', new Date().toISOString().split('T')[0]);
       }
       
       // Pagination parameters
-      params.append('page', req.query.page as string || '1');
-      params.append('size', req.query.size as string || '30'); // Maximum 30 per page
+      cleanParams('page', req.query.page || '1');
+      cleanParams('size', req.query.size || '30'); // Maximum 30 per page
       
       // Call the API
       const fullUrl = `${apiUrl.toString()}?${params.toString()}`;
