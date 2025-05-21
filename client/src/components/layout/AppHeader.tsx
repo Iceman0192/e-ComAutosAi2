@@ -5,6 +5,10 @@ interface AppHeaderProps {
   setSidebarOpen: Dispatch<SetStateAction<boolean>>;
   showFiltersOnMobile: boolean;
   setShowFiltersOnMobile: Dispatch<SetStateAction<boolean>>;
+  make: string;
+  setMake: (make: string) => void;
+  model: string;
+  setModel: (model: string) => void;
   vin: string;
   setVin: (vin: string) => void;
   onRefresh: () => void;
@@ -15,6 +19,10 @@ export default function AppHeader({
   setSidebarOpen,
   showFiltersOnMobile,
   setShowFiltersOnMobile,
+  make,
+  setMake,
+  model,
+  setModel,
   vin,
   setVin,
   onRefresh
