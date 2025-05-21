@@ -78,8 +78,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'VIN is required' });
       }
 
-      // Build API URL
-      const apiUrl = `${APICAR_BASE_URL}/sales-history?vin=${filter.vin}`;
+      // Build API URL - modify the endpoint path to match the APICAR API structure
+      // Let's try a different endpoint path format
+      const apiUrl = `${APICAR_BASE_URL}/v1/vehicles/${filter.vin}/sales-history`;
+      
+      console.log(`Trying API URL: ${apiUrl}`);
       
       // Fetch data from API
       const apiData = await cachedApiRequest(apiUrl);
