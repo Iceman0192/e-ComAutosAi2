@@ -77,8 +77,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Build API URL
-      const apiUrl = new URL(`${APICAR_BASE_URL}/api/history-cars`);
+      // Build API URL - fixed path
+      const apiUrl = new URL(`${APICAR_BASE_URL}/history-cars`);
       const params = new URLSearchParams();
       
       // Required parameters
