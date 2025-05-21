@@ -82,10 +82,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const apiUrl = new URL(`${APICAR_BASE_URL}/api/history-cars`);
       const params = new URLSearchParams();
       
-      // ONLY use exactly these parameters as shown in the example
+      // Add all required search parameters
       params.append('make', make);
       params.append('model', model);
+      
+      // Site parameter (1=Copart, 2=IAAI)
       params.append('site', '1');
+      if (req.query.sites && Array.isArray(req.query.sites)) {
+        for (const site of req.query.sites as string[]) {
+          if (site === 'iaai') {
+            params.append('site', '2');
+          }
+        }
+      }
+      
+      // Year range parameters
+      if (req.query.year_from) {
+        params.append('year_from', req.query.year_from as string);
+      }
+      if (req.query.year_to) {
+        params.append('year_to', req.query.year_to as string);
+      }
+      
+      // Auction date range parameters
+      if (req.query.auction_date_from) {
+        params.append('auction_date_from', req.query.auction_date_from as string);
+      } else {
+        // Default to 3 months ago if not specified
+        const defaultStartDate = new Date();
+        defaultStartDate.setMonth(defaultStartDate.getMonth() - 3);
+        params.append('auction_date_from', defaultStartDate.toISOString().split('T')[0]);
+      }
+      
+      if (req.query.auction_date_to) {
+        params.append('auction_date_to', req.query.auction_date_to as string);
+      } else {
+        // Default to today if not specified
+        params.append('auction_date_to', new Date().toISOString().split('T')[0]);
+      }
+      
+      // Pagination parameters
+      params.append('page', req.query.page as string || '1');
+      params.append('size', req.query.size as string || '30'); // Maximum 30 per page
       
       // Call the API
       const fullUrl = `${apiUrl.toString()}?${params.toString()}`;
