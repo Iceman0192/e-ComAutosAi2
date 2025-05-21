@@ -4,6 +4,10 @@ import { useDateRange, DateRangeType } from "./useDateRange";
 export interface FilterState {
   vin: string;
   setVin: (vin: string) => void;
+  make: string;
+  setMake: (make: string) => void;
+  model: string;
+  setModel: (model: string) => void;
   dateRange: DateRangeType;
   setDateRange: (range: DateRangeType) => void;
   customDateStart: string;
@@ -23,8 +27,11 @@ export interface FilterState {
 }
 
 export function useFilterState(): FilterState {
-  // Set a default VIN for initial load
-  const [vin, setVin] = useState<string>("3GNAXHEV2JS596331");
+  // VIN field is now optional since we're focusing on make/model
+  const [vin, setVin] = useState<string>("");
+  // Set default make/model for initial load
+  const [make, setMake] = useState<string>("Toyota");
+  const [model, setModel] = useState<string>("Tacoma");
   
   // Date range
   const {
@@ -52,6 +59,10 @@ export function useFilterState(): FilterState {
   return {
     vin,
     setVin,
+    make,
+    setMake,
+    model,
+    setModel,
     dateRange,
     setDateRange,
     customDateStart,

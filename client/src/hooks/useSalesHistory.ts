@@ -19,6 +19,8 @@ interface SalesHistoryData {
 export function useSalesHistory(filterState: FilterState) {
   const {
     vin,
+    make,
+    model,
     dateRange,
     customDateStart,
     customDateEnd,
@@ -32,7 +34,8 @@ export function useSalesHistory(filterState: FilterState) {
   return useQuery<SalesHistoryData>({
     queryKey: [
       '/api/sales-history', 
-      vin, 
+      make,
+      model,
       dateRange, 
       customDateStart, 
       customDateEnd, 
@@ -46,8 +49,13 @@ export function useSalesHistory(filterState: FilterState) {
       // Build URL with query parameters
       const url = new URL('/api/sales-history', window.location.origin);
       
-      // Add parameters
+      // Add parameters - focus on make and model as primary identifiers
+      if (make) url.searchParams.append('make', make);
+      if (model) url.searchParams.append('model', model);
+      
+      // Add VIN as an optional parameter if available
       if (vin) url.searchParams.append('vin', vin);
+      
       if (dateRange) url.searchParams.append('dateRange', dateRange);
       if (dateRange === 'custom') {
         if (customDateStart) url.searchParams.append('customDateStart', customDateStart);
@@ -66,8 +74,8 @@ export function useSalesHistory(filterState: FilterState) {
         sites.forEach(site => url.searchParams.append('sites', site));
       }
       
-      // For the first query, don't fetch if VIN is empty
-      if (!vin) {
+      // For the first query, don't fetch if both make and model are empty
+      if (!make || !model) {
         return {
           salesHistory: [],
           vehicle: undefined,
