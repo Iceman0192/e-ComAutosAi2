@@ -87,18 +87,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       params.append('make', make);
       params.append('model', model);
       
-      // We won't use auction_date filters for now as they may be causing
-      // the Bad Request error - the APICAR API works fine with just make/model
-      // Will add back date filters after we confirm basic connectivity
-     
-      // Add page and size for pagination
-      params.append('page', '1');
-      params.append('size', '20');
+      // Add date range parameters
+      const dateRange = req.query.dateRange as string || 'last3m';
+      const today = new Date();
+      let startDate = new Date();
       
-      // Optional VIN filter
+      switch (dateRange) {
+        case 'last3m':
+          startDate.setMonth(today.getMonth() - 3);
+          break;
+        case 'last6m':
+          startDate.setMonth(today.getMonth() - 6);
+          break;
+        case 'lasty':
+          startDate.setFullYear(today.getFullYear() - 1);
+          break;
+        case 'custom':
+          if (req.query.customDateStart) {
+            startDate = new Date(req.query.customDateStart as string);
+          } else {
+            startDate.setMonth(today.getMonth() - 3);
+          }
+          if (req.query.customDateEnd) {
+            today.setTime(new Date(req.query.customDateEnd as string).getTime());
+          }
+          break;
+      }
+      
+      // Format dates as YYYY-MM-DD
+      const formatDate = (date: Date) => date.toISOString().split('T')[0];
+      params.append('sale_date_from', formatDate(startDate));
+      params.append('sale_date_to', formatDate(today));
+      
+      // Vehicle year parameters (if provided)
+      if (req.query.yearMin) {
+        params.append('year_from', req.query.yearMin as string);
+      }
+      if (req.query.yearMax) {
+        params.append('year_to', req.query.yearMax as string);
+      }
+      
+      // Price range parameters
+      if (req.query.priceMin) {
+        params.append('price_from', req.query.priceMin as string);
+      }
+      if (req.query.priceMax) {
+        params.append('price_to', req.query.priceMax as string);
+      }
+      
+      // Mileage parameters
+      if (req.query.mileageMin) {
+        params.append('odometer_from', req.query.mileageMin as string);
+      }
+      if (req.query.mileageMax) {
+        params.append('odometer_to', req.query.mileageMax as string);
+      }
+      
+      // Damage type
+      if (req.query.damageType) {
+        params.append('damage', req.query.damageType as string);
+      }
+      
+      // Optional VIN filter for specific vehicle searches
       if (req.query.vin) {
         params.append('vin', req.query.vin as string);
       }
+      
+      // Title type/status filter
+      if (req.query.titleType) {
+        params.append('document', req.query.titleType as string);
+      }
+      
+      // Add page and size for pagination
+      params.append('page', '1');
+      params.append('size', '30'); // Increased result count
       
       // Add site parameter - simplify for now to get basic connectivity
       // 1=Copart, 2=IAAI
