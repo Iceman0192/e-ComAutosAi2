@@ -70,11 +70,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const make = req.query.make as string;
       const model = req.query.model as string;
       
-      // Basic validation
-      if (!make || !model) {
+      // Only make is absolutely required
+      if (!make) {
         return res.status(400).json({
           success: false,
-          message: "Make and model are required"
+          message: "Vehicle make is required"
         });
       }
       
@@ -153,6 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Map sales records
         for (const item of apiData.data) {
+          // Map all fields from API response to our data model
           const record = {
             id: item.id || '',
             vin: item.vin || '',
@@ -162,12 +163,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
             sale_status: item.sale_status || 'Unknown',
             buyer_state: item.buyer_state || undefined,
             buyer_country: item.buyer_country || undefined,
+            buyer_type: item.buyer_type || undefined,
             base_site: item.base_site || 'Unknown',
             auction_location: item.location || undefined,
+            
+            // Vehicle specific details
+            year: item.year,
+            make: item.make || '',
+            model: item.model || '',
+            series: item.series || item.series_old,
+            trim: item.trim,
+            odometer: item.odometer,
+            vehicle_type: item.vehicle_type,
+            damage_pr: item.damage_pr || undefined,
+            damage_sec: item.damage_sec,
+            fuel: item.fuel,
+            drive: item.drive,
+            transmission: item.transmission,
+            color: item.color,
+            keys: item.keys,
+            title: item.document || item.document_old,
+            location: item.location || item.location_old,
+            
+            // Legacy fields for backward compatibility 
             vehicle_mileage: item.odometer,
             vehicle_damage: item.damage_pr || undefined,
             vehicle_title: item.document || undefined,
-            vehicle_has_keys: item.keys === 'Yes'
+            vehicle_has_keys: item.keys === 'Yes',
+            
+            // Image links and media
+            link_img_small: item.link_img_small || [],
+            link_img_hd: item.link_img_hd || [],
+            link: item.link
           };
           
           salesHistory.push(record);
