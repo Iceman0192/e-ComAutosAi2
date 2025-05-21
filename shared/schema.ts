@@ -59,36 +59,58 @@ export type InsertVehicle = z.infer<typeof insertVehicleSchema>;
 export type Vehicle = typeof vehicles.$inferSelect;
 
 // API schemas for APICAR
+// Updated schema based on actual APICAR API response format
 export const SaleHistoryResponseSchema = z.object({
-  sale_history: z.array(
+  size: z.number(),
+  page: z.number(),
+  pages: z.number(),
+  count: z.number(),
+  data: z.array(
     z.object({
       id: z.string(),
       lot_id: z.number(),
       site: z.number(),
       base_site: z.string(),
+      odometer: z.number().nullable(),
+      year: z.number().nullable(),
+      make: z.string(),
+      model: z.string(),
+      series: z.string().nullable(),
       vin: z.string(),
-      sale_status: z.string(),
-      sale_date: z.string().transform(str => new Date(str)),
-      purchase_price: z.number().optional(),
-      buyer_state: z.string().optional(),
-      buyer_country: z.string().optional(),
-      buyer_type: z.string().optional(),
-      auction_location: z.string().optional(),
-      vehicle_mileage: z.number().optional(),
-      vehicle_damage: z.string().optional(),
-      vehicle_title: z.string().optional(),
-      vehicle_has_keys: z.boolean().optional()
+      sale_status: z.string().optional(),
+      sale_date: z.string().transform(str => new Date(str)).optional(),
+      purchase_price: z.number().optional().nullable(),
+      buyer_state: z.string().optional().nullable(),
+      buyer_country: z.string().optional().nullable(),
+      color: z.string().nullable(),
+      damage_pr: z.string().nullable(),
+      damage_sec: z.string().nullable(),
+      keys: z.string().nullable(),
+      title: z.string().nullable(),
+      engine: z.string().nullable(),
+      location: z.string().nullable(),
+      document: z.string().nullable(),
+      transmission: z.string().nullable(),
+      drive: z.string().nullable(),
+      fuel: z.string().nullable(),
+      link_img_hd: z.array(z.string()).nullable(),
+      link: z.string().nullable(),
+      sale_history: z.array(
+        z.object({
+          id: z.string(),
+          lot_id: z.number(),
+          site: z.number(),
+          base_site: z.string(),
+          vin: z.string(),
+          sale_status: z.string(),
+          sale_date: z.string().transform(str => new Date(str)),
+          purchase_price: z.number().optional().nullable(),
+          buyer_state: z.string().optional().nullable(),
+          buyer_country: z.string().optional().nullable()
+        })
+      ).nullable().optional()
     })
-  ),
-  vehicle: z.object({
-    vin: z.string(),
-    make: z.string(),
-    model: z.string(),
-    year: z.number(),
-    trim: z.string().optional(),
-    mileage: z.number().optional(),
-    title_status: z.string().optional()
-  }).optional()
+  )
 });
 
 export type SaleHistoryResponse = z.infer<typeof SaleHistoryResponseSchema>;
