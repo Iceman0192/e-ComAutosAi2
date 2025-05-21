@@ -84,7 +84,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add all required search parameters
       params.append('make', make);
-      params.append('model', model);
+      
+      // Only add model parameter if it's provided and not undefined
+      if (model && model !== 'undefined' && model !== '') {
+        params.append('model', model);
+      }
       
       // Site parameter (1=Copart, 2=IAAI)
       params.append('site', '1');

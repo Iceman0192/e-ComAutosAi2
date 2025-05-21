@@ -105,48 +105,11 @@ export default function Home() {
           <div className="p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Vehicle Sales History</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {/* Condition filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
-                <div className="flex rounded-md shadow-sm">
-                  <button
-                    onClick={() => setCondition('all')}
-                    className={`px-4 py-2 text-sm flex-1 ${
-                      condition === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    } first:rounded-l-md last:rounded-r-md`}
-                  >
-                    All
-                  </button>
-                  <button
-                    onClick={() => setCondition('used')}
-                    className={`px-4 py-2 text-sm flex-1 ${
-                      condition === 'used'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}
-                  >
-                    Used
-                  </button>
-                  <button
-                    onClick={() => setCondition('salvage')}
-                    className={`px-4 py-2 text-sm flex-1 ${
-                      condition === 'salvage'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    } first:rounded-l-md last:rounded-r-md`}
-                  >
-                    Salvage
-                  </button>
-                </div>
-              </div>
-              
-              {/* Make */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Make - Required */}
               <div>
                 <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Make
+                  Make <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="make"
@@ -154,7 +117,7 @@ export default function Home() {
                   onChange={(e) => setMake(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <option value="">All Makes</option>
+                  <option value="">Select Make</option>
                   <option value="Toyota">Toyota</option>
                   <option value="Honda">Honda</option>
                   <option value="Ford">Ford</option>
@@ -243,63 +206,32 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Mileage Range */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Odometer</label>
-                <div className="flex items-center">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">0</span>
+              {/* Auction Date Range */}
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Auction Date From
+                  </label>
                   <input
-                    type="range"
-                    min="0"
-                    max="250000"
-                    step="10000"
-                    value={maxMileage || 250000}
-                    onChange={(e) => setMaxMileage(parseInt(e.target.value))}
-                    className="flex-1 h-2 w-full bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                    type="date"
+                    id="auctionDateFrom"
+                    value={auctionDateFrom}
+                    onChange={(e) => setAuctionDateFrom(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   />
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">250,000+</span>
                 </div>
-                <div className="text-center mt-1 text-sm text-gray-700 dark:text-gray-300">
-                  {maxMileage ? `0 - ${maxMileage.toLocaleString()} miles` : "All mileages"}
+                <div className="flex-1">
+                  <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Auction Date To
+                  </label>
+                  <input
+                    type="date"
+                    id="auctionDateTo"
+                    value={auctionDateTo}
+                    onChange={(e) => setAuctionDateTo(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
                 </div>
-              </div>
-              
-              {/* Damage Type */}
-              <div>
-                <label htmlFor="damageType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Damage Type
-                </label>
-                <select
-                  id="damageType"
-                  value={damageType}
-                  onChange={(e) => setDamageType(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="all">All Damage Types</option>
-                  <option value="front_end">Front End</option>
-                  <option value="rear_end">Rear End</option>
-                  <option value="side">Side</option>
-                  <option value="minor_dent">Minor Dent/Scratches</option>
-                  <option value="undercarriage">Undercarriage</option>
-                  <option value="mechanical">Mechanical</option>
-                  <option value="frame">Frame</option>
-                  <option value="normal_wear">Normal Wear</option>
-                </select>
-              </div>
-              
-              {/* Location */}
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Location
-                </label>
-                <select
-                  id="location"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  {locationOptions.map((location, index) => (
-                    <option key={index} value={location}>{location}</option>
-                  ))}
-                </select>
               </div>
             </div>
             
