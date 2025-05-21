@@ -60,25 +60,42 @@ export default function AppLayout({ children, filterState, onRefresh }: AppLayou
         </div>
       </div>
       
-      {/* Mobile VIN search and refresh (fixed at bottom on mobile) */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 p-3 flex items-center space-x-2 z-10">
-        <div className="relative flex-1">
-          <span className="material-icons absolute left-3 top-2.5 text-neutral-500">search</span>
-          <input 
-            type="text" 
-            value={filterState.vin}
-            onChange={(e) => filterState.setVin(e.target.value)}
-            placeholder="Enter VIN" 
-            className="pl-10 pr-4 py-2 w-full border border-neutral-300 rounded-md text-sm focus:ring-primary focus:border-primary"
-          />
+      {/* Mobile search and refresh (fixed at bottom on mobile) */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 p-3 z-10">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Make field */}
+          <div className="relative flex-1 min-w-[45%]">
+            <span className="material-icons absolute left-3 top-2.5 text-neutral-500">directions_car</span>
+            <input 
+              type="text" 
+              value={filterState.make}
+              onChange={(e) => filterState.setMake(e.target.value)}
+              placeholder="Make (Toyota)" 
+              className="pl-10 pr-4 py-2 w-full border border-neutral-300 rounded-md text-sm focus:ring-primary focus:border-primary"
+            />
+          </div>
+          
+          {/* Model field */}
+          <div className="relative flex-1 min-w-[45%]">
+            <span className="material-icons absolute left-3 top-2.5 text-neutral-500">model_training</span>
+            <input 
+              type="text" 
+              value={filterState.model}
+              onChange={(e) => filterState.setModel(e.target.value)}
+              placeholder="Model (Tacoma)" 
+              className="pl-10 pr-4 py-2 w-full border border-neutral-300 rounded-md text-sm focus:ring-primary focus:border-primary"
+            />
+          </div>
+          
+          {/* Refresh button */}
+          <button 
+            onClick={onRefresh}
+            className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm flex items-center transition-colors duration-200 w-full mt-2"
+          >
+            <span className="material-icons text-sm mr-1">refresh</span>
+            Search
+          </button>
         </div>
-        <button 
-          onClick={onRefresh}
-          className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm flex items-center transition-colors duration-200"
-        >
-          <span className="material-icons text-sm mr-1">refresh</span>
-          Refresh
-        </button>
       </div>
     </div>
   );
