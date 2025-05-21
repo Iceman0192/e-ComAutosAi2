@@ -61,6 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate and parse request query parameters
       const filter = SalesFilterSchema.parse({
         vin: req.query.vin,
+        make: req.query.make,
+        model: req.query.model,
         dateRange: req.query.dateRange || 'last3m',
         customDateStart: req.query.customDateStart,
         customDateEnd: req.query.customDateEnd,
@@ -75,8 +77,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           undefined
       });
 
-      if (!filter.vin) {
-        return res.status(400).json({ message: 'VIN is required' });
+      // Make and model are required parameters for the APICAR API
+      if (!filter.make || !filter.model) {
+        return res.status(400).json({ message: 'Make and model are required' });
       }
 
       // Build the API URL based on the correct format shown in your example
@@ -86,8 +89,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const params = new URLSearchParams();
       
       // Required parameters according to the API documentation
-      params.append('make', 'Toyota');
-      params.append('model', 'Tacoma');
+      params.append('make', filter.make);
+      params.append('model', filter.model);
       
       // Optional parameters
       if (filter.sites && filter.sites.length > 0) {

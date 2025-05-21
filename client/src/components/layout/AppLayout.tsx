@@ -22,6 +22,10 @@ export default function AppLayout({ children, filterState, onRefresh }: AppLayou
         setSidebarOpen={setSidebarOpen}
         showFiltersOnMobile={showFiltersOnMobile}
         setShowFiltersOnMobile={setShowFiltersOnMobile}
+        make={filterState.make}
+        setMake={filterState.setMake}
+        model={filterState.model}
+        setModel={filterState.setModel}
         vin={filterState.vin}
         setVin={filterState.setVin}
         onRefresh={onRefresh}

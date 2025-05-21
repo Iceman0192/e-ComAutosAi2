@@ -51,14 +51,38 @@ export default function AppHeader({
             <span className="material-icons">filter_list</span>
           </button>
           <div className="hidden md:flex items-center space-x-2">
-            {/* VIN search field */}
+            {/* Make search field */}
+            <div className="relative">
+              <span className="material-icons absolute left-3 top-2.5 text-neutral-500">directions_car</span>
+              <input 
+                type="text" 
+                value={make}
+                onChange={(e) => setMake(e.target.value)}
+                placeholder="Make (e.g., Toyota)" 
+                className="pl-10 pr-4 py-2 border border-neutral-300 rounded-md text-sm focus:ring-primary focus:border-primary"
+              />
+            </div>
+            
+            {/* Model search field */}
+            <div className="relative">
+              <span className="material-icons absolute left-3 top-2.5 text-neutral-500">model_training</span>
+              <input 
+                type="text" 
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                placeholder="Model (e.g., Tacoma)" 
+                className="pl-10 pr-4 py-2 border border-neutral-300 rounded-md text-sm focus:ring-primary focus:border-primary"
+              />
+            </div>
+            
+            {/* Optional VIN search field */}
             <div className="relative">
               <span className="material-icons absolute left-3 top-2.5 text-neutral-500">search</span>
               <input 
                 type="text" 
                 value={vin}
                 onChange={(e) => setVin(e.target.value)}
-                placeholder="Enter VIN" 
+                placeholder="VIN (optional)" 
                 className="pl-10 pr-4 py-2 border border-neutral-300 rounded-md text-sm focus:ring-primary focus:border-primary"
               />
             </div>

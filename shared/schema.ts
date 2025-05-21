@@ -117,6 +117,8 @@ export type SaleHistoryResponse = z.infer<typeof SaleHistoryResponseSchema>;
 
 export const SalesFilterSchema = z.object({
   vin: z.string().optional(),
+  make: z.string().optional(),
+  model: z.string().optional(), 
   dateRange: z.enum(['last3m', 'last6m', 'lasty', 'custom']),
   customDateStart: z.string().optional(),
   customDateEnd: z.string().optional(),
