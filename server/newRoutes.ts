@@ -2,8 +2,8 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import axios from "axios";
 
-// API connection details - ensure base URL does not include trailing slash
-const APICAR_BASE_URL = process.env.APICAR_BASE_URL || "https://api.apicar.store";
+// The exact API URL format that works in curl, avoiding duplicate /api segments
+const APICAR_BASE_URL = "https://api.apicar.store"; // Hardcoded base without /api
 const APICAR_API_KEY = process.env.APICAR_API_KEY || "";
 
 // Simple in-memory cache
@@ -78,9 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Build API URL - using the correct path format
-      // APICAR_BASE_URL already includes /api so we just need to add /history-cars
-      const apiUrl = new URL(`${APICAR_BASE_URL}/history-cars`);
+      // Build API URL with the exact format that works with curl
+      const apiUrl = new URL(`${APICAR_BASE_URL}/api/history-cars`);
       const params = new URLSearchParams();
       
       // ONLY use exactly these parameters as shown in the example
