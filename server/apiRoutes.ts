@@ -17,6 +17,10 @@ export function setupApiRoutes(app: Express) {
       const model = req.query.model as string;
       const page = parseInt(req.query.page as string) || 1;
       const size = parseInt(req.query.size as string) || 25;
+      const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
+      const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
+      const saleFrom = req.query.sale_date_from as string;
+      const saleTo = req.query.sale_date_to as string;
       
       // Validate required parameters
       if (!make) {
@@ -27,8 +31,27 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Call our API client
-      console.log('Sales history request received for:', { make, model, page, size });
-      const apiResponse = await getVehicleSalesHistory(make, model, page, size);
+      console.log('Sales history request received for:', { 
+        make, 
+        model, 
+        page, 
+        size,
+        yearFrom,
+        yearTo,
+        saleFrom,
+        saleTo 
+      });
+      
+      const apiResponse = await getVehicleSalesHistory(
+        make, 
+        model, 
+        page, 
+        size,
+        yearFrom,
+        yearTo,
+        saleFrom,
+        saleTo
+      );
       
       // Handle API errors
       if (!apiResponse.success) {
