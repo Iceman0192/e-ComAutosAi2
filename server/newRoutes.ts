@@ -25,8 +25,13 @@ async function cachedApiRequest(url: string): Promise<any> {
   }
 
   try {
-    // Make the actual API request
-    const response = await axios.get(url, {
+    // FIXED URL CONSTRUCTION: Use exact URL format with /api/ segment
+    const fixedUrl = url.replace("https://api.apicar.store/history-cars", 
+                                "https://api.apicar.store/api/history-cars");
+    console.log("Using fixed URL:", fixedUrl);
+    
+    // Make the actual API request with our fixed URL
+    const response = await axios.get(fixedUrl, {
       headers: {
         'api-key': APICAR_API_KEY,
         'Accept': 'application/json',
