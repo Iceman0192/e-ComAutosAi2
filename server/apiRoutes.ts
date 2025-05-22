@@ -5,6 +5,9 @@
 
 import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
+import { db } from './db';
+import { salesHistory as salesHistoryTable, vehicles as vehiclesTable } from '@shared/schema';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 export function setupApiRoutes(app: Express) {
   /**
@@ -30,28 +33,80 @@ export function setupApiRoutes(app: Express) {
         });
       }
       
-      // Call our API client
-      console.log('Sales history request received for:', { 
-        make, 
-        model, 
-        page, 
-        size,
-        yearFrom,
-        yearTo,
-        saleFrom,
-        saleTo 
-      });
+      // First try to get results from database if we have them
+      let dbResults = [];
+      let apiResponse;
+      let fromDatabase = false;
       
-      const apiResponse = await getVehicleSalesHistory(
-        make, 
-        model, 
-        page, 
-        size,
-        yearFrom,
-        yearTo,
-        saleFrom,
-        saleTo
-      );
+      try {
+        // Check if we have cached results in the database
+        const query = {
+          make: make.toLowerCase(),
+          model: model ? model.toLowerCase() : undefined
+        };
+        
+        console.log('Checking database for cached results with query:', query);
+        
+        const dbSalesHistory = await db.query.salesHistoryTable.findMany({
+          where: (fields) => {
+            let conditions = [
+              eq(fields.make, make)
+            ];
+            
+            if (model) {
+              conditions.push(eq(fields.model, model));
+            }
+            
+            if (yearFrom) {
+              conditions.push(gte(fields.year, yearFrom));
+            }
+            
+            if (yearTo) {
+              conditions.push(lte(fields.year, yearTo));
+            }
+            
+            return and(...conditions);
+          },
+          limit: size,
+          offset: (page - 1) * size
+        });
+        
+        console.log(`Found ${dbSalesHistory.length} results in database cache`);
+        
+        // If we have enough cached results, use them instead of making API call
+        if (dbSalesHistory.length > 0) {
+          dbResults = dbSalesHistory;
+          fromDatabase = true;
+        }
+      } catch (dbError) {
+        console.error('Error querying database:', dbError);
+        // Continue to API call if database query fails
+      }
+      
+      // If we don't have enough cached results, call the API
+      if (!fromDatabase) {
+        console.log('Sales history request sent to API for:', { 
+          make, 
+          model, 
+          page, 
+          size,
+          yearFrom,
+          yearTo,
+          saleFrom,
+          saleTo 
+        });
+        
+        apiResponse = await getVehicleSalesHistory(
+          make, 
+          model, 
+          page, 
+          size,
+          yearFrom,
+          yearTo,
+          saleFrom,
+          saleTo
+        );
+      }
       
       // Handle API errors
       if (!apiResponse.success) {
@@ -67,12 +122,18 @@ export function setupApiRoutes(app: Express) {
       // Format the response
       const salesHistory: any[] = [];
       let vehicle = null;
+      let totalCount = 0;
       let stats = {
         totalSales: 0,
         averagePrice: 0,
         successRate: 0,
         priceTrend: 0
       };
+      
+      // Store API response count if available for pagination
+      if (apiData && apiData.count) {
+        totalCount = apiData.count;
+      }
       
       // Process API data if available
       if (apiData && apiData.data && Array.isArray(apiData.data)) {
@@ -90,8 +151,20 @@ export function setupApiRoutes(app: Express) {
           };
         }
         
-        // Map sales records
+        // Map sales records and filter by year if needed
         apiData.data.forEach((item: any) => {
+          // Skip records that don't match our year range criteria
+          const itemYear = item.year ? parseInt(item.year) : 0;
+          
+          // Apply additional filtering on the server-side for year range
+          if (yearFrom && itemYear && itemYear < yearFrom) {
+            return; // Skip items with year below our minimum
+          }
+          
+          if (yearTo && itemYear && itemYear > yearTo) {
+            return; // Skip items with year above our maximum
+          }
+          
           salesHistory.push({
             id: item.id || '',
             vin: item.vin || '',
@@ -163,7 +236,13 @@ export function setupApiRoutes(app: Express) {
           vehicle,
           stats,
           priceTrend,
-          geographicData
+          geographicData,
+          pagination: {
+            totalCount: totalCount,
+            currentPage: page,
+            pageSize: size,
+            totalPages: Math.ceil(totalCount / size)
+          }
         }
       });
       

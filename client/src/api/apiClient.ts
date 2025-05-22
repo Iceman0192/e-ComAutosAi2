@@ -120,6 +120,12 @@ export interface SalesHistoryData {
   stats: SalesStatistics;
   priceTrend: Array<{ month: string; avgPrice: number }>;
   geographicData: Array<{ state: string; count: number }>;
+  pagination?: {
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }
 
 /**
