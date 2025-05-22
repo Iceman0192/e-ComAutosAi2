@@ -709,11 +709,26 @@ export default function Home() {
                           <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                {sale.link_img_small && sale.link_img_small.length > 0 ? (
+                                {/* Handle different image formats (API direct vs database cached) */}
+                                {sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0 ? (
                                   <img 
                                     src={sale.link_img_small[0]} 
                                     alt={`${sale.year} ${sale.make} ${sale.model}`}
                                     className="h-16 w-24 rounded-sm mr-3 object-cover"
+                                  />
+                                ) : sale.images ? (
+                                  <img 
+                                    src={typeof sale.images === 'string' ? 
+                                      JSON.parse(sale.images)[0] : 
+                                      Array.isArray(sale.images) ? sale.images[0] : ''}
+                                    alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                    className="h-16 w-24 rounded-sm mr-3 object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.onerror = null;
+                                      e.currentTarget.src = '';
+                                      e.currentTarget.className = 'hidden';
+                                      e.currentTarget.parentElement.classList.add('bg-gray-200', 'dark:bg-gray-700', 'flex', 'items-center', 'justify-center');
+                                    }}
                                   />
                                 ) : (
                                   <div className="h-16 w-24 rounded-sm bg-gray-200 dark:bg-gray-700 mr-3 flex items-center justify-center">
