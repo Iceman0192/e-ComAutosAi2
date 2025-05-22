@@ -5,15 +5,21 @@
 /**
  * Format a number as currency (USD)
  */
-export function formatCurrency(value: number | undefined): string {
+export function formatCurrency(value: number | string | undefined): string {
   if (value === undefined) return '$0.00';
+  
+  // Convert string to number if needed
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  
+  // Handle NaN or excessively large numbers (which can cause formatting issues)
+  if (isNaN(numValue) || !isFinite(numValue)) return '$0.00';
   
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(numValue);
 }
 
 /**

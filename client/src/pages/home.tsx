@@ -704,7 +704,7 @@ export default function Home() {
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {data.data.salesHistory.map((sale) => (
+                        {searchResults?.data?.salesHistory?.map((sale) => (
                           <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
@@ -800,7 +800,7 @@ export default function Home() {
               {activeTab === TabType.PHOTOS && (
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {data.data.salesHistory.map((sale) => (
+                    {searchResults?.data?.salesHistory?.map((sale) => (
                       <div key={sale.id} className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="h-48 w-full bg-gray-200 dark:bg-gray-600 relative">
                           {sale.link_img_hd && sale.link_img_hd.length > 0 ? (
