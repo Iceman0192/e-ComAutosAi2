@@ -78,13 +78,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Since APICAR_BASE_URL already includes '/api', we don't need to add it
-// But we need to be careful not to duplicate or omit the path elements
-      const baseUrl = APICAR_BASE_URL.endsWith('/api') 
-        ? APICAR_BASE_URL 
-        : `${APICAR_BASE_URL}/api`;
-        
-      const apiUrl = new URL(`${baseUrl}/history-cars`);
+      // Use the exact URL format we know works with curl
+      const apiUrl = new URL('https://api.apicar.store/api/history-cars');
       const params = new URLSearchParams();
       
       // SIMPLIFIED API REQUEST - Use only essential parameters we confirmed work with API
