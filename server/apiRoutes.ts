@@ -373,20 +373,33 @@ export function setupApiRoutes(app: Express) {
         
         // Get a total count of all records in the database for this make/model
         try {
-          const countQuery = await db.query(`
+          // Use the pool directly for raw SQL queries
+          const countResult = await pool.query(`
             SELECT COUNT(*) as total FROM sales_history 
             WHERE make = $1 ${model ? 'AND model = $2' : ''}
-          `, model ? [make, model] : [make]);
+            ${yearFrom ? 'AND year >= $' + (model ? '3' : '2') : ''}
+            ${yearTo ? 'AND year <= $' + (model ? (yearFrom ? '4' : '3') : (yearFrom ? '3' : '2')) : ''}
+          `, [
+            make,
+            ...(model ? [model] : []),
+            ...(yearFrom ? [yearFrom] : []),
+            ...(yearTo ? [yearTo] : [])
+          ]);
           
-          if (countQuery.rows && countQuery.rows.length > 0) {
-            totalCount = parseInt(countQuery.rows[0].total, 10);
+          if (countResult.rows && countResult.rows.length > 0) {
+            // Update total count based on actual database entries
+            totalCount = parseInt(countResult.rows[0].total, 10);
+            console.log(`Total count from database: ${totalCount} records for ${make} ${model || ''}`);
+            
+            // Make sure we return at least the actual number of results we have
+            totalCount = Math.max(totalCount, page * size);
           } else {
             // Fallback if count query fails
-            totalCount = 1000; // Estimate based on typical results
+            totalCount = Math.max(1000, page * size); // Ensure it's at least showing all current results
           }
         } catch (err) {
           console.error('Error getting total count:', err);
-          totalCount = dbResults.length * 40; // Estimate based on page number
+          totalCount = Math.max(1000, page * size); // Ensure it's at least showing all current results
         }
         
         // Calculate basic statistics from DB results
