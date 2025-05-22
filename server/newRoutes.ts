@@ -78,8 +78,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Build API URL with correct endpoint path format
-      const apiUrl = new URL(`${APICAR_BASE_URL}/history-cars`);
+      // Since APICAR_BASE_URL already includes '/api', we don't need to add it
+// But we need to be careful not to duplicate or omit the path elements
+      const baseUrl = APICAR_BASE_URL.endsWith('/api') 
+        ? APICAR_BASE_URL 
+        : `${APICAR_BASE_URL}/api`;
+        
+      const apiUrl = new URL(`${baseUrl}/history-cars`);
       const params = new URLSearchParams();
       
       // SIMPLIFIED API REQUEST - Use only essential parameters we confirmed work with API
