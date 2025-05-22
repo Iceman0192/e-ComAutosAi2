@@ -3,6 +3,7 @@ import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
 import SalesTimeline from '../components/sales/SalesTimeline';
+import { formatCurrency } from '../utils/formatters';
 
 // Tab enum for better organization
 enum TabType {
@@ -466,7 +467,7 @@ export default function Home() {
                     {searchResults?.data?.salesHistory.length || 0} Results for {make} {model} {yearFrom && yearTo ? `(${yearFrom}-${yearTo})` : ''}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Average sold price: ${Math.round(calculateAveragePrice(searchResults?.data?.salesHistory)).toLocaleString()}
+                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults?.data?.salesHistory))}
                   </p>
                 </div>
                 
