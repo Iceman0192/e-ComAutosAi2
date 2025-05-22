@@ -91,7 +91,8 @@ export function setupApiRoutes(app: Express) {
       
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
-        console.log(`Requesting from APICAR API: https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`);
+        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
+        console.log(`Requesting from APICAR API: ${apiUrl}`);
         
         apiResponse = await getVehicleSalesHistory(
           make, 
@@ -103,6 +104,67 @@ export function setupApiRoutes(app: Express) {
           saleFrom,
           saleTo
         );
+        
+        // Save response to database for future use
+        if (apiResponse?.success && apiResponse.data && apiResponse.data.data) {
+          try {
+            console.log(`Saving ${apiResponse.data.data.length} results to database cache`);
+            
+            // Insert each item into the database
+            const insertPromises = apiResponse.data.data.map(async (item: any) => {
+              try {
+                // Format the data according to our database schema
+                const saleHistoryItem = {
+                  id: `${item.id || item.lot_id}-1`,
+                  lot_id: item.lot_id || 0,
+                  site: item.site || 1,
+                  base_site: item.base_site || 'copart',
+                  vin: item.vin || '',
+                  sale_status: item.sale_status || 'Unknown',
+                  sale_date: item.sale_date ? new Date(item.sale_date) : new Date(),
+                  purchase_price: item.purchase_price || null,
+                  buyer_state: item.buyer_state || null,
+                  buyer_country: item.buyer_country || null,
+                  buyer_type: item.buyer_type || null,
+                  auction_location: item.location || null,
+                  vehicle_mileage: item.odometer || null,
+                  vehicle_damage: item.damage_pr || null,
+                  vehicle_title: item.document || null,
+                  vehicle_has_keys: item.keys === 'Yes',
+                  year: item.year || null,
+                  make: item.make || null,
+                  model: item.model || null,
+                  series: item.series || null,
+                  trim: item.series || null,
+                  transmission: item.transmission || null,
+                  drive: item.drive || null,
+                  fuel: item.fuel || null,
+                  color: item.color || null,
+                  created_at: new Date(),
+                  images: item.link_img_hd ? JSON.stringify(item.link_img_hd) : null,
+                  link: item.link || null
+                };
+                
+                // Insert into database, ignoring duplicates
+                await db.insert(salesHistory).values(saleHistoryItem)
+                  .onConflictDoNothing({ target: salesHistory.id });
+                  
+                return true;
+              } catch (itemError) {
+                console.error('Error inserting item into database:', itemError);
+                return false;
+              }
+            });
+            
+            // Wait for all inserts to complete
+            await Promise.all(insertPromises);
+            
+            console.log('Successfully saved results to database cache');
+          } catch (dbSaveError) {
+            console.error('Error saving API results to database:', dbSaveError);
+            // Continue processing the API response even if we couldn't save to DB
+          }
+        }
       }
       
       // Handle API errors
