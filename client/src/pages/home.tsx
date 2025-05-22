@@ -457,7 +457,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ) : ((console.log("Rendering with data:", searchResults || data)), searchResults?.success && searchResults?.data?.salesHistory && searchResults.data.salesHistory.length > 0) ? (
+          ) : hasSearched && searchResults?.success && searchResults?.data?.salesHistory && searchResults.data.salesHistory.length > 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
               {/* Results Header */}
               <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between">
