@@ -12,12 +12,16 @@ const API_URL = 'https://api.apicar.store/api/history-cars';
 /**
  * Get vehicle sales history directly from the APICAR API
  */
-export async function getVehicleSalesHistory(make: string, model?: string) {
+export async function getVehicleSalesHistory(make: string, model?: string, page: number = 1, size: number = 25) {
   try {
     // Build URL parameters - only what we absolutely need
     const params = new URLSearchParams();
     params.append('make', make);
     params.append('site', '1'); // Copart
+    
+    // Add pagination parameters
+    params.append('page', page.toString());
+    params.append('size', size.toString());
     
     if (model && model !== 'undefined' && model !== '') {
       params.append('model', model);
