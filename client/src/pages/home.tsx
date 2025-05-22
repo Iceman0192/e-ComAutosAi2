@@ -96,29 +96,59 @@ export default function Home() {
   
   // Handle page change - fetch new data with updated page number
   const handlePageChange = (newPage: number) => {
-    // Update the filter state with the new page number
-    filterState.page = newPage;
+    // Create a new filter state with the updated page number
+    // This is important to prevent modifying the original object directly
+    const updatedFilterState = {
+      ...filterState,
+      page: newPage
+    };
     
     // Update state with new page number
     setPage(newPage);
     
-    // Log for debugging
-    console.log(`Changing to page ${newPage} with filter:`, filterState);
+    // Construct URL params manually to ensure we keep all parameters
+    const params = new URLSearchParams();
+    params.append('make', make);
+    if (model) params.append('model', model);
+    if (vin) params.append('vin', vin);
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('page', newPage.toString());
+    params.append('size', resultsPerPage.toString());
     
-    // Refetch with new page number
-    refetch().then(result => {
-      console.log("Received data for page", newPage, result);
-      
-      if (result.data && result.data.pagination) {
-        // Use pagination data from API response
-        setTotalResults(result.data.pagination.totalCount);
-      } else if (result.data && result.data.salesHistory) {
-        // Update with actual count of results
-        setTotalResults(result.data.salesHistory.length);
-      }
-    }).catch(error => {
-      console.error("Error fetching page", newPage, error);
+    // Add date range parameters
+    const { startDate, endDate } = calculateDateRange(dateRange, customDateStart, customDateEnd);
+    params.append('sale_date_from', startDate.toISOString().split('T')[0]);
+    params.append('sale_date_to', endDate.toISOString().split('T')[0]);
+    
+    // Add site filters
+    sites.forEach(site => {
+      if (site === 'copart') params.append('site', '1');
+      if (site === 'iaai') params.append('site', '2');
     });
+    
+    // Fetch directly from the API to avoid resetting the search
+    fetch(`/api/sales-history?${params.toString()}`)
+      .then(response => response.json())
+      .then(result => {
+        console.log("Received data for page", newPage, result);
+        
+        // Update data state
+        if (result.success && result.data) {
+          setData(result);
+          
+          if (result.data.pagination) {
+            setTotalResults(result.data.pagination.totalCount);
+          } else if (result.data.salesHistory) {
+            // If we have more results than shown on this page, estimate more available
+            const displayedCount = result.data.salesHistory.length;
+            setTotalResults(Math.max(displayedCount, totalResults));
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching page", newPage, error);
+      });
   };
   
   // Location options for dropdown
