@@ -21,7 +21,7 @@ export default function Home() {
   const [model, setModel] = useState('');
   const [yearFrom, setYearFrom] = useState(currentYear - 5);
   const [yearTo, setYearTo] = useState(currentYear);
-  const [auctionSource, setAuctionSource] = useState<'copart' | 'iaai'>('copart');
+  const [sites, setSites] = useState<string[]>(['copart', 'iaai']);
   const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
   const [damageType, setDamageType] = useState<string>('all');
   const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
@@ -51,7 +51,7 @@ export default function Home() {
     model,
     year_from: yearFrom,
     year_to: yearTo,
-    site: auctionSource === 'copart' ? 1 : 2, // 1 = Copart, 2 = IAAI
+    sites,
     auction_date_from: auctionDateFrom,
     auction_date_to: auctionDateTo,
     page,
