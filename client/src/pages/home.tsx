@@ -85,7 +85,10 @@ export default function Home() {
         // Add debugging to see what data we're getting back
         console.log("Received data:", result);
         // Update total results count for pagination
-        if (result.data && result.data.salesHistory) {
+        if (result.data && result.data.pagination) {
+          setTotalResults(result.data.pagination.totalCount);
+        } else if (result.data && result.data.salesHistory) {
+          // Fallback to length of current results if no pagination info
           setTotalResults(result.data.salesHistory.length);
         }
       });
@@ -97,7 +100,10 @@ export default function Home() {
     // Refetch with new page number
     refetch().then(result => {
       console.log("Received data:", result);
-      if (result.data && result.data.salesHistory) {
+      if (result.data && result.data.pagination) {
+        setTotalResults(result.data.pagination.totalCount);
+      } else if (result.data && result.data.salesHistory) {
+        // Fallback to length of current results if no pagination info
         setTotalResults(result.data.salesHistory.length);
       }
     });
@@ -771,8 +777,13 @@ export default function Home() {
                   <div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
-                      <span className="font-medium">{Math.min(page * resultsPerPage, data?.data?.salesHistory?.length || 0)}</span> of{' '}
-                      <span className="font-medium">{totalResults}</span> results
+                      <span className="font-medium">
+                        {Math.min(page * resultsPerPage, 
+                          (data?.data?.pagination?.totalCount || data?.data?.salesHistory?.length || 0))}
+                      </span> of{' '}
+                      <span className="font-medium">
+                        {data?.data?.pagination?.totalCount || totalResults || 0}
+                      </span> results
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">
