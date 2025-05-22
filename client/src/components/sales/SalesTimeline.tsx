@@ -198,18 +198,38 @@ export default function SalesTimeline({ salesHistory, priceTrend }: SalesTimelin
     [salesWithPrices]
   );
 
-  // Calculate statistics
-  const prices = salesWithPrices.map(sale => sale.purchase_price!);
-  const lowestPrice = prices.length ? Math.min(...prices) : 0;
-  const highestPrice = prices.length ? Math.max(...prices) : 0;
-  const medianPrice = prices.length ? 
-    [...prices].sort((a, b) => a - b)[Math.floor(prices.length / 2)] : 0;
-  const avgPrice = prices.length ? 
-    prices.reduce((sum, price) => sum + price, 0) / prices.length : 0;
+  // Calculate statistics - ensure numeric values
+  const prices = salesWithPrices.map(sale => {
+    // Convert string price to number if needed
+    return typeof sale.purchase_price === 'string' 
+      ? parseFloat(sale.purchase_price) 
+      : (sale.purchase_price || 0);
+  });
+  
+  // Filter out any NaN values
+  const validPrices = prices.filter(price => !isNaN(price) && isFinite(price));
+  
+  const lowestPrice = validPrices.length ? Math.min(...validPrices) : 0;
+  const highestPrice = validPrices.length ? Math.max(...validPrices) : 0;
+  const medianPrice = validPrices.length ? 
+    [...validPrices].sort((a, b) => a - b)[Math.floor(validPrices.length / 2)] : 0;
+  const avgPrice = validPrices.length ? 
+    validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length : 0;
 
-  // Get dates for lowest and highest prices
-  const lowestPriceSale = salesWithPrices.find(sale => sale.purchase_price === lowestPrice);
-  const highestPriceSale = salesWithPrices.find(sale => sale.purchase_price === highestPrice);
+  // Get dates for lowest and highest prices - with type safety
+  const lowestPriceSale = salesWithPrices.find(sale => {
+    const salePrice = typeof sale.purchase_price === 'string' 
+      ? parseFloat(sale.purchase_price) 
+      : (sale.purchase_price || 0);
+    return salePrice === lowestPrice;
+  });
+  
+  const highestPriceSale = salesWithPrices.find(sale => {
+    const salePrice = typeof sale.purchase_price === 'string' 
+      ? parseFloat(sale.purchase_price) 
+      : (sale.purchase_price || 0);
+    return salePrice === highestPrice;
+  });
 
   // Calculate price trend percentage
   let trendPercentage = 0;
