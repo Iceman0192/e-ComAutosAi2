@@ -5,7 +5,7 @@
 
 import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
-import { db } from './db';
+import { db, pool } from './db';
 import { salesHistory, vehicles } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
@@ -108,6 +108,7 @@ export function setupApiRoutes(app: Express) {
           if (yearFrom) queryParams.push(yearFrom.toString());
           if (yearTo) queryParams.push(yearTo.toString());
           
+          // Pool is now imported at the top of the file
           const countResult = await pool.query(countQuery, queryParams);
           const totalCount = parseInt(countResult.rows[0]?.total || '0');
           
