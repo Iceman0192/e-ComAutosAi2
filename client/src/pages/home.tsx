@@ -769,7 +769,7 @@ export default function Home() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm font-bold text-gray-900 dark:text-white">
-                                {sale.purchase_price ? `$${sale.purchase_price.toLocaleString()} USD` : 'N/A'}
+                                {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
                                 Item# {sale.id.substring(0, 4)}
