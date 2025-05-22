@@ -336,7 +336,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ) : ((console.log("Received data:", data)), data?.data?.salesHistory && data.data.salesHistory.length > 0) ? (
+          ) : ((console.log("Received data:", data)), data?.success && data?.data?.salesHistory && data.data.salesHistory.length > 0) ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
               {/* Results Header */}
               <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between">
@@ -564,7 +564,7 @@ export default function Home() {
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {data.salesHistory.map((sale) => (
+                        {data.data.salesHistory.map((sale) => (
                           <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
@@ -660,7 +660,7 @@ export default function Home() {
               {activeTab === TabType.PHOTOS && (
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {data.salesHistory.map((sale) => (
+                    {data.data.salesHistory.map((sale) => (
                       <div key={sale.id} className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="h-48 w-full bg-gray-200 dark:bg-gray-600 relative">
                           {sale.link_img_hd && sale.link_img_hd.length > 0 ? (
@@ -733,8 +733,8 @@ export default function Home() {
                   <div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
-                      <span className="font-medium">{Math.min(page * resultsPerPage, data.stats.totalSales)}</span> of{' '}
-                      <span className="font-medium">{data.stats.totalSales}</span> results
+                      <span className="font-medium">{Math.min(page * resultsPerPage, data.data.salesHistory.length)}</span> of{' '}
+                      <span className="font-medium">{data.data.salesHistory.length}</span> results
                     </p>
                   </div>
                   <div>
