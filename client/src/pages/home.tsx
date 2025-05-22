@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
+import SalesTimeline from '../components/sales/SalesTimeline';
 
 // Tab enum for better organization
 enum TabType {
+  TIMELINE = "timeline",
   TABLE = "table",
   PHOTOS = "photos"
 }
@@ -39,7 +41,7 @@ export default function Home() {
   const [resultsPerPage, setResultsPerPage] = useState(30);
   
   // UI state
-  const [activeTab, setActiveTab] = useState<TabType>(TabType.TABLE);
+  const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
   
   // Combine filter state for API request
   const filterState: FilterState = {
@@ -750,7 +752,7 @@ export default function Home() {
                         </svg>
                       </button>
                       
-                      {Array.from({ length: Math.min(5, Math.ceil(data.stats.totalSales / resultsPerPage)) }, (_, i) => (
+                      {Array.from({ length: Math.min(5, Math.ceil(data.data.salesHistory.length / resultsPerPage)) }, (_, i) => (
                         <button
                           key={i}
                           onClick={() => setPage(i + 1)}
@@ -766,7 +768,7 @@ export default function Home() {
                       
                       <button
                         onClick={() => setPage(page + 1)}
-                        disabled={page >= Math.ceil(data.stats.totalSales / resultsPerPage)}
+                        disabled={page >= Math.ceil(data.data.salesHistory.length / resultsPerPage)}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                       >
                         <span className="sr-only">Next</span>
