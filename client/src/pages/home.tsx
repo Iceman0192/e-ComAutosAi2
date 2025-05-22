@@ -509,8 +509,8 @@ export default function Home() {
               {activeTab === TabType.TIMELINE && (
                 <div className="p-4">
                   <SalesTimeline 
-                    salesHistory={data?.data?.salesHistory || []}
-                    priceTrend={data?.data?.priceTrend || []}
+                    salesHistory={searchResults?.data?.salesHistory || []}
+                    priceTrend={searchResults?.data?.priceTrend || []}
                   />
                 </div>
               )}
