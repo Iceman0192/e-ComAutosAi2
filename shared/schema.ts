@@ -33,7 +33,21 @@ export const salesHistory = pgTable("sales_history", {
   vehicle_mileage: integer("vehicle_mileage"),
   vehicle_damage: text("vehicle_damage"),
   vehicle_title: text("vehicle_title"),
-  vehicle_has_keys: boolean("vehicle_has_keys")
+  vehicle_has_keys: boolean("vehicle_has_keys"),
+  // Additional vehicle-specific information
+  year: integer("year"),
+  make: text("make"),
+  model: text("model"),
+  series: text("series"),
+  trim: text("trim"),
+  transmission: text("transmission"),
+  drive: text("drive"),
+  fuel: text("fuel"),
+  color: text("color"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  // Store image URLs as JSON
+  images: text("images"),
+  link: text("link")
 });
 
 export const insertSaleHistorySchema = createInsertSchema(salesHistory);
