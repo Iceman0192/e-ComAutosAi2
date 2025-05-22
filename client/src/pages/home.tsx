@@ -66,7 +66,11 @@ export default function Home() {
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
-    refetch(); // Explicitly trigger the data fetch
+    refetch() // Explicitly trigger the data fetch
+      .then(result => {
+        // Add debugging to see what data we're getting back
+        console.log("Search results data:", result);
+      });
   };
   
   // Location options for dropdown
