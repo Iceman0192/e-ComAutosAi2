@@ -96,16 +96,28 @@ export default function Home() {
   
   // Handle page change - fetch new data with updated page number
   const handlePageChange = (newPage: number) => {
+    // Update the filter state with the new page number
+    filterState.page = newPage;
+    
+    // Update state with new page number
     setPage(newPage);
+    
+    // Log for debugging
+    console.log(`Changing to page ${newPage} with filter:`, filterState);
+    
     // Refetch with new page number
     refetch().then(result => {
-      console.log("Received data:", result);
+      console.log("Received data for page", newPage, result);
+      
       if (result.data && result.data.pagination) {
+        // Use pagination data from API response
         setTotalResults(result.data.pagination.totalCount);
       } else if (result.data && result.data.salesHistory) {
-        // Fallback to length of current results if no pagination info
+        // Update with actual count of results
         setTotalResults(result.data.salesHistory.length);
       }
+    }).catch(error => {
+      console.error("Error fetching page", newPage, error);
     });
   };
   
