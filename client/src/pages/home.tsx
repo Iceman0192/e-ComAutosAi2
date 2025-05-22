@@ -38,7 +38,8 @@ export default function Home() {
   
   // Pagination
   const [page, setPage] = useState(1);
-  const [resultsPerPage, setResultsPerPage] = useState(30);
+  const [resultsPerPage, setResultsPerPage] = useState(25); // API supports up to 25 per page
+  const [totalResults, setTotalResults] = useState(0);
   
   // UI state
   const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
@@ -82,8 +83,24 @@ export default function Home() {
     refetch() // Explicitly trigger the data fetch
       .then(result => {
         // Add debugging to see what data we're getting back
-        console.log("Search results data:", result);
+        console.log("Received data:", result);
+        // Update total results count for pagination
+        if (result.data && result.data.salesHistory) {
+          setTotalResults(result.data.salesHistory.length);
+        }
       });
+  };
+  
+  // Handle page change - fetch new data with updated page number
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    // Refetch with new page number
+    refetch().then(result => {
+      console.log("Received data:", result);
+      if (result.data && result.data.salesHistory) {
+        setTotalResults(result.data.salesHistory.length);
+      }
+    });
   };
   
   // Location options for dropdown
@@ -737,14 +754,14 @@ export default function Home() {
               <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
-                    onClick={() => setPage(Math.max(1, page - 1))}
+                    onClick={() => handlePageChange(Math.max(1, page - 1))}
                     disabled={page <= 1}
                     className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                   >
                     Previous
                   </button>
                   <button
-                    onClick={() => setPage(page + 1)}
+                    onClick={() => handlePageChange(page + 1)}
                     className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
                   >
                     Next
@@ -754,14 +771,37 @@ export default function Home() {
                   <div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
-                      <span className="font-medium">{Math.min(page * resultsPerPage, data.data.salesHistory.length)}</span> of{' '}
-                      <span className="font-medium">{data.data.salesHistory.length}</span> results
+                      <span className="font-medium">{Math.min(page * resultsPerPage, data?.data?.salesHistory?.length || 0)}</span> of{' '}
+                      <span className="font-medium">{totalResults}</span> results
                     </p>
                   </div>
-                  <div>
+                  <div className="flex items-center space-x-4">
+                    {/* Results per page selector */}
+                    <div className="flex items-center">
+                      <label htmlFor="resultsPerPage" className="text-sm text-gray-700 dark:text-gray-300 mr-2">
+                        Per page:
+                      </label>
+                      <select
+                        id="resultsPerPage"
+                        value={resultsPerPage}
+                        onChange={(e) => {
+                          setResultsPerPage(Number(e.target.value));
+                          // Reset to page 1 when changing results per page
+                          setPage(1);
+                          // Refetch with new page size
+                          setTimeout(() => refetch(), 0);
+                        }}
+                        className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm py-1 px-2"
+                      >
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="25">25</option>
+                      </select>
+                    </div>
+                  
                     <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                       <button
-                        onClick={() => setPage(Math.max(1, page - 1))}
+                        onClick={() => handlePageChange(Math.max(1, page - 1))}
                         disabled={page <= 1}
                         className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                       >
@@ -771,10 +811,10 @@ export default function Home() {
                         </svg>
                       </button>
                       
-                      {Array.from({ length: Math.min(5, Math.ceil(data.data.salesHistory.length / resultsPerPage)) }, (_, i) => (
+                      {Array.from({ length: Math.min(5, Math.ceil(totalResults / resultsPerPage) || 1) }, (_, i) => (
                         <button
                           key={i}
-                          onClick={() => setPage(i + 1)}
+                          onClick={() => handlePageChange(i + 1)}
                           className={`relative inline-flex items-center px-4 py-2 border ${
                             page === i + 1
                               ? 'z-10 bg-blue-50 dark:bg-blue-900 border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-200'
@@ -786,8 +826,8 @@ export default function Home() {
                       ))}
                       
                       <button
-                        onClick={() => setPage(page + 1)}
-                        disabled={page >= Math.ceil(data.data.salesHistory.length / resultsPerPage)}
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={page >= Math.ceil(totalResults / resultsPerPage) || totalResults === 0}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                       >
                         <span className="sr-only">Next</span>
