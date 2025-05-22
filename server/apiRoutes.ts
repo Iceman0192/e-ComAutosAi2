@@ -284,9 +284,36 @@ export function setupApiRoutes(app: Express) {
           stats.priceTrend = 5; // Assuming 5% increase
         }
       } else if (fromDatabase) {
-        // Use the database results
+        // Process database results to match API format
+        dbResults.forEach(item => {
+          // Parse purchase_price as a number if it's a string
+          if (typeof item.purchase_price === 'string') {
+            item.purchase_price = parseFloat(item.purchase_price);
+          }
+          
+          // Parse vehicle_mileage as a number if it's a string
+          if (typeof item.vehicle_mileage === 'string') {
+            item.vehicle_mileage = parseInt(item.vehicle_mileage, 10);
+          }
+          
+          // Convert images JSON string to array format used by API
+          if (item.images && typeof item.images === 'string') {
+            try {
+              const parsedImages = JSON.parse(item.images);
+              // Add these parsed images to both link_img_small and link_img_hd for UI compatibility
+              item.link_img_small = parsedImages;
+              item.link_img_hd = parsedImages;
+            } catch (e) {
+              console.log('Error parsing images JSON:', e);
+              item.link_img_small = [];
+              item.link_img_hd = [];
+            }
+          }
+        });
+        
+        // Use the processed database results
         salesHistoryList.push(...dbResults);
-        totalCount = dbResults.length; // This is not accurate for pagination, but it's what we have
+        totalCount = dbResults.length; 
         
         // Calculate basic statistics from DB results
         stats.totalSales = salesHistoryList.length;
@@ -294,7 +321,8 @@ export function setupApiRoutes(app: Express) {
         // Calculate average price
         const validPrices = salesHistoryList
           .filter(sale => sale.purchase_price)
-          .map(sale => sale.purchase_price);
+          .map(sale => typeof sale.purchase_price === 'string' ? 
+            parseFloat(sale.purchase_price) : sale.purchase_price);
           
         if (validPrices.length > 0) {
           stats.averagePrice = validPrices.reduce((acc, price) => acc + price, 0) / validPrices.length;
