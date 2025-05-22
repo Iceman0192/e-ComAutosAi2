@@ -457,16 +457,16 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ) : ((console.log("Received data:", data)), data?.success && data?.data?.salesHistory && data.data.salesHistory.length > 0) ? (
+          ) : ((console.log("Rendering with data:", searchResults || data)), searchResults?.success && searchResults?.data?.salesHistory && searchResults.data.salesHistory.length > 0) ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
               {/* Results Header */}
               <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {data?.data?.salesHistory.length} Results for {make} {model} {yearFrom && yearTo ? `(${yearFrom}-${yearTo})` : ''}
+                    {searchResults?.data?.salesHistory.length || 0} Results for {make} {model} {yearFrom && yearTo ? `(${yearFrom}-${yearTo})` : ''}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Average sold price: ${Math.round(calculateAveragePrice(data?.data?.salesHistory)).toLocaleString()}
+                    Average sold price: ${Math.round(calculateAveragePrice(searchResults?.data?.salesHistory)).toLocaleString()}
                   </p>
                 </div>
                 
@@ -875,11 +875,11 @@ export default function Home() {
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
                       <span className="font-medium">
                         {Math.min(page * resultsPerPage, 
-                          (data?.data?.pagination?.totalCount || data?.data?.salesHistory?.length || 0))}
+                          (searchResults?.data?.pagination?.totalCount || searchResults?.data?.salesHistory?.length || 0))}
                       </span> of{' '}
                       <span className="font-medium">
                         {/* Always show at least the number of visible results + more */}
-                        {Math.max(data?.data?.pagination?.totalCount || 0, data?.data?.salesHistory?.length || 0, totalResults || 25)}
+                        {Math.max(searchResults?.data?.pagination?.totalCount || 0, searchResults?.data?.salesHistory?.length || 0, totalResults || 25)}
                       </span> results
                     </p>
                   </div>
