@@ -231,13 +231,19 @@ export default function SalesTimeline({ salesHistory, priceTrend }: SalesTimelin
     return salePrice === highestPrice;
   });
 
-  // Calculate price trend percentage
+  // Calculate price trend percentage with string/number type safety
   let trendPercentage = 0;
-  if (salesWithPrices.length >= 2 && salesWithPrices[0].purchase_price && salesWithPrices[salesWithPrices.length - 1].purchase_price) {
-    const firstPrice = salesWithPrices[0].purchase_price;
-    const lastPrice = salesWithPrices[salesWithPrices.length - 1].purchase_price || 0;
-    if (firstPrice > 0) {
-      trendPercentage = ((lastPrice - firstPrice) / firstPrice) * 100;
+  if (salesWithPrices.length >= 2) {
+    const firstPriceVal = typeof salesWithPrices[0].purchase_price === 'string' 
+      ? parseFloat(salesWithPrices[0].purchase_price) 
+      : (salesWithPrices[0].purchase_price || 0);
+    
+    const lastPriceVal = typeof salesWithPrices[salesWithPrices.length - 1].purchase_price === 'string'
+      ? parseFloat(salesWithPrices[salesWithPrices.length - 1].purchase_price)
+      : (salesWithPrices[salesWithPrices.length - 1].purchase_price || 0);
+    
+    if (firstPriceVal > 0) {
+      trendPercentage = ((lastPriceVal - firstPriceVal) / firstPriceVal) * 100;
     }
   }
 
