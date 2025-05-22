@@ -355,10 +355,20 @@ export default function Home() {
                 <div className="flex mt-2 sm:mt-0">
                   <button
                     className={`px-4 py-2 text-sm font-medium ${
+                      activeTab === TabType.TIMELINE
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                    onClick={() => setActiveTab(TabType.TIMELINE)}
+                  >
+                    Timeline
+                  </button>
+                  <button
+                    className={`px-4 py-2 text-sm font-medium ${
                       activeTab === TabType.TABLE
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                    } rounded-l-md`}
+                    }`}
                     onClick={() => setActiveTab(TabType.TABLE)}
                   >
                     Table View
@@ -368,7 +378,7 @@ export default function Home() {
                       activeTab === TabType.PHOTOS
                         ? 'bg-blue-600 text-white'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                    } rounded-r-md`}
+                    }`}
                     onClick={() => setActiveTab(TabType.PHOTOS)}
                   >
                     Photo Grid
@@ -377,6 +387,15 @@ export default function Home() {
               </div>
               
               {/* Result content based on active tab */}
+              {activeTab === TabType.TIMELINE && (
+                <div className="p-4">
+                  <SalesTimeline 
+                    salesHistory={data?.data?.salesHistory || []}
+                    priceTrend={data?.data?.priceTrend || []}
+                  />
+                </div>
+              )}
+              
               {activeTab === TabType.TABLE && (
                 <div className="flex flex-col lg:flex-row">
                   {/* Secondary filters sidebar (appears after search results) */}
