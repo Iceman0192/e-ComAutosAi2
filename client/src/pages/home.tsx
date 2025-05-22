@@ -892,7 +892,12 @@ export default function Home() {
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
                       <span className="font-medium">
                         {Math.min(page * resultsPerPage, 
-                          (searchResults?.data?.pagination?.totalCount || searchResults?.data?.salesHistory?.length || 0))}
+                          Math.max(
+                            searchResults?.data?.pagination?.totalCount || 0,
+                            searchResults?.data?.salesHistory?.length || 0, 
+                            totalResults || 0
+                          )
+                        )}
                       </span> of{' '}
                       <span className="font-medium">
                         {/* Always show at least the number of visible results + more */}
