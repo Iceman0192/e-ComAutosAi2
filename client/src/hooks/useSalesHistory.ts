@@ -36,7 +36,7 @@ export function useSalesHistory(filterState: FilterState) {
       if (filterState.auction_date_from) params.append('sale_date_from', filterState.auction_date_from);
       if (filterState.auction_date_to) params.append('sale_date_to', filterState.auction_date_to);
       
-      // Pagination parameters
+      // Pagination parameters - IMPORTANT for fetching different pages
       if (filterState.page !== undefined) params.append('page', filterState.page.toString());
       if (filterState.size !== undefined) params.append('size', filterState.size.toString());
       
@@ -51,6 +51,10 @@ export function useSalesHistory(filterState: FilterState) {
         if (filterState.sites.includes('iaai')) params.append('site', '2');
       }
       
+      console.log(`Fetching page ${filterState.page} with size ${filterState.size} and params:`, 
+        Object.fromEntries(params.entries())
+      );
+      
       const response = await fetchSalesHistory(params);
 
       if (!response.success) {
@@ -59,7 +63,7 @@ export function useSalesHistory(filterState: FilterState) {
 
       return response.data;
     },
-    // IMPORTANT: Only enabled when explicitly triggered
+    // This is critical - we want the query to refetch when filterState (including page) changes
     enabled: false // This prevents automatic fetching on component mount
   });
 }

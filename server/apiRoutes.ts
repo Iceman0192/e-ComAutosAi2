@@ -109,15 +109,12 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Handle API errors
-      if (!apiResponse.success) {
+      if (!fromDatabase && (!apiResponse || !apiResponse.success)) {
         return res.status(500).json({
           success: false,
-          message: apiResponse.message || 'Error fetching sales history'
+          message: apiResponse?.message || 'Error fetching sales history'
         });
       }
-      
-      // Process the API data into our application format
-      const apiData = apiResponse.data;
       
       // Format the response
       const salesHistory: any[] = [];
@@ -130,10 +127,14 @@ export function setupApiRoutes(app: Express) {
         priceTrend: 0
       };
       
-      // Store API response count if available for pagination
-      if (apiData && apiData.count) {
-        totalCount = apiData.count;
-      }
+      // Process API data if available
+      if (!fromDatabase && apiResponse && apiResponse.data) {
+        const apiData = apiResponse.data;
+        
+        // Store API response count if available for pagination
+        if (apiData && apiData.count) {
+          totalCount = apiData.count;
+        }
       
       // Process API data if available
       if (apiData && apiData.data && Array.isArray(apiData.data)) {
