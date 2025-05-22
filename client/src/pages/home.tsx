@@ -325,7 +325,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ) : data?.salesHistory && data.salesHistory.length > 0 ? (
+          ) : ((console.log("Received data:", data)), data && data.salesHistory && data.salesHistory.length > 0) ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
               {/* Results Header */}
               <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between">
