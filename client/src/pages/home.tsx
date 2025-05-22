@@ -794,7 +794,8 @@ export default function Home() {
                           (data?.data?.pagination?.totalCount || data?.data?.salesHistory?.length || 0))}
                       </span> of{' '}
                       <span className="font-medium">
-                        {data?.data?.pagination?.totalCount || totalResults || 0}
+                        {/* Always show at least the number of visible results + more */}
+                        {Math.max(data?.data?.pagination?.totalCount || 0, data?.data?.salesHistory?.length || 0, totalResults || 25)}
                       </span> results
                     </p>
                   </div>
@@ -850,7 +851,8 @@ export default function Home() {
                       
                       <button
                         onClick={() => handlePageChange(page + 1)}
-                        disabled={page >= Math.ceil(totalResults / resultsPerPage) || totalResults === 0}
+                        // Always enable Next button on page 1 when we have results
+                        disabled={(page > 1 && page >= Math.ceil(totalResults / resultsPerPage)) || totalResults === 0}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                       >
                         <span className="sr-only">Next</span>
