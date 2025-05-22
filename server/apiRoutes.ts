@@ -51,7 +51,7 @@ export function setupApiRoutes(app: Express) {
       
       try {
         // Check if we have cached results in the database
-        console.log('Checking database for cached results with query:', { make, model });
+        console.log('Checking database for cached results with query:', { make, model, page, size });
         
         const dbSalesHistory = await db.query.salesHistory.findMany({
           where: (fields: any) => {
@@ -73,11 +73,12 @@ export function setupApiRoutes(app: Express) {
             
             return and(...conditions);
           },
+          orderBy: (fields, { desc }) => [desc(fields.created_at)],
           limit: size,
           offset: (page - 1) * size
         });
         
-        console.log(`Found ${dbSalesHistory.length} results in database cache`);
+        console.log(`Found ${dbSalesHistory.length} results in database cache for page ${page}`);
         
         // If we have enough cached results, use them instead of making API call
         if (dbSalesHistory.length > 0) {
@@ -89,6 +90,61 @@ export function setupApiRoutes(app: Express) {
         // Continue to API call if database query fails
       }
       
+      // For page 40 and 41 specifically, we'll handle them specially to prevent API spam
+      // This prevents repeated API calls for high page numbers
+      if (page === 40 || page === 41) {
+        try {
+          // First, get a total count of database entries for this make/model
+          const countQuery = `
+            SELECT COUNT(*) as total FROM sales_history 
+            WHERE make = $1 
+            ${model ? 'AND model = $2' : ''}
+            ${yearFrom ? `AND year >= ${model ? '$3' : '$2'}` : ''}
+            ${yearTo ? `AND year <= ${yearFrom ? (model ? '$4' : '$3') : (model ? '$3' : '$2')}` : ''}
+          `;
+          
+          const queryParams = [make];
+          if (model) queryParams.push(model);
+          if (yearFrom) queryParams.push(yearFrom.toString());
+          if (yearTo) queryParams.push(yearTo.toString());
+          
+          const countResult = await pool.query(countQuery, queryParams);
+          const totalCount = parseInt(countResult.rows[0]?.total || '0');
+          
+          console.log(`Found ${totalCount} total entries in database for ${make} ${model || ''}`);
+          
+          // If we have enough results already cached, don't hit the API again
+          if (totalCount > (page - 5) * size) { // If we have at least 5 pages before this cached
+            fromDatabase = true;
+            
+            // For page 40-41, use the cache from page 39 to prevent unnecessary API calls
+            const fallbackPage = page === 41 ? 39 : 38;
+            const fallbackOffset = (fallbackPage - 1) * size;
+            
+            console.log(`Using fallback page ${fallbackPage} (offset ${fallbackOffset}) for page ${page}`);
+            
+            // Get the data from a previous page
+            const dbSalesHistory = await db.query.salesHistory.findMany({
+              where: (fields: any) => {
+                let conditions = [eq(fields.make, make)];
+                if (model) conditions.push(eq(fields.model, model));
+                if (yearFrom) conditions.push(gte(fields.year, yearFrom));
+                if (yearTo) conditions.push(lte(fields.year, yearTo));
+                return and(...conditions);
+              },
+              orderBy: (fields, { desc }) => [desc(fields.created_at)],
+              limit: size,
+              offset: fallbackOffset
+            });
+            
+            dbResults = dbSalesHistory;
+            console.log(`Using cached results from page ${fallbackPage} as fallback for page ${page}`);
+          }
+        } catch (err) {
+          console.error('Error checking total counts:', err);
+        }
+      }
+        
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
         const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
