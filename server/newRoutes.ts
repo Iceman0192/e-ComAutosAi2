@@ -2,38 +2,48 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import axios from "axios";
 
-// The exact API URL format that works in curl, avoiding duplicate /api segments
-const APICAR_BASE_URL = "https://api.apicar.store"; // Hardcoded base without /api
-const APICAR_API_KEY = process.env.APICAR_API_KEY || "";
+// API configuration
+const API_KEY = process.env.APICAR_API_KEY || "";
 
 // Simple in-memory cache
 const cache = new Map<string, { data: any; expiry: number }>();
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
-// Helper function for API requests with caching
-async function cachedApiRequest(url: string): Promise<any> {
-  // Check cache first
-  const cacheKey = url;
+/**
+ * Make a direct API request to APICAR with proper authentication
+ */
+async function apicarRequest(make: string, model?: string): Promise<any> {
+  const cacheKey = `${make}-${model || ''}`;
   const now = Date.now();
   
+  // Check cache first
   if (cache.has(cacheKey)) {
     const cached = cache.get(cacheKey)!;
     if (cached.expiry > now) {
+      console.log(`Using cached data for ${cacheKey}`);
       return cached.data;
     }
     cache.delete(cacheKey);
   }
-
+  
   try {
-    // FIXED URL CONSTRUCTION: Use exact URL format with /api/ segment
-    const fixedUrl = url.replace("https://api.apicar.store/history-cars", 
-                                "https://api.apicar.store/api/history-cars");
-    console.log("Using fixed URL:", fixedUrl);
+    // Construct URL with only the parameters we know work
+    const url = 'https://api.apicar.store/api/history-cars';
+    const params = new URLSearchParams();
+    params.append('make', make);
+    params.append('site', '1'); // Copart
     
-    // Make the actual API request with our fixed URL
-    const response = await axios.get(fixedUrl, {
+    if (model && model !== 'undefined' && model !== '') {
+      params.append('model', model);
+    }
+    
+    const fullUrl = `${url}?${params.toString()}`;
+    console.log("API Request:", fullUrl);
+    
+    // Make API request
+    const response = await axios.get(fullUrl, {
       headers: {
-        'api-key': APICAR_API_KEY,
+        'api-key': API_KEY,
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },

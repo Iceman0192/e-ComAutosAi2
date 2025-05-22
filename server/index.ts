@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./newRoutes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupApiRoutes } from "./simpleApi"; // Use our new simplified API implementation
 
 const app = express();
 app.use(express.json());
