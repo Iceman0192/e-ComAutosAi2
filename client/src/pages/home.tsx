@@ -74,52 +74,26 @@ export default function Home() {
     return total / salesWithPrices.length;
   };
 
+  // State to hold the actual results data
+  const [searchResults, setSearchResults] = useState<any>(null);
+  
   // Fetch data - will only execute when triggered by button click
   const { data, isLoading, error, refetch } = useSalesHistory(filterState);
   
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
-    refetch() // Explicitly trigger the data fetch
-      .then(result => {
-        // Add debugging to see what data we're getting back
-        console.log("Received data:", result);
-        // Update total results count for pagination
-        if (result.data && result.data.pagination) {
-          setTotalResults(result.data.pagination.totalCount);
-        } else if (result.data && result.data.salesHistory) {
-          // Fallback to length of current results if no pagination info
-          setTotalResults(result.data.salesHistory.length);
-        }
-      });
-  };
-  
-  // Handle page change - fetch new data with updated page number
-  const handlePageChange = (newPage: number) => {
-    // Create a new filter state with the updated page number
-    // This is important to prevent modifying the original object directly
-    const updatedFilterState = {
-      ...filterState,
-      page: newPage
-    };
     
-    // Update state with new page number
-    setPage(newPage);
-    
-    // Construct URL params manually to ensure we keep all parameters
+    // Build parameters for initial search
     const params = new URLSearchParams();
     params.append('make', make);
     if (model) params.append('model', model);
-    if (vin) params.append('vin', vin);
     if (yearFrom) params.append('year_from', yearFrom.toString());
     if (yearTo) params.append('year_to', yearTo.toString());
-    params.append('page', newPage.toString());
+    params.append('page', '1');
     params.append('size', resultsPerPage.toString());
-    
-    // Add date range parameters
-    const { startDate, endDate } = calculateDateRange(dateRange, customDateStart, customDateEnd);
-    params.append('sale_date_from', startDate.toISOString().split('T')[0]);
-    params.append('sale_date_to', endDate.toISOString().split('T')[0]);
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
     
     // Add site filters
     sites.forEach(site => {
@@ -127,22 +101,102 @@ export default function Home() {
       if (site === 'iaai') params.append('site', '2');
     });
     
-    // Fetch directly from the API to avoid resetting the search
+    console.log(`Initial search with params:`, params.toString());
+    
+    // Make direct fetch request to be consistent with pagination
     fetch(`/api/sales-history?${params.toString()}`)
-      .then(response => response.json())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log("Received initial search data:", result);
+        
+        // Only update if successful
+        if (result.success && result.data) {
+          // Store results in local state
+          setSearchResults(result);
+          
+          // Update total results count for pagination
+          if (result.data.pagination && result.data.pagination.totalCount) {
+            setTotalResults(result.data.pagination.totalCount);
+          } else if (result.data.salesHistory) {
+            // If we got a full page, assume there are more results
+            const displayedCount = result.data.salesHistory.length;
+            if (displayedCount === resultsPerPage) {
+              setTotalResults(resultsPerPage * 2); // Assume at least 2 pages
+            } else {
+              setTotalResults(displayedCount);
+            }
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Error during search:", error);
+      });
+  };
+  
+  // Handle page change - fetch new data with updated page number
+  const handlePageChange = (newPage: number) => {
+    // Update page in filter state
+    filterState.page = newPage;
+    
+    // Update current page state
+    setPage(newPage);
+    
+    // Build complete URL parameters for API request
+    const params = new URLSearchParams();
+    params.append('make', make);
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('page', newPage.toString());
+    params.append('size', resultsPerPage.toString());
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
+    
+    // Add site filters
+    sites.forEach(site => {
+      if (site === 'copart') params.append('site', '1');
+      if (site === 'iaai') params.append('site', '2');
+    });
+    
+    console.log(`Requesting page ${newPage} with params:`, params.toString());
+    
+    // Make direct fetch request to avoid resetting search state
+    fetch(`/api/sales-history?${params.toString()}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(result => {
         console.log("Received data for page", newPage, result);
         
-        // Update data state
+        // Only update if successful
         if (result.success && result.data) {
-          setData(result);
+          // Store results in local state
+          setSearchResults(result);
           
-          if (result.data.pagination) {
+          // Make sure we're showing search has been performed
+          setHasSearched(true);
+          
+          // Update total results count for pagination
+          if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
           } else if (result.data.salesHistory) {
-            // If we have more results than shown on this page, estimate more available
+            // If we have more results than just this page, estimate there are more
             const displayedCount = result.data.salesHistory.length;
-            setTotalResults(Math.max(displayedCount, totalResults));
+            if (displayedCount === resultsPerPage) {
+              // If we got a full page, assume there are at least more pages available
+              setTotalResults(Math.max(newPage * resultsPerPage + resultsPerPage, totalResults));
+            } else {
+              // If we got a partial page, we can calculate the exact total
+              setTotalResults((newPage - 1) * resultsPerPage + displayedCount);
+            }
           }
         }
       })

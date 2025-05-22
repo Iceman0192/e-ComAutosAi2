@@ -6,7 +6,7 @@
 import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { db } from './db';
-import { salesHistory as salesHistoryTable, vehicles as vehiclesTable } from '@shared/schema';
+import { salesHistory, vehicles } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export function setupApiRoutes(app: Express) {
@@ -25,6 +25,17 @@ export function setupApiRoutes(app: Express) {
       const saleFrom = req.query.sale_date_from as string;
       const saleTo = req.query.sale_date_to as string;
       
+      console.log('Sales history request received for:', { 
+        make, 
+        model, 
+        page, 
+        size,
+        yearFrom,
+        yearTo,
+        saleFrom,
+        saleTo 
+      });
+      
       // Validate required parameters
       if (!make) {
         return res.status(400).json({
@@ -40,15 +51,10 @@ export function setupApiRoutes(app: Express) {
       
       try {
         // Check if we have cached results in the database
-        const query = {
-          make: make.toLowerCase(),
-          model: model ? model.toLowerCase() : undefined
-        };
+        console.log('Checking database for cached results with query:', { make, model });
         
-        console.log('Checking database for cached results with query:', query);
-        
-        const dbSalesHistory = await db.query.salesHistoryTable.findMany({
-          where: (fields) => {
+        const dbSalesHistory = await db.query.salesHistory.findMany({
+          where: (fields: any) => {
             let conditions = [
               eq(fields.make, make)
             ];
@@ -85,16 +91,7 @@ export function setupApiRoutes(app: Express) {
       
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
-        console.log('Sales history request sent to API for:', { 
-          make, 
-          model, 
-          page, 
-          size,
-          yearFrom,
-          yearTo,
-          saleFrom,
-          saleTo 
-        });
+        console.log(`Requesting from APICAR API: https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`);
         
         apiResponse = await getVehicleSalesHistory(
           make, 
@@ -117,7 +114,7 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Format the response
-      const salesHistory: any[] = [];
+      const salesHistoryList = [];
       let vehicle = null;
       let totalCount = 0;
       let stats = {
@@ -136,80 +133,104 @@ export function setupApiRoutes(app: Express) {
           totalCount = apiData.count;
         }
       
-      // Process API data if available
-      if (apiData && apiData.data && Array.isArray(apiData.data)) {
-        // Extract vehicle info from first record
-        if (apiData.data.length > 0) {
-          const firstItem = apiData.data[0];
-          vehicle = {
-            vin: firstItem.vin || '',
-            make: firstItem.make || '',
-            model: firstItem.model || '',
-            year: firstItem.year || 0,
-            trim: firstItem.series || '',
-            mileage: firstItem.odometer || 0,
-            title_status: firstItem.document || ''
-          };
-        }
-        
-        // Map sales records and filter by year if needed
-        apiData.data.forEach((item: any) => {
-          // Skip records that don't match our year range criteria
-          const itemYear = item.year ? parseInt(item.year) : 0;
-          
-          // Apply additional filtering on the server-side for year range
-          if (yearFrom && itemYear && itemYear < yearFrom) {
-            return; // Skip items with year below our minimum
+        // Process API data if available
+        if (apiData && apiData.data && Array.isArray(apiData.data)) {
+          // Extract vehicle info from first record
+          if (apiData.data.length > 0) {
+            const firstItem = apiData.data[0];
+            vehicle = {
+              vin: firstItem.vin || '',
+              make: firstItem.make || '',
+              model: firstItem.model || '',
+              year: firstItem.year || 0,
+              trim: firstItem.series || '',
+              mileage: firstItem.odometer || 0,
+              title_status: firstItem.document || ''
+            };
           }
           
-          if (yearTo && itemYear && itemYear > yearTo) {
-            return; // Skip items with year above our maximum
-          }
-          
-          salesHistory.push({
-            id: item.id || '',
-            vin: item.vin || '',
-            lot_id: item.lot_id,
-            sale_date: item.sale_date || new Date().toISOString(),
-            purchase_price: item.purchase_price,
-            sale_status: item.sale_status || 'Unknown',
-            buyer_state: item.buyer_state,
-            buyer_country: item.buyer_country,
-            base_site: item.base_site || 'copart',
-            auction_location: item.location,
-            // Additional vehicle data
-            year: item.year,
-            make: item.make,
-            model: item.model,
-            series: item.series,
-            trim: item.series,
-            odometer: item.odometer,
-            vehicle_type: item.vehicle_type,
-            damage_pr: item.damage_pr,
-            damage_sec: item.damage_sec,
-            fuel: item.fuel,
-            drive: item.drive,
-            transmission: item.transmission,
-            color: item.color,
-            keys: item.keys,
-            title: item.title,
-            location: item.location,
-            vehicle_title: item.document,
-            vehicle_damage: item.damage_pr,
-            vehicle_mileage: item.odometer,
-            vehicle_has_keys: item.keys === 'Yes',
-            // Media
-            link_img_small: item.link_img_small,
-            link_img_hd: item.link_img_hd,
-            link: item.link
+          // Map sales records and filter by year if needed
+          apiData.data.forEach((item) => {
+            // Skip records that don't match our year range criteria
+            const itemYear = item.year ? parseInt(item.year) : 0;
+            
+            // Apply additional filtering on the server-side for year range
+            if (yearFrom && itemYear && itemYear < yearFrom) {
+              return; // Skip items with year below our minimum
+            }
+            
+            if (yearTo && itemYear && itemYear > yearTo) {
+              return; // Skip items with year above our maximum
+            }
+            
+            salesHistoryList.push({
+              id: item.id || '',
+              vin: item.vin || '',
+              lot_id: item.lot_id,
+              sale_date: item.sale_date || new Date().toISOString(),
+              purchase_price: item.purchase_price,
+              sale_status: item.sale_status || 'Unknown',
+              buyer_state: item.buyer_state,
+              buyer_country: item.buyer_country,
+              base_site: item.base_site || 'copart',
+              auction_location: item.location,
+              // Additional vehicle data
+              year: item.year,
+              make: item.make,
+              model: item.model,
+              series: item.series,
+              trim: item.series,
+              odometer: item.odometer,
+              vehicle_type: item.vehicle_type,
+              damage_pr: item.damage_pr,
+              damage_sec: item.damage_sec,
+              fuel: item.fuel,
+              drive: item.drive,
+              transmission: item.transmission,
+              color: item.color,
+              keys: item.keys,
+              title: item.title,
+              location: item.location,
+              vehicle_title: item.document,
+              vehicle_damage: item.damage_pr,
+              vehicle_mileage: item.odometer,
+              vehicle_has_keys: item.keys === 'Yes',
+              // Media
+              link_img_small: item.link_img_small,
+              link_img_hd: item.link_img_hd,
+              link: item.link
+            });
           });
-        });
+          
+          // Calculate basic statistics
+          stats.totalSales = salesHistoryList.length;
+          
+          // Calculate average price
+          const validPrices = salesHistoryList
+            .filter(sale => sale.purchase_price)
+            .map(sale => sale.purchase_price);
+            
+          if (validPrices.length > 0) {
+            stats.averagePrice = validPrices.reduce((acc, price) => acc + price, 0) / validPrices.length;
+          }
+          
+          // Calculate success rate
+          const soldItems = salesHistoryList.filter(sale => sale.sale_status === 'Sold').length;
+          stats.successRate = soldItems / salesHistoryList.length * 100;
+          
+          // Price trend (dummy data for now - would need time series analysis)
+          stats.priceTrend = 5; // Assuming 5% increase
+        }
+      } else if (fromDatabase) {
+        // Use the database results
+        salesHistoryList.push(...dbResults);
+        totalCount = dbResults.length; // This is not accurate for pagination, but it's what we have
         
-        // Calculate basic statistics
-        stats.totalSales = salesHistory.length;
+        // Calculate basic statistics from DB results
+        stats.totalSales = salesHistoryList.length;
         
         // Calculate average price
-        const validPrices = salesHistory
+        const validPrices = salesHistoryList
           .filter(sale => sale.purchase_price)
           .map(sale => sale.purchase_price);
           
@@ -217,23 +238,20 @@ export function setupApiRoutes(app: Express) {
           stats.averagePrice = validPrices.reduce((acc, price) => acc + price, 0) / validPrices.length;
         }
         
-        // Calculate success rate
-        const soldItems = salesHistory.filter(sale => sale.sale_status === 'Sold').length;
-        stats.successRate = soldItems / salesHistory.length * 100;
-        
-        // Price trend (dummy data for now - would need time series analysis)
-        stats.priceTrend = 5; // Assuming 5% increase
+        // Calculate success rate (if the status field exists)
+        const soldItems = salesHistoryList.filter(sale => sale.sale_status === 'Sold').length;
+        stats.successRate = soldItems / salesHistoryList.length * 100;
       }
       
       // Generate mock trends and geographic data
       const priceTrend = generatePriceTrend(stats.averagePrice);
-      const geographicData = generateGeographicData(salesHistory);
+      const geographicData = generateGeographicData(salesHistoryList);
       
       // Send the response
       res.json({
         success: true,
         data: {
-          salesHistory,
+          salesHistory: salesHistoryList,
           vehicle,
           stats,
           priceTrend,
@@ -247,7 +265,7 @@ export function setupApiRoutes(app: Express) {
         }
       });
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in sales history endpoint:', error);
       res.status(500).json({
         success: false,
