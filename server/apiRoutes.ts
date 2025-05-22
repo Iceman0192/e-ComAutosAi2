@@ -15,6 +15,8 @@ export function setupApiRoutes(app: Express) {
       // Extract parameters
       const make = req.query.make as string;
       const model = req.query.model as string;
+      const page = parseInt(req.query.page as string) || 1;
+      const size = parseInt(req.query.size as string) || 25;
       
       // Validate required parameters
       if (!make) {
@@ -25,8 +27,8 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Call our API client
-      console.log('Sales history request received for:', { make, model });
-      const apiResponse = await getVehicleSalesHistory(make, model);
+      console.log('Sales history request received for:', { make, model, page, size });
+      const apiResponse = await getVehicleSalesHistory(make, model, page, size);
       
       // Handle API errors
       if (!apiResponse.success) {
