@@ -60,6 +60,17 @@ export default function Home() {
   // State to track if a search has been performed
   const [hasSearched, setHasSearched] = useState(false);
   
+  // Helper function to calculate average price from sales history
+  const calculateAveragePrice = (salesHistory: any[] = []) => {
+    if (!salesHistory || salesHistory.length === 0) return 0;
+    
+    const salesWithPrices = salesHistory.filter(sale => sale.purchase_price !== undefined);
+    if (salesWithPrices.length === 0) return 0;
+    
+    const total = salesWithPrices.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0);
+    return total / salesWithPrices.length;
+  };
+
   // Fetch data - will only execute when triggered by button click
   const { data, isLoading, error, refetch } = useSalesHistory(filterState);
   
@@ -325,16 +336,16 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ) : ((console.log("Received data:", data)), data && data.salesHistory && data.salesHistory.length > 0) ? (
+          ) : ((console.log("Received data:", data)), data?.data?.salesHistory && data.data.salesHistory.length > 0) ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
               {/* Results Header */}
               <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {data.stats.totalSales} Results for {make} {model} ({yearFrom}-{yearTo})
+                    {data?.data?.salesHistory.length} Results for {make} {model} {yearFrom && yearTo ? `(${yearFrom}-${yearTo})` : ''}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Average sold price: ${Math.round(data.stats.averagePrice).toLocaleString()}
+                    Average sold price: ${Math.round(calculateAveragePrice(data?.data?.salesHistory)).toLocaleString()}
                   </p>
                 </div>
                 
