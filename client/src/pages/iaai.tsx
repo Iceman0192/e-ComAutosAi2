@@ -95,14 +95,14 @@ export default function IAAI() {
         console.log("Received initial IAAI search data:", result);
         
         // Only update if successful
-        if (result.success && result.data) {
+        if (result && result.success && result.data) {
           // Store results in local state
           setSearchResults(result);
           
           // Update total results count for pagination
           if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
-          } else if (result.data.salesHistory) {
+          } else if (result.data.salesHistory && result.data.salesHistory.length > 0) {
             // If we got a full page, assume there are more results
             const displayedCount = result.data.salesHistory.length;
             if (displayedCount === resultsPerPage) {
@@ -110,7 +110,14 @@ export default function IAAI() {
             } else {
               setTotalResults(displayedCount);
             }
+          } else {
+            // No results found
+            setTotalResults(0);
           }
+        } else {
+          console.error("Invalid response format:", result);
+          setSearchResults(null);
+          setTotalResults(0);
         }
       })
       .catch(error => {
