@@ -221,8 +221,34 @@ export default function FilterSidebar({
           </select>
         </div>
         
+        {/* Auction Sites Toggle */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+            <span className="material-icons text-blue-500 mr-2 text-sm">business</span>
+            Auction Sites
+          </h3>
+          <div className="flex items-center space-x-3">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={window.location.pathname === '/'}
+                onChange={() => window.location.href = '/'}
+                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <span className="ml-2 text-sm font-medium text-gray-700">Copart</span>
+            </label>
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={window.location.pathname === '/iaai'}
+                onChange={() => window.location.href = '/iaai'}
+                className="h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
+              />
+              <span className="ml-2 text-sm font-medium text-gray-700">IAAI</span>
+            </label>
+          </div>
+        </div>
 
-        
         <button 
           onClick={onApply}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm flex items-center justify-center"
