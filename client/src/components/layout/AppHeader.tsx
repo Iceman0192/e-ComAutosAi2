@@ -113,7 +113,7 @@ export default function AppHeader({
                   onClick={() => setAuctionSite('iaai')}
                   className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
                     auctionSite === 'iaai'
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-red-600 text-white shadow-sm'
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
