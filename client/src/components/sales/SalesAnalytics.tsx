@@ -520,7 +520,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {damageTypeAnalysis.slice(0, 3).map((item, index) => (
+                        {damageTypeAnalysis.slice(0, 1).map((item, index) => (
                           <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                               <div className="flex items-center space-x-2">
@@ -553,12 +553,12 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                     </table>
                     
                     {/* Upgrade Teaser for additional damage types */}
-                    {damageTypeAnalysis.length > 3 && (
+                    {damageTypeAnalysis.length > 1 && (
                       <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-semibold text-blue-800 dark:text-blue-200">
-                              🔍 {damageTypeAnalysis.length - 3} more damage types to analyze!
+                              🔍 {damageTypeAnalysis.length - 1} more damage types to analyze!
                             </p>
                             <p className="text-sm text-blue-700 dark:text-blue-300">
                               See complete damage breakdown, title analysis, and geographic trends with Gold
