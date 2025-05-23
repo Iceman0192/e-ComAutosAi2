@@ -986,6 +986,251 @@ export default function Home() {
             </div>
           )}
         </ErrorBoundary>
+
+        {/* Detailed Vehicle Modal for Copart */}
+        {isModalOpen && selectedVehicle && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model} {selectedVehicle.series}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column - Images and Basic Info */}
+                  <div>
+                    {/* Vehicle Images */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Photos</h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {(() => {
+                          // Handle different image formats (API direct vs database cached)
+                          let images = [];
+                          if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
+                            images = selectedVehicle.link_img_hd;
+                          } else if (selectedVehicle.images) {
+                            images = typeof selectedVehicle.images === 'string' 
+                              ? JSON.parse(selectedVehicle.images) 
+                              : Array.isArray(selectedVehicle.images) 
+                                ? selectedVehicle.images 
+                                : [];
+                          }
+                          
+                          return images.length > 0 ? (
+                            images.map((img: string, index: number) => (
+                              <img
+                                key={index}
+                                src={img}
+                                alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} - Image ${index + 1}`}
+                                className="w-full h-64 object-cover rounded-lg border"
+                              />
+                            ))
+                          ) : (
+                            <div className="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded-lg border flex items-center justify-center">
+                              <span className="text-gray-500 dark:text-gray-400">No images available</span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Sale Information */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
+                      <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3">Sale Details</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 dark:text-blue-300">Sale Price:</span>
+                          <span className="font-bold text-blue-900 dark:text-blue-100">
+                            {selectedVehicle.purchase_price ? `$${selectedVehicle.purchase_price.toLocaleString()}` : 'Not sold'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 dark:text-blue-300">Sale Date:</span>
+                          <span className="text-blue-900 dark:text-blue-100">
+                            {new Date(selectedVehicle.sale_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 dark:text-blue-300">Status:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            selectedVehicle.sale_status === 'sold' || selectedVehicle.sale_status === 'Sold'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {selectedVehicle.sale_status}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-blue-700 dark:text-blue-300">Lot ID:</span>
+                          <span className="text-blue-900 dark:text-blue-100">{selectedVehicle.lot_id}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Specifications */}
+                  <div>
+                    {/* Vehicle Specifications */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Specifications</h3>
+                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">VIN:</span>
+                            <p className="font-mono text-sm text-gray-900 dark:text-white">{selectedVehicle.vin}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Year:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.year}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Make:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.make}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Model:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.model}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Series:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.series || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Trim:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.trim || 'N/A'}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Odometer:</span>
+                            <p className="text-gray-900 dark:text-white">
+                              {selectedVehicle.vehicle_mileage || selectedVehicle.odometer ? 
+                                `${(selectedVehicle.vehicle_mileage || selectedVehicle.odometer).toLocaleString()} mi` : 
+                                'N/A'
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Color:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.color || 'N/A'}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Transmission:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.transmission || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Drive Type:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.drive || 'N/A'}</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Fuel Type:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.fuel || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Keys:</span>
+                            <p className="text-gray-900 dark:text-white">{selectedVehicle.keys || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Damage and Title Information */}
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Condition & Title</h3>
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 space-y-3">
+                        <div>
+                          <span className="text-sm text-yellow-700 dark:text-yellow-300">Title Status:</span>
+                          <p className="text-yellow-900 dark:text-yellow-100 font-medium">
+                            {selectedVehicle.vehicle_title || selectedVehicle.title || 'Unknown'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-yellow-700 dark:text-yellow-300">Primary Damage:</span>
+                          <p className="text-yellow-900 dark:text-yellow-100 font-medium">
+                            {selectedVehicle.vehicle_damage || selectedVehicle.damage_pr || 'Unknown'}
+                          </p>
+                        </div>
+                        {selectedVehicle.damage_sec && (
+                          <div>
+                            <span className="text-sm text-yellow-700 dark:text-yellow-300">Secondary Damage:</span>
+                            <p className="text-yellow-900 dark:text-yellow-100 font-medium">{selectedVehicle.damage_sec}</p>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-sm text-yellow-700 dark:text-yellow-300">Has Keys:</span>
+                          <p className="text-yellow-900 dark:text-yellow-100 font-medium">
+                            {selectedVehicle.vehicle_has_keys ? 'Yes' : 'No'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Location Information */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Location</h3>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div>
+                          <span className="text-sm text-blue-700 dark:text-blue-300">Auction Location:</span>
+                          <p className="text-blue-900 dark:text-blue-100 font-medium">
+                            Copart: {selectedVehicle.auction_location || selectedVehicle.location || 'N/A'}
+                          </p>
+                        </div>
+                        {selectedVehicle.link && (
+                          <div className="mt-3">
+                            <a
+                              href={selectedVehicle.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              View Original Copart Listing
+                              <svg className="ml-2 -mr-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
