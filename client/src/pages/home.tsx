@@ -65,6 +65,7 @@ export default function Home() {
   
   // State to track if a search has been performed
   const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   // Helper function to calculate average price from sales history
   const calculateAveragePrice = (salesHistory: any[] = []) => {

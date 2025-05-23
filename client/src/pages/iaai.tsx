@@ -49,6 +49,7 @@ export default function IAAI() {
   
   // State to track if a search has been performed
   const [hasSearched, setHasSearched] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Helper function to calculate average price from sales history
   const calculateAveragePrice = (salesHistory: any[] = []) => {
@@ -108,6 +109,7 @@ export default function IAAI() {
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
+    setIsLoading(true); // Show loading state
     
     // Build parameters for initial search - HARDCODED for IAAI (site=2)
     const params = new URLSearchParams();
@@ -140,6 +142,7 @@ export default function IAAI() {
         if (result && result.success && result.data) {
           // Store results in local state
           setSearchResults(result);
+          setIsLoading(false);
           
           // Update total results count for pagination
           if (result.data.pagination && result.data.pagination.totalCount) {
@@ -160,10 +163,12 @@ export default function IAAI() {
           console.error("Invalid response format:", result);
           setSearchResults(null);
           setTotalResults(0);
+          setIsLoading(false);
         }
       })
       .catch(error => {
         console.error("Error during IAAI search:", error);
+        setIsLoading(false);
       });
   };
   
@@ -384,10 +389,20 @@ export default function IAAI() {
               <button
                 type="button"
                 onClick={handleSearch}
-                disabled={!make}
-                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                disabled={!make || isLoading}
+                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
               >
-                Search Vehicle History
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Searching IAAI Database...
+                  </>
+                ) : (
+                  'Search Vehicle History'
+                )}
               </button>
             </div>
           </div>
