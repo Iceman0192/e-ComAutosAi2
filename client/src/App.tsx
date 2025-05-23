@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ui/error-boundary";
 
 // Pages
 import Home from "./pages/home";
+import IAAI from "./pages/iaai";
 import NotFound from "./pages/not-found";
 
 function Router() {
