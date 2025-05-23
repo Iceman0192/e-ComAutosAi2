@@ -68,16 +68,19 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
     return ranges.filter(r => r.count > 0);
   }, [validSales]);
 
-  // Mileage vs Price Data
+  // Mileage vs Price Data - Organized and sorted for clear patterns
   const mileageVsPrice = useMemo(() => 
-    validSales.map(sale => ({
-      mileage: sale.odometer || sale.vehicle_mileage || 0,
-      price: sale.purchase_price || 0,
-      damage: sale.vehicle_damage || 'Unknown',
-      title: sale.vehicle_title || 'Unknown',
-      year: sale.year || 2020,
-      model: `${sale.year} ${sale.make} ${sale.model} ${sale.series || ''}`.trim()
-    })),
+    validSales
+      .map(sale => ({
+        mileage: sale.odometer || sale.vehicle_mileage || 0,
+        price: sale.purchase_price || 0,
+        damage: sale.vehicle_damage || 'Unknown',
+        title: sale.vehicle_title || 'Unknown',
+        year: sale.year || 2020,
+        model: `${sale.year} ${sale.make} ${sale.model} ${sale.series || ''}`.trim(),
+        id: sale.id || sale.vin
+      }))
+      .sort((a, b) => a.mileage - b.mileage), // Sort by mileage for logical progression
     [validSales]
   );
 
@@ -346,51 +349,99 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
             <CardHeader>
               <CardTitle>Damage Type Price Analysis</CardTitle>
               <CardDescription>
-                Average prices by damage type - helps evaluate similar damage
+                Clear pricing breakdown by damage type - organized for easy comparison
               </CardDescription>
             </CardHeader>
             <CardContent>
               {damageTypeAnalysis.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={damageTypeAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="damage"
-                      type="category"
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                    />
-                    <YAxis 
-                      type="number"
-                      tickFormatter={(value) => formatCurrency(value)}
-                    />
-                    <Tooltip 
-                      formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
-                      labelFormatter={(label) => `${label} Damage`}
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow">
-                              <p className="font-semibold">{data.damage} Damage</p>
-                              <p>Count: {data.count} vehicles</p>
-                              <p>Average: {formatCurrency(data.average)}</p>
-                              <p>Range: {formatCurrency(data.min)} - {formatCurrency(data.max)}</p>
-                              <p>Median: {formatCurrency(data.median)}</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="average" radius={[4, 4, 0, 0]}>
-                      {damageTypeAnalysis.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="space-y-6">
+                  {/* Clean Data Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
+                            Damage Type
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                            Count
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                            Average Price
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                            Price Range
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                            Median
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {damageTypeAnalysis.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                              <div className="flex items-center space-x-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: item.color }}
+                                ></div>
+                                <span className="font-medium">{item.damage}</span>
+                              </div>
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                              <span className="font-mono">{item.count}</span>
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                              <span className="font-mono font-semibold text-green-600 dark:text-green-400">
+                                {formatCurrency(item.average)}
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                              <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
+                                {formatCurrency(item.min)} - {formatCurrency(item.max)}
+                              </span>
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                              <span className="font-mono">{formatCurrency(item.median)}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Visual Chart */}
+                  <div className="mt-6">
+                    <h4 className="text-lg font-semibold mb-4">Visual Comparison</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={damageTypeAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="damage"
+                          type="category"
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          interval={0}
+                        />
+                        <YAxis 
+                          type="number"
+                          tickFormatter={(value) => formatCurrency(value)}
+                        />
+                        <Tooltip 
+                          formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
+                          labelFormatter={(label) => `${label} Damage`}
+                        />
+                        <Bar dataKey="average" radius={[4, 4, 0, 0]}>
+                          {damageTypeAnalysis.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-48 text-gray-500">
                   No damage data available for analysis
