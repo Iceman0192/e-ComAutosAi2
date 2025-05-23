@@ -57,7 +57,12 @@ export default function IAAI() {
     const salesWithPrices = salesHistory.filter(sale => sale.purchase_price !== undefined);
     if (salesWithPrices.length === 0) return 0;
     
-    const total = salesWithPrices.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0);
+    const total = salesWithPrices.reduce((sum, sale) => {
+      const price = typeof sale.purchase_price === 'string' 
+        ? parseFloat(sale.purchase_price) 
+        : (sale.purchase_price || 0);
+      return sum + price;
+    }, 0);
     return total / salesWithPrices.length;
   };
 
