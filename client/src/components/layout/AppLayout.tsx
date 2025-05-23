@@ -28,6 +28,8 @@ export default function AppLayout({ children, filterState, onRefresh }: AppLayou
         setModel={filterState.setModel}
         vin={filterState.vin}
         setVin={filterState.setVin}
+        auctionSite={filterState.auctionSite}
+        setAuctionSite={filterState.setAuctionSite}
         onRefresh={onRefresh}
       />
       
