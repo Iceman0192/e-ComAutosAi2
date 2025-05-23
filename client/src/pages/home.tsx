@@ -553,9 +553,8 @@ export default function Home() {
               {/* Result content based on active tab */}
               {activeTab === TabType.TIMELINE && (
                 <div className="p-4">
-                  <SalesTimeline 
+                  <SalesAnalytics 
                     salesHistory={searchResults?.data?.salesHistory || []}
-                    priceTrend={searchResults?.data?.priceTrend || []}
                   />
                 </div>
               )}

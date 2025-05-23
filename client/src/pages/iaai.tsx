@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
-import SalesTimeline from '../components/sales/SalesTimeline';
+import SalesAnalytics from '../components/sales/SalesAnalytics';
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
 
@@ -467,7 +467,7 @@ export default function IAAI() {
             {activeTab === TabType.TIMELINE && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
                 <div className="p-6">
-                  <SalesTimeline salesHistory={searchResults.data.salesHistory} priceTrend={[]} />
+                  <SalesAnalytics salesHistory={searchResults.data.salesHistory} />
                 </div>
               </div>
             )}
