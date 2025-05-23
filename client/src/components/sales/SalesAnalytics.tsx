@@ -83,30 +83,34 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
 
   // Damage Type Analysis
   const damageTypeAnalysis = useMemo(() => {
+    if (validSales.length === 0) return [];
+    
     const damageMap = new Map();
     
     validSales.forEach(sale => {
       const damage = sale.vehicle_damage || 'Unknown';
-      const price = sale.purchase_price || 0;
+      const price = Number(sale.purchase_price) || 0;
       
-      if (!damageMap.has(damage)) {
-        damageMap.set(damage, { prices: [], count: 0 });
+      if (price > 0) {
+        if (!damageMap.has(damage)) {
+          damageMap.set(damage, { prices: [], count: 0 });
+        }
+        
+        damageMap.get(damage).prices.push(price);
+        damageMap.get(damage).count++;
       }
-      
-      damageMap.get(damage).prices.push(price);
-      damageMap.get(damage).count++;
     });
 
-    return Array.from(damageMap.entries()).map(([damage, data]) => {
-      const prices = data.prices.sort((a, b) => a - b);
-      const avg = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+    const result = Array.from(damageMap.entries()).map(([damage, data]) => {
+      const prices = data.prices.sort((a: number, b: number) => a - b);
+      const avg = prices.reduce((sum: number, p: number) => sum + p, 0) / prices.length;
       const min = prices[0];
       const max = prices[prices.length - 1];
       const median = prices[Math.floor(prices.length / 2)];
       
       return {
         damage,
-        average: avg,
+        average: Math.round(avg),
         min,
         max,
         median,
@@ -114,6 +118,9 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         color: getDamageColor(damage)
       };
     }).sort((a, b) => b.average - a.average);
+
+    console.log('Damage analysis data:', result);
+    return result;
   }, [validSales]);
 
   // Enhanced Summary Stats
