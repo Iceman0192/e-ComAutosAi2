@@ -441,35 +441,7 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Auction Sites */}
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Auction Sites
-              </label>
-              <div className="flex space-x-4">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="auctionSite"
-                    checked={window.location.pathname === '/'}
-                    onChange={() => window.location.href = '/'}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Copart</span>
-                </label>
-                
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="auctionSite"
-                    checked={window.location.pathname === '/iaai'}
-                    onChange={() => window.location.href = '/iaai'}
-                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">IAAI</span>
-                </label>
-              </div>
-            </div>
+
             
             <div className="mt-6">
               <button

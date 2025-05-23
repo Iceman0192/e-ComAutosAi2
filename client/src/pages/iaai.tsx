@@ -372,36 +372,7 @@ export default function IAAI() {
               </div>
             </div>
             
-            {/* Auction Sites - Navigation Radio Buttons */}
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Auction Sites
-              </label>
-              <div className="flex space-x-4">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="auctionSite"
-                    value="copart"
-                    checked={false}
-                    onChange={() => window.location.href = '/'}
-                    className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Copart</span>
-                </label>
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="auctionSite"
-                    value="iaai"
-                    checked={true}
-                    readOnly
-                    className="form-radio h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">IAAI</span>
-                </label>
-              </div>
-            </div>
+
             
             {/* Search Button */}
             <div className="mt-6">
