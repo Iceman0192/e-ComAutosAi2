@@ -21,7 +21,7 @@ export async function getVehicleSalesHistory(
   yearTo?: number,
   saleFrom?: string,
   saleTo?: string,
-  site: string = '1'
+  site: string
 ) {
   try {
     // Build URL parameters - only what we absolutely need
