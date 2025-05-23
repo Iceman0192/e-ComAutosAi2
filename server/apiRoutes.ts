@@ -129,7 +129,10 @@ export function setupApiRoutes(app: Express) {
             // Get the data from a previous page
             const dbSalesHistory = await db.query.salesHistory.findMany({
               where: (fields: any) => {
-                let conditions = [eq(fields.make, make)];
+                let conditions = [
+                  eq(fields.make, make),
+                  eq(fields.site, parseInt(site))
+                ];
                 if (model) conditions.push(eq(fields.model, model));
                 if (yearFrom) conditions.push(gte(fields.year, yearFrom));
                 if (yearTo) conditions.push(lte(fields.year, yearTo));
