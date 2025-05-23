@@ -303,53 +303,151 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Interactive Visual Chart - Main Feature */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-lg font-semibold">Interactive Price vs Mileage Trend</h4>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Hover any point for detailed vehicle info
+                {/* Beautiful Interactive Chart - Enhanced Design */}
+                <div className="relative">
+                  <div className="mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                        💎 Price vs Mileage Analysis
+                      </h4>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span>Hover points for vehicle details</span>
+                      </div>
                     </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Discover pricing patterns across {mileageVsPrice.filter(item => item.mileage > 0).length} vehicles
+                    </p>
                   </div>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <ScatterChart data={mileageVsPrice.filter(item => item.mileage > 0)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="mileage" 
-                        name="Mileage"
-                        type="number"
-                        tickFormatter={(value) => `${Math.round(value / 1000)}k`}
-                        domain={['dataMin', 'dataMax']}
-                      />
-                      <YAxis 
-                        dataKey="price" 
-                        name="Price"
-                        type="number"
-                        tickFormatter={(value) => formatCurrency(value)}
-                        domain={['dataMin', 'dataMax']}
-                      />
-                      <Tooltip 
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            const pricePerMile = (data.price / data.mileage).toFixed(2);
-                            return (
-                              <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow">
-                                <p className="font-semibold">{data.model}</p>
-                                <p>Price: <span className="text-green-600 font-mono">{formatCurrency(data.price)}</span></p>
-                                <p>Mileage: <span className="font-mono">{data.mileage.toLocaleString()}</span> miles</p>
-                                <p>Price/Mile: <span className="text-blue-600 font-mono">${pricePerMile}</span></p>
-                                <p>Damage: {data.damage}</p>
-                                <p>Title: {data.title}</p>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
-                      />
-                      <Scatter dataKey="price" fill="#3b82f6" fillOpacity={0.7} />
-                    </ScatterChart>
-                  </ResponsiveContainer>
+                  
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <ResponsiveContainer width="100%" height={400}>
+                      <ScatterChart 
+                        data={mileageVsPrice.filter(item => item.mileage > 0)}
+                        margin={{ top: 20, right: 30, left: 40, bottom: 60 }}
+                      >
+                        <CartesianGrid 
+                          strokeDasharray="3 3" 
+                          stroke="#e5e7eb" 
+                          strokeOpacity={0.6}
+                        />
+                        <XAxis 
+                          dataKey="mileage" 
+                          name="Mileage"
+                          type="number"
+                          tickFormatter={(value) => `${Math.round(value / 1000)}k`}
+                          domain={['dataMin - 5000', 'dataMax + 5000']}
+                          stroke="#6b7280"
+                          fontSize={12}
+                          tickLine={{ stroke: '#6b7280' }}
+                          axisLine={{ stroke: '#6b7280' }}
+                        />
+                        <YAxis 
+                          dataKey="price" 
+                          name="Price"
+                          type="number"
+                          tickFormatter={(value) => `$${Math.round(value / 1000)}k`}
+                          domain={['dataMin - 1000', 'dataMax + 1000']}
+                          stroke="#6b7280"
+                          fontSize={12}
+                          tickLine={{ stroke: '#6b7280' }}
+                          axisLine={{ stroke: '#6b7280' }}
+                          width={60}
+                        />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const data = payload[0].payload;
+                              const pricePerMile = (data.price / data.mileage).toFixed(2);
+                              return (
+                                <div className="bg-white dark:bg-gray-900 p-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-w-xs">
+                                  <p className="font-bold text-gray-800 dark:text-gray-200 mb-2">
+                                    {data.model}
+                                  </p>
+                                  <div className="space-y-1 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600 dark:text-gray-400">Price:</span>
+                                      <span className="font-mono font-semibold text-green-600 dark:text-green-400">
+                                        {formatCurrency(data.price)}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600 dark:text-gray-400">Mileage:</span>
+                                      <span className="font-mono">{data.mileage.toLocaleString()} mi</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-gray-600 dark:text-gray-400">Per Mile:</span>
+                                      <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+                                        ${pricePerMile}
+                                      </span>
+                                    </div>
+                                    <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                                      <div className="flex justify-between text-xs">
+                                        <span className="text-gray-500">Damage:</span>
+                                        <span className="font-medium">{data.damage}</span>
+                                      </div>
+                                      <div className="flex justify-between text-xs">
+                                        <span className="text-gray-500">Title:</span>
+                                        <span className="font-medium">{data.title}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Scatter 
+                          dataKey="price" 
+                          fill="#3b82f6" 
+                          fillOpacity={0.8}
+                          stroke="#1d4ed8"
+                          strokeWidth={1}
+                          r={6}
+                        />
+                      </ScatterChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Chart Legend & Quick Stats */}
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {mileageVsPrice.length > 0 && (
+                      <>
+                        <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <p className="text-xs text-green-600 dark:text-green-400 font-medium">Lowest Mileage</p>
+                          <p className="font-bold text-green-800 dark:text-green-300">
+                            {Math.min(...mileageVsPrice.filter(i => i.mileage > 0).map(i => i.mileage)).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Highest Price</p>
+                          <p className="font-bold text-blue-800 dark:text-blue-300">
+                            {formatCurrency(Math.max(...mileageVsPrice.map(i => i.price)))}
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Best Value</p>
+                          <p className="font-bold text-purple-800 dark:text-purple-300">
+                            {(() => {
+                              const bestValue = mileageVsPrice
+                                .filter(i => i.mileage > 0)
+                                .reduce((best, current) => 
+                                  (current.price / current.mileage) < (best.price / best.mileage) ? current : best
+                                );
+                              return `$${(bestValue.price / bestValue.mileage).toFixed(2)}/mi`;
+                            })()}
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                          <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Total Vehicles</p>
+                          <p className="font-bold text-orange-800 dark:text-orange-300">
+                            {mileageVsPrice.filter(i => i.mileage > 0).length}
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Smart Value Teaser - Shows potential without giving it all away */}
