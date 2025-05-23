@@ -24,8 +24,6 @@ export interface FilterState {
   setBuyerLocation: (location: string | undefined) => void;
   sites: string[];
   setSites: (sites: string[]) => void;
-  auctionSite: 'copart' | 'iaai';
-  setAuctionSite: (site: 'copart' | 'iaai') => void;
 }
 
 export function useFilterState(): FilterState {
@@ -57,9 +55,6 @@ export function useFilterState(): FilterState {
   
   // Sites
   const [sites, setSites] = useState<string[]>(["copart", "iaai", "manheim"]);
-  
-  // Auction site selection (Free tier: one at a time, Gold/Platinum: both)
-  const [auctionSite, setAuctionSite] = useState<'copart' | 'iaai'>('copart');
 
   return {
     vin,
@@ -83,8 +78,6 @@ export function useFilterState(): FilterState {
     buyerLocation,
     setBuyerLocation,
     sites,
-    setSites,
-    auctionSite,
-    setAuctionSite
+    setSites
   };
 }
