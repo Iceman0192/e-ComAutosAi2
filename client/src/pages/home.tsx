@@ -804,11 +804,11 @@ export default function Home() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900 dark:text-white">
-                                {sale.title || sale.vehicle_title || 'N/A'}
+                              <div className="text-sm text-gray-900 dark:text-white font-medium">
+                                {sale.vehicle_title || sale.title || 'Unknown'}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {sale.damage_pr || sale.vehicle_damage || 'N/A'}
+                                {sale.damage_pr || sale.vehicle_damage || 'Normal Wear'}
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -866,17 +866,38 @@ export default function Home() {
                     {searchResults?.data?.salesHistory?.map((sale) => (
                       <div key={sale.id} className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="h-48 w-full bg-gray-200 dark:bg-gray-600 relative">
-                          {sale.link_img_hd && sale.link_img_hd.length > 0 ? (
-                            <img 
-                              src={sale.link_img_hd[0]} 
-                              alt={`${sale.year} ${sale.make} ${sale.model}`}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center">
-                              <span className="text-sm text-gray-500 dark:text-gray-400">No image available</span>
-                            </div>
-                          )}
+                          {(() => {
+                            // Handle different image formats (API direct vs database cached)
+                            let imageUrl = null;
+                            if (sale.link_img_hd && sale.link_img_hd.length > 0) {
+                              imageUrl = sale.link_img_hd[0];
+                            } else if (sale.link_img_small && sale.link_img_small.length > 0) {
+                              imageUrl = sale.link_img_small[0];
+                            } else if (sale.images) {
+                              const images = typeof sale.images === 'string' ? JSON.parse(sale.images) : sale.images;
+                              if (Array.isArray(images) && images.length > 0) {
+                                imageUrl = images[0];
+                              }
+                            }
+                            
+                            return imageUrl ? (
+                              <img 
+                                src={imageUrl} 
+                                alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  const placeholder = target.nextElementSibling as HTMLElement;
+                                  if (placeholder) placeholder.style.display = 'flex';
+                                }}
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center">
+                                <span className="text-sm text-gray-500 dark:text-gray-400">No image available</span>
+                              </div>
+                            );
+                          })()}
                           
                           <div className="absolute top-2 right-2">
                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
