@@ -4,6 +4,7 @@ import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
 import SalesTimeline from '../components/sales/SalesTimeline';
 import { formatCurrency } from '../utils/formatters';
+import PlatformToggle from '../components/ui/platform-toggle';
 
 // Tab enum for better organization
 enum TabType {
@@ -224,10 +225,13 @@ export default function IAAI() {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header - RED branding for IAAI */}
-      <header className="bg-red-600 text-white">
-        <div className="container mx-auto px-4 py-3">
-          <h1 className="text-2xl font-bold">Vehicle Sales History Finder - IAAI</h1>
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vehicle Sales History</h1>
+            <PlatformToggle />
+          </div>
         </div>
       </header>
       
