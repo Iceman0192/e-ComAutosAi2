@@ -15,7 +15,6 @@ const API_URL = 'https://api.apicar.store/api/history-cars';
 export async function getVehicleSalesHistory(
   make: string, 
   model?: string, 
-  site: number = 1,
   page: number = 1, 
   size: number = 25,
   yearFrom?: number,
@@ -27,7 +26,7 @@ export async function getVehicleSalesHistory(
     // Build URL parameters - only what we absolutely need
     const params = new URLSearchParams();
     params.append('make', make);
-    params.append('site', site.toString()); // 1 = Copart, 2 = IAAI
+    params.append('site', '1'); // Copart
     
     // Add pagination parameters
     params.append('page', page.toString());
