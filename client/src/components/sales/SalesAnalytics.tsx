@@ -350,40 +350,52 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={damageTypeAnalysis} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    type="number" 
-                    tickFormatter={(value) => formatCurrency(value)}
-                  />
-                  <YAxis dataKey="damage" type="category" width={100} />
-                  <Tooltip 
-                    formatter={(value) => [formatCurrency(value), 'Average Price']}
-                    labelFormatter={(label) => `${label} Damage`}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow">
-                            <p className="font-semibold">{data.damage} Damage</p>
-                            <p>Count: {data.count} vehicles</p>
-                            <p>Average: {formatCurrency(data.average)}</p>
-                            <p>Range: {formatCurrency(data.min)} - {formatCurrency(data.max)}</p>
-                            <p>Median: {formatCurrency(data.median)}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="average" radius={[0, 4, 4, 0]}>
-                    {damageTypeAnalysis.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {damageTypeAnalysis.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={damageTypeAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="damage"
+                      type="category"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
+                    <YAxis 
+                      type="number"
+                      tickFormatter={(value) => formatCurrency(value)}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
+                      labelFormatter={(label) => `${label} Damage`}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow">
+                              <p className="font-semibold">{data.damage} Damage</p>
+                              <p>Count: {data.count} vehicles</p>
+                              <p>Average: {formatCurrency(data.average)}</p>
+                              <p>Range: {formatCurrency(data.min)} - {formatCurrency(data.max)}</p>
+                              <p>Median: {formatCurrency(data.median)}</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="average" radius={[4, 4, 0, 0]}>
+                      {damageTypeAnalysis.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-48 text-gray-500">
+                  No damage data available for analysis
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
