@@ -52,7 +52,7 @@ export default function Home() {
     model,
     year_from: yearFrom,
     year_to: yearTo,
-    sites,
+    sites: [auctionSite], // Use selected auction site only
     auction_date_from: auctionDateFrom,
     auction_date_to: auctionDateTo,
     page,

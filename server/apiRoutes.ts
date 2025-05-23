@@ -24,6 +24,18 @@ export function setupApiRoutes(app: Express) {
       const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
       const saleFrom = req.query.sale_date_from as string;
       const saleTo = req.query.sale_date_to as string;
+      const sites = req.query.sites as string[] || req.query.site as string[] || ['copart'];
+      
+      // Convert site names to site IDs for API call
+      const getSiteId = (siteName: string): string => {
+        switch (siteName.toLowerCase()) {
+          case 'copart': return '1';
+          case 'iaai': return '2';
+          default: return '1'; // Default to Copart
+        }
+      };
+      
+      const siteId = getSiteId(Array.isArray(sites) ? sites[0] : sites);
       
       console.log('Sales history request received for:', { 
         make, 
@@ -148,7 +160,7 @@ export function setupApiRoutes(app: Express) {
         
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
-        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
+        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${siteId}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
         console.log(`Requesting from APICAR API: ${apiUrl}`);
         
         apiResponse = await getVehicleSalesHistory(
