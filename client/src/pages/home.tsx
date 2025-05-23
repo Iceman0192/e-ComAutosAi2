@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
-import SalesTimeline from '../components/sales/SalesTimeline';
+import SalesAnalytics from '../components/sales/SalesAnalytics';
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
 
