@@ -52,12 +52,13 @@ export function setupApiRoutes(app: Express) {
       
       try {
         // Check if we have cached results in the database
-        console.log('Checking database for cached results with query:', { make, model, page, size });
+        console.log('Checking database for cached results with query:', { make, model, page, size, site });
         
         const dbSalesHistory = await db.query.salesHistory.findMany({
           where: (fields: any) => {
             let conditions = [
-              eq(fields.make, make)
+              eq(fields.make, make),
+              eq(fields.site, parseInt(site))
             ];
             
             if (model) {
@@ -160,7 +161,8 @@ export function setupApiRoutes(app: Express) {
           yearFrom,
           yearTo,
           saleFrom,
-          saleTo
+          saleTo,
+          site
         );
         
         // Save response to database for future use
