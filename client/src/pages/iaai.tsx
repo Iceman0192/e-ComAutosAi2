@@ -209,7 +209,6 @@ export default function IAAI() {
             {activeTab === TabType.TIMELINE && (
               <SalesTimeline 
                 salesHistory={salesHistory}
-                isLoading={isLoading}
               />
             )}
 
