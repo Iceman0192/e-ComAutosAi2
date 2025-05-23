@@ -82,10 +82,12 @@ export default function Home() {
   // State for detailed vehicle modal
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   // Function to open vehicle details modal
   const openVehicleDetails = (vehicle: any) => {
     setSelectedVehicle(vehicle);
+    setCurrentImageIndex(0);
     setIsModalOpen(true);
   };
   
@@ -93,6 +95,48 @@ export default function Home() {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedVehicle(null);
+    setCurrentImageIndex(0);
+  };
+  
+  // Image navigation functions
+  const nextImage = () => {
+    if (selectedVehicle) {
+      let images = [];
+      if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
+        images = selectedVehicle.link_img_hd;
+      } else if (selectedVehicle.images) {
+        images = typeof selectedVehicle.images === 'string' 
+          ? JSON.parse(selectedVehicle.images) 
+          : Array.isArray(selectedVehicle.images) 
+            ? selectedVehicle.images 
+            : [];
+      }
+      if (images.length > 0) {
+        setCurrentImageIndex((prev) => 
+          prev < images.length - 1 ? prev + 1 : 0
+        );
+      }
+    }
+  };
+  
+  const prevImage = () => {
+    if (selectedVehicle) {
+      let images = [];
+      if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
+        images = selectedVehicle.link_img_hd;
+      } else if (selectedVehicle.images) {
+        images = typeof selectedVehicle.images === 'string' 
+          ? JSON.parse(selectedVehicle.images) 
+          : Array.isArray(selectedVehicle.images) 
+            ? selectedVehicle.images 
+            : [];
+      }
+      if (images.length > 0) {
+        setCurrentImageIndex((prev) => 
+          prev > 0 ? prev - 1 : images.length - 1
+        );
+      }
+    }
   };
   
   // Fetch data - will only execute when triggered by button click
@@ -1009,39 +1053,89 @@ export default function Home() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left Column - Images and Basic Info */}
                   <div>
-                    {/* Vehicle Images */}
+                    {/* Vehicle Images - Interactive Gallery */}
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Photos</h3>
-                      <div className="grid grid-cols-1 gap-4">
-                        {(() => {
-                          // Handle different image formats (API direct vs database cached)
-                          let images = [];
-                          if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
-                            images = selectedVehicle.link_img_hd;
-                          } else if (selectedVehicle.images) {
-                            images = typeof selectedVehicle.images === 'string' 
-                              ? JSON.parse(selectedVehicle.images) 
-                              : Array.isArray(selectedVehicle.images) 
-                                ? selectedVehicle.images 
-                                : [];
-                          }
-                          
-                          return images.length > 0 ? (
-                            images.map((img: string, index: number) => (
+                      {(() => {
+                        // Handle different image formats (API direct vs database cached)
+                        let images = [];
+                        if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
+                          images = selectedVehicle.link_img_hd;
+                        } else if (selectedVehicle.images) {
+                          images = typeof selectedVehicle.images === 'string' 
+                            ? JSON.parse(selectedVehicle.images) 
+                            : Array.isArray(selectedVehicle.images) 
+                              ? selectedVehicle.images 
+                              : [];
+                        }
+                        
+                        return images.length > 0 ? (
+                          <div>
+                            {/* Main Image Display */}
+                            <div className="relative mb-4">
                               <img
-                                key={index}
-                                src={img}
-                                alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} - Image ${index + 1}`}
-                                className="w-full h-64 object-cover rounded-lg border"
+                                src={images[currentImageIndex]}
+                                alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} - Image ${currentImageIndex + 1}`}
+                                className="w-full h-80 object-cover rounded-lg border"
                               />
-                            ))
-                          ) : (
-                            <div className="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded-lg border flex items-center justify-center">
-                              <span className="text-gray-500 dark:text-gray-400">No images available</span>
+                              
+                              {/* Image Counter */}
+                              <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm">
+                                {currentImageIndex + 1} of {images.length}
+                              </div>
+                              
+                              {/* Navigation Arrows */}
+                              {images.length > 1 && (
+                                <>
+                                  <button
+                                    onClick={prevImage}
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                                  >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={nextImage}
+                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                                  >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </button>
+                                </>
+                              )}
                             </div>
-                          );
-                        })()}
-                      </div>
+                            
+                            {/* Thumbnail Gallery */}
+                            {images.length > 1 && (
+                              <div className="flex space-x-2 overflow-x-auto pb-2">
+                                {images.map((img: string, index: number) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => setCurrentImageIndex(index)}
+                                    className={`flex-shrink-0 w-20 h-16 rounded border-2 overflow-hidden ${
+                                      currentImageIndex === index 
+                                        ? 'border-blue-500 ring-2 ring-blue-200' 
+                                        : 'border-gray-300 hover:border-blue-300'
+                                    }`}
+                                  >
+                                    <img
+                                      src={img}
+                                      alt={`Thumbnail ${index + 1}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded-lg border flex items-center justify-center">
+                            <span className="text-gray-500 dark:text-gray-400">No images available</span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Sale Information */}
