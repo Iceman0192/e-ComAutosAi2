@@ -11,6 +11,8 @@ interface AppHeaderProps {
   setModel: (model: string) => void;
   vin: string;
   setVin: (vin: string) => void;
+  auctionSite: 'copart' | 'iaai';
+  setAuctionSite: (site: 'copart' | 'iaai') => void;
   onRefresh: () => void;
 }
 
@@ -25,6 +27,8 @@ export default function AppHeader({
   setModel,
   vin,
   setVin,
+  auctionSite,
+  setAuctionSite,
   onRefresh
 }: AppHeaderProps) {
   return (
@@ -91,6 +95,30 @@ export default function AppHeader({
                   placeholder="VIN (optional)" 
                   className="w-full md:w-44 pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
                 />
+              </div>
+              
+              {/* Auction Site Toggle */}
+              <div className="flex bg-gray-100 rounded-lg p-1 border">
+                <button
+                  onClick={() => setAuctionSite('copart')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    auctionSite === 'copart'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  Copart
+                </button>
+                <button
+                  onClick={() => setAuctionSite('iaai')}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    auctionSite === 'iaai'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  IAAI
+                </button>
               </div>
               
               <button 
