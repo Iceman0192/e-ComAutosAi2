@@ -442,55 +442,145 @@ export default function IAAI() {
 
             {activeTab === TabType.TABLE && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                {/* Enhanced Filters Section */}
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">SALE FILTERS</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Vehicle title type</label>
+                      <select className="w-full text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option>All title types</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Year</label>
+                      <select className="w-full text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option>All years</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Vehicle condition type</label>
+                      <select className="w-full text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option>All conditions</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Damage type</label>
+                      <select className="w-full text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option>All damage types</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Odometer</label>
+                      <select className="w-full text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option>All mileages</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Engine type</label>
+                      <select className="w-full text-sm border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option>All engines</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enhanced Table */}
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Vehicle
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          VEHICLE
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Sale Date
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          ODOMETER
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Price
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          TITLE/DAMAGE
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Status
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          LOCATION
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                          Location
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          SALE DATE
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {searchResults.data.salesHistory.map((sale: any, index: number) => (
                         <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">
-                              {sale.year} {sale.make} {sale.model}
+                          <td className="px-4 py-4">
+                            <div className="flex items-center">
+                              {/* Vehicle Image */}
+                              <div className="flex-shrink-0 h-16 w-20 mr-4">
+                                {sale.link_img_small && sale.link_img_small.length > 0 ? (
+                                  <img 
+                                    src={sale.link_img_small[0]} 
+                                    alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                    className="h-16 w-20 object-cover rounded border"
+                                  />
+                                ) : (
+                                  <div className="h-16 w-20 bg-gray-200 dark:bg-gray-600 rounded border flex items-center justify-center">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">No Image</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-red-600 dark:text-red-400">
+                                  {sale.year} {sale.make} {sale.model} {sale.series}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  Lot {sale.lot_id}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  VIN: {sale.vin}
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              VIN: {sale.vin}
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className="text-sm text-gray-900 dark:text-white">
+                              {sale.vehicle_mileage || sale.odometer ? 
+                                `${(sale.vehicle_mileage || sale.odometer).toLocaleString()} mi` : 
+                                'N/A'
+                              }
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {sale.vehicle_mileage || sale.odometer ? '(ACTUAL)' : ''}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {new Date(sale.sale_date).toLocaleDateString()}
+                          <td className="px-4 py-4">
+                            <div className="text-sm text-gray-900 dark:text-white">
+                              {sale.year} {sale.make.toUpperCase()} {sale.model.toUpperCase()} {sale.series ? sale.series.toUpperCase() : ''}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {sale.vehicle_damage || sale.damage_pr || 'Normal Wear'}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
+                          <td className="px-4 py-4">
+                            <div className="text-sm text-red-600 dark:text-red-400 font-medium">
+                              IAAI: {sale.auction_location || sale.location || 'N/A'}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              sale.sale_status === 'sold' || sale.sale_status === 'Sold'
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {sale.sale_status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {sale.auction_location || sale.location || 'N/A'}
+                          <td className="px-4 py-4">
+                            <div className="text-sm text-gray-900 dark:text-white">
+                              {new Date(sale.sale_date).toLocaleDateString()}
+                            </div>
+                            <div className="text-xs">
+                              <span className={`inline-flex px-2 py-1 rounded-full ${
+                                sale.sale_status === 'sold' || sale.sale_status === 'Sold'
+                                  ? 'bg-green-100 text-green-800' 
+                                  : sale.sale_status === 'ON APPROVAL'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {sale.sale_status === 'ON APPROVAL' ? 'ON APPROVAL' : sale.sale_status}
+                              </span>
+                            </div>
+                            <div className="text-sm font-bold text-gray-900 dark:text-white mt-1">
+                              {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
+                            </div>
                           </td>
                         </tr>
                       ))}

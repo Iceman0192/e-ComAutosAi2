@@ -79,7 +79,7 @@ export function setupApiRoutes(app: Express) {
           offset: (page - 1) * size
         });
         
-        if (dbSalesHistory.length >= size || page > 1) {
+        if (dbSalesHistory.length >= size && page === 1) {
           dbResults = dbSalesHistory;
           fromDatabase = true;
           console.log(`Found ${dbSalesHistory.length} IAAI results in database cache for page ${page}`);
