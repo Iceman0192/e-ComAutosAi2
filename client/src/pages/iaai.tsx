@@ -16,14 +16,14 @@ enum TabType {
 const currentYear = new Date().getFullYear();
 
 export default function IAAI() {
-  // Primary search parameters
+  // Primary search parameters - HARDCODED for IAAI
   const [make, setMake] = useState('Toyota');
   const [model, setModel] = useState('');
   const [vin, setVin] = useState('');
   const [yearFrom, setYearFrom] = useState(currentYear - 5);
   const [yearTo, setYearTo] = useState(currentYear);
-  const [sites, setSites] = useState<string[]>(['iaai']); // Hardcoded for IAAI
-  const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
+  const [sites, setSites] = useState<string[]>(['iaai']); // HARDCODED for IAAI
+  const [condition, setCondition] = useState<string>('all');
   const [damageType, setDamageType] = useState<string>('all');
   const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
   const [maxMileage, setMaxMileage] = useState<number | undefined>(undefined);
@@ -40,27 +40,11 @@ export default function IAAI() {
   
   // Pagination
   const [page, setPage] = useState(1);
-  const [resultsPerPage, setResultsPerPage] = useState(25); // API supports up to 25 per page
+  const [resultsPerPage, setResultsPerPage] = useState(25);
   const [totalResults, setTotalResults] = useState(0);
   
   // UI state
   const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
-  
-  // Combine filter state for API request
-  const filterState: FilterState = {
-    make,
-    model,
-    year_from: yearFrom,
-    year_to: yearTo,
-    sites,
-    auction_date_from: auctionDateFrom,
-    auction_date_to: auctionDateTo,
-    page,
-    size: resultsPerPage,
-    damage_type: damageType !== 'all' ? damageType : undefined,
-    odometer_from: minMileage,
-    odometer_to: maxMileage
-  };
   
   // State to track if a search has been performed
   const [hasSearched, setHasSearched] = useState(false);
@@ -79,14 +63,11 @@ export default function IAAI() {
   // State to hold the actual results data
   const [searchResults, setSearchResults] = useState<any>(null);
   
-  // Fetch data - will only execute when triggered by button click
-  const { data, isLoading, error, refetch } = useSalesHistory(filterState);
-  
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
     
-    // Build parameters for initial search
+    // Build parameters for initial search - HARDCODED for IAAI (site=2)
     const params = new URLSearchParams();
     params.append('make', make);
     if (model) params.append('model', model);
@@ -97,7 +78,7 @@ export default function IAAI() {
     params.append('sale_date_from', auctionDateFrom);
     params.append('sale_date_to', auctionDateTo);
     
-    // Add site filters - hardcoded for IAAI
+    // HARDCODED for IAAI ONLY
     params.append('site', '2'); // IAAI site ID
     
     console.log(`Initial IAAI search with params:`, params.toString());
@@ -139,13 +120,10 @@ export default function IAAI() {
   
   // Handle page change - fetch new data with updated page number
   const handlePageChange = (newPage: number) => {
-    // Update page in filter state
-    filterState.page = newPage;
-    
     // Update current page state
     setPage(newPage);
     
-    // Build complete URL parameters for API request
+    // Build complete URL parameters for API request - HARDCODED for IAAI
     const params = new URLSearchParams();
     params.append('make', make);
     if (model) params.append('model', model);
@@ -156,7 +134,7 @@ export default function IAAI() {
     params.append('sale_date_from', auctionDateFrom);
     params.append('sale_date_to', auctionDateTo);
     
-    // Add site filters - hardcoded for IAAI
+    // HARDCODED for IAAI ONLY
     params.append('site', '2'); // IAAI site ID
     
     console.log(`Requesting IAAI page ${newPage} with params:`, params.toString());
@@ -200,30 +178,6 @@ export default function IAAI() {
         console.error("Error fetching IAAI page", newPage, error);
       });
   };
-  
-  // Location options for dropdown
-  const locationOptions = [
-    "All Locations",
-    "Abilene, TX",
-    "Adelanto, CA",
-    "Albuquerque, NM",
-    "Altoona, PA",
-    "Amarillo, TX",
-    "Anchorage, AK",
-    "Appleton, WI",
-    "Atlanta East, GA",
-    "Atlanta North, GA",
-    "Atlanta South, GA",
-    "Austin, TX",
-    "Bakersfield, CA",
-    "Baltimore, MD",
-    "Baton Rouge, LA",
-    "Billings, MT",
-    "Birmingham, AL",
-    "Bismarck, ND",
-    "Boise, ID",
-    "Boston-Shirley, MA"
-  ];
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -371,7 +325,7 @@ export default function IAAI() {
               </div>
             </div>
             
-            {/* Auction Sites */}
+            {/* Auction Sites - Navigation Radio Buttons */}
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Auction Sites
@@ -406,10 +360,10 @@ export default function IAAI() {
             <div className="mt-6">
               <button
                 onClick={handleSearch}
-                disabled={!make || isLoading}
+                disabled={!make}
                 className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors"
               >
-                {isLoading ? 'Searching...' : 'Search Vehicle History'}
+                Search Vehicle History
               </button>
             </div>
           </div>
@@ -621,12 +575,6 @@ export default function IAAI() {
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md">
               No IAAI results found for your search criteria. Try adjusting your filters or date range.
             </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-            {error}
           </div>
         )}
       </main>
