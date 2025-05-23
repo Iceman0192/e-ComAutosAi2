@@ -303,80 +303,14 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Limited Preview Table - Free Tier Teaser */}
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
-                          Vehicle
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Mileage
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Sale Price
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Price per Mile
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mileageVsPrice
-                        .filter(item => item.mileage > 0)
-                        .slice(0, 5) // Only show first 5 vehicles for free tier!
-                        .map((item, index) => {
-                          const pricePerMile = (item.price / item.mileage).toFixed(2);
-                          return (
-                            <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-600">
-                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
-                                <span className="text-sm font-medium">{item.model}</span>
-                              </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                                <span className="font-mono">{item.mileage.toLocaleString()}</span>
-                                <span className="text-xs text-gray-500 ml-1">mi</span>
-                              </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
-                                  {formatCurrency(item.price)}
-                                </span>
-                              </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                                <span className="font-mono text-sm text-blue-600 dark:text-blue-400">
-                                  ${pricePerMile}
-                                </span>
-                                <span className="text-xs text-gray-500 ml-1">/mi</span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                    </tbody>
-                  </table>
-                  
-                  {/* Upgrade Teaser for remaining data */}
-                  {mileageVsPrice.filter(item => item.mileage > 0).length > 5 && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
-                            💎 {mileageVsPrice.filter(item => item.mileage > 0).length - 5} more vehicles available!
-                          </p>
-                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                            Upgrade to Gold for complete mileage analysis, damage filters, and location data
-                          </p>
-                        </div>
-                        <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                          Upgrade to Gold
-                        </button>
-                      </div>
+                {/* Interactive Visual Chart - Main Feature */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-semibold">Interactive Price vs Mileage Trend</h4>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Hover any point for detailed vehicle info
                     </div>
-                  )}
-                </div>
-
-                {/* Simplified Visual Chart */}
-                <div className="mt-6">
-                  <h4 className="text-lg font-semibold mb-4">Visual Trend</h4>
+                  </div>
                   <ResponsiveContainer width="100%" height={300}>
                     <ScatterChart data={mileageVsPrice.filter(item => item.mileage > 0)}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -418,33 +352,35 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Key Insights */}
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Key Insights</h4>
-                  <div className="text-sm text-blue-700 dark:text-blue-300">
-                    {mileageVsPrice.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                          <p className="font-medium">Lowest Mileage:</p>
-                          <p>{Math.min(...mileageVsPrice.filter(i => i.mileage > 0).map(i => i.mileage)).toLocaleString()} miles</p>
-                        </div>
-                        <div>
-                          <p className="font-medium">Highest Price:</p>
-                          <p>{formatCurrency(Math.max(...mileageVsPrice.map(i => i.price)))}</p>
-                        </div>
-                        <div>
-                          <p className="font-medium">Best Value:</p>
-                          <p>{(() => {
-                            const bestValue = mileageVsPrice
-                              .filter(i => i.mileage > 0)
-                              .reduce((best, current) => 
-                                (current.price / current.mileage) < (best.price / best.mileage) ? current : best
-                              );
-                            return `$${(bestValue.price / bestValue.mileage).toFixed(2)}/mile`;
-                          })()}</p>
-                        </div>
+                {/* Smart Value Teaser - Shows potential without giving it all away */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">🚀 Unlock Advanced Insights</h4>
+                  <div className="text-sm text-purple-700 dark:text-purple-300 space-y-2">
+                    <p className="font-medium">Gold Members Get Access To:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Complete vehicle breakdown table</span>
                       </div>
-                    )}
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Price-per-mile calculations</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Damage type filtering</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Location-based comparisons</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-purple-200 dark:border-purple-700">
+                      <span className="text-xs">Currently viewing: {mileageVsPrice.filter(i => i.mileage > 0).length} vehicles</span>
+                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Upgrade to Gold
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
