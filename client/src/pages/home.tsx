@@ -760,32 +760,51 @@ export default function Home() {
                           <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                {/* Handle different image formats (API direct vs database cached) */}
-                                {sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0 ? (
-                                  <img 
-                                    src={sale.link_img_small[0]} 
-                                    alt={`${sale.year} ${sale.make} ${sale.model}`}
-                                    className="h-16 w-24 rounded-sm mr-3 object-cover"
-                                  />
-                                ) : sale.images ? (
-                                  <img 
-                                    src={typeof sale.images === 'string' ? 
-                                      JSON.parse(sale.images)[0] : 
-                                      Array.isArray(sale.images) ? sale.images[0] : ''}
-                                    alt={`${sale.year} ${sale.make} ${sale.model}`}
-                                    className="h-16 w-24 rounded-sm mr-3 object-cover"
-                                    onError={(e) => {
-                                      e.currentTarget.onerror = null;
-                                      e.currentTarget.src = '';
-                                      e.currentTarget.className = 'hidden';
-                                      e.currentTarget.parentElement.classList.add('bg-gray-200', 'dark:bg-gray-700', 'flex', 'items-center', 'justify-center');
+                                <div className="flex-shrink-0 h-16 w-20 mr-4 relative">
+                                  {(() => {
+                                    // Enhanced image handling - try multiple sources for better coverage
+                                    let imageUrl = '';
+                                    if (sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0) {
+                                      imageUrl = sale.link_img_small[0];
+                                    } else if (sale.link_img_hd && Array.isArray(sale.link_img_hd) && sale.link_img_hd.length > 0) {
+                                      imageUrl = sale.link_img_hd[0];
+                                    } else if (sale.images) {
+                                      const images = typeof sale.images === 'string' ? JSON.parse(sale.images) : sale.images;
+                                      if (Array.isArray(images) && images.length > 0) {
+                                        imageUrl = images[0];
+                                      }
+                                    }
+                                    
+                                    return imageUrl ? (
+                                      <img 
+                                        src={imageUrl} 
+                                        alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                        className="h-16 w-20 object-cover rounded-lg border border-blue-200 dark:border-blue-700 shadow-sm"
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = 'none';
+                                          const placeholder = target.nextElementSibling as HTMLElement;
+                                          if (placeholder) placeholder.style.display = 'flex';
+                                        }}
+                                      />
+                                    ) : null;
+                                  })()}
+                                  <div 
+                                    className="h-16 w-20 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700 flex items-center justify-center"
+                                    style={{ 
+                                      display: (() => {
+                                        const hasImage = (sale.link_img_small?.length > 0) || (sale.link_img_hd?.length > 0) || 
+                                                         (sale.images && ((typeof sale.images === 'string' && JSON.parse(sale.images).length > 0) || 
+                                                          (Array.isArray(sale.images) && sale.images.length > 0)));
+                                        return hasImage ? 'none' : 'flex';
+                                      })()
                                     }}
-                                  />
-                                ) : (
-                                  <div className="h-16 w-24 rounded-sm bg-gray-200 dark:bg-gray-700 mr-3 flex items-center justify-center">
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">No image</span>
+                                  >
+                                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
                                   </div>
-                                )}
+                                </div>
                                 <div>
                                   <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                                     {sale.year} {sale.make} {sale.model} {sale.series}
