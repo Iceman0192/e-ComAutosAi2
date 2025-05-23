@@ -20,6 +20,7 @@ export function setupApiRoutes(app: Express) {
       const model = req.query.model as string;
       const page = parseInt(req.query.page as string) || 1;
       const size = parseInt(req.query.size as string) || 25;
+      const site = req.query.site as string || '1'; // Default to Copart if not specified
       const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
       const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
       const saleFrom = req.query.sale_date_from as string;
@@ -148,7 +149,7 @@ export function setupApiRoutes(app: Express) {
         
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
-        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
+        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${site}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
         console.log(`Requesting from APICAR API: ${apiUrl}`);
         
         apiResponse = await getVehicleSalesHistory(

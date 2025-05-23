@@ -424,91 +424,168 @@ export default function IAAI() {
 
         {hasSearched && searchResults && searchResults.data && (
           <div className="space-y-6">
-            {/* Results Summary */}
+            {/* Results Summary with Display Options */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  IAAI Search Results
+                  {searchResults.data.salesHistory.length} Results for {make} {model} ({yearFrom}-{yearTo})
                 </h3>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Showing {((page - 1) * resultsPerPage) + 1} to {Math.min(page * resultsPerPage, totalResults)} of {totalResults} results
+                  Average sold price: {formatCurrency(calculateAveragePrice(searchResults.data.salesHistory))}
                 </div>
+              </div>
+              
+              {/* Display Tabs */}
+              <div className="flex space-x-1 mb-4">
+                <button
+                  onClick={() => setActiveTab(TabType.TIMELINE)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    activeTab === TabType.TIMELINE
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Timeline
+                </button>
+                <button
+                  onClick={() => setActiveTab(TabType.TABLE)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    activeTab === TabType.TABLE
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Table View
+                </button>
+                <button
+                  onClick={() => setActiveTab(TabType.PHOTOS)}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    activeTab === TabType.PHOTOS
+                      ? 'bg-red-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Photo Grid
+                </button>
               </div>
             </div>
 
-            {/* Sales Timeline */}
-            {searchResults.data.salesHistory && searchResults.data.salesHistory.length > 0 && (
+            {/* Content based on active tab */}
+            {activeTab === TabType.TIMELINE && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Price Timeline</h3>
-                </div>
                 <div className="p-6">
-                  <SalesTimeline salesHistory={searchResults.data.salesHistory} />
+                  <SalesTimeline salesHistory={searchResults.data.salesHistory} priceTrend={[]} />
                 </div>
               </div>
             )}
 
-            {/* Sales Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sales Data</h3>
+            {activeTab === TabType.TABLE && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Vehicle
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Sale Date
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Price
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Location
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {searchResults.data.salesHistory.map((sale: any, index: number) => (
+                        <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {sale.year} {sale.make} {sale.model}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              VIN: {sale.vin}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {new Date(sale.sale_date).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              sale.sale_status === 'sold' || sale.sale_status === 'Sold'
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {sale.sale_status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                            {sale.auction_location || sale.location || 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Vehicle
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Sale Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Price
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Location
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {searchResults.data.salesHistory.map((sale: any, index: number) => (
-                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">
-                            {sale.year} {sale.make} {sale.model}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            VIN: {sale.vin}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {new Date(sale.sale_date).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            sale.sale_status === 'sold' 
+            )}
+
+            {activeTab === TabType.PHOTOS && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {searchResults.data.salesHistory.map((sale: any, index: number) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                      {/* Vehicle Image */}
+                      {sale.link_img_small && sale.link_img_small.length > 0 ? (
+                        <img 
+                          src={sale.link_img_small[0]} 
+                          alt={`${sale.year} ${sale.make} ${sale.model}`}
+                          className="w-full h-48 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                          <span className="text-gray-500 dark:text-gray-400">No Image Available</span>
+                        </div>
+                      )}
+                      
+                      {/* Vehicle Details */}
+                      <div className="p-4">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {sale.year} {sale.make} {sale.model}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          VIN: {sale.vin}
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-bold text-gray-900 dark:text-white">
+                            {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
+                          </span>
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            sale.sale_status === 'sold' || sale.sale_status === 'Sold'
                               ? 'bg-green-100 text-green-800' 
                               : 'bg-yellow-100 text-yellow-800'
                           }`}>
                             {sale.sale_status}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                           {sale.auction_location || sale.location || 'N/A'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Pagination */}
             {totalResults > resultsPerPage && (
