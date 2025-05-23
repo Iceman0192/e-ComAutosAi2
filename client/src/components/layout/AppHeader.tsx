@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import { useLocation } from "wouter";
 
 interface AppHeaderProps {
   sidebarOpen: boolean;
@@ -11,8 +12,6 @@ interface AppHeaderProps {
   setModel: (model: string) => void;
   vin: string;
   setVin: (vin: string) => void;
-  auctionSite: 'copart' | 'iaai';
-  setAuctionSite: (site: 'copart' | 'iaai') => void;
   onRefresh: () => void;
 }
 
@@ -27,10 +26,9 @@ export default function AppHeader({
   setModel,
   vin,
   setVin,
-  auctionSite,
-  setAuctionSite,
   onRefresh
 }: AppHeaderProps) {
+  const [location, navigate] = useLocation();
   return (
     <header className="bg-white shadow-md sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center h-auto py-3">
