@@ -45,7 +45,9 @@ export function setupApiRoutes(app: Express) {
         yearFrom,
         yearTo,
         saleFrom,
-        saleTo 
+        saleTo,
+        sites,
+        siteId
       });
       
       // Validate required parameters
