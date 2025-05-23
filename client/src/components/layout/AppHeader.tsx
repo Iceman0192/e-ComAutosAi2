@@ -43,30 +43,30 @@ export default function AppHeader({
           <div className="flex items-center">
             <span className="material-icons text-blue-600 mr-2">bar_chart</span>
             <h1 className="text-xl font-semibold text-gray-800">APICAR Sales History</h1>
-          </div>
-          
-          {/* Auction Sites Toggle */}
-          <div className="flex items-center ml-6 bg-gray-100 rounded-lg p-1">
-            <span className="text-sm font-medium text-gray-600 mr-3">Auction Sites</span>
-            <div className="flex items-center space-x-3">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={location === '/'}
-                  onChange={() => navigate('/')}
-                  className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">Copart</span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={location === '/iaai'}
-                  onChange={() => navigate('/iaai')}
-                  className="form-checkbox h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">IAAI</span>
-              </label>
+            
+            {/* Auction Sites Toggle - moved right next to title */}
+            <div className="flex items-center ml-4 bg-gray-100 rounded-lg p-2">
+              <span className="text-xs font-medium text-gray-600 mr-2">Auction Sites</span>
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={location === '/'}
+                    onChange={() => navigate('/')}
+                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="ml-1 text-xs font-medium text-gray-700">Copart</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={location === '/iaai'}
+                    onChange={() => navigate('/iaai')}
+                    className="h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
+                  />
+                  <span className="ml-1 text-xs font-medium text-gray-700">IAAI</span>
+                </label>
+              </div>
             </div>
           </div>
           
