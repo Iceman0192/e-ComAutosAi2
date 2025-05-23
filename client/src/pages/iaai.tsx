@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchSalesHistory } from '@/api/apiClient';
 import { useFilterState } from '@/hooks/useFilterState';
 import AppLayout from '@/components/layout/AppLayout';
-import { SalesTimeline } from '@/components/sales/SalesTimeline';
+import SalesTimeline from '@/components/sales/SalesTimeline';
 import SaleDetail from '@/components/sales/SaleDetail';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Grid, List, Clock } from 'lucide-react';
@@ -134,9 +134,9 @@ export default function IAAI() {
     <AppLayout filterState={filterState} onRefresh={handleRefresh}>
       <div className="space-y-6">
         {/* Header with IAAI branding */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-600 text-white p-6 rounded-lg">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-lg">
           <h1 className="text-2xl font-bold mb-2">IAAI Sales History</h1>
-          <p className="text-orange-100">
+          <p className="text-red-100">
             {filterState.make} {filterState.model} • {totalResults.toLocaleString()} total results
           </p>
         </div>
@@ -161,7 +161,7 @@ export default function IAAI() {
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="text-sm text-gray-600 dark:text-gray-400">Auction House</div>
-            <div className="text-2xl font-bold text-orange-600">IAAI</div>
+            <div className="text-2xl font-bold text-red-600">IAAI</div>
           </div>
         </div>
 
@@ -173,7 +173,7 @@ export default function IAAI() {
                 onClick={() => setActiveTab(TabType.TIMELINE)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === TabType.TIMELINE
-                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    ? 'border-red-500 text-red-600 dark:text-red-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
@@ -184,7 +184,7 @@ export default function IAAI() {
                 onClick={() => setActiveTab(TabType.TABLE)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === TabType.TABLE
-                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    ? 'border-red-500 text-red-600 dark:text-red-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
@@ -195,7 +195,7 @@ export default function IAAI() {
                 onClick={() => setActiveTab(TabType.PHOTOS)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === TabType.PHOTOS
-                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    ? 'border-red-500 text-red-600 dark:text-red-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
