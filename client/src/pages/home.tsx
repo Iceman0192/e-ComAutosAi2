@@ -294,11 +294,11 @@ export default function Home() {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      {/* Header - BLUE branding for Copart */}
+      <header className="bg-blue-600 text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vehicle Sales History</h1>
+            <h1 className="text-2xl font-bold">Copart Vehicle Sales History</h1>
             <PlatformToggle />
           </div>
         </div>
