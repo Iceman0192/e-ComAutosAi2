@@ -655,7 +655,7 @@ export default function IAAI() {
                               src={imageUrl} 
                               alt={`${sale.year} ${sale.make} ${sale.model}`}
                               className="w-full h-full object-cover cursor-pointer"
-                              onClick={() => openModal(sale)}
+                              onClick={() => openVehicleDetails(sale)}
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 target.style.display = 'none';
