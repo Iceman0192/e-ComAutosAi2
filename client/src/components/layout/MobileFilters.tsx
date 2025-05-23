@@ -273,33 +273,7 @@ export default function MobileFilters({
               </div>
             </div>
             
-            {/* Auction Sites */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                <span className="material-icons text-blue-500 mr-2 text-sm">business</span>
-                Auction Sites
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                <label className="flex items-center hover:bg-gray-100 p-2 rounded-md transition-colors">
-                  <input 
-                    type="checkbox" 
-                    checked={sites.includes('copart')}
-                    onChange={(e) => updateSites('copart', e.target.checked)}
-                    className="text-blue-600 focus:ring-blue-500 rounded" 
-                  />
-                  <span className="ml-2 text-sm">Copart</span>
-                </label>
-                <label className="flex items-center hover:bg-gray-100 p-2 rounded-md transition-colors">
-                  <input 
-                    type="checkbox" 
-                    checked={sites.includes('iaai')}
-                    onChange={(e) => updateSites('iaai', e.target.checked)}
-                    className="text-blue-600 focus:ring-blue-500 rounded" 
-                  />
-                  <span className="ml-2 text-sm">IAAI</span>
-                </label>
-              </div>
-            </div>
+
           </div>
           
           {/* Footer */}
