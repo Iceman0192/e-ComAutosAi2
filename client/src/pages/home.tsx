@@ -21,8 +21,7 @@ export default function Home() {
   const [model, setModel] = useState('');
   const [yearFrom, setYearFrom] = useState(currentYear - 5);
   const [yearTo, setYearTo] = useState(currentYear);
-  const [sites, setSites] = useState<string[]>(['copart', 'iaai']);
-  const [auctionSite, setAuctionSite] = useState<'copart' | 'iaai'>('copart'); // Primary auction site
+  const [auctionSource, setAuctionSource] = useState<'copart' | 'iaai'>('copart');
   const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
   const [damageType, setDamageType] = useState<string>('all');
   const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
@@ -52,7 +51,7 @@ export default function Home() {
     model,
     year_from: yearFrom,
     year_to: yearTo,
-    sites: [auctionSite], // Use selected auction site only
+    site: auctionSource === 'copart' ? 1 : 2, // 1 = Copart, 2 = IAAI
     auction_date_from: auctionDateFrom,
     auction_date_to: auctionDateTo,
     page,
@@ -377,34 +376,43 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Auction Site Selection */}
+            {/* Auction sources */}
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Auction Site
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Auction Sites
               </label>
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-fit">
-                <button
-                  type="button"
-                  onClick={() => setAuctionSite('copart')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                    auctionSite === 'copart'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
-                  }`}
-                >
-                  Copart
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAuctionSite('iaai')}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                    auctionSite === 'iaai'
-                      ? 'bg-red-600 text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
-                  }`}
-                >
-                  IAAI
-                </button>
+              <div className="flex space-x-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={sites.includes('copart')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSites([...sites, 'copart']);
+                      } else {
+                        setSites(sites.filter(s => s !== 'copart'));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Copart</span>
+                </label>
+                
+                <label className="inline-flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={sites.includes('iaai')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSites([...sites, 'iaai']);
+                      } else {
+                        setSites(sites.filter(s => s !== 'iaai'));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">IAAI</span>
+                </label>
               </div>
             </div>
             
