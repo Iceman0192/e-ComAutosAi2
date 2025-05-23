@@ -197,6 +197,9 @@ export default function Home() {
             }
           }
         }
+        
+        // Reset loading state whether success or failure
+        setIsSearching(false);
       })
       .catch(error => {
         console.error("Error during search:", error);
