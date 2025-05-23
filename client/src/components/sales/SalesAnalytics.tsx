@@ -298,48 +298,150 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
             <CardHeader>
               <CardTitle>Mileage vs Price Analysis</CardTitle>
               <CardDescription>
-                Relationship between vehicle mileage and sale price
+                Clear correlation between mileage and price - organized by mileage ranges for easy comparison
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ScatterChart data={mileageVsPrice}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="mileage" 
-                    name="Mileage"
-                    tickFormatter={(value) => `${Math.round(value / 1000)}k`}
-                  />
-                  <YAxis 
-                    dataKey="price" 
-                    name="Price"
-                    tickFormatter={(value) => formatCurrency(value)}
-                  />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      name === 'price' ? formatCurrency(value) : `${value.toLocaleString()} miles`,
-                      name === 'price' ? 'Sale Price' : 'Mileage'
-                    ]}
-                    labelFormatter={() => ''}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow">
-                            <p className="font-semibold">{data.model}</p>
-                            <p>Price: {formatCurrency(data.price)}</p>
-                            <p>Mileage: {data.mileage.toLocaleString()} miles</p>
-                            <p>Damage: {data.damage}</p>
-                            <p>Title: {data.title}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Scatter dataKey="price" fill="#8884d8" />
-                </ScatterChart>
-              </ResponsiveContainer>
+              <div className="space-y-6">
+                {/* Organized Data Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
+                          Vehicle
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Mileage
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Sale Price
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center font-semibold">
+                          Damage
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center font-semibold">
+                          Title
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Price per Mile
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mileageVsPrice
+                        .filter(item => item.mileage > 0) // Only show vehicles with valid mileage
+                        .map((item, index) => {
+                          const pricePerMile = (item.price / item.mileage).toFixed(2);
+                          return (
+                            <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-600">
+                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
+                                <span className="text-sm font-medium">{item.model}</span>
+                              </td>
+                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                                <span className="font-mono">{item.mileage.toLocaleString()}</span>
+                                <span className="text-xs text-gray-500 ml-1">mi</span>
+                              </td>
+                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                                <span className="font-mono font-semibold text-green-600 dark:text-green-400">
+                                  {formatCurrency(item.price)}
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center">
+                                <span className="text-sm px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
+                                  {item.damage}
+                                </span>
+                              </td>
+                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center">
+                                <span className="text-sm">{item.title}</span>
+                              </td>
+                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                                <span className="font-mono text-sm text-blue-600 dark:text-blue-400">
+                                  ${pricePerMile}
+                                </span>
+                                <span className="text-xs text-gray-500 ml-1">/mi</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Simplified Visual Chart */}
+                <div className="mt-6">
+                  <h4 className="text-lg font-semibold mb-4">Visual Trend</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ScatterChart data={mileageVsPrice.filter(item => item.mileage > 0)}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="mileage" 
+                        name="Mileage"
+                        type="number"
+                        tickFormatter={(value) => `${Math.round(value / 1000)}k`}
+                        domain={['dataMin', 'dataMax']}
+                      />
+                      <YAxis 
+                        dataKey="price" 
+                        name="Price"
+                        type="number"
+                        tickFormatter={(value) => formatCurrency(value)}
+                        domain={['dataMin', 'dataMax']}
+                      />
+                      <Tooltip 
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            const pricePerMile = (data.price / data.mileage).toFixed(2);
+                            return (
+                              <div className="bg-white dark:bg-gray-800 p-3 border rounded shadow">
+                                <p className="font-semibold">{data.model}</p>
+                                <p>Price: <span className="text-green-600 font-mono">{formatCurrency(data.price)}</span></p>
+                                <p>Mileage: <span className="font-mono">{data.mileage.toLocaleString()}</span> miles</p>
+                                <p>Price/Mile: <span className="text-blue-600 font-mono">${pricePerMile}</span></p>
+                                <p>Damage: {data.damage}</p>
+                                <p>Title: {data.title}</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Scatter dataKey="price" fill="#3b82f6" fillOpacity={0.7} />
+                    </ScatterChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Key Insights */}
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Key Insights</h4>
+                  <div className="text-sm text-blue-700 dark:text-blue-300">
+                    {mileageVsPrice.length > 0 && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="font-medium">Lowest Mileage:</p>
+                          <p>{Math.min(...mileageVsPrice.filter(i => i.mileage > 0).map(i => i.mileage)).toLocaleString()} miles</p>
+                        </div>
+                        <div>
+                          <p className="font-medium">Highest Price:</p>
+                          <p>{formatCurrency(Math.max(...mileageVsPrice.map(i => i.price)))}</p>
+                        </div>
+                        <div>
+                          <p className="font-medium">Best Value:</p>
+                          <p>{(() => {
+                            const bestValue = mileageVsPrice
+                              .filter(i => i.mileage > 0)
+                              .reduce((best, current) => 
+                                (current.price / current.mileage) < (best.price / best.mileage) ? current : best
+                              );
+                            return `$${(bestValue.price / bestValue.mileage).toFixed(2)}/mile`;
+                          })()}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
