@@ -154,7 +154,13 @@ export default function SalesTimeline({ salesHistory, priceTrend }: SalesTimelin
       monthData.count += 1;
       
       if (sale.purchase_price) {
-        monthData.totalPrice += sale.purchase_price;
+        // Convert string price to number if needed
+        const price = typeof sale.purchase_price === 'string' 
+          ? parseFloat(sale.purchase_price) 
+          : sale.purchase_price;
+        if (!isNaN(price) && isFinite(price)) {
+          monthData.totalPrice += price;
+        }
       }
       
       if (sale.vehicle_title?.toLowerCase().includes('clean')) {
