@@ -225,11 +225,11 @@ export default function IAAI() {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      {/* Header - RED branding for IAAI */}
+      <header className="bg-red-600 text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Vehicle Sales History</h1>
+            <h1 className="text-2xl font-bold">IAAI Vehicle Sales History</h1>
             <PlatformToggle />
           </div>
         </div>
@@ -377,9 +377,10 @@ export default function IAAI() {
             {/* Search Button */}
             <div className="mt-6">
               <button
+                type="button"
                 onClick={handleSearch}
                 disabled={!make}
-                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors"
+                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
               >
                 Search Vehicle History
               </button>
