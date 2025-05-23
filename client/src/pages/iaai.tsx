@@ -1,109 +1,191 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useState } from 'react';
+import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
+import ErrorBoundary from '../components/ui/error-boundary';
+import { Link } from 'wouter';
+import SalesTimeline from '../components/sales/SalesTimeline';
+import { formatCurrency } from '../utils/formatters';
+
+// Tab enum for better organization
+enum TabType {
+  TIMELINE = "timeline",
+  TABLE = "table",
+  PHOTOS = "photos"
+}
+
+// Get current year for the year picker default value
+const currentYear = new Date().getFullYear();
 
 export default function IAAI() {
-  const [, setLocation] = useLocation();
-  
-  // State for form inputs
-  const [make, setMake] = useState('');
+  // Primary search parameters
+  const [make, setMake] = useState('Toyota');
   const [model, setModel] = useState('');
-  const [yearFrom, setYearFrom] = useState('');
-  const [yearTo, setYearTo] = useState('');
-  const [auctionDateFrom, setAuctionDateFrom] = useState('');
-  const [auctionDateTo, setAuctionDateTo] = useState('');
+  const [vin, setVin] = useState('');
+  const [yearFrom, setYearFrom] = useState(currentYear - 5);
+  const [yearTo, setYearTo] = useState(currentYear);
+  const [sites, setSites] = useState<string[]>(['iaai']); // Hardcoded for IAAI
+  const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
+  const [damageType, setDamageType] = useState<string>('all');
+  const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
+  const [maxMileage, setMaxMileage] = useState<number | undefined>(undefined);
   
-  // Results state
-  const [salesData, setSalesData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Date range for auction
+  const [auctionDateFrom, setAuctionDateFrom] = useState<string>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    return date.toISOString().split('T')[0];
+  });
+  const [auctionDateTo, setAuctionDateTo] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [resultsPerPage, setResultsPerPage] = useState(25); // API supports up to 25 per page
   const [totalResults, setTotalResults] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const resultsPerPage = 25;
-
-  // Set default date range (3 months back from today)
-  useEffect(() => {
-    const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
+  
+  // UI state
+  const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
+  
+  // Combine filter state for API request
+  const filterState: FilterState = {
+    make,
+    model,
+    year_from: yearFrom,
+    year_to: yearTo,
+    sites,
+    auction_date_from: auctionDateFrom,
+    auction_date_to: auctionDateTo,
+    page,
+    size: resultsPerPage,
+    damage_type: damageType !== 'all' ? damageType : undefined,
+    odometer_from: minMileage,
+    odometer_to: maxMileage
+  };
+  
+  // State to track if a search has been performed
+  const [hasSearched, setHasSearched] = useState(false);
+  
+  // Helper function to calculate average price from sales history
+  const calculateAveragePrice = (salesHistory: any[] = []) => {
+    if (!salesHistory || salesHistory.length === 0) return 0;
     
-    setAuctionDateFrom(threeMonthsAgo.toISOString().split('T')[0]);
-    setAuctionDateTo(today.toISOString().split('T')[0]);
-  }, []);
-
-  // Function to handle search
-  const handleSearch = async () => {
-    if (!make) {
-      alert('Please select a make');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
+    const salesWithPrices = salesHistory.filter(sale => sale.purchase_price !== undefined);
+    if (salesWithPrices.length === 0) return 0;
     
-    const params = new URLSearchParams({
-      make,
-      page: '1',
-      size: resultsPerPage.toString(),
-      site: '2' // Hardcoded for IAAI
-    });
-    
-    if (model) params.append('model', model);
-    if (yearFrom) params.append('year_from', yearFrom);
-    if (yearTo) params.append('year_to', yearTo);
-    if (auctionDateFrom) params.append('sale_date_from', auctionDateFrom);
-    if (auctionDateTo) params.append('sale_date_to', auctionDateTo);
-
-    try {
-      const response = await fetch(`/api/sales-history?${params}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setSalesData(result.data);
-        setTotalResults(result.data.pagination?.totalCount || result.data.salesHistory.length);
-        setCurrentPage(1);
-      } else {
-        setError(result.message || 'Search failed');
-      }
-    } catch (err) {
-      setError('Failed to fetch data');
-      console.error('Search error:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    const total = salesWithPrices.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0);
+    return total / salesWithPrices.length;
   };
 
-  // Function to load more pages
-  const loadPage = async (newPage: number) => {
-    if (!make || newPage === currentPage) return;
-
-    const params = new URLSearchParams({
-      make,
-      page: newPage.toString(),
-      size: resultsPerPage.toString(),
-      site: '2' // Hardcoded for IAAI
-    });
+  // State to hold the actual results data
+  const [searchResults, setSearchResults] = useState<any>(null);
+  
+  // Fetch data - will only execute when triggered by button click
+  const { data, isLoading, error, refetch } = useSalesHistory(filterState);
+  
+  const handleSearch = () => {
+    setPage(1); // Reset to first page on new search
+    setHasSearched(true); // Mark that a search has been performed
     
+    // Build parameters for initial search
+    const params = new URLSearchParams();
+    params.append('make', make);
     if (model) params.append('model', model);
-    if (yearFrom) params.append('year_from', yearFrom);
-    if (yearTo) params.append('year_to', yearTo);
-    if (auctionDateFrom) params.append('sale_date_from', auctionDateFrom);
-    if (auctionDateTo) params.append('sale_date_to', auctionDateTo);
-
-    fetch(`/api/sales-history?${params}`)
-      .then(response => response.json())
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('page', '1');
+    params.append('size', resultsPerPage.toString());
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
+    
+    // Add site filters - hardcoded for IAAI
+    params.append('site', '2'); // IAAI site ID
+    
+    console.log(`Initial IAAI search with params:`, params.toString());
+    
+    // Make direct fetch request to be consistent with pagination
+    fetch(`/api/sales-history?${params.toString()}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
       .then(result => {
-        if (result.success && result.data.salesHistory.length > 0) {
-          // Update the current sales data with new page
-          setSalesData(result.data);
-          setCurrentPage(newPage);
+        console.log("Received initial IAAI search data:", result);
+        
+        // Only update if successful
+        if (result.success && result.data) {
+          // Store results in local state
+          setSearchResults(result);
           
-          // Update total results if we got new information
-          const displayedCount = result.data.salesHistory.length;
-          
-          if (result.data.pagination?.totalCount) {
+          // Update total results count for pagination
+          if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
-          } else {
-            // Estimate total results based on page data
+          } else if (result.data.salesHistory) {
+            // If we got a full page, assume there are more results
+            const displayedCount = result.data.salesHistory.length;
+            if (displayedCount === resultsPerPage) {
+              setTotalResults(resultsPerPage * 2); // Assume at least 2 pages
+            } else {
+              setTotalResults(displayedCount);
+            }
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Error during IAAI search:", error);
+      });
+  };
+  
+  // Handle page change - fetch new data with updated page number
+  const handlePageChange = (newPage: number) => {
+    // Update page in filter state
+    filterState.page = newPage;
+    
+    // Update current page state
+    setPage(newPage);
+    
+    // Build complete URL parameters for API request
+    const params = new URLSearchParams();
+    params.append('make', make);
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('page', newPage.toString());
+    params.append('size', resultsPerPage.toString());
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
+    
+    // Add site filters - hardcoded for IAAI
+    params.append('site', '2'); // IAAI site ID
+    
+    console.log(`Requesting IAAI page ${newPage} with params:`, params.toString());
+    
+    // Make direct fetch request to avoid resetting search state
+    fetch(`/api/sales-history?${params.toString()}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log("Received IAAI data for page", newPage, result);
+        
+        // Only update if successful
+        if (result.success && result.data) {
+          // Store results in local state
+          setSearchResults(result);
+          
+          // Make sure we're showing search has been performed
+          setHasSearched(true);
+          
+          // Update total results count for pagination
+          if (result.data.pagination && result.data.pagination.totalCount) {
+            setTotalResults(result.data.pagination.totalCount);
+          } else if (result.data.salesHistory) {
+            // If we have more results than just this page, estimate there are more
+            const displayedCount = result.data.salesHistory.length;
             if (displayedCount === resultsPerPage) {
               // If we got a full page, assume there are at least more pages available
               setTotalResults(Math.max(newPage * resultsPerPage + resultsPerPage, totalResults));
@@ -115,10 +197,10 @@ export default function IAAI() {
         }
       })
       .catch(error => {
-        console.error("Error fetching page", newPage, error);
+        console.error("Error fetching IAAI page", newPage, error);
       });
   };
-
+  
   // Location options for dropdown
   const locationOptions = [
     "All Locations",
@@ -142,7 +224,7 @@ export default function IAAI() {
     "Boise, ID",
     "Boston-Shirley, MA"
   ];
-
+  
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header - RED branding for IAAI */}
@@ -184,118 +266,142 @@ export default function IAAI() {
                   <option value="Jeep">Jeep</option>
                 </select>
               </div>
-
+              
               {/* Model */}
               <div>
                 <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Model
                 </label>
-                <input
-                  type="text"
+                <select
                   id="model"
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  placeholder="e.g., Camry, Accord"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              {/* Year From */}
-              <div>
-                <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Year From
-                </label>
-                <select
-                  id="yearFrom"
-                  value={yearFrom}
-                  onChange={(e) => setYearFrom(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <option value="">Any Year</option>
-                  {Array.from({length: 30}, (_, i) => 2024 - i).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
+                  <option value="">All Models</option>
+                  {make === 'Toyota' && (
+                    <>
+                      <option value="Camry">Camry</option>
+                      <option value="Corolla">Corolla</option>
+                      <option value="RAV4">RAV4</option>
+                      <option value="Tacoma">Tacoma</option>
+                      <option value="Highlander">Highlander</option>
+                      <option value="4Runner">4Runner</option>
+                    </>
+                  )}
+                  {make === 'Honda' && (
+                    <>
+                      <option value="Civic">Civic</option>
+                      <option value="Accord">Accord</option>
+                      <option value="CR-V">CR-V</option>
+                      <option value="Pilot">Pilot</option>
+                    </>
+                  )}
+                  {make === 'Ford' && (
+                    <>
+                      <option value="F-150">F-150</option>
+                      <option value="Escape">Escape</option>
+                      <option value="Explorer">Explorer</option>
+                      <option value="Mustang">Mustang</option>
+                    </>
+                  )}
                 </select>
               </div>
-
-              {/* Year To */}
-              <div>
-                <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Year To
-                </label>
-                <select
-                  id="yearTo"
-                  value={yearTo}
-                  onChange={(e) => setYearTo(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  <option value="">Any Year</option>
-                  {Array.from({length: 30}, (_, i) => 2024 - i).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
+              
+              {/* Year Range */}
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Year From
+                  </label>
+                  <select
+                    id="yearFrom"
+                    value={yearFrom}
+                    onChange={(e) => setYearFrom(parseInt(e.target.value))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    {Array.from({ length: 30 }, (_, i) => currentYear - 29 + i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Year To
+                  </label>
+                  <select
+                    id="yearTo"
+                    value={yearTo}
+                    onChange={(e) => setYearTo(parseInt(e.target.value))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    {Array.from({ length: 30 }, (_, i) => currentYear - 29 + i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-
-              {/* Auction Date From */}
-              <div>
-                <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Auction Date From
-                </label>
-                <input
-                  type="date"
-                  id="auctionDateFrom"
-                  value={auctionDateFrom}
-                  onChange={(e) => setAuctionDateFrom(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-
-              {/* Auction Date To */}
-              <div>
-                <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Auction Date To
-                </label>
-                <input
-                  type="date"
-                  id="auctionDateTo"
-                  value={auctionDateTo}
-                  onChange={(e) => setAuctionDateTo(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
+              
+              {/* Auction Date Range */}
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Auction Date From
+                  </label>
+                  <input
+                    type="date"
+                    id="auctionDateFrom"
+                    value={auctionDateFrom}
+                    onChange={(e) => setAuctionDateFrom(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Auction Date To
+                  </label>
+                  <input
+                    type="date"
+                    id="auctionDateTo"
+                    value={auctionDateTo}
+                    onChange={(e) => setAuctionDateTo(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Auction Sites - Radio buttons for navigation */}
+            
+            {/* Auction Sites */}
             <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Auction Sites
               </label>
-              <div className="flex gap-4">
-                <label className="flex items-center">
+              <div className="flex space-x-4">
+                <label className="inline-flex items-center cursor-pointer">
                   <input
                     type="radio"
                     name="auctionSite"
                     value="copart"
                     checked={false}
-                    onChange={() => setLocation('/')}
-                    className="mr-2"
+                    onChange={() => window.location.href = '/'}
+                    className="form-radio h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                   />
-                  Copart
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Copart</span>
                 </label>
-                <label className="flex items-center">
+                <label className="inline-flex items-center cursor-pointer">
                   <input
                     type="radio"
                     name="auctionSite"
                     value="iaai"
                     checked={true}
                     readOnly
-                    className="mr-2"
+                    className="form-radio h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
                   />
-                  IAAI
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">IAAI</span>
                 </label>
               </div>
             </div>
-
+            
             {/* Search Button */}
             <div className="mt-6">
               <button
@@ -310,34 +416,43 @@ export default function IAAI() {
         </div>
 
         {/* Results Section */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-            {error}
-          </div>
-        )}
-
-        {!salesData && !isLoading && !error && (
+        {!hasSearched && (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             Fill in your search criteria above and click "Search Vehicle History" to view results.
           </div>
         )}
 
-        {salesData && (
+        {hasSearched && searchResults && searchResults.data && (
           <div className="space-y-6">
             {/* Results Summary */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Search Results
+                  IAAI Search Results
                 </h3>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  Showing {((currentPage - 1) * resultsPerPage) + 1} to {Math.min(currentPage * resultsPerPage, totalResults)} of {totalResults} results
+                  Showing {((page - 1) * resultsPerPage) + 1} to {Math.min(page * resultsPerPage, totalResults)} of {totalResults} results
                 </div>
               </div>
             </div>
 
+            {/* Sales Timeline */}
+            {searchResults.data.salesHistory && searchResults.data.salesHistory.length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Price Timeline</h3>
+                </div>
+                <div className="p-6">
+                  <SalesTimeline salesHistory={searchResults.data.salesHistory} />
+                </div>
+              </div>
+            )}
+
             {/* Sales Table */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sales Data</h3>
+              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700">
@@ -360,7 +475,7 @@ export default function IAAI() {
                     </tr>
                   </thead>
                   <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    {salesData.salesHistory.map((sale: any, index: number) => (
+                    {searchResults.data.salesHistory.map((sale: any, index: number) => (
                       <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -374,7 +489,7 @@ export default function IAAI() {
                           {new Date(sale.sale_date).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {sale.purchase_price ? `$${sale.purchase_price.toLocaleString()}` : 'N/A'}
+                          {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -400,20 +515,20 @@ export default function IAAI() {
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => loadPage(currentPage - 1)}
-                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
                     className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md"
                   >
                     Previous
                   </button>
                   
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Page {currentPage} of {Math.ceil(totalResults / resultsPerPage)}
+                    Page {page} of {Math.ceil(totalResults / resultsPerPage)}
                   </span>
                   
                   <button
-                    onClick={() => loadPage(currentPage + 1)}
-                    disabled={currentPage >= Math.ceil(totalResults / resultsPerPage)}
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page >= Math.ceil(totalResults / resultsPerPage)}
                     className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md"
                   >
                     Next
@@ -421,6 +536,20 @@ export default function IAAI() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {hasSearched && searchResults && (!searchResults.data || !searchResults.data.salesHistory || searchResults.data.salesHistory.length === 0) && (
+          <div className="text-center py-12">
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-md">
+              No IAAI results found for your search criteria. Try adjusting your filters or date range.
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+            {error}
           </div>
         )}
       </main>
