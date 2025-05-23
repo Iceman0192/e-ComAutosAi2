@@ -97,10 +97,11 @@ export default function Home() {
     params.append('sale_date_to', auctionDateTo);
     
     // Add site filters
-    sites.forEach(site => {
-      if (site === 'copart') params.append('site', '1');
-      if (site === 'iaai') params.append('site', '2');
-    });
+    if (auctionSource === 'copart') {
+      params.append('site', '1');
+    } else if (auctionSource === 'iaai') {
+      params.append('site', '2');
+    }
     
     console.log(`Initial search with params:`, params.toString());
     
