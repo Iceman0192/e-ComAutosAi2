@@ -24,6 +24,8 @@ export interface FilterState {
   setBuyerLocation: (location: string | undefined) => void;
   sites: string[];
   setSites: (sites: string[]) => void;
+  auctionSite: 'copart' | 'iaai';
+  setAuctionSite: (site: 'copart' | 'iaai') => void;
 }
 
 export function useFilterState(): FilterState {
