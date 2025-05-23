@@ -1,221 +1,346 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchSalesHistory } from '@/api/apiClient';
-import { useFilterState } from '@/hooks/useFilterState';
-import AppLayout from '@/components/layout/AppLayout';
-import SalesTimeline from '@/components/sales/SalesTimeline';
-import SaleDetail from '@/components/sales/SaleDetail';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Grid, List, Clock } from 'lucide-react';
-import { formatCurrency, formatDate, formatNumber } from '@/lib/utils';
-
-enum TabType {
-  TIMELINE = "timeline",
-  TABLE = "table", 
-  PHOTOS = "photos"
-}
+import { useLocation } from 'wouter';
 
 export default function IAAI() {
-  const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
-  const [selectedSale, setSelectedSale] = useState<any>(null);
-  const [page, setPage] = useState(1);
+  const [, setLocation] = useLocation();
+  
+  // State for form inputs
+  const [make, setMake] = useState('');
+  const [model, setModel] = useState('');
+  const [yearFrom, setYearFrom] = useState('');
+  const [yearTo, setYearTo] = useState('');
+  const [auctionDateFrom, setAuctionDateFrom] = useState('');
+  const [auctionDateTo, setAuctionDateTo] = useState('');
+  
+  // Results state
+  const [salesData, setSalesData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [totalResults, setTotalResults] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 25;
 
-  const filterState = useFilterState();
+  // Set default date range (3 months back from today)
+  useEffect(() => {
+    const today = new Date();
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    
+    setAuctionDateFrom(threeMonthsAgo.toISOString().split('T')[0]);
+    setAuctionDateTo(today.toISOString().split('T')[0]);
+  }, []);
 
-  const searchParams = new URLSearchParams({
-    make: filterState.make,
-    model: filterState.model,
-    page: page.toString(),
-    size: resultsPerPage.toString(),
-    site: '2', // IAAI site ID
-    ...(filterState.dateRange !== 'custom' ? {} : {
-      sale_date_from: filterState.customDateStart,
-      sale_date_to: filterState.customDateEnd
-    }),
-    ...(filterState.priceMin ? { price_min: filterState.priceMin.toString() } : {}),
-    ...(filterState.priceMax ? { price_max: filterState.priceMax.toString() } : {})
-  });
+  // Function to handle search
+  const handleSearch = async () => {
+    if (!make) {
+      alert('Please select a make');
+      return;
+    }
 
-  // Add date range parameters based on selection
-  const now = new Date();
-  let startDate: Date;
-  
-  switch (filterState.dateRange) {
-    case 'last3m':
-      startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-      searchParams.append('sale_date_from', startDate.toISOString().split('T')[0]);
-      searchParams.append('sale_date_to', now.toISOString().split('T')[0]);
-      break;
-    case 'last6m':
-      startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
-      searchParams.append('sale_date_from', startDate.toISOString().split('T')[0]);
-      searchParams.append('sale_date_to', now.toISOString().split('T')[0]);
-      break;
-    case 'lasty':
-      startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-      searchParams.append('sale_date_from', startDate.toISOString().split('T')[0]);
-      searchParams.append('sale_date_to', now.toISOString().split('T')[0]);
-      break;
-  }
+    setIsLoading(true);
+    setError(null);
+    
+    const params = new URLSearchParams({
+      make,
+      page: '1',
+      size: resultsPerPage.toString(),
+      site: '2' // Hardcoded for IAAI
+    });
+    
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom);
+    if (yearTo) params.append('year_to', yearTo);
+    if (auctionDateFrom) params.append('sale_date_from', auctionDateFrom);
+    if (auctionDateTo) params.append('sale_date_to', auctionDateTo);
 
-  const {
-    data: searchResults,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['iaai-sales-history', searchParams.toString()],
-    queryFn: () => fetchSalesHistory(searchParams),
-    enabled: !!(filterState.make && filterState.model),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const salesHistory = searchResults?.data?.salesHistory || [];
-  const totalResults = searchResults?.data?.pagination?.totalCount || salesHistory.length;
-  const averagePrice = searchResults?.data?.stats?.averagePrice || 0;
-
-  const totalPages = Math.ceil(totalResults / resultsPerPage);
-
-  const handleRefresh = () => {
-    refetch();
+    try {
+      const response = await fetch(`/api/sales-history?${params}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setSalesData(result.data);
+        setTotalResults(result.data.pagination?.totalCount || result.data.salesHistory.length);
+        setCurrentPage(1);
+      } else {
+        setError(result.message || 'Search failed');
+      }
+    } catch (err) {
+      setError('Failed to fetch data');
+      console.error('Search error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  useEffect(() => {
-    setPage(1);
-  }, [filterState.make, filterState.model, filterState.dateRange]);
+  // Function to load more pages
+  const loadPage = async (newPage: number) => {
+    if (!make || newPage === currentPage) return;
 
-  // Loading state
-  if (isLoading && !searchResults) {
-    return (
-      <AppLayout filterState={filterState} onRefresh={handleRefresh}>
-        <div className="flex items-center justify-center min-h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading IAAI sales data...</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
+    const params = new URLSearchParams({
+      make,
+      page: newPage.toString(),
+      size: resultsPerPage.toString(),
+      site: '2' // Hardcoded for IAAI
+    });
+    
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom);
+    if (yearTo) params.append('year_to', yearTo);
+    if (auctionDateFrom) params.append('sale_date_from', auctionDateFrom);
+    if (auctionDateTo) params.append('sale_date_to', auctionDateTo);
 
-  // Error state
-  if (error) {
-    return (
-      <AppLayout filterState={filterState} onRefresh={handleRefresh}>
-        <div className="text-center py-12">
-          <p className="text-red-600 dark:text-red-400 mb-4">Error loading IAAI data</p>
-          <Button onClick={() => refetch()}>Try Again</Button>
-        </div>
-      </AppLayout>
-    );
-  }
+    fetch(`/api/sales-history?${params}`)
+      .then(response => response.json())
+      .then(result => {
+        if (result.success && result.data.salesHistory.length > 0) {
+          // Update the current sales data with new page
+          setSalesData(result.data);
+          setCurrentPage(newPage);
+          
+          // Update total results if we got new information
+          const displayedCount = result.data.salesHistory.length;
+          
+          if (result.data.pagination?.totalCount) {
+            setTotalResults(result.data.pagination.totalCount);
+          } else {
+            // Estimate total results based on page data
+            if (displayedCount === resultsPerPage) {
+              // If we got a full page, assume there are at least more pages available
+              setTotalResults(Math.max(newPage * resultsPerPage + resultsPerPage, totalResults));
+            } else {
+              // If we got a partial page, we can calculate the exact total
+              setTotalResults((newPage - 1) * resultsPerPage + displayedCount);
+            }
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching page", newPage, error);
+      });
+  };
 
-  // No results state
-  if (!isLoading && (!salesHistory || salesHistory.length === 0)) {
-    return (
-      <AppLayout filterState={filterState} onRefresh={handleRefresh}>
-        <div className="text-center py-12">
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 max-w-md mx-auto">
-            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-2">
-              No IAAI Results Found
-            </h3>
-            <p className="text-yellow-700 dark:text-yellow-300 text-sm">
-              No sales data found for {filterState.make} {filterState.model} on IAAI.
-              Try adjusting your search criteria or date range.
-            </p>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
+  // Location options for dropdown
+  const locationOptions = [
+    "All Locations",
+    "Abilene, TX",
+    "Adelanto, CA",
+    "Albuquerque, NM",
+    "Altoona, PA",
+    "Amarillo, TX",
+    "Anchorage, AK",
+    "Appleton, WI",
+    "Atlanta East, GA",
+    "Atlanta North, GA",
+    "Atlanta South, GA",
+    "Austin, TX",
+    "Bakersfield, CA",
+    "Baltimore, MD",
+    "Baton Rouge, LA",
+    "Billings, MT",
+    "Birmingham, AL",
+    "Bismarck, ND",
+    "Boise, ID",
+    "Boston-Shirley, MA"
+  ];
 
   return (
-    <AppLayout filterState={filterState} onRefresh={handleRefresh}>
-      <div className="space-y-6">
-        {/* Header with IAAI branding */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-lg">
-          <h1 className="text-2xl font-bold mb-2">IAAI Sales History</h1>
-          <p className="text-red-100">
-            {filterState.make} {filterState.model} • {totalResults.toLocaleString()} total results
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header - RED branding for IAAI */}
+      <header className="bg-red-600 text-white">
+        <div className="container mx-auto px-4 py-3">
+          <h1 className="text-2xl font-bold">Vehicle Sales History Finder - IAAI</h1>
         </div>
+      </header>
+      
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        {/* Search Filters Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Vehicle Sales History</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Make - Required */}
+              <div>
+                <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Make <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="make"
+                  value={make}
+                  onChange={(e) => setMake(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Select Make</option>
+                  <option value="Toyota">Toyota</option>
+                  <option value="Honda">Honda</option>
+                  <option value="Ford">Ford</option>
+                  <option value="Chevrolet">Chevrolet</option>
+                  <option value="Nissan">Nissan</option>
+                  <option value="BMW">BMW</option>
+                  <option value="Mercedes-Benz">Mercedes-Benz</option>
+                  <option value="Lexus">Lexus</option>
+                  <option value="Audi">Audi</option>
+                  <option value="Jeep">Jeep</option>
+                </select>
+              </div>
 
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Total Sales</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{salesHistory.length}</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Average Price</div>
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(averagePrice)}</div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Price Range</div>
-            <div className="text-lg font-semibold text-gray-900 dark:text-white">
-              {salesHistory.length > 0 ? (
-                `${formatCurrency(Math.min(...salesHistory.map(s => s.purchase_price || 0)))} - ${formatCurrency(Math.max(...salesHistory.map(s => s.purchase_price || 0)))}`
-              ) : 'N/A'}
+              {/* Model */}
+              <div>
+                <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Model
+                </label>
+                <input
+                  type="text"
+                  id="model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="e.g., Camry, Accord"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              {/* Year From */}
+              <div>
+                <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Year From
+                </label>
+                <select
+                  id="yearFrom"
+                  value={yearFrom}
+                  onChange={(e) => setYearFrom(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Any Year</option>
+                  {Array.from({length: 30}, (_, i) => 2024 - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Year To */}
+              <div>
+                <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Year To
+                </label>
+                <select
+                  id="yearTo"
+                  value={yearTo}
+                  onChange={(e) => setYearTo(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Any Year</option>
+                  {Array.from({length: 30}, (_, i) => 2024 - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Auction Date From */}
+              <div>
+                <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Auction Date From
+                </label>
+                <input
+                  type="date"
+                  id="auctionDateFrom"
+                  value={auctionDateFrom}
+                  onChange={(e) => setAuctionDateFrom(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              {/* Auction Date To */}
+              <div>
+                <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Auction Date To
+                </label>
+                <input
+                  type="date"
+                  id="auctionDateTo"
+                  value={auctionDateTo}
+                  onChange={(e) => setAuctionDateTo(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Auction Sites - Radio buttons for navigation */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Auction Sites
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="auctionSite"
+                    value="copart"
+                    checked={false}
+                    onChange={() => setLocation('/')}
+                    className="mr-2"
+                  />
+                  Copart
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="auctionSite"
+                    value="iaai"
+                    checked={true}
+                    readOnly
+                    className="mr-2"
+                  />
+                  IAAI
+                </label>
+              </div>
+            </div>
+
+            {/* Search Button */}
+            <div className="mt-6">
+              <button
+                onClick={handleSearch}
+                disabled={!make || isLoading}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors"
+              >
+                {isLoading ? 'Searching...' : 'Search Vehicle History'}
+              </button>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Auction House</div>
-            <div className="text-2xl font-bold text-red-600">IAAI</div>
-          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
-              <button
-                onClick={() => setActiveTab(TabType.TIMELINE)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  activeTab === TabType.TIMELINE
-                    ? 'border-red-500 text-red-600 dark:text-red-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <Clock className="w-4 h-4 inline mr-2" />
-                Timeline View
-              </button>
-              <button
-                onClick={() => setActiveTab(TabType.TABLE)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  activeTab === TabType.TABLE
-                    ? 'border-red-500 text-red-600 dark:text-red-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <List className="w-4 h-4 inline mr-2" />
-                Table View
-              </button>
-              <button
-                onClick={() => setActiveTab(TabType.PHOTOS)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                  activeTab === TabType.PHOTOS
-                    ? 'border-red-500 text-red-600 dark:text-red-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <Grid className="w-4 h-4 inline mr-2" />
-                Photo Grid
-              </button>
-            </nav>
+        {/* Results Section */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+            {error}
           </div>
+        )}
 
-          <div className="p-6">
-            {activeTab === TabType.TIMELINE && (
-              <SalesTimeline 
-                salesHistory={salesHistory}
-              />
-            )}
+        {!salesData && !isLoading && !error && (
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            Fill in your search criteria above and click "Search Vehicle History" to view results.
+          </div>
+        )}
 
-            {activeTab === TabType.TABLE && (
+        {salesData && (
+          <div className="space-y-6">
+            {/* Results Summary */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Search Results
+                </h3>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Showing {((currentPage - 1) * resultsPerPage) + 1} to {Math.min(currentPage * resultsPerPage, totalResults)} of {totalResults} results
+                </div>
+              </div>
+            </div>
+
+            {/* Sales Table */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-800">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Vehicle
@@ -227,204 +352,78 @@ export default function IAAI() {
                         Price
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Mileage
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        Damage
+                        Status
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Location
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                    {salesHistory.map((sale: any) => (
-                      <tr 
-                        key={sale.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                        onClick={() => setSelectedSale(sale)}
-                      >
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {salesData.salesHistory.map((sale: any, index: number) => (
+                      <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {sale.year} {sale.make} {sale.model}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {sale.series || sale.trim}
+                            VIN: {sale.vin}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {formatDate(sale.sale_date)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                          {formatCurrency(sale.purchase_price)}
+                          {new Date(sale.sale_date).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {formatNumber(sale.odometer || sale.vehicle_mileage, 'mi')}
+                          {sale.purchase_price ? `$${sale.purchase_price.toLocaleString()}` : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            sale.sale_status === 'sold' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {sale.sale_status}
+                          </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {sale.damage_pr || sale.vehicle_damage || 'Unknown'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                          {sale.auction_location || sale.location}
+                          {sale.auction_location || sale.location || 'N/A'}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            )}
+            </div>
 
-            {activeTab === TabType.PHOTOS && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {salesHistory.map((sale: any) => {
-                  let imageUrls = [];
-                  if (sale.link_img_small) {
-                    imageUrls = Array.isArray(sale.link_img_small) ? sale.link_img_small : [sale.link_img_small];
-                  } else if (sale.images) {
-                    try {
-                      imageUrls = typeof sale.images === 'string' ? JSON.parse(sale.images) : sale.images;
-                    } catch {
-                      imageUrls = [];
-                    }
-                  }
-
-                  return (
-                    <div 
-                      key={sale.id}
-                      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => setSelectedSale(sale)}
-                    >
-                      <div className="aspect-w-16 aspect-h-12 bg-gray-200 dark:bg-gray-700">
-                        {imageUrls.length > 0 ? (
-                          <img
-                            src={imageUrls[0]}
-                            alt={`${sale.year} ${sale.make} ${sale.model}`}
-                            className="w-full h-48 object-cover"
-                            onError={(e) => {
-                              e.currentTarget.parentElement!.innerHTML = `
-                                <div class="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                                  <span class="text-gray-500 dark:text-gray-400">No Image</span>
-                                </div>
-                              `;
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                            <span className="text-gray-500 dark:text-gray-400">No Image</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {sale.year} {sale.make} {sale.model}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {sale.series || sale.trim}
-                        </p>
-                        <div className="mt-2 flex justify-between items-center">
-                          <span className="text-lg font-bold text-green-600">
-                            {formatCurrency(sale.purchase_price)}
-                          </span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {formatNumber(sale.odometer || sale.vehicle_mileage, 'mi')}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          {formatDate(sale.sale_date)} • {sale.auction_location || sale.location}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* Pagination */}
+            {totalResults > resultsPerPage && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => loadPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md"
+                  >
+                    Previous
+                  </button>
+                  
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Page {currentPage} of {Math.ceil(totalResults / resultsPerPage)}
+                  </span>
+                  
+                  <button
+                    onClick={() => loadPage(currentPage + 1)}
+                    disabled={currentPage >= Math.ceil(totalResults / resultsPerPage)}
+                    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             )}
           </div>
-        </div>
-
-        {/* Pagination */}
-        <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6 rounded-lg">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <Button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              variant="outline"
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-              variant="outline"
-            >
-              Next
-            </Button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
-                <span className="font-medium">
-                  {Math.min((page * resultsPerPage), totalResults)}
-                </span> of{' '}
-                <span className="font-medium">
-                  {totalResults}
-                </span> results
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <Button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  variant="outline"
-                  size="sm"
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                
-                {/* Page numbers */}
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
-                  if (pageNum <= totalPages) {
-                    return (
-                      <Button
-                        key={pageNum}
-                        onClick={() => setPage(pageNum)}
-                        variant={page === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="relative inline-flex items-center px-4 py-2"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  }
-                  return null;
-                })}
-                
-                <Button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  variant="outline"
-                  size="sm"
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sale Detail Modal */}
-      {selectedSale && (
-        <SaleDetail
-          sale={selectedSale}
-          onClose={() => setSelectedSale(null)}
-          averagePrice={averagePrice}
-        />
-      )}
-    </AppLayout>
+        )}
+      </main>
+    </div>
   );
 }
