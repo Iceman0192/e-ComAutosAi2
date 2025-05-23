@@ -635,17 +635,50 @@ export default function IAAI() {
                   {searchResults.data.salesHistory.map((sale: any, index: number) => (
                     <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                       {/* Vehicle Image */}
-                      {sale.link_img_small && sale.link_img_small.length > 0 ? (
-                        <img 
-                          src={sale.link_img_small[0]} 
-                          alt={`${sale.year} ${sale.make} ${sale.model}`}
-                          className="w-full h-48 object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-48 bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                      <div className="h-48 bg-gray-200 dark:bg-gray-600 relative">
+                        {(() => {
+                          // Handle different image formats (API direct vs database cached)
+                          let imageUrl = null;
+                          if (sale.link_img_hd && sale.link_img_hd.length > 0) {
+                            imageUrl = sale.link_img_hd[0];
+                          } else if (sale.link_img_small && sale.link_img_small.length > 0) {
+                            imageUrl = sale.link_img_small[0];
+                          } else if (sale.images) {
+                            const images = typeof sale.images === 'string' ? JSON.parse(sale.images) : sale.images;
+                            if (Array.isArray(images) && images.length > 0) {
+                              imageUrl = images[0];
+                            }
+                          }
+                          
+                          return imageUrl ? (
+                            <img 
+                              src={imageUrl} 
+                              alt={`${sale.year} ${sale.make} ${sale.model}`}
+                              className="w-full h-full object-cover cursor-pointer"
+                              onClick={() => openModal(sale)}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const placeholder = target.nextElementSibling as HTMLElement;
+                                if (placeholder) placeholder.style.display = 'flex';
+                              }}
+                            />
+                          ) : null;
+                        })()}
+                        <div 
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ 
+                            display: (() => {
+                              const hasImage = (sale.link_img_small?.length > 0) || (sale.link_img_hd?.length > 0) || 
+                                               (sale.images && ((typeof sale.images === 'string' && JSON.parse(sale.images).length > 0) || 
+                                                (Array.isArray(sale.images) && sale.images.length > 0)));
+                              return hasImage ? 'none' : 'flex';
+                            })()
+                          }}
+                        >
                           <span className="text-gray-500 dark:text-gray-400">No Image Available</span>
                         </div>
-                      )}
+                      </div>
                       
                       {/* Vehicle Details */}
                       <div className="p-4">
