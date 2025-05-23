@@ -303,7 +303,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Organized Data Table */}
+                {/* Limited Preview Table - Free Tier Teaser */}
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
                     <thead className="bg-gray-50 dark:bg-gray-700">
@@ -317,12 +317,6 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
                           Sale Price
                         </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center font-semibold">
-                          Damage
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center font-semibold">
-                          Title
-                        </th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
                           Price per Mile
                         </th>
@@ -330,7 +324,8 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                     </thead>
                     <tbody>
                       {mileageVsPrice
-                        .filter(item => item.mileage > 0) // Only show vehicles with valid mileage
+                        .filter(item => item.mileage > 0)
+                        .slice(0, 5) // Only show first 5 vehicles for free tier!
                         .map((item, index) => {
                           const pricePerMile = (item.price / item.mileage).toFixed(2);
                           return (
@@ -347,14 +342,6 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                                   {formatCurrency(item.price)}
                                 </span>
                               </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center">
-                                <span className="text-sm px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700">
-                                  {item.damage}
-                                </span>
-                              </td>
-                              <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-center">
-                                <span className="text-sm">{item.title}</span>
-                              </td>
                               <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
                                 <span className="font-mono text-sm text-blue-600 dark:text-blue-400">
                                   ${pricePerMile}
@@ -366,6 +353,25 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         })}
                     </tbody>
                   </table>
+                  
+                  {/* Upgrade Teaser for remaining data */}
+                  {mileageVsPrice.filter(item => item.mileage > 0).length > 5 && (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+                            💎 {mileageVsPrice.filter(item => item.mileage > 0).length - 5} more vehicles available!
+                          </p>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                            Upgrade to Gold for complete mileage analysis, damage filters, and location data
+                          </p>
+                        </div>
+                        <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                          Upgrade to Gold
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Simplified Visual Chart */}
@@ -480,7 +486,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {damageTypeAnalysis.map((item, index) => (
+                        {damageTypeAnalysis.slice(0, 3).map((item, index) => (
                           <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td className="border border-gray-300 dark:border-gray-600 px-4 py-3">
                               <div className="flex items-center space-x-2">
@@ -511,6 +517,25 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         ))}
                       </tbody>
                     </table>
+                    
+                    {/* Upgrade Teaser for additional damage types */}
+                    {damageTypeAnalysis.length > 3 && (
+                      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-blue-800 dark:text-blue-200">
+                              🔍 {damageTypeAnalysis.length - 3} more damage types to analyze!
+                            </p>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              See complete damage breakdown, title analysis, and geographic trends with Gold
+                            </p>
+                          </div>
+                          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            Upgrade to Gold
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Visual Chart */}
