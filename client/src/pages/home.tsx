@@ -79,6 +79,22 @@ export default function Home() {
   // State to hold the actual results data
   const [searchResults, setSearchResults] = useState<any>(null);
   
+  // State for detailed vehicle modal
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Function to open vehicle details modal
+  const openVehicleDetails = (vehicle: any) => {
+    setSelectedVehicle(vehicle);
+    setIsModalOpen(true);
+  };
+  
+  // Function to close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null);
+  };
+  
   // Fetch data - will only execute when triggered by button click
   const { data, isLoading, error, refetch } = useSalesHistory(filterState);
   
@@ -697,7 +713,7 @@ export default function Home() {
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {searchResults?.data?.salesHistory?.map((sale) => (
-                          <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {/* Handle different image formats (API direct vs database cached) */}
