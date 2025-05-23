@@ -52,8 +52,8 @@ export default function AppHeader({
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={auctionSite === 'copart'}
-                  onChange={() => setAuctionSite('copart')}
+                  checked={location === '/'}
+                  onChange={() => navigate('/')}
                   className="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
                 <span className="ml-2 text-sm font-medium text-gray-700">Copart</span>
@@ -61,8 +61,8 @@ export default function AppHeader({
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={auctionSite === 'iaai'}
-                  onChange={() => setAuctionSite('iaai')}
+                  checked={location === '/iaai'}
+                  onChange={() => navigate('/iaai')}
                   className="form-checkbox h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
                 />
                 <span className="ml-2 text-sm font-medium text-gray-700">IAAI</span>

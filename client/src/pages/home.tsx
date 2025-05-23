@@ -16,16 +16,13 @@ enum TabType {
 const currentYear = new Date().getFullYear();
 
 export default function Home() {
-  // Auction site toggle state
-  const [auctionSite, setAuctionSite] = useState<'copart' | 'iaai'>('copart');
-  
   // Primary search parameters
   const [make, setMake] = useState('Toyota');
   const [model, setModel] = useState('');
   const [vin, setVin] = useState('');
   const [yearFrom, setYearFrom] = useState(currentYear - 5);
   const [yearTo, setYearTo] = useState(currentYear);
-  const [sites, setSites] = useState<string[]>(['copart', 'iaai']);
+  const [sites, setSites] = useState<string[]>(['copart']);
   const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
   const [damageType, setDamageType] = useState<string>('all');
   const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
