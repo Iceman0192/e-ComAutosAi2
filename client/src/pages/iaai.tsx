@@ -214,18 +214,20 @@ export default function IAAI() {
           // Make sure we're showing search has been performed
           setHasSearched(true);
           
-          // Update total results count for pagination
+          // Update total results count for pagination - preserve existing count if higher
           if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
           } else if (result.data.salesHistory) {
-            // If we have more results than just this page, estimate there are more
+            // Preserve the existing totalResults if we already have a higher count
             const displayedCount = result.data.salesHistory.length;
             if (displayedCount === resultsPerPage) {
-              // If we got a full page, assume there are at least more pages available
-              setTotalResults(Math.max(newPage * resultsPerPage + resultsPerPage, totalResults));
+              // If we got a full page, keep the existing total or estimate higher
+              const estimatedTotal = newPage * resultsPerPage + resultsPerPage;
+              setTotalResults(prev => Math.max(prev, estimatedTotal));
             } else {
               // If we got a partial page, we can calculate the exact total
-              setTotalResults((newPage - 1) * resultsPerPage + displayedCount);
+              const exactTotal = (newPage - 1) * resultsPerPage + displayedCount;
+              setTotalResults(prev => Math.max(prev, exactTotal));
             }
           }
         }
