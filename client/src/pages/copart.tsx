@@ -551,6 +551,75 @@ export default function Copart() {
                   </div>
                 </div>
               )}
+
+              {/* Pagination Controls */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Showing {((page - 1) * resultsPerPage) + 1} to {Math.min(page * resultsPerPage, salesData.length)} of {salesData.length} results
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    {/* Results per page selector */}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-700 dark:text-gray-300">Show:</span>
+                      <select
+                        value={resultsPerPage}
+                        onChange={(e) => {
+                          setResultsPerPage(parseInt(e.target.value));
+                          setPage(1); // Reset to first page when changing page size
+                        }}
+                        className="text-sm border border-gray-300 rounded-md px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">per page</span>
+                    </div>
+
+                    {/* Pagination buttons */}
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => setPage(Math.max(1, page - 1))}
+                        disabled={page <= 1}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                      >
+                        Previous
+                      </button>
+                      
+                      {/* Page numbers */}
+                      {Array.from({ length: Math.min(5, Math.ceil(salesData.length / resultsPerPage)) }, (_, i) => {
+                        const pageNum = i + 1;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setPage(pageNum)}
+                            className={`px-3 py-1 text-sm border rounded-md ${
+                              page === pageNum
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                      
+                      <button
+                        onClick={() => setPage(page + 1)}
+                        disabled={page >= Math.ceil(salesData.length / resultsPerPage)}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
