@@ -66,8 +66,12 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
       const successRate = (soldCount / sales.length) * 100;
       
       const priceRange = `${formatCurrency(prices[0])} - ${formatCurrency(prices[prices.length - 1])}`;
-      const priceVolatility = (prices[prices.length - 1] - prices[0]) / average;
-      const opportunityScore = Math.round((successRate * 0.6) + ((1 - priceVolatility) * 40));
+      
+      // VALUE-FOCUSED SCORING: Find best deals for business buyers
+      const lowPriceCount = prices.filter(p => p < average * 0.75).length; // Deals 25% below average
+      const valueOpportunity = (lowPriceCount / prices.length) * 100;
+      const marketLiquidity = Math.min(100, (successRate / 70) * 100); // Normalize to 70% as good
+      const opportunityScore = Math.round((valueOpportunity * 0.5) + (marketLiquidity * 0.5));
 
       return {
         damage,
@@ -166,7 +170,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                     <TableHead className="text-center">Price Range</TableHead>
                     <TableHead className="text-center">Success Rate</TableHead>
                     <TableHead className="text-center">Sample Size</TableHead>
-                    <TableHead className="text-center">Opportunity Score</TableHead>
+                    <TableHead className="text-center">Value Score</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -257,13 +261,13 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
               <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium text-purple-800 dark:text-purple-200">Top Investment Opportunity</span>
+                  <span className="font-medium text-purple-800 dark:text-purple-200">Best Value Opportunity</span>
                 </div>
                 <div className="text-lg font-bold text-purple-900 dark:text-purple-100">
                   {damageAnalysis.sort((a, b) => b.opportunityScore - a.opportunityScore)[0]?.damage || 'N/A'}
                 </div>
                 <div className="text-sm text-purple-700 dark:text-purple-300">
-                  Score: {damageAnalysis.sort((a, b) => b.opportunityScore - a.opportunityScore)[0]?.opportunityScore || 0}/100
+                  Value Score: {damageAnalysis.sort((a, b) => b.opportunityScore - a.opportunityScore)[0]?.opportunityScore || 0}/100
                 </div>
               </div>
             </div>

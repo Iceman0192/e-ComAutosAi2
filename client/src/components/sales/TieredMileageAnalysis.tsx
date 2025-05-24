@@ -109,12 +109,12 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
       if (successRate >= 70 && vehiclesInBracket.length >= 3) marketDemand = 'High';
       else if (successRate >= 50 || vehiclesInBracket.length >= 2) marketDemand = 'Medium';
 
-      // Calculate investment score
-      const priceStability = 1 - ((prices[prices.length - 1] - prices[0]) / averagePrice);
-      const sampleSizeScore = Math.min(vehiclesInBracket.length / 5, 1) * 30;
-      const successRateScore = successRate * 0.4;
-      const stabilityScore = Math.max(0, priceStability * 30);
-      const investmentScore = Math.round(successRateScore + sampleSizeScore + stabilityScore);
+      // VALUE-FOCUSED SCORING: Find best deals for business buyers
+      const belowMarketCount = prices.filter(p => p < averagePrice * 0.8).length;
+      const valueOpportunity = (belowMarketCount / prices.length) * 100;
+      const liquidityScore = Math.min(100, (successRate / 60) * 100); // 60% as baseline
+      const volumeBonus = Math.min(20, vehiclesInBracket.length * 2); // More data = more confidence
+      const investmentScore = Math.round((valueOpportunity * 0.5) + (liquidityScore * 0.4) + (volumeBonus * 0.1));
 
       return {
         ...bracket,
@@ -218,7 +218,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                     <TableHead className="text-center">Success Rate</TableHead>
                     <TableHead className="text-center">Depreciation/Mile</TableHead>
                     <TableHead className="text-center">Market Demand</TableHead>
-                    <TableHead className="text-center">Investment Score</TableHead>
+                    <TableHead className="text-center">Value Score</TableHead>
                     <TableHead className="text-center">Sample Size</TableHead>
                   </TableRow>
                 </TableHeader>
