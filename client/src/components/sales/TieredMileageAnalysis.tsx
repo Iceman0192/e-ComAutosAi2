@@ -225,10 +225,13 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                       const mileageRaw = sale.odometer || sale.vehicle_mileage;
                       const mileage = typeof mileageRaw === 'string' ? parseFloat(mileageRaw) : mileageRaw;
                       return price && !isNaN(price) && price > 0 && mileage && !isNaN(mileage) && mileage > 0;
-                    }).map(sale => ({
-                      mileage: sale.odometer || sale.vehicle_mileage,
-                      price: sale.purchase_price,
-                      year: sale.year,
+                    }).map(sale => {
+                      const priceRaw = sale.purchase_price;
+                      const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
+                      return {
+                        mileage: sale.odometer || sale.vehicle_mileage,
+                        price: price,
+                        year: sale.year,
                       make: sale.make,
                       model: sale.model,
                       damage: sale.vehicle_damage || sale.damage_pr,

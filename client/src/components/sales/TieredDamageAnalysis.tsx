@@ -162,7 +162,7 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                           Sample Size
                         </th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Value Score
+                          Price Range
                         </th>
                       </tr>
                     </thead>
@@ -188,8 +188,8 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                           <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
                             {data.count} vehicles
                           </td>
-                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                            <span className="text-yellow-600">⭐ {Math.round(((data.max - data.average) / data.max) * 100)}</span>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right text-sm">
+                            {formatCurrency(data.min)} - {formatCurrency(data.max)}
                           </td>
                         </tr>
                       ))}
