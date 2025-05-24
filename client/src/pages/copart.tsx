@@ -373,7 +373,7 @@ export default function Copart() {
               {activeTab === TabType.TIMELINE && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
                   <div className="p-6">
-                    <SalesAnalytics salesHistory={searchResults.salesHistory} />
+                    <SalesAnalytics salesHistory={searchResults.data.salesHistory} />
                   </div>
                 </div>
               )}
