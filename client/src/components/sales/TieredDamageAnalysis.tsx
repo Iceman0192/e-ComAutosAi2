@@ -88,13 +88,17 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
         successRate: Math.round(successRate),
         priceRange,
         marketPosition,
-        opportunityScore
-        color: colors[colorIndex++ % colors.length]
+        opportunityScore,
       };
     });
 
-    // Sort by average price (highest first)
-    return result.sort((a, b) => b.average - a.average);
+    // Sort by average price (highest first) and assign market positions
+    const sortedResult = result.sort((a, b) => b.average - a.average);
+    sortedResult.forEach((item, index) => {
+      item.marketPosition = index + 1;
+    });
+    
+    return sortedResult;
   }, [salesHistory]);
 
   // Free tier: Show top 3 damage types only
