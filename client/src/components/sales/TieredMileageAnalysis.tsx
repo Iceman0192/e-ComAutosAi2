@@ -261,7 +261,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                     <TableHead className="text-center">Avg Price</TableHead>
 
                     <TableHead className="text-center">Depreciation/Mile</TableHead>
-                    <TableHead className="text-center">Market Demand</TableHead>
+
                     <TableHead className="text-center">Value Score</TableHead>
                     <TableHead className="text-center">Sample Size</TableHead>
                   </TableRow>

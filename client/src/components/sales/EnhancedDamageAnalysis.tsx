@@ -160,12 +160,55 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
             </div>
           </CardHeader>
           <CardContent>
+            {/* Visual Chart Overview */}
+            <div className="mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <h4 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
+                  Damage Type Price Distribution
+                </h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={damageAnalysis}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="damage" 
+                      stroke="#6b7280"
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `$${Math.round(value / 1000)}k`}
+                      stroke="#6b7280"
+                      fontSize={12}
+                    />
+                    <Tooltip 
+                      formatter={(value, name) => [
+                        name === 'average' ? formatCurrency(value as number) : value,
+                        name === 'average' ? 'Average Price' : 'Sample Size'
+                      ]}
+                      labelFormatter={(label) => `Damage Type: ${label}`}
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="average" 
+                      fill="#ff6b6b" 
+                      radius={[4, 4, 0, 0]}
+                      name="Average Price"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Enhanced Data Table */}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[140px]">Damage Type</TableHead>
-                    <TableHead className="text-center">Market Rank</TableHead>
+
                     <TableHead className="text-center">Avg Price</TableHead>
                     <TableHead className="text-center">Price Range</TableHead>
 
