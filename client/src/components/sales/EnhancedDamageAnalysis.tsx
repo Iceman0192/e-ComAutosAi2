@@ -168,7 +168,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                   Damage Type Price Distribution
                 </h4>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={damageAnalysis}>
+                  <BarChart data={damageAnalysis.sort((a, b) => b.average - a.average)}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="damage" 
