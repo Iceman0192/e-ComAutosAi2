@@ -4,7 +4,7 @@ import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
 import TieredDamageAnalysis from '../components/sales/TieredDamageAnalysis';
-import UsageDisplay from '../components/auth/UsageDisplay';
+
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
 
@@ -823,11 +823,6 @@ export default function Home() {
               {/* Result content based on active tab */}
               {activeTab === TabType.TIMELINE && (
                 <div className="p-4 space-y-6">
-                  {/* Usage tracking display */}
-                  <div className="flex justify-end">
-                    <UsageDisplay />
-                  </div>
-                  
                   {/* Tiered damage analysis */}
                   <TieredDamageAnalysis 
                     salesHistory={searchResults?.data?.salesHistory || []}

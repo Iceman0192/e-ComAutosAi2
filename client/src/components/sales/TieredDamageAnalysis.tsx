@@ -112,22 +112,7 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                   </div>
                 ))}
                 
-                {hiddenCount > 0 && (
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-lg text-center">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                      <Lock className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-blue-700 dark:text-blue-300">
-                        {hiddenCount} More Damage Types Available
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Upgrade to Gold to see complete damage analysis with pricing insights, ranges, and detailed statistics.
-                    </p>
-                    <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                      Upgrade to Gold
-                    </button>
-                  </div>
-                )}
+
               </div>
             </CardContent>
           </Card>
