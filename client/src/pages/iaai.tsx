@@ -106,6 +106,26 @@ export default function IAAI() {
     }
   };
   
+  // Handle reset button click
+  const handleReset = () => {
+    setMake('Toyota');
+    setModel('');
+    setYearFrom(currentYear - 5);
+    setYearTo(currentYear);
+    setAuctionDateFrom(() => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - 3);
+      return date.toISOString().split('T')[0];
+    });
+    setAuctionDateTo(() => {
+      return new Date().toISOString().split('T')[0];
+    });
+    setPage(1);
+    setActiveTab(TabType.TIMELINE);
+    setSearchResults(null);
+    setHasSearched(false);
+  };
+
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
