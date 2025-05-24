@@ -1020,9 +1020,9 @@ export default function IAAI() {
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
                       <span className="font-medium">
-                        {Math.min((page * resultsPerPage), totalResults)}
+                        {(page - 1) * resultsPerPage + (searchResults?.data?.salesHistory?.length || 0)}
                       </span> of{' '}
-                      <span className="font-medium">{totalResults}</span> results
+                      <span className="font-medium">{totalResults > 0 ? totalResults : '...'}</span> results
                     </p>
                   </div>
                   <div>
