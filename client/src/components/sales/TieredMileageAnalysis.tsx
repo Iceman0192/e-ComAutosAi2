@@ -354,7 +354,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
 
                     <TableHead className="text-center">Depreciation/Mile</TableHead>
 
-                    <TableHead className="text-center">Value Score</TableHead>
+                    <TableHead className="text-center">Success Rate</TableHead>
                     <TableHead className="text-center">Sample Size</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -390,15 +390,15 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
 
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Star className={`h-3 w-3 ${
-                            bracket.investmentScore >= 80 ? 'text-green-500' :
-                            bracket.investmentScore >= 60 ? 'text-yellow-500' : 'text-gray-400'
+                          <Percent className={`h-3 w-3 ${
+                            bracket.successRate >= 70 ? 'text-green-500' :
+                            bracket.successRate >= 50 ? 'text-yellow-500' : 'text-red-400'
                           }`} />
                           <span className={`font-semibold text-sm ${
-                            bracket.investmentScore >= 80 ? 'text-green-600' :
-                            bracket.investmentScore >= 60 ? 'text-yellow-600' : 'text-gray-600'
+                            bracket.successRate >= 70 ? 'text-green-600' :
+                            bracket.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'
                           }`}>
-                            {bracket.investmentScore}
+                            {bracket.successRate}%
                           </span>
                         </div>
                       </TableCell>
