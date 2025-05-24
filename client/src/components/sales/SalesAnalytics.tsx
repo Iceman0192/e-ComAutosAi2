@@ -527,25 +527,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         ))}
                       </tbody>
                     </table>
-                    
-                    {/* Upgrade Teaser for additional damage types */}
-                    {damageTypeAnalysis.length > 1 && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-blue-800 dark:text-blue-200">
-                              🔍 {damageTypeAnalysis.length - 1} more damage types to analyze!
-                            </p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
-                              See complete damage breakdown, title analysis, and geographic trends with Gold
-                            </p>
-                          </div>
-                          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                            Upgrade to Gold
-                          </button>
-                        </div>
-                      </div>
-                    )}
+
                   </div>
 
                   {/* Visual Chart */}
