@@ -997,8 +997,8 @@ export default function IAAI() {
               </div>
             )}
 
-            {/* Pagination - Cohesive design with Copart (Red branding) */}
-            {totalResults > resultsPerPage && (
+            {/* Pagination - Show if we have search results and either more than one page worth OR we're on page 2+ */}
+            {searchResults?.data?.salesHistory && (totalResults > resultsPerPage || page > 1) && (
               <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6 rounded-lg shadow-md">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
