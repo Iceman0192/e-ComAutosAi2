@@ -454,37 +454,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                   </div>
                 </div>
 
-                {/* Smart Value Teaser - Shows potential without giving it all away */}
-                <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">🚀 Unlock Advanced Insights</h4>
-                  <div className="text-sm text-purple-700 dark:text-purple-300 space-y-2">
-                    <p className="font-medium">Gold Members Get Access To:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                        <span>Complete vehicle breakdown table</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                        <span>Price-per-mile calculations</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                        <span>Damage type filtering</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                        <span>Location-based comparisons</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-purple-200 dark:border-purple-700">
-                      <span className="text-xs">Currently viewing: {mileageVsPrice.filter(i => i.mileage > 0).length} vehicles</span>
-                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                        Upgrade to Gold
-                      </button>
-                    </div>
-                  </div>
-                </div>
+
               </div>
             </CardContent>
           </Card>
