@@ -107,102 +107,104 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
           </Card>
         }
       >
-{damageAnalysis.length > 0 ? (
-          <div className="space-y-6">
-            {/* Clean Data Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
-                      Damage Type
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                      Count
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                      Average Price
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                      Min Price
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                      Max Price
-                    </th>
-                    <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                      Median Price
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {damageAnalysis.map((data, index) => (
-                    <tr key={data.damage} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 font-medium">
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: data.color }}
-                          />
-                          {data.damage}
-                        </div>
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                        {data.count}
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                        {formatCurrency(data.average)}
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right text-green-600 dark:text-green-400">
-                        {formatCurrency(data.min)}
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right text-red-600 dark:text-red-400">
-                        {formatCurrency(data.max)}
-                      </td>
-                      <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                        {formatCurrency(data.median)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Damage Type Price Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {damageAnalysis.length > 0 ? (
+              <div className="space-y-6">
+                {/* Visual Chart FIRST - like original */}
+                <div>
+                  <h4 className="text-lg font-semibold mb-4">Damage Type Price Distribution</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={damageAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="damage"
+                        type="category"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                      />
+                      <YAxis 
+                        type="number"
+                        tickFormatter={(value) => formatCurrency(value)}
+                      />
+                      <Tooltip 
+                        formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
+                        labelFormatter={(label) => `${label} Damage`}
+                      />
+                      <Bar dataKey="average" radius={[4, 4, 0, 0]}>
+                        {damageAnalysis.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
 
-            {/* Visual Chart */}
-            <div className="mt-6">
-              <h4 className="text-lg font-semibold mb-4">Visual Comparison</h4>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={damageAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="damage"
-                    type="category"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    interval={0}
-                  />
-                  <YAxis 
-                    type="number"
-                    tickFormatter={(value) => formatCurrency(value)}
-                  />
-                  <Tooltip 
-                    formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
-                    labelFormatter={(label) => `${label} Damage`}
-                  />
-                  <Bar dataKey="average" radius={[4, 4, 0, 0]}>
-                    {damageAnalysis.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-48 text-gray-500">
-            No damage data available for analysis
-          </div>
-        )}
+                {/* Clean Data Table SECOND - like original */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
+                          Damage Type
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Avg Price
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Price Range
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Sample Size
+                        </th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          Value Score
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {damageAnalysis.map((data, index) => (
+                        <tr key={data.damage} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 font-medium">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: data.color }}
+                              />
+                              {data.damage}
+                            </div>
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                            {formatCurrency(data.average)}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                            {formatCurrency(data.min)} - {formatCurrency(data.max)}
+                            <div className="text-xs text-gray-500">Median: {formatCurrency(data.median)}</div>
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                            {data.count} vehicles
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
+                            <span className="text-yellow-600">⭐ {Math.round(((data.max - data.average) / data.max) * 100)}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-48 text-gray-500">
+                No damage data available for analysis
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </PermissionGate>
     </div>
   );
