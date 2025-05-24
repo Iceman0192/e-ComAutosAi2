@@ -924,6 +924,8 @@ export default function IAAI() {
                                       src={imageUrl} 
                                       alt={`${sale.year} ${sale.make} ${sale.model}`}
                                       className="h-16 w-20 object-cover rounded-lg border border-red-200 dark:border-red-700 shadow-sm"
+                                      crossOrigin="anonymous"
+                                      loading="lazy"
                                       onError={(e) => {
                                         const target = e.target as HTMLImageElement;
                                         target.style.display = 'none';
