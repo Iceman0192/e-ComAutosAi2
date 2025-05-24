@@ -13,6 +13,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/copart" component={Home} />
       <Route path="/iaai" component={IAAI} />
       <Route component={NotFound} />
     </Switch>
