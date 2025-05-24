@@ -1,6 +1,12 @@
 import { useState } from 'react';
+import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
+import SalesAnalytics from '../components/sales/SalesAnalytics';
+import TieredDamageAnalysis from '../components/sales/TieredDamageAnalysis';
+import UsageDisplay from '../components/auth/UsageDisplay';
+import { formatCurrency } from '../utils/formatters';
+import PlatformToggle from '../components/ui/platform-toggle';
 
 // Tab enum for better organization
 enum TabType {
@@ -40,11 +46,6 @@ export default function IAAI() {
   const [resultsPerPage, setResultsPerPage] = useState(25);
   const [totalResults, setTotalResults] = useState(0);
   
-  // Intelligent Caching System
-  const [pageCache, setPageCache] = useState<Map<string, any>>(new Map());
-  const [preloadQueue, setPreloadQueue] = useState<Set<number>>(new Set());
-  const [currentSearchKey, setCurrentSearchKey] = useState<string>('');
-  
   // UI state
   const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
   
@@ -68,204 +69,8 @@ export default function IAAI() {
     return total / salesWithPrices.length;
   };
 
-  // Intelligent Caching Utilities
-  const generateSearchKey = (searchParams: any) => {
-    return JSON.stringify({
-      make: searchParams.make,
-      model: searchParams.model,
-      yearFrom: searchParams.yearFrom,
-      yearTo: searchParams.yearTo,
-      auctionDateFrom: searchParams.auctionDateFrom,
-      auctionDateTo: searchParams.auctionDateTo,
-      resultsPerPage: searchParams.resultsPerPage
-    });
-  };
-
-  const getCacheKey = (searchKey: string, pageNum: number) => {
-    return `${searchKey}_page_${pageNum}`;
-  };
-
-  const getFromCache = (searchKey: string, pageNum: number) => {
-    const cacheKey = getCacheKey(searchKey, pageNum);
-    const cached = pageCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return cached.data;
-    }
-    return null;
-  };
-
-  const setToCache = (searchKey: string, pageNum: number, data: any) => {
-    const cacheKey = getCacheKey(searchKey, pageNum);
-    setPageCache(prev => {
-      const newCache = new Map(prev);
-      newCache.set(cacheKey, {
-        data,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes
-      });
-      return newCache;
-    });
-  };
-
-  const clearExpiredCache = () => {
-    const now = Date.now();
-    setPageCache(prev => {
-      const newCache = new Map(prev);
-      Array.from(newCache.entries()).forEach(([key, value]) => {
-        if (value.expiresAt < now) {
-          newCache.delete(key);
-        }
-      });
-      return newCache;
-    });
-  };
-
-  const clearCacheForNewSearch = () => {
-    setPageCache(new Map());
-    setPreloadQueue(new Set());
-  };
-
   // State to hold the actual results data
   const [searchResults, setSearchResults] = useState<any>(null);
-  
-  // Background preloading function
-  const preloadAdjacentPages = async (currentPage: number, searchKey: string) => {
-    const searchParams = {
-      make,
-      model: model || undefined,
-      yearFrom,
-      yearTo,
-      auctionDateFrom,
-      auctionDateTo,
-      resultsPerPage
-    };
-
-    const totalPages = Math.ceil(totalResults / resultsPerPage);
-    const pagesToPreload: number[] = [];
-
-    // Determine which pages to preload
-    if (currentPage > 1) pagesToPreload.push(currentPage - 1); // Previous page
-    if (currentPage < totalPages) pagesToPreload.push(currentPage + 1); // Next page
-    
-    // Preload up to 2 additional forward pages for smooth browsing
-    if (currentPage + 2 <= totalPages) pagesToPreload.push(currentPage + 2);
-
-    for (const pageToLoad of pagesToPreload) {
-      // Skip if already cached or currently being preloaded
-      if (getFromCache(searchKey, pageToLoad) || preloadQueue.has(pageToLoad)) {
-        continue;
-      }
-
-      // Add to preload queue
-      setPreloadQueue(prev => new Set(prev).add(pageToLoad));
-
-      try {
-        const params = new URLSearchParams({
-          make: searchParams.make,
-          ...(searchParams.model && { model: searchParams.model }),
-          year_from: searchParams.yearFrom.toString(),
-          year_to: searchParams.yearTo.toString(),
-          sale_date_from: searchParams.auctionDateFrom,
-          sale_date_to: searchParams.auctionDateTo,
-          page: pageToLoad.toString(),
-          size: searchParams.resultsPerPage.toString()
-        });
-
-        console.log(`🚀 Preloading IAAI page ${pageToLoad} in background...`);
-        
-        const response = await fetch(`/api/iaai/sales-history?${params}`);
-        const result = await response.json();
-
-        if (result.success) {
-          setToCache(searchKey, pageToLoad, result.data);
-          console.log(`✅ Successfully preloaded IAAI page ${pageToLoad}`);
-        }
-      } catch (error) {
-        console.log(`⚠️ Failed to preload IAAI page ${pageToLoad}:`, error);
-      } finally {
-        // Remove from preload queue
-        setPreloadQueue(prev => {
-          const newQueue = new Set(prev);
-          newQueue.delete(pageToLoad);
-          return newQueue;
-        });
-      }
-    }
-  };
-
-  // Enhanced fetch function with intelligent caching
-  const fetchSalesHistory = async (pageNum: number = page, useCache: boolean = true) => {
-    const searchParams = {
-      make,
-      model: model || undefined,
-      yearFrom,
-      yearTo,
-      auctionDateFrom,
-      auctionDateTo,
-      resultsPerPage
-    };
-
-    const searchKey = generateSearchKey(searchParams);
-    
-    // Check cache first if enabled
-    if (useCache) {
-      const cachedData = getFromCache(searchKey, pageNum);
-      if (cachedData) {
-        console.log(`⚡ Using cached data for IAAI page ${pageNum}`);
-        setSearchResults({ success: true, data: cachedData });
-        setTotalResults(cachedData.pagination?.totalCount || 0);
-        setHasSearched(true);
-        
-        // Trigger background preloading for adjacent pages
-        setTimeout(() => preloadAdjacentPages(pageNum, searchKey), 100);
-        return;
-      }
-    }
-
-    setIsLoading(true);
-    clearExpiredCache(); // Clean up expired cache entries
-
-    try {
-      const params = new URLSearchParams({
-        make: searchParams.make,
-        ...(searchParams.model && { model: searchParams.model }),
-        year_from: searchParams.yearFrom.toString(),
-        year_to: searchParams.yearTo.toString(),
-        sale_date_from: searchParams.auctionDateFrom,
-        sale_date_to: searchParams.auctionDateTo,
-        page: pageNum.toString(),
-        size: searchParams.resultsPerPage.toString()
-      });
-
-      console.log(`🔍 Fetching IAAI page ${pageNum} from API...`);
-      
-      const response = await fetch(`/api/iaai/sales-history?${params}`);
-      const result = await response.json();
-
-      if (result.success) {
-        setSearchResults(result);
-        setTotalResults(result.data.pagination?.totalCount || 0);
-        setHasSearched(true);
-        
-        // Cache the result
-        setToCache(searchKey, pageNum, result.data);
-        
-        // Update current search key
-        setCurrentSearchKey(searchKey);
-        
-        // Trigger background preloading for adjacent pages
-        setTimeout(() => preloadAdjacentPages(pageNum, searchKey), 200);
-        
-        console.log(`✅ Successfully fetched and cached IAAI page ${pageNum}`);
-      } else {
-        console.error('IAAI API returned error:', result.message);
-      }
-    } catch (error) {
-      console.error('Error fetching IAAI sales history:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   
   // State for detailed vehicle modal
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
@@ -305,22 +110,129 @@ export default function IAAI() {
   
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
-    clearCacheForNewSearch(); // Clear cache when starting new search
+    setHasSearched(true); // Mark that a search has been performed
+    setIsLoading(true); // Show loading state
     
-    console.log(`🔍 Starting new IAAI search with intelligent caching...`);
+    // Build parameters for initial search - HARDCODED for IAAI (site=2)
+    const params = new URLSearchParams();
+    params.append('make', make);
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('page', '1');
+    params.append('size', resultsPerPage.toString());
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
     
-    // Use the enhanced fetchSalesHistory function with cache disabled for fresh search
-    fetchSalesHistory(1, false);
+    // HARDCODED for IAAI ONLY
+    params.append('site', '2'); // IAAI site ID
+    
+    console.log(`Initial IAAI search with params:`, params.toString());
+    
+    // Make direct fetch request to dedicated IAAI endpoint
+    fetch(`/api/iaai/sales-history?${params.toString()}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log("Received initial IAAI search data:", result);
+        
+        // Only update if successful
+        if (result && result.success && result.data) {
+          // Store results in local state
+          setSearchResults(result);
+          setIsLoading(false);
+          
+          // Update total results count for pagination
+          if (result.data.pagination && result.data.pagination.totalCount) {
+            setTotalResults(result.data.pagination.totalCount);
+          } else if (result.data.salesHistory && result.data.salesHistory.length > 0) {
+            // If we got a full page, assume there are more results
+            const displayedCount = result.data.salesHistory.length;
+            if (displayedCount === resultsPerPage) {
+              setTotalResults(resultsPerPage * 2); // Assume at least 2 pages
+            } else {
+              setTotalResults(displayedCount);
+            }
+          } else {
+            // No results found
+            setTotalResults(0);
+          }
+        } else {
+          console.error("Invalid response format:", result);
+          setSearchResults(null);
+          setTotalResults(0);
+          setIsLoading(false);
+        }
+      })
+      .catch(error => {
+        console.error("Error during IAAI search:", error);
+        setIsLoading(false);
+      });
   };
   
-  // Handle page change with intelligent caching
+  // Handle page change - fetch new data with updated page number
   const handlePageChange = (newPage: number) => {
+    // Update current page state
     setPage(newPage);
     
-    console.log(`📄 Navigating to IAAI page ${newPage} with intelligent caching...`);
+    // Build complete URL parameters for API request - HARDCODED for IAAI
+    const params = new URLSearchParams();
+    params.append('make', make);
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('page', newPage.toString());
+    params.append('size', resultsPerPage.toString());
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
     
-    // Use the enhanced fetchSalesHistory function with caching enabled
-    fetchSalesHistory(newPage, true);
+    // HARDCODED for IAAI ONLY
+    params.append('site', '2'); // IAAI site ID
+    
+    console.log(`Requesting IAAI page ${newPage} with params:`, params.toString());
+    
+    // Make direct fetch request to dedicated IAAI endpoint
+    fetch(`/api/iaai/sales-history?${params.toString()}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(result => {
+        console.log("Received IAAI data for page", newPage, result);
+        
+        // Only update if successful
+        if (result.success && result.data) {
+          // Store results in local state
+          setSearchResults(result);
+          
+          // Make sure we're showing search has been performed
+          setHasSearched(true);
+          
+          // Update total results count for pagination
+          if (result.data.pagination && result.data.pagination.totalCount) {
+            setTotalResults(result.data.pagination.totalCount);
+          } else if (result.data.salesHistory) {
+            // If we have more results than just this page, estimate there are more
+            const displayedCount = result.data.salesHistory.length;
+            if (displayedCount === resultsPerPage) {
+              // If we got a full page, assume there are at least more pages available
+              setTotalResults(Math.max(newPage * resultsPerPage + resultsPerPage, totalResults));
+            } else {
+              // If we got a partial page, we can calculate the exact total
+              setTotalResults((newPage - 1) * resultsPerPage + displayedCount);
+            }
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching IAAI page", newPage, error);
+      });
   };
   
   return (
@@ -832,8 +744,8 @@ export default function IAAI() {
 
             {activeTab === TabType.TABLE && (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                  {/* Enhanced Filters Section */}
-                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                {/* Enhanced Filters Section */}
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">SALE FILTERS</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div>
@@ -905,63 +817,38 @@ export default function IAAI() {
                               {/* Vehicle Image */}
                               <div className="flex-shrink-0 h-16 w-20 mr-4 relative">
                                 {(() => {
-                                  // Robust image handling with multiple fallback sources
-                                  const imageUrls = [];
+                                  // Enhanced image handling - try multiple sources
+                                  let imageUrl = '';
                                   if (sale.link_img_small && sale.link_img_small.length > 0) {
-                                    imageUrls.push(...sale.link_img_small);
-                                  }
-                                  if (sale.link_img_hd && sale.link_img_hd.length > 0) {
-                                    imageUrls.push(...sale.link_img_hd);
+                                    imageUrl = sale.link_img_small[0];
+                                  } else if (sale.link_img_hd && sale.link_img_hd.length > 0) {
+                                    imageUrl = sale.link_img_hd[0];
                                   }
                                   
-                                  const primaryUrl = imageUrls[0];
-                                  const hasImages = imageUrls.length > 0;
-                                  
-                                  return hasImages ? (
-                                    <>
-                                      <img 
-                                        src={primaryUrl} 
-                                        alt={`${sale.year} ${sale.make} ${sale.model}`}
-                                        className="h-16 w-20 object-cover rounded-lg border border-red-200 dark:border-red-700 shadow-sm"
-                                        onLoad={(e) => {
-                                          const target = e.target as HTMLImageElement;
-                                          target.style.opacity = '1';
-                                          const placeholder = target.nextElementSibling as HTMLElement;
-                                          if (placeholder) placeholder.style.display = 'none';
-                                        }}
-                                        onError={(e) => {
-                                          const target = e.target as HTMLImageElement;
-                                          const currentSrc = target.src;
-                                          const nextIndex = imageUrls.indexOf(currentSrc) + 1;
-                                          
-                                          if (nextIndex < imageUrls.length) {
-                                            // Try next image source
-                                            target.src = imageUrls[nextIndex];
-                                          } else {
-                                            // All sources failed, show placeholder
-                                            target.style.display = 'none';
-                                            const placeholder = target.nextElementSibling as HTMLElement;
-                                            if (placeholder) placeholder.style.display = 'flex';
-                                          }
-                                        }}
-                                        style={{ opacity: '0', transition: 'opacity 0.3s ease' }}
-                                      />
-                                      <div 
-                                        className="absolute inset-0 h-16 w-20 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-700 flex items-center justify-center"
-                                      >
-                                        <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <div className="h-16 w-20 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-700 flex items-center justify-center">
-                                      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                      </svg>
-                                    </div>
-                                  );
+                                  return imageUrl ? (
+                                    <img 
+                                      src={imageUrl} 
+                                      alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                      className="h-16 w-20 object-cover rounded-lg border border-red-200 dark:border-red-700 shadow-sm"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                        const placeholder = target.nextElementSibling as HTMLElement;
+                                        if (placeholder) placeholder.style.display = 'flex';
+                                      }}
+                                    />
+                                  ) : null;
                                 })()}
+                                <div 
+                                  className="h-16 w-20 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-700 flex items-center justify-center"
+                                  style={{ 
+                                    display: (sale.link_img_small?.length > 0 || sale.link_img_hd?.length > 0) ? 'none' : 'flex'
+                                  }}
+                                >
+                                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
                               </div>
                               <div>
                                 <div className="text-sm font-medium text-red-600 dark:text-red-400">
@@ -1108,8 +995,8 @@ export default function IAAI() {
               </div>
             )}
 
-            {/* Pagination - Show if we have search results and either more than one page worth OR we're on page 2+ */}
-            {searchResults?.data?.salesHistory && (totalResults > resultsPerPage || page > 1) && (
+            {/* Pagination - Cohesive design with Copart (Red branding) */}
+            {totalResults > resultsPerPage && (
               <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6 rounded-lg shadow-md">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
@@ -1131,9 +1018,9 @@ export default function IAAI() {
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
                       <span className="font-medium">
-                        {(page - 1) * resultsPerPage + (searchResults?.data?.salesHistory?.length || 0)}
+                        {Math.min((page * resultsPerPage), totalResults)}
                       </span> of{' '}
-                      <span className="font-medium">{totalResults > 0 ? totalResults : '...'}</span> results
+                      <span className="font-medium">{totalResults}</span> results
                     </p>
                   </div>
                   <div>
