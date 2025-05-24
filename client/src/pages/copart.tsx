@@ -1,169 +1,203 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
+import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
-import { ChevronDown, BarChart3, Table, Grid, RotateCcw } from 'lucide-react';
+import SalesAnalytics from '../components/sales/SalesAnalytics';
+import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
 
-// Vehicle makes and models data
-const vehicleMakes = {
-  'Acura': ['TLX', 'RDX', 'MDX', 'ILX', 'NSX'],
-  'Audi': ['A3', 'A4', 'A6', 'A8', 'Q3', 'Q5', 'Q7', 'Q8', 'TT'],
-  'BMW': ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7', 'Z4'],
-  'Buick': ['Encore', 'Envision', 'Enclave', 'Regal', 'LaCrosse'],
-  'Cadillac': ['ATS', 'CTS', 'XTS', 'XT4', 'XT5', 'XT6', 'Escalade'],
-  'Chevrolet': ['Spark', 'Sonic', 'Cruze', 'Malibu', 'Impala', 'Camaro', 'Corvette', 'Equinox', 'Traverse', 'Tahoe', 'Suburban', 'Silverado'],
-  'Chrysler': ['300', 'Pacifica', 'Voyager'],
-  'Dodge': ['Charger', 'Challenger', 'Durango', 'Journey', 'Grand Caravan', 'Ram 1500', 'Ram 2500'],
-  'Ford': ['Fiesta', 'Focus', 'Fusion', 'Mustang', 'Escape', 'Edge', 'Explorer', 'Expedition', 'F-150', 'F-250', 'F-350'],
-  'Genesis': ['G70', 'G80', 'G90', 'GV60', 'GV70', 'GV80'],
-  'GMC': ['Terrain', 'Acadia', 'Yukon', 'Sierra 1500', 'Sierra 2500'],
-  'Honda': ['Civic', 'Accord', 'Insight', 'CR-V', 'HR-V', 'Passport', 'Pilot', 'Ridgeline'],
-  'Hyundai': ['Accent', 'Elantra', 'Sonata', 'Azera', 'Veloster', 'Kona', 'Tucson', 'Santa Fe', 'Palisade'],
-  'Infiniti': ['Q50', 'Q60', 'Q70', 'QX30', 'QX50', 'QX60', 'QX80'],
-  'Jaguar': ['XE', 'XF', 'XJ', 'F-PACE', 'E-PACE', 'I-PACE'],
-  'Jeep': ['Compass', 'Cherokee', 'Grand Cherokee', 'Wrangler', 'Gladiator', 'Renegade'],
-  'Kia': ['Rio', 'Forte', 'Optima', 'Stinger', 'Soul', 'Seltos', 'Sportage', 'Sorento', 'Telluride'],
-  'Land Rover': ['Discovery', 'Discovery Sport', 'Range Rover', 'Range Rover Sport', 'Range Rover Evoque'],
-  'Lexus': ['IS', 'ES', 'GS', 'LS', 'LC', 'NX', 'RX', 'GX', 'LX'],
-  'Lincoln': ['MKC', 'MKX', 'MKZ', 'Continental', 'Navigator', 'Aviator', 'Corsair'],
-  'Mazda': ['Mazda3', 'Mazda6', 'CX-3', 'CX-5', 'CX-9', 'MX-5 Miata'],
-  'Mercedes-Benz': ['A-Class', 'C-Class', 'E-Class', 'S-Class', 'GLA', 'GLC', 'GLE', 'GLS', 'G-Class'],
-  'Mitsubishi': ['Mirage', 'Lancer', 'Eclipse Cross', 'Outlander', 'Outlander Sport'],
-  'Nissan': ['Versa', 'Sentra', 'Altima', 'Maxima', 'Rogue', 'Murano', 'Pathfinder', 'Armada', 'Titan'],
-  'Porsche': ['718', '911', 'Panamera', 'Macan', 'Cayenne', 'Taycan'],
-  'Ram': ['1500', '2500', '3500', 'ProMaster'],
-  'Subaru': ['Impreza', 'Legacy', 'Outback', 'Forester', 'Crosstrek', 'Ascent'],
-  'Tesla': ['Model S', 'Model 3', 'Model X', 'Model Y'],
-  'Toyota': ['Corolla', 'Camry', 'Avalon', 'Prius', 'RAV4', 'Highlander', 'Sequoia', 'Tacoma', 'Tundra', '4Runner'],
-  'Volkswagen': ['Jetta', 'Passat', 'Arteon', 'Golf', 'Tiguan', 'Atlas'],
-  'Volvo': ['S60', 'S90', 'V60', 'V90', 'XC40', 'XC60', 'XC90']
-};
+// Tab enum for better organization
+enum TabType {
+  TIMELINE = "timeline",
+  TABLE = "table",
+  PHOTOS = "photos"
+}
 
-export default function CopartPage() {
-  // Search state
+// Get current year for the year picker default value
+const currentYear = new Date().getFullYear();
+
+export default function Copart() {
+  // Primary search parameters
   const [make, setMake] = useState('Toyota');
   const [model, setModel] = useState('');
-  const [yearFrom, setYearFrom] = useState('2020');
-  const [yearTo, setYearTo] = useState('2025');
-  const [saleDateFrom, setSaleDateFrom] = useState('2025-02-24');
-  const [saleDateTo, setSaleDateTo] = useState('2025-05-24');
+  const [vin, setVin] = useState('');
+  const [yearFrom, setYearFrom] = useState(currentYear - 5);
+  const [yearTo, setYearTo] = useState(currentYear);
+  const [sites, setSites] = useState<string[]>(['copart']);
+  const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
+  const [damageType, setDamageType] = useState<string>('all');
+  const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
+  const [maxMileage, setMaxMileage] = useState<number | undefined>(undefined);
   
-  // Results state
-  const [results, setResults] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('analytics');
-  const [currentPage, setCurrentPage] = useState(1);
-  const resultsPerPage = 25;
+  // Date range for auction
+  const [auctionDateFrom, setAuctionDateFrom] = useState<string>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    return date.toISOString().split('T')[0];
+  });
+  const [auctionDateTo, setAuctionDateTo] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
   
-  // Available models for selected make
-  const availableModels = make ? vehicleMakes[make] || [] : [];
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [resultsPerPage, setResultsPerPage] = useState(25); // API supports up to 25 per page
+  const [totalResults, setTotalResults] = useState(0);
   
-  // Reset model when make changes
-  useEffect(() => {
-    setModel('');
-  }, [make]);
+  // UI state
+  const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
   
-  // Fetch data function
-  const fetchData = async (page = 1) => {
-    if (!make) return;
+  // Combine filter state for API request
+  const filterState: FilterState = {
+    make,
+    model,
+    year_from: yearFrom,
+    year_to: yearTo,
+    sites,
+    auction_date_from: auctionDateFrom,
+    auction_date_to: auctionDateTo,
+    page,
+    size: resultsPerPage,
+    damage_type: damageType !== 'all' ? damageType : undefined,
+    odometer_from: minMileage,
+    odometer_to: maxMileage
+  };
+  
+  // State to track if a search has been performed
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Helper function to calculate average price from sales history
+  const calculateAveragePrice = (salesHistory: any[] = []) => {
+    if (!salesHistory || salesHistory.length === 0) return 0;
     
-    setLoading(true);
-    console.log(`Fetching page ${page} with size ${resultsPerPage} and params:`, {
-      make,
-      year_from: yearFrom,
-      year_to: yearTo,
-      sale_date_from: saleDateFrom,
-      sale_date_to: saleDateTo,
-      page: page.toString(),
-      size: resultsPerPage.toString(),
-      site: "1"
-    });
+    const salesWithPrices = salesHistory.filter(sale => sale.purchase_price !== undefined);
+    if (salesWithPrices.length === 0) return 0;
+    
+    const total = salesWithPrices.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0);
+    return total / salesWithPrices.length;
+  };
+
+  // State to hold the actual results data
+  const [searchResults, setSearchResults] = useState<any>(null);
+  
+  // State for detailed vehicle modal
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Function to open vehicle details modal
+  const openVehicleDetails = (vehicle: any) => {
+    setSelectedVehicle(vehicle);
+    setCurrentImageIndex(0);
+    setIsModalOpen(true);
+  };
+  
+  // Function to close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null);
+    setCurrentImageIndex(0);
+  };
+
+  // Function to perform search with current filter state
+  const performSearch = async () => {
+    if (!make) {
+      alert('Please select a make to search');
+      return;
+    }
+
+    setIsSearching(true);
+    setHasSearched(true);
     
     try {
-      const params = new URLSearchParams({
-        make,
-        year_from: yearFrom,
-        year_to: yearTo,
-        sale_date_from: saleDateFrom,
-        sale_date_to: saleDateTo,
+      console.log('Performing Copart search with filters:', filterState);
+      
+      // Build search parameters for Copart (site=1)
+      const searchParams = new URLSearchParams({
+        make: make,
+        site: '1', // Copart site ID
         page: page.toString(),
         size: resultsPerPage.toString(),
-        site: "1"
+        year_from: yearFrom.toString(),
+        year_to: yearTo.toString(),
+        sale_date_from: auctionDateFrom,
+        sale_date_to: auctionDateTo
       });
-      
+
+      // Add model if specified
       if (model) {
-        params.append('model', model);
+        searchParams.append('model', model);
       }
       
-      const response = await fetch(`/api/sales-history?${params}`);
+      // Make the API call to Copart endpoint
+      const response = await fetch('/api/sales-history?' + searchParams.toString());
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Received Copart search data:', data);
       
       if (data.success) {
-        setResults(data.data);
-        setCurrentPage(page);
+        setSearchResults(data.data);
+        setTotalResults(data.data.salesHistory?.length || 0);
+      } else {
+        console.error('Search failed:', data.error);
+        alert('Search failed: ' + (data.error || 'Unknown error'));
       }
-    } catch (error) {
-      console.error('Error fetching sales history:', error);
+    } catch (error: any) {
+      console.error('Search error:', error);
+      alert('Search failed: ' + (error?.message || 'Unknown error'));
     } finally {
-      setLoading(false);
+      setIsSearching(false);
     }
   };
-  
-  // Handle search
-  const handleSearch = () => {
-    setCurrentPage(1);
-    fetchData(1);
+
+  // Function to reset search
+  const resetSearch = () => {
+    setHasSearched(false);
+    setSearchResults(null);
+    setIsSearching(false);
+    setPage(1);
+    setTotalResults(0);
   };
-  
-  // Handle reset
-  const handleReset = () => {
-    setMake('Toyota');
-    setModel('');
-    setYearFrom('2020');
-    setYearTo('2025');
-    setSaleDateFrom('2025-02-24');
-    setSaleDateTo('2025-05-24');
-    setResults(null);
-    setCurrentPage(1);
-  };
-  
-  // Handle page change
-  const handlePageChange = (page) => {
-    fetchData(page);
-  };
-  
-  // Calculate total pages
-  const totalResults = results?.salesHistory?.length || 0;
-  const hasMoreData = totalResults === resultsPerPage;
-  const totalPages = hasMoreData ? Math.max(currentPage + 4, 10) : Math.ceil(totalResults / resultsPerPage);
-  
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header - BLUE branding for Copart */}
-      <header className="bg-blue-600 text-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="text-white hover:text-blue-200 transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </Link>
-              <h1 className="text-2xl font-bold">Copart Vehicle Sales History</h1>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Header with platform toggle */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-6 space-y-4 sm:space-y-0">
+              <div className="flex items-center space-x-4">
+                <Link href="/" className="text-blue-600 hover:text-blue-700 font-medium">
+                  ← Back to Dashboard
+                </Link>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                    Copart Vehicle Search
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                    Search and analyze Copart auction sales data
+                  </p>
+                </div>
+              </div>
+              <PlatformToggle currentPlatform="copart" />
             </div>
-            <PlatformToggle />
           </div>
         </div>
-      </header>
-      
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        {/* Search Filters Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Vehicle Sales History</h2>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Search Form */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+              Search Criteria
+            </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Make - Required */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Make */}
               <div>
                 <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Make <span className="text-red-500">*</span>
@@ -175,13 +209,37 @@ export default function CopartPage() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value="">Select Make</option>
-                  {Object.keys(vehicleMakes).map(makeName => (
-                    <option key={makeName} value={makeName}>{makeName}</option>
-                  ))}
+                  <option value="Acura">Acura</option>
+                  <option value="Audi">Audi</option>
+                  <option value="BMW">BMW</option>
+                  <option value="Buick">Buick</option>
+                  <option value="Cadillac">Cadillac</option>
+                  <option value="Chevrolet">Chevrolet</option>
+                  <option value="Chrysler">Chrysler</option>
+                  <option value="Dodge">Dodge</option>
+                  <option value="Ford">Ford</option>
+                  <option value="GMC">GMC</option>
+                  <option value="Honda">Honda</option>
+                  <option value="Hyundai">Hyundai</option>
+                  <option value="Infiniti">Infiniti</option>
+                  <option value="Jeep">Jeep</option>
+                  <option value="Kia">Kia</option>
+                  <option value="Lexus">Lexus</option>
+                  <option value="Lincoln">Lincoln</option>
+                  <option value="Mazda">Mazda</option>
+                  <option value="Mercedes-Benz">Mercedes-Benz</option>
+                  <option value="Mitsubishi">Mitsubishi</option>
+                  <option value="Nissan">Nissan</option>
+                  <option value="Ram">Ram</option>
+                  <option value="Subaru">Subaru</option>
+                  <option value="Tesla">Tesla</option>
+                  <option value="Toyota">Toyota</option>
+                  <option value="Volkswagen">Volkswagen</option>
+                  <option value="Volvo">Volvo</option>
                 </select>
               </div>
               
-              {/* Model - Optional */}
+              {/* Model */}
               <div>
                 <label htmlFor="model" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Model
@@ -190,425 +248,748 @@ export default function CopartPage() {
                   id="model"
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  disabled={!make}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:disabled:bg-gray-600"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value="">All Models</option>
-                  {availableModels.map(modelName => (
-                    <option key={modelName} value={modelName}>{modelName}</option>
-                  ))}
+                  {make === 'Toyota' && (
+                    <>
+                      <option value="4Runner">4Runner</option>
+                      <option value="Avalon">Avalon</option>
+                      <option value="Camry">Camry</option>
+                      <option value="Corolla">Corolla</option>
+                      <option value="Highlander">Highlander</option>
+                      <option value="Prius">Prius</option>
+                      <option value="RAV4">RAV4</option>
+                      <option value="Sequoia">Sequoia</option>
+                      <option value="Sienna">Sienna</option>
+                      <option value="Tacoma">Tacoma</option>
+                      <option value="Tundra">Tundra</option>
+                      <option value="Venza">Venza</option>
+                    </>
+                  )}
+                  {make === 'Honda' && (
+                    <>
+                      <option value="Accord">Accord</option>
+                      <option value="Civic">Civic</option>
+                      <option value="CR-V">CR-V</option>
+                      <option value="HR-V">HR-V</option>
+                      <option value="Odyssey">Odyssey</option>
+                      <option value="Passport">Passport</option>
+                      <option value="Pilot">Pilot</option>
+                      <option value="Ridgeline">Ridgeline</option>
+                    </>
+                  )}
+                  {make === 'Ford' && (
+                    <>
+                      <option value="Bronco">Bronco</option>
+                      <option value="Edge">Edge</option>
+                      <option value="Escape">Escape</option>
+                      <option value="Expedition">Expedition</option>
+                      <option value="Explorer">Explorer</option>
+                      <option value="F-150">F-150</option>
+                      <option value="F-250">F-250</option>
+                      <option value="F-350">F-350</option>
+                      <option value="Focus">Focus</option>
+                      <option value="Fusion">Fusion</option>
+                      <option value="Mustang">Mustang</option>
+                      <option value="Ranger">Ranger</option>
+                    </>
+                  )}
+                  {make === 'Chevrolet' && (
+                    <>
+                      <option value="Blazer">Blazer</option>
+                      <option value="Camaro">Camaro</option>
+                      <option value="Colorado">Colorado</option>
+                      <option value="Corvette">Corvette</option>
+                      <option value="Cruze">Cruze</option>
+                      <option value="Equinox">Equinox</option>
+                      <option value="Impala">Impala</option>
+                      <option value="Malibu">Malibu</option>
+                      <option value="Silverado 1500">Silverado 1500</option>
+                      <option value="Silverado 2500">Silverado 2500</option>
+                      <option value="Suburban">Suburban</option>
+                      <option value="Tahoe">Tahoe</option>
+                      <option value="Traverse">Traverse</option>
+                    </>
+                  )}
+                  {make === 'Nissan' && (
+                    <>
+                      <option value="Altima">Altima</option>
+                      <option value="Armada">Armada</option>
+                      <option value="Frontier">Frontier</option>
+                      <option value="Maxima">Maxima</option>
+                      <option value="Murano">Murano</option>
+                      <option value="Pathfinder">Pathfinder</option>
+                      <option value="Rogue">Rogue</option>
+                      <option value="Sentra">Sentra</option>
+                      <option value="Titan">Titan</option>
+                      <option value="Versa">Versa</option>
+                    </>
+                  )}
+                  {make === 'BMW' && (
+                    <>
+                      <option value="3 Series">3 Series</option>
+                      <option value="5 Series">5 Series</option>
+                      <option value="7 Series">7 Series</option>
+                      <option value="X1">X1</option>
+                      <option value="X3">X3</option>
+                      <option value="X5">X5</option>
+                      <option value="X7">X7</option>
+                    </>
+                  )}
+                  {make === 'Mercedes-Benz' && (
+                    <>
+                      <option value="C-Class">C-Class</option>
+                      <option value="E-Class">E-Class</option>
+                      <option value="S-Class">S-Class</option>
+                      <option value="GLC">GLC</option>
+                      <option value="GLE">GLE</option>
+                      <option value="GLS">GLS</option>
+                    </>
+                  )}
+                  {make === 'Lexus' && (
+                    <>
+                      <option value="ES">ES</option>
+                      <option value="GX">GX</option>
+                      <option value="IS">IS</option>
+                      <option value="LS">LS</option>
+                      <option value="LX">LX</option>
+                      <option value="NX">NX</option>
+                      <option value="RX">RX</option>
+                    </>
+                  )}
+                  {make === 'Audi' && (
+                    <>
+                      <option value="A3">A3</option>
+                      <option value="A4">A4</option>
+                      <option value="A6">A6</option>
+                      <option value="A8">A8</option>
+                      <option value="Q3">Q3</option>
+                      <option value="Q5">Q5</option>
+                      <option value="Q7">Q7</option>
+                      <option value="Q8">Q8</option>
+                    </>
+                  )}
+                  {make === 'Jeep' && (
+                    <>
+                      <option value="Cherokee">Cherokee</option>
+                      <option value="Compass">Compass</option>
+                      <option value="Grand Cherokee">Grand Cherokee</option>
+                      <option value="Gladiator">Gladiator</option>
+                      <option value="Renegade">Renegade</option>
+                      <option value="Wrangler">Wrangler</option>
+                    </>
+                  )}
+                  {make === 'Hyundai' && (
+                    <>
+                      <option value="Accent">Accent</option>
+                      <option value="Elantra">Elantra</option>
+                      <option value="Genesis">Genesis</option>
+                      <option value="Palisade">Palisade</option>
+                      <option value="Santa Fe">Santa Fe</option>
+                      <option value="Sonata">Sonata</option>
+                      <option value="Tucson">Tucson</option>
+                    </>
+                  )}
+                  {make === 'Kia' && (
+                    <>
+                      <option value="Forte">Forte</option>
+                      <option value="Optima">Optima</option>
+                      <option value="Rio">Rio</option>
+                      <option value="Sorento">Sorento</option>
+                      <option value="Soul">Soul</option>
+                      <option value="Sportage">Sportage</option>
+                      <option value="Telluride">Telluride</option>
+                    </>
+                  )}
+                  {make === 'Subaru' && (
+                    <>
+                      <option value="Ascent">Ascent</option>
+                      <option value="Forester">Forester</option>
+                      <option value="Impreza">Impreza</option>
+                      <option value="Legacy">Legacy</option>
+                      <option value="Outback">Outback</option>
+                      <option value="WRX">WRX</option>
+                    </>
+                  )}
+                  {make === 'Tesla' && (
+                    <>
+                      <option value="Model 3">Model 3</option>
+                      <option value="Model S">Model S</option>
+                      <option value="Model X">Model X</option>
+                      <option value="Model Y">Model Y</option>
+                    </>
+                  )}
+                  {make === 'Dodge' && (
+                    <>
+                      <option value="Challenger">Challenger</option>
+                      <option value="Charger">Charger</option>
+                      <option value="Durango">Durango</option>
+                      <option value="Journey">Journey</option>
+                    </>
+                  )}
+                  {make === 'Ram' && (
+                    <>
+                      <option value="1500">1500</option>
+                      <option value="2500">2500</option>
+                      <option value="3500">3500</option>
+                    </>
+                  )}
+                  {make === 'GMC' && (
+                    <>
+                      <option value="Acadia">Acadia</option>
+                      <option value="Canyon">Canyon</option>
+                      <option value="Sierra 1500">Sierra 1500</option>
+                      <option value="Sierra 2500">Sierra 2500</option>
+                      <option value="Terrain">Terrain</option>
+                      <option value="Yukon">Yukon</option>
+                    </>
+                  )}
+                  {make === 'Mazda' && (
+                    <>
+                      <option value="CX-3">CX-3</option>
+                      <option value="CX-5">CX-5</option>
+                      <option value="CX-9">CX-9</option>
+                      <option value="Mazda3">Mazda3</option>
+                      <option value="Mazda6">Mazda6</option>
+                      <option value="MX-5 Miata">MX-5 Miata</option>
+                    </>
+                  )}
+                  {make === 'Volkswagen' && (
+                    <>
+                      <option value="Atlas">Atlas</option>
+                      <option value="Golf">Golf</option>
+                      <option value="Jetta">Jetta</option>
+                      <option value="Passat">Passat</option>
+                      <option value="Tiguan">Tiguan</option>
+                    </>
+                  )}
+                  {make === 'Acura' && (
+                    <>
+                      <option value="ILX">ILX</option>
+                      <option value="MDX">MDX</option>
+                      <option value="RDX">RDX</option>
+                      <option value="TLX">TLX</option>
+                    </>
+                  )}
+                  {make === 'Infiniti' && (
+                    <>
+                      <option value="Q50">Q50</option>
+                      <option value="Q60">Q60</option>
+                      <option value="QX50">QX50</option>
+                      <option value="QX60">QX60</option>
+                      <option value="QX80">QX80</option>
+                    </>
+                  )}
+                  {make === 'Cadillac' && (
+                    <>
+                      <option value="CT4">CT4</option>
+                      <option value="CT5">CT5</option>
+                      <option value="Escalade">Escalade</option>
+                      <option value="XT4">XT4</option>
+                      <option value="XT5">XT5</option>
+                      <option value="XT6">XT6</option>
+                    </>
+                  )}
+                  {make === 'Lincoln' && (
+                    <>
+                      <option value="Aviator">Aviator</option>
+                      <option value="Continental">Continental</option>
+                      <option value="Corsair">Corsair</option>
+                      <option value="Navigator">Navigator</option>
+                    </>
+                  )}
+                  {make === 'Buick' && (
+                    <>
+                      <option value="Enclave">Enclave</option>
+                      <option value="Encore">Encore</option>
+                      <option value="Envision">Envision</option>
+                    </>
+                  )}
+                  {make === 'Chrysler' && (
+                    <>
+                      <option value="300">300</option>
+                      <option value="Pacifica">Pacifica</option>
+                    </>
+                  )}
+                  {make === 'Mitsubishi' && (
+                    <>
+                      <option value="Eclipse Cross">Eclipse Cross</option>
+                      <option value="Mirage">Mirage</option>
+                      <option value="Outlander">Outlander</option>
+                    </>
+                  )}
+                  {make === 'Volvo' && (
+                    <>
+                      <option value="S60">S60</option>
+                      <option value="S90">S90</option>
+                      <option value="XC40">XC40</option>
+                      <option value="XC60">XC60</option>
+                      <option value="XC90">XC90</option>
+                    </>
+                  )}
                 </select>
               </div>
-              
-              {/* Year From */}
-              <div>
-                <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Year From
-                </label>
-                <select
-                  id="yearFrom"
-                  value={yearFrom}
-                  onChange={(e) => setYearFrom(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  {Array.from({ length: 26 }, (_, i) => 2025 - i).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
+
+              {/* Year Range */}
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Year From
+                  </label>
+                  <select
+                    id="yearFrom"
+                    value={yearFrom}
+                    onChange={(e) => setYearFrom(parseInt(e.target.value))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    {Array.from({ length: 25 }, (_, i) => currentYear - i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Year To
+                  </label>
+                  <select
+                    id="yearTo"
+                    value={yearTo}
+                    onChange={(e) => setYearTo(parseInt(e.target.value))}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    {Array.from({ length: 25 }, (_, i) => currentYear - i).map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              
-              {/* Year To */}
-              <div>
-                <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Year To
-                </label>
-                <select
-                  id="yearTo"
-                  value={yearTo}
-                  onChange={(e) => setYearTo(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                >
-                  {Array.from({ length: 26 }, (_, i) => 2025 - i).map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
-              
-              {/* Sale Date From */}
-              <div>
-                <label htmlFor="saleDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Sale Date From
-                </label>
-                <input
-                  type="date"
-                  id="saleDateFrom"
-                  value={saleDateFrom}
-                  onChange={(e) => setSaleDateFrom(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              
-              {/* Sale Date To */}
-              <div>
-                <label htmlFor="saleDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Sale Date To
-                </label>
-                <input
-                  type="date"
-                  id="saleDateTo"
-                  value={saleDateTo}
-                  onChange={(e) => setSaleDateTo(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
+
+              {/* Auction Date Range */}
+              <div className="flex space-x-2">
+                <div className="flex-1">
+                  <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Sale Date From
+                  </label>
+                  <input
+                    type="date"
+                    id="auctionDateFrom"
+                    value={auctionDateFrom}
+                    onChange={(e) => setAuctionDateFrom(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Sale Date To
+                  </label>
+                  <input
+                    type="date"
+                    id="auctionDateTo"
+                    value={auctionDateTo}
+                    onChange={(e) => setAuctionDateTo(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
               </div>
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-6">
+
+            {/* Search Actions */}
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-6">
               <button
-                onClick={handleSearch}
-                disabled={!make || loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                onClick={performSearch}
+                disabled={isSearching || !make}
+                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-6 rounded-md transition-colors flex items-center justify-center min-w-[140px]"
               >
-                {loading ? 'Searching...' : 'Search'}
+                {isSearching ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Searching Copart Database...
+                  </>
+                ) : (
+                  'Search Copart'
+                )}
               </button>
               
-              <button
-                onClick={handleReset}
-                className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Reset Search
-              </button>
+              {hasSearched && (
+                <button
+                  onClick={resetSearch}
+                  className="flex-1 sm:flex-none bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-md transition-colors"
+                >
+                  Reset Search
+                </button>
+              )}
             </div>
           </div>
-        </div>
-        
-        {/* Results Section */}
-        {results && (
-          <div className="space-y-6">
-            {/* View Mode Toggle */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setViewMode('analytics')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    viewMode === 'analytics'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  Analytics Dashboard
-                </button>
-                
-                <button
-                  onClick={() => setViewMode('table')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    viewMode === 'table'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <Table className="w-4 h-4" />
-                  Table View
-                </button>
-                
-                <button
-                  onClick={() => setViewMode('photos')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    viewMode === 'photos'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  <Grid className="w-4 h-4" />
-                  Photo Grid
-                </button>
-              </div>
-            </div>
-            
-            {/* Content based on view mode */}
-            {viewMode === 'analytics' && <AnalyticsView data={results} />}
-            {viewMode === 'table' && <TableView data={results} />}
-            {viewMode === 'photos' && <PhotoView data={results} />}
-            
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-700 dark:text-gray-300">
-                    Page {currentPage} of {totalPages}
+
+          {/* Search Results */}
+          {hasSearched && searchResults && searchResults.salesHistory && (
+            <div className="space-y-6">
+              {/* Results Summary */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Search Results: {make} {model} ({yearFrom}-{yearTo})
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Found {searchResults.salesHistory.length} vehicles • Average Price: {formatCurrency(calculateAveragePrice(searchResults.salesHistory))}
+                    </p>
                   </div>
-                  
                   <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      Copart Data
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* View Tabs */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="border-b border-gray-200 dark:border-gray-700">
+                  <nav className="flex space-x-8 px-6" aria-label="Tabs">
                     <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                      onClick={() => setActiveTab(TabType.TIMELINE)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === TabType.TIMELINE
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      Analytics Dashboard
+                    </button>
+                    <button
+                      onClick={() => setActiveTab(TabType.TABLE)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === TabType.TABLE
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      Table View
+                    </button>
+                    <button
+                      onClick={() => setActiveTab(TabType.PHOTOS)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === TabType.PHOTOS
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      Photo Grid
+                    </button>
+                  </nav>
+                </div>
+
+                <div className="p-6">
+                  {/* Analytics Dashboard */}
+                  {activeTab === TabType.TIMELINE && (
+                    <SalesAnalytics salesHistory={searchResults.salesHistory} />
+                  )}
+
+                  {/* Table View */}
+                  {activeTab === TabType.TABLE && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Vehicle
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Sale Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Price
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Mileage
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Damage
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Location
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Status
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                          {searchResults.salesHistory.map((sale: any) => (
+                            <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onClick={() => openVehicleDetails(sale)}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-12 w-12">
+                                    {sale.link_img_small && sale.link_img_small[0] ? (
+                                      <img 
+                                        className="h-12 w-12 rounded object-cover" 
+                                        src={sale.link_img_small[0]} 
+                                        alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                        onError={(e) => {
+                                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAzNkMzMC42Mjc0IDM2IDM2IDMwLjYyNzQgMzYgMjRDMzYgMTcuMzcyNiAzMC42Mjc0IDEyIDI0IDEyQzE3LjM3MjYgMTIgMTIgMTcuMzcyNiAxMiAyNEMxMiAzMC42Mjc0IDE3LjM3MjYgMzYgMjQgMzZaIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yNCAyOFYyNCIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMjQgMjBIMjQuMDEiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="h-12 w-12 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                        <span className="text-gray-400 text-xs">No Image</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {sale.year} {sale.make} {sale.model}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {sale.series} • VIN: {sale.vin?.slice(-8)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {new Date(sale.sale_date).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                {formatCurrency(sale.purchase_price)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {(sale.vehicle_mileage || sale.odometer)?.toLocaleString()} miles
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                  {sale.vehicle_damage || 'Unknown'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {sale.auction_location}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  sale.sale_status === 'Sold' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                                }`}>
+                                  {sale.sale_status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Photo Grid */}
+                  {activeTab === TabType.PHOTOS && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {searchResults.salesHistory.map((sale: any) => (
+                        <div key={sale.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => openVehicleDetails(sale)}>
+                          <div className="aspect-w-16 aspect-h-12 relative">
+                            {sale.link_img_small && sale.link_img_small[0] ? (
+                              <img 
+                                className="w-full h-48 object-cover" 
+                                src={sale.link_img_small[0]} 
+                                alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDMyMCAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTkyIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNjAgMTI4QzE3Ny42NzMgMTI4IDE5MiAxMTMuNjczIDE5MiA5NkMxOTIgNzguMzI2OSAxNzcuNjczIDY0IDE2MCA2NEMxNDIuMzI3IDY0IDEyOCA3OC4zMjY5IDEyOCA5NkMxMjggMTEzLjY3MyAxNDIuMzI3IDEyOCAxNjAgMTI4WiIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYwIDEwNFY5NiIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYwIDg4SDE2MC4wMSIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <span className="text-gray-400">No Image Available</span>
+                              </div>
+                            )}
+                            <div className="absolute top-2 right-2">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                sale.sale_status === 'Sold' 
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-500 text-white'
+                              }`}>
+                                {sale.sale_status}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                              {sale.year} {sale.make} {sale.model} {sale.series}
+                            </h3>
+                            <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex justify-between">
+                                <span>Price:</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(sale.purchase_price)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Mileage:</span>
+                                <span>{(sale.vehicle_mileage || sale.odometer)?.toLocaleString()} mi</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Damage:</span>
+                                <span>{sale.vehicle_damage || 'Unknown'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Location:</span>
+                                <span>{sale.auction_location}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pagination */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 px-6 py-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
+                    <span className="font-medium">{Math.min(page * resultsPerPage, totalResults)}</span> of{' '}
+                    <span className="font-medium">{totalResults}</span> results
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
                     >
                       Previous
                     </button>
-                    
-                    {/* Page numbers */}
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      const pageNum = Math.max(1, currentPage - 2) + i;
-                      if (pageNum > totalPages) return null;
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`px-3 py-1 text-sm border rounded-md ${
-                            currentPage === pageNum
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                    
+                    <span className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+                      Page {page}
+                    </span>
                     <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage >= totalPages}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+                      onClick={() => setPage(page + 1)}
+                      disabled={searchResults.salesHistory.length < resultsPerPage}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
                     >
                       Next
                     </button>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </main>
-    </div>
-  );
-}
+            </div>
+          )}
 
-// Analytics View Component
-function AnalyticsView({ data }) {
-  const salesHistory = data?.salesHistory || [];
-  
-  // Calculate statistics
-  const totalVehicles = salesHistory.length;
-  const soldVehicles = salesHistory.filter(sale => sale.sale_status === 'SOLD').length;
-  const averagePrice = salesHistory.reduce((sum, sale) => {
-    const price = parseFloat(sale.bid_amount?.replace(/[$,]/g, '') || sale.final_bid_amount?.replace(/[$,]/g, '') || '0');
-    return sum + price;
-  }, 0) / totalVehicles;
-  
-  // Damage analysis
-  const damageStats = {};
-  salesHistory.forEach(sale => {
-    const damage = sale.damage_pr || 'Unknown';
-    if (!damageStats[damage]) {
-      damageStats[damage] = { count: 0, prices: [] };
-    }
-    damageStats[damage].count++;
-    const price = parseFloat(sale.bid_amount?.replace(/[$,]/g, '') || sale.final_bid_amount?.replace(/[$,]/g, '') || '0');
-    if (price > 0) damageStats[damage].prices.push(price);
-  });
-  
-  const damageAnalysis = Object.entries(damageStats).map(([damage, stats]) => ({
-    damage,
-    count: stats.count,
-    average: stats.prices.length > 0 ? stats.prices.reduce((a, b) => a + b, 0) / stats.prices.length : 0,
-    min: stats.prices.length > 0 ? Math.min(...stats.prices) : 0,
-    max: stats.prices.length > 0 ? Math.max(...stats.prices) : 0
-  })).sort((a, b) => b.count - a.count);
-  
-  console.log('Damage analysis data:', damageAnalysis);
-  
-  return (
-    <div className="space-y-6">
-      {/* Summary Statistics */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Summary Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{totalVehicles}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Total Vehicles</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{soldVehicles}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Sold</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {((soldVehicles / totalVehicles) * 100).toFixed(1)}%
+          {/* No Results State */}
+          {hasSearched && !isSearching && (!searchResults || !searchResults.salesHistory || searchResults.salesHistory.length === 0) && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+              <div className="mx-auto max-w-md">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No results found</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Try adjusting your search criteria or expanding the date range.
+                </p>
+              </div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">
-              ${averagePrice.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+          )}
+
+          {/* Vehicle Details Modal */}
+          {isModalOpen && selectedVehicle && (
+            <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={closeModal}></div>
+                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                  <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                        {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model} {selectedVehicle.series}
+                      </h3>
+                      <button
+                        onClick={closeModal}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Vehicle Image */}
+                      <div>
+                        {selectedVehicle.link_img_hd && selectedVehicle.link_img_hd[0] ? (
+                          <img 
+                            className="w-full h-64 object-cover rounded-lg" 
+                            src={selectedVehicle.link_img_hd[0]} 
+                            alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model}`}
+                          />
+                        ) : (
+                          <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400">No Image Available</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Vehicle Details */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Sale Price:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{formatCurrency(selectedVehicle.purchase_price)}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Sale Date:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{new Date(selectedVehicle.sale_date).toLocaleDateString()}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Mileage:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{(selectedVehicle.vehicle_mileage || selectedVehicle.odometer)?.toLocaleString()} miles</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">VIN:</span>
+                            <p className="text-gray-600 dark:text-gray-400 font-mono text-xs">{selectedVehicle.vin}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Damage:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.vehicle_damage || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Title:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.vehicle_title || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Location:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.auction_location}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Status:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.sale_status}</p>
+                          </div>
+                        </div>
+                        
+                        {selectedVehicle.link && (
+                          <div className="pt-4">
+                            <a 
+                              href={selectedVehicle.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                            >
+                              View on Copart
+                              <svg className="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Avg Price</div>
-          </div>
+          )}
         </div>
       </div>
-      
-      {/* Damage Analysis */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Damage Analysis</h3>
-        <div className="space-y-3">
-          {damageAnalysis.map((item, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-white">{item.damage}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{item.count} vehicles</div>
-              </div>
-              <div className="text-right">
-                <div className="font-medium text-gray-900 dark:text-white">
-                  ${item.average.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">avg price</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Table View Component
-function TableView({ data }) {
-  const salesHistory = data?.salesHistory || [];
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <div className="p-6">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Sales History Table</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Vehicle
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Year
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Damage
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Mileage
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Final Bid
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {salesHistory.map((sale, index) => (
-              <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    {sale.year} {sale.make_name} {sale.model_name}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    LOT: {sale.lot_number}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {sale.year}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {sale.damage_pr || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {sale.odometer ? `${parseInt(sale.odometer).toLocaleString()} mi` : 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                  {sale.final_bid_amount || sale.bid_amount || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    sale.sale_status === 'SOLD' 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
-                      : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
-                  }`}>
-                    {sale.sale_status || 'Unknown'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// Photo View Component
-function PhotoView({ data }) {
-  const salesHistory = data?.salesHistory || [];
-  
-  const getImageUrl = (vehicle) => {
-    if (!vehicle.images_list) return null;
-    
-    try {
-      const images = typeof vehicle.images_list === 'string' 
-        ? JSON.parse(vehicle.images_list) 
-        : vehicle.images_list;
-      
-      if (Array.isArray(images) && images.length > 0) {
-        return images[0].hd || images[0].small || images[0].cached;
-      }
-    } catch (e) {
-      console.error('Error parsing images:', e);
-    }
-    
-    return null;
-  };
-  
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Photo Grid</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {salesHistory.map((sale, index) => {
-          const imageUrl = getImageUrl(sale);
-          return (
-            <div key={index} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow dark:border-gray-600">
-              <div className="aspect-video bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                {imageUrl ? (
-                  <img 
-                    src={imageUrl} 
-                    alt={`${sale.year} ${sale.make_name} ${sale.model_name}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div className={`flex items-center justify-center text-gray-500 dark:text-gray-400 ${imageUrl ? 'hidden' : 'flex'}`}>
-                  <Grid className="w-8 h-8" />
-                </div>
-              </div>
-              <div className="p-3">
-                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                  {sale.year} {sale.make_name} {sale.model_name}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  LOT: {sale.lot_number}
-                </div>
-                <div className="text-sm font-semibold text-blue-600 mt-1">
-                  {sale.final_bid_amount || sale.bid_amount || 'N/A'}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    </ErrorBoundary>
   );
 }
