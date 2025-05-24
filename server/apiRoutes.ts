@@ -268,6 +268,8 @@ export function setupApiRoutes(app: Express) {
         }
       };
       
+      console.log(`IAAI Response Debug - Page ${page}: totalCount=${totalCount}, transformedData.length=${transformedData.length}`);
+      
       res.json({
         success: true,
         data: responseData
