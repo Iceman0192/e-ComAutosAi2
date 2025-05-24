@@ -169,10 +169,10 @@ export default function IAAI() {
         const params = new URLSearchParams({
           make: searchParams.make,
           ...(searchParams.model && { model: searchParams.model }),
-          yearFrom: searchParams.yearFrom.toString(),
-          yearTo: searchParams.yearTo.toString(),
-          auctionDateFrom: searchParams.auctionDateFrom,
-          auctionDateTo: searchParams.auctionDateTo,
+          year_from: searchParams.yearFrom.toString(),
+          year_to: searchParams.yearTo.toString(),
+          sale_date_from: searchParams.auctionDateFrom,
+          sale_date_to: searchParams.auctionDateTo,
           page: pageToLoad.toString(),
           size: searchParams.resultsPerPage.toString()
         });
@@ -234,10 +234,10 @@ export default function IAAI() {
       const params = new URLSearchParams({
         make: searchParams.make,
         ...(searchParams.model && { model: searchParams.model }),
-        yearFrom: searchParams.yearFrom.toString(),
-        yearTo: searchParams.yearTo.toString(),
-        auctionDateFrom: searchParams.auctionDateFrom,
-        auctionDateTo: searchParams.auctionDateTo,
+        year_from: searchParams.yearFrom.toString(),
+        year_to: searchParams.yearTo.toString(),
+        sale_date_from: searchParams.auctionDateFrom,
+        sale_date_to: searchParams.auctionDateTo,
         page: pageNum.toString(),
         size: searchParams.resultsPerPage.toString()
       });
