@@ -830,9 +830,10 @@ export default function Home() {
               )}
               
               {activeTab === TabType.TABLE && (
-                <div className="flex flex-col lg:flex-row">
-                  {/* Secondary filters sidebar (appears after search results) */}
-                  <div className="w-full lg:w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-4">
+                <PermissionGate permission="ADVANCED_FILTERS">
+                  <div className="flex flex-col lg:flex-row">
+                    {/* Secondary filters sidebar (appears after search results) */}
+                    <div className="w-full lg:w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-4">
                     <h3 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">SALE FILTERS</h3>
                     
                     {/* Vehicle info filters */}
@@ -1144,6 +1145,7 @@ export default function Home() {
                     </table>
                   </div>
                 </div>
+                </PermissionGate>
               )}
               
               {activeTab === TabType.PHOTOS && (
