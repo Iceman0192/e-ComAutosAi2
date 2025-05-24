@@ -259,7 +259,14 @@ export default function IAAI() {
       <header className="bg-red-600 text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">IAAI Vehicle Sales History</h1>
+            <div className="flex items-center space-x-4">
+              <Link href="/" className="text-white hover:text-red-200 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+              </Link>
+              <h1 className="text-2xl font-bold">IAAI Vehicle Sales History</h1>
+            </div>
             <PlatformToggle />
           </div>
         </div>
