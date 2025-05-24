@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
 import { AuthProvider } from "./contexts/AuthContext";
+import { UsageProvider } from "./contexts/UsageContext";
 import RoleSwitcher from "./components/auth/RoleSwitcher";
 
 // Pages
