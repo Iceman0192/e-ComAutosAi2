@@ -272,6 +272,46 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                   </ScatterChart>
                 </ResponsiveContainer>
               </div>
+              
+              {/* Chart Legend & Quick Stats - Restored from original */}
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {salesHistory.length > 0 && (
+                  <>
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <p className="text-xs text-green-600 dark:text-green-400 font-medium">Lowest Mileage</p>
+                      <p className="font-bold text-green-800 dark:text-green-300">
+                        {Math.min(...salesHistory.filter(s => s.odometer || s.vehicle_mileage).map(s => s.odometer || s.vehicle_mileage)).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Highest Price</p>
+                      <p className="font-bold text-blue-800 dark:text-blue-300">
+                        {formatCurrency(Math.max(...salesHistory.map(s => s.purchase_price || 0)))}
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">Best Value</p>
+                      <p className="font-bold text-purple-800 dark:text-purple-300">
+                        {(() => {
+                          const validVehicles = salesHistory.filter(s => (s.odometer || s.vehicle_mileage) && s.purchase_price);
+                          if (validVehicles.length === 0) return 'N/A';
+                          const bestValue = validVehicles.reduce((best, current) => 
+                            ((current.purchase_price || 0) / (current.odometer || current.vehicle_mileage || 1)) < 
+                            ((best.purchase_price || 0) / (best.odometer || best.vehicle_mileage || 1)) ? current : best
+                          );
+                          return `$${((bestValue.purchase_price || 0) / (bestValue.odometer || bestValue.vehicle_mileage || 1)).toFixed(2)}/mi`;
+                        })()}
+                      </p>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Total Vehicles</p>
+                      <p className="font-bold text-orange-800 dark:text-orange-300">
+                        {salesHistory.filter(s => (s.odometer || s.vehicle_mileage) && s.purchase_price).length}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Enhanced Data Table */}
