@@ -95,6 +95,28 @@ export default function Copart() {
     refetch();
   };
 
+  // Handle reset button click
+  const handleReset = () => {
+    setMake('Toyota');
+    setModel('');
+    setYearFrom(currentYear - 5);
+    setYearTo(currentYear);
+    setCondition('all');
+    setDamageType('all');
+    setMinMileage(undefined);
+    setMaxMileage(undefined);
+    setAuctionDateFrom(() => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - 3);
+      return date.toISOString().split('T')[0];
+    });
+    setAuctionDateTo(() => {
+      return new Date().toISOString().split('T')[0];
+    });
+    setPage(1);
+    setActiveTab(TabType.TIMELINE);
+  };
+
   // Vehicle Makes with Models - comprehensive list
   const vehicleMakes = {
     "Acura": ["ILX", "MDX", "RDX", "TL", "TLX", "TSX", "ZDX"],
@@ -262,13 +284,13 @@ export default function Copart() {
               </div>
             </div>
             
-            {/* Search Button */}
-            <div className="mt-6 p-6">
+            {/* Search and Reset Buttons */}
+            <div className="mt-6 p-6 flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={!make || isSearching}
-                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
                 {isSearching ? (
                   <>
@@ -281,6 +303,13 @@ export default function Copart() {
                 ) : (
                   'Search Vehicle History'
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+              >
+                Reset Search
               </button>
             </div>
           </div>
