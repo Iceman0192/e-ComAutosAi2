@@ -115,9 +115,11 @@ export interface SalesStatistics {
 }
 
 export interface SalesHistoryData {
-  salesHistory: SalesRecord[];
-  vehicle?: Vehicle;
-  stats: SalesStatistics;
+  data: {
+    salesHistory: SalesRecord[];
+    vehicle?: Vehicle;
+    stats: SalesStatistics;
+  };
   priceTrend: Array<{ month: string; avgPrice: number }>;
   geographicData: Array<{ state: string; count: number }>;
   pagination?: {
