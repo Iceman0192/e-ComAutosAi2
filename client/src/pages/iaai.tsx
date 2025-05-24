@@ -4,7 +4,7 @@ import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
 import TieredDamageAnalysis from '../components/sales/TieredDamageAnalysis';
-import UsageDisplay from '../components/auth/UsageDisplay';
+import PermissionGate from '../components/auth/PermissionGate';
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
 
