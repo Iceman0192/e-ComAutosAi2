@@ -99,6 +99,11 @@ export default function Copart() {
   // Extract sales data safely
   const salesData = searchResults?.data?.salesHistory || searchResults?.salesHistory || [];
   const hasResults = salesData.length > 0;
+  
+  // Calculate total pages based on estimated total records
+  // If we have 25 results and it's page 1, assume there are more pages
+  const estimatedTotal = salesData.length === resultsPerPage ? resultsPerPage * 20 : salesData.length;
+  const totalPages = Math.ceil(estimatedTotal / resultsPerPage);
 
   // Reset function
   const handleReset = () => {
@@ -596,7 +601,7 @@ export default function Copart() {
                       </button>
                       
                       {/* Page numbers */}
-                      {Array.from({ length: Math.min(5, Math.ceil(salesData.length / resultsPerPage)) }, (_, i) => {
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         const pageNum = i + 1;
                         return (
                           <button
@@ -622,7 +627,7 @@ export default function Copart() {
                           setPage(newPage);
                           refetch(); // Trigger new API request
                         }}
-                        disabled={page >= Math.ceil(salesData.length / resultsPerPage)}
+                        disabled={page >= totalPages}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
                       >
                         Next
