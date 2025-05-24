@@ -558,7 +558,7 @@ export default function Copart() {
               {activeTab === TabType.PHOTOS && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {searchResults.salesHistory.map((sale: any, index: number) => (
+                    {searchResults.data.salesHistory.map((sale: any, index: number) => (
                       <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                         {/* Vehicle Image */}
                         <div className="h-48 bg-gray-200 dark:bg-gray-600 relative">
