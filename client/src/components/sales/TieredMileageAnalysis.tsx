@@ -227,7 +227,16 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                       return price && !isNaN(price) && price > 0 && mileage && !isNaN(mileage) && mileage > 0;
                     }).map(sale => ({
                       mileage: sale.odometer || sale.vehicle_mileage,
-                      price: sale.purchase_price
+                      price: sale.purchase_price,
+                      year: sale.year,
+                      make: sale.make,
+                      model: sale.model,
+                      damage: sale.vehicle_damage || sale.damage_pr,
+                      location: sale.auction_location,
+                      saleDate: sale.sale_date,
+                      saleStatus: sale.sale_status,
+                      vin: sale.vin,
+                      lotId: sale.lot_id
                     }))}
                     margin={{ top: 20, right: 30, left: 40, bottom: 60 }}
                   >
@@ -256,10 +265,31 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                     />
                     <Tooltip 
                       cursor={{ strokeDasharray: '3 3' }}
-                      formatter={(value, name) => [
-                        name === 'price' ? formatCurrency(value as number) : `${(value as number).toLocaleString()} miles`,
-                        name === 'price' ? 'Price' : 'Mileage'
-                      ]}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                              <div className="space-y-2">
+                                <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                  {data.year} {data.make} {data.model}
+                                </div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                  <div><strong>Price:</strong> {formatCurrency(data.price)}</div>
+                                  <div><strong>Mileage:</strong> {data.mileage?.toLocaleString()} miles</div>
+                                  <div><strong>Damage:</strong> {data.damage || 'Unknown'}</div>
+                                  <div><strong>Location:</strong> {data.location}</div>
+                                  <div><strong>Sale Status:</strong> {data.saleStatus}</div>
+                                  <div><strong>Sale Date:</strong> {data.saleDate ? new Date(data.saleDate).toLocaleDateString() : 'N/A'}</div>
+                                  <div><strong>Lot ID:</strong> {data.lotId}</div>
+                                  {data.vin && <div><strong>VIN:</strong> {data.vin.substring(0, 8)}...</div>}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
                     />
                     <Scatter 
                       dataKey="price" 
