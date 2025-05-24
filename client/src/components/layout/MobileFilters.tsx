@@ -273,34 +273,33 @@ export default function MobileFilters({
               </div>
             </div>
             
-            {/* Auction Sites Toggle */}
+            {/* Auction Sites */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
                 <span className="material-icons text-blue-500 mr-2 text-sm">business</span>
                 Auction Sites
               </h3>
-              <div className="flex items-center space-x-3">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={window.location.pathname === '/'}
-                    onChange={() => window.location.href = '/'}
-                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex items-center hover:bg-gray-100 p-2 rounded-md transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={sites.includes('copart')}
+                    onChange={(e) => updateSites('copart', e.target.checked)}
+                    className="text-blue-600 focus:ring-blue-500 rounded" 
                   />
-                  <span className="ml-2 text-sm font-medium text-gray-700">Copart</span>
+                  <span className="ml-2 text-sm">Copart</span>
                 </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={window.location.pathname === '/iaai'}
-                    onChange={() => window.location.href = '/iaai'}
-                    className="h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
+                <label className="flex items-center hover:bg-gray-100 p-2 rounded-md transition-colors">
+                  <input 
+                    type="checkbox" 
+                    checked={sites.includes('iaai')}
+                    onChange={(e) => updateSites('iaai', e.target.checked)}
+                    className="text-blue-600 focus:ring-blue-500 rounded" 
                   />
-                  <span className="ml-2 text-sm font-medium text-gray-700">IAAI</span>
+                  <span className="ml-2 text-sm">IAAI</span>
                 </label>
               </div>
             </div>
-
           </div>
           
           {/* Footer */}
