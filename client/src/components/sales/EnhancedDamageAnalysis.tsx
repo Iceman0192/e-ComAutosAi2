@@ -226,12 +226,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                           {data.damage}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Target className="h-3 w-3 text-gray-500" />
-                          #{data.marketPosition}
-                        </div>
-                      </TableCell>
+
                       <TableCell className="text-center font-semibold">
                         {formatCurrency(data.average)}
                       </TableCell>
