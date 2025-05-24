@@ -20,7 +20,6 @@ export default function Copart() {
   // Primary search parameters
   const [make, setMake] = useState('Toyota');
   const [model, setModel] = useState('');
-  const [vin, setVin] = useState('');
   const [yearFrom, setYearFrom] = useState(currentYear - 5);
   const [yearTo, setYearTo] = useState(currentYear);
   const [sites, setSites] = useState<string[]>(['copart']);
@@ -55,23 +54,22 @@ export default function Copart() {
   // Combine filter state for API request
   const filterState: FilterState = {
     make,
-    model: model || undefined,
-    vin: vin || undefined,
-    yearFrom,
-    yearTo,
-    sites,
-    auctionDateFrom,
-    auctionDateTo,
+    model: model || '',
+    year_from: yearFrom,
+    year_to: yearTo,
+    auction_date_from: auctionDateFrom,
+    auction_date_to: auctionDateTo,
     page,
-    resultsPerPage,
-    condition: condition !== 'all' ? condition : undefined,
-    damageType: damageType !== 'all' ? damageType : undefined,
-    minMileage,
-    maxMileage
+    size: resultsPerPage,
+    sites,
+    damage_type: damageType !== 'all' ? damageType : undefined,
+    odometer_from: minMileage,
+    odometer_to: maxMileage
   };
 
-  // API hook for sales history
-  const { searchResults, isLoading: isSearching, error, refetch, hasSearched } = useSalesHistory(filterState);
+  // API hook for sales history - fix the data structure
+  const { data: searchResults, isLoading: isSearching, error, refetch } = useSalesHistory(filterState);
+  const hasSearched = !!searchResults;
 
   // Helper functions for seamless integration
   const calculateAveragePrice = (salesHistory: any[]) => {
@@ -198,20 +196,7 @@ export default function Copart() {
                   </select>
                 </div>
 
-                {/* VIN - Optional */}
-                <div>
-                  <label htmlFor="vin" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    VIN
-                  </label>
-                  <input
-                    type="text"
-                    id="vin"
-                    value={vin}
-                    onChange={(e) => setVin(e.target.value)}
-                    placeholder="Enter VIN (optional)"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                </div>
+
               </div>
               
               {/* Year Range */}
