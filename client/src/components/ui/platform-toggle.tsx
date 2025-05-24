@@ -7,10 +7,10 @@ interface PlatformToggleProps {
 
 export default function PlatformToggle({ onPlatformChange }: PlatformToggleProps) {
   const [location, setLocation] = useLocation();
-  const currentPlatform = location === '/iaai' ? 'iaai' : 'copart';
+  const currentPlatform = location === '/iaai' ? 'iaai' : location === '/copart' ? 'copart' : 'copart';
 
   const handleToggle = (platform: 'copart' | 'iaai') => {
-    const newPath = platform === 'iaai' ? '/iaai' : '/';
+    const newPath = platform === 'iaai' ? '/iaai' : '/copart';
     setLocation(newPath);
     onPlatformChange?.(platform);
   };
