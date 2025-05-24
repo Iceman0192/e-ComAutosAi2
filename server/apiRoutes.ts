@@ -7,287 +7,11 @@ import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { db, pool } from './db';
 import { salesHistory, vehicles } from '@shared/schema';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, gte, lte } from 'drizzle-orm';
 
 export function setupApiRoutes(app: Express) {
   /**
-   * IAAI Vehicle Sales History Endpoint - Dedicated for IAAI only
-   */
-  app.get('/api/iaai/sales-history', async (req: Request, res: Response) => {
-    try {
-      const make = req.query.make as string;
-      const model = req.query.model as string;
-      const page = parseInt(req.query.page as string) || 1;
-      const size = parseInt(req.query.size as string) || 25;
-      const site = '2'; // HARDCODED for IAAI
-      const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
-      const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
-      const saleFrom = req.query.sale_date_from as string;
-      const saleTo = req.query.sale_date_to as string;
-      
-      console.log('IAAI sales history request received for:', { 
-        make, 
-        model, 
-        page, 
-        size,
-        site,
-        yearFrom,
-        yearTo,
-        saleFrom,
-        saleTo 
-      });
-      
-      // Validate required parameters
-      if (!make) {
-        return res.status(400).json({
-          success: false,
-          message: 'Make parameter is required'
-        });
-      }
-      
-      let apiResponse: any = null;
-      let dbResults: any = [];
-      let fromDatabase = false;
-      
-      try {
-        // Check if we have cached results in the database - IAAI only
-        console.log('Checking database for cached IAAI results with query:', { make, model, page, size, site });
-        
-        const dbSalesHistory = await db.query.salesHistory.findMany({
-          where: (fields: any) => {
-            let conditions = [
-              eq(fields.make, make),
-              eq(fields.site, 2) // IAAI only
-            ];
-            
-            if (model) {
-              conditions.push(eq(fields.model, model));
-            }
-            
-            if (yearFrom) {
-              conditions.push(gte(fields.year, yearFrom));
-            }
-            
-            if (yearTo) {
-              conditions.push(lte(fields.year, yearTo));
-            }
-            
-            return and(...conditions);
-          },
-          orderBy: (fields, { desc }) => [desc(fields.sale_date), desc(fields.created_at)],
-          limit: size,
-          offset: (page - 1) * size
-        });
-        
-        if (dbSalesHistory.length > 0) {
-          dbResults = dbSalesHistory;
-          fromDatabase = true;
-          console.log(`Found ${dbSalesHistory.length} IAAI results in database cache for page ${page}`);
-        }
-        
-      } catch (dbError) {
-        console.error('Database error:', dbError);
-        // Continue to API call if database fails
-      }
-      
-      // If we don't have enough cached results, call the API for IAAI
-      if (!fromDatabase) {
-        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=2&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
-        console.log(`Requesting from APICAR IAAI API: ${apiUrl}`);
-        
-        apiResponse = await getVehicleSalesHistory(
-          make, 
-          model, 
-          page, 
-          size,
-          yearFrom,
-          yearTo,
-          saleFrom,
-          saleTo,
-          '2' // IAAI site
-        );
-        
-        // Save response to database for future use
-        if (apiResponse?.success && apiResponse.data && apiResponse.data.data) {
-          try {
-            console.log(`Saving ${apiResponse.data.data.length} IAAI results to database cache`);
-            
-            const insertPromises = apiResponse.data.data.map(async (item: any) => {
-              try {
-                const saleHistoryItem = {
-                  id: `${item.lot_id}-${item.site || 2}`,
-                  lot_id: item.lot_id || null,
-                  site: 2, // IAAI
-                  base_site: 'iaai',
-                  vin: item.vin || '',
-                  sale_status: item.sale_status || 'Unknown',
-                  sale_date: item.sale_date ? new Date(item.sale_date) : new Date(),
-                  purchase_price: item.purchase_price || null,
-                  buyer_state: item.buyer_state || null,
-                  buyer_country: item.buyer_country || null,
-                  buyer_type: item.buyer_type || null,
-                  auction_location: item.location || null,
-                  vehicle_mileage: item.odometer || null,
-                  vehicle_damage: item.damage_pr || null,
-                  vehicle_title: item.document || null,
-                  vehicle_has_keys: item.keys === 'Yes',
-                  year: item.year || null,
-                  make: item.make || null,
-                  model: item.model || null,
-                  series: item.series || null,
-                  trim: item.series || null,
-                  transmission: item.transmission || null,
-                  drive: item.drive || null,
-                  fuel: item.fuel || null,
-                  color: item.color || null,
-                  created_at: new Date(),
-                  images: item.link_img_hd ? JSON.stringify(item.link_img_hd) : null,
-                  link: item.link || null
-                };
-                
-                // Insert into database, ignoring duplicates
-                await db.insert(salesHistory).values(saleHistoryItem)
-                  .onConflictDoNothing({ target: salesHistory.id });
-                  
-                return true;
-              } catch (itemError) {
-                console.error('Error inserting IAAI item into database:', itemError);
-                return false;
-              }
-            });
-            
-            // Wait for all inserts to complete
-            await Promise.all(insertPromises);
-            console.log('Successfully saved IAAI results to database cache');
-          } catch (saveError) {
-            console.error('Error saving IAAI data to database:', saveError);
-          }
-        }
-      }
-      
-      // Prepare response
-      let salesHistoryList: any = [];
-      let totalCount = 0;
-      
-      console.log(`IAAI Page ${page} Debug: fromDatabase=${fromDatabase}, dbResults.length=${dbResults.length}`);
-      
-      if (fromDatabase) {
-        salesHistoryList = dbResults;
-        
-        // Get total count for pagination
-        try {
-          const totalCountResult = await db.select({ count: sql`count(*)` }).from(salesHistory)
-            .where(and(
-              eq(salesHistory.make, make),
-              eq(salesHistory.site, 2), // IAAI only
-              model ? eq(salesHistory.model, model) : sql`1=1`,
-              yearFrom ? gte(salesHistory.year, yearFrom) : sql`1=1`,
-              yearTo ? lte(salesHistory.year, yearTo) : sql`1=1`
-            ));
-          
-          totalCount = parseInt(totalCountResult[0]?.count?.toString() || '0');
-          console.log(`Total count from database: ${totalCount} IAAI records for ${make} ${model || ''}`);
-        } catch (countError) {
-          console.error('Error getting total count:', countError);
-          totalCount = salesHistoryList.length;
-        }
-      } else if (apiResponse?.success) {
-        salesHistoryList = apiResponse.data.data || [];
-        
-        // Always try to get database count first for consistency
-        try {
-          const totalCountResult = await db.select({ count: sql`count(*)` }).from(salesHistory)
-            .where(and(
-              eq(salesHistory.make, make),
-              eq(salesHistory.site, 2), // IAAI only
-              model ? eq(salesHistory.model, model) : sql`1=1`,
-              yearFrom ? gte(salesHistory.year, yearFrom) : sql`1=1`,
-              yearTo ? lte(salesHistory.year, yearTo) : sql`1=1`
-            ));
-          
-          const dbCount = parseInt(totalCountResult[0]?.count?.toString() || '0');
-          // Use database count if we have significant cached data, otherwise use API count
-          totalCount = dbCount > 0 ? dbCount : (apiResponse.data.count || salesHistoryList.length);
-          console.log(`Using ${dbCount > 0 ? 'database' : 'API'} count: ${totalCount} IAAI records for ${make} ${model || ''}`);
-        } catch (countError) {
-          console.error('Error getting database count for API response:', countError);
-          totalCount = apiResponse.data.count || salesHistoryList.length;
-        }
-      }
-      
-      // Transform data to match expected format
-      const transformedData = salesHistoryList.map((item: any) => ({
-        id: item.id || `${item.lot_id}-${item.site}-1`,
-        vin: item.vin,
-        lot_id: item.lot_id,
-        sale_date: item.sale_date,
-        purchase_price: item.purchase_price,
-        sale_status: item.sale_status,
-        base_site: 'iaai',
-        auction_location: item.auction_location || item.location,
-        year: item.year,
-        make: item.make,
-        model: item.model,
-        series: item.series,
-        trim: item.trim || item.series,
-        odometer: item.vehicle_mileage || item.odometer,
-        vehicle_type: item.vehicle_type || 'Automobile',
-        damage_pr: item.vehicle_damage || item.damage_pr,
-        damage_sec: item.damage_sec,
-        fuel: item.fuel,
-        drive: item.drive,
-        transmission: item.transmission,
-        color: item.color,
-        keys: item.vehicle_has_keys ? 'Yes' : 'No',
-        title: item.vehicle_title || item.title,
-        location: item.auction_location || item.location,
-        vehicle_title: item.vehicle_title || item.document,
-        vehicle_damage: item.vehicle_damage || item.damage_pr,
-        vehicle_mileage: item.vehicle_mileage || item.odometer,
-        vehicle_has_keys: item.vehicle_has_keys || (item.keys === 'Yes'),
-        link_img_small: item.link_img_small || (item.images ? JSON.parse(item.images) : []),
-        link_img_hd: item.link_img_hd || (item.images ? JSON.parse(item.images) : []),
-        link: item.link
-      }));
-      
-      const responseData = {
-        salesHistory: transformedData,
-        stats: {
-          totalSales: transformedData.length,
-          averagePrice: transformedData.reduce((sum: number, item: any) => 
-            sum + (item.purchase_price || 0), 0) / Math.max(transformedData.length, 1),
-          successRate: 0.75, // placeholder
-          priceTrend: 0.05, // placeholder
-          topLocations: []
-        },
-        priceTrend: [],
-        geographicData: [],
-        pagination: {
-          totalCount,
-          currentPage: page,
-          pageSize: size,
-          totalPages: Math.ceil(totalCount / size)
-        }
-      };
-      
-      console.log(`IAAI Response Debug - Page ${page}: totalCount=${totalCount}, transformedData.length=${transformedData.length}`);
-      
-      res.json({
-        success: true,
-        data: responseData
-      });
-      
-    } catch (error: any) {
-      console.error('IAAI API Error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch IAAI sales history: ' + error.message
-      });
-    }
-  });
-
-  /**
-   * Copart Vehicle Sales History Endpoint - Original endpoint
+   * Vehicle Sales History Endpoint
    */
   app.get('/api/sales-history', async (req: Request, res: Response) => {
     try {
@@ -296,7 +20,6 @@ export function setupApiRoutes(app: Express) {
       const model = req.query.model as string;
       const page = parseInt(req.query.page as string) || 1;
       const size = parseInt(req.query.size as string) || 25;
-      const site = req.query.site as string;
       const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
       const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
       const saleFrom = req.query.sale_date_from as string;
@@ -307,7 +30,6 @@ export function setupApiRoutes(app: Express) {
         model, 
         page, 
         size,
-        site,
         yearFrom,
         yearTo,
         saleFrom,
@@ -329,13 +51,12 @@ export function setupApiRoutes(app: Express) {
       
       try {
         // Check if we have cached results in the database
-        console.log('Checking database for cached results with query:', { make, model, page, size, site });
+        console.log('Checking database for cached results with query:', { make, model, page, size });
         
         const dbSalesHistory = await db.query.salesHistory.findMany({
           where: (fields: any) => {
             let conditions = [
-              eq(fields.make, make),
-              eq(fields.site, parseInt(site))
+              eq(fields.make, make)
             ];
             
             if (model) {
@@ -406,10 +127,7 @@ export function setupApiRoutes(app: Express) {
             // Get the data from a previous page
             const dbSalesHistory = await db.query.salesHistory.findMany({
               where: (fields: any) => {
-                let conditions = [
-                  eq(fields.make, make),
-                  eq(fields.site, parseInt(site))
-                ];
+                let conditions = [eq(fields.make, make)];
                 if (model) conditions.push(eq(fields.model, model));
                 if (yearFrom) conditions.push(gte(fields.year, yearFrom));
                 if (yearTo) conditions.push(lte(fields.year, yearTo));
@@ -430,7 +148,7 @@ export function setupApiRoutes(app: Express) {
         
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
-        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${site}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
+        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=1&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
         console.log(`Requesting from APICAR API: ${apiUrl}`);
         
         apiResponse = await getVehicleSalesHistory(
@@ -441,8 +159,7 @@ export function setupApiRoutes(app: Express) {
           yearFrom,
           yearTo,
           saleFrom,
-          saleTo,
-          site
+          saleTo
         );
         
         // Save response to database for future use
@@ -455,7 +172,7 @@ export function setupApiRoutes(app: Express) {
               try {
                 // Format the data according to our database schema
                 const saleHistoryItem = {
-                  id: `${item.lot_id}-${item.site || 1}`,
+                  id: `${item.id || item.lot_id}-1`,
                   lot_id: item.lot_id || 0,
                   site: item.site || 1,
                   base_site: item.base_site || 'copart',

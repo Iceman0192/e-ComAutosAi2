@@ -1,5 +1,4 @@
 import { Dispatch, SetStateAction } from "react";
-import { useLocation } from "wouter";
 
 interface AppHeaderProps {
   sidebarOpen: boolean;
@@ -28,7 +27,6 @@ export default function AppHeader({
   setVin,
   onRefresh
 }: AppHeaderProps) {
-  const [location, navigate] = useLocation();
   return (
     <header className="bg-white shadow-md sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center h-auto py-3">
@@ -43,31 +41,6 @@ export default function AppHeader({
           <div className="flex items-center">
             <span className="material-icons text-blue-600 mr-2">bar_chart</span>
             <h1 className="text-xl font-semibold text-gray-800">APICAR Sales History</h1>
-            
-            {/* Auction Sites Toggle - moved right next to title */}
-            <div className="flex items-center ml-4 bg-gray-100 rounded-lg p-2">
-              <span className="text-xs font-medium text-gray-600 mr-2">Auction Sites</span>
-              <div className="flex items-center space-x-2">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={location === '/'}
-                    onChange={() => navigate('/')}
-                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                  />
-                  <span className="ml-1 text-xs font-medium text-gray-700">Copart</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={location === '/iaai'}
-                    onChange={() => navigate('/iaai')}
-                    className="h-4 w-4 text-red-600 rounded border-gray-300 focus:ring-red-500"
-                  />
-                  <span className="ml-1 text-xs font-medium text-gray-700">IAAI</span>
-                </label>
-              </div>
-            </div>
           </div>
           
           <button 

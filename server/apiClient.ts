@@ -20,14 +20,13 @@ export async function getVehicleSalesHistory(
   yearFrom?: number,
   yearTo?: number,
   saleFrom?: string,
-  saleTo?: string,
-  site: string
+  saleTo?: string
 ) {
   try {
     // Build URL parameters - only what we absolutely need
     const params = new URLSearchParams();
     params.append('make', make);
-    params.append('site', site); // Use provided site parameter
+    params.append('site', '1'); // Copart
     
     // Add pagination parameters
     params.append('page', page.toString());
