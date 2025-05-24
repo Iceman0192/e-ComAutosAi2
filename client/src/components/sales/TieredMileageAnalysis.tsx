@@ -297,18 +297,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${
-                            bracket.marketDemand === 'High' ? 'border-green-500 text-green-700' :
-                            bracket.marketDemand === 'Medium' ? 'border-yellow-500 text-yellow-700' :
-                            'border-red-500 text-red-700'
-                          }`}
-                        >
-                          {bracket.marketDemand}
-                        </Badge>
-                      </TableCell>
+
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
                           <Star className={`h-3 w-3 ${
