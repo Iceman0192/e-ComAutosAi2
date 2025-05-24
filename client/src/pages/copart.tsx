@@ -321,16 +321,16 @@ export default function Copart() {
             </div>
           )}
 
-          {hasSearched && searchResults && searchResults.data && (
+          {hasSearched && searchResults && searchResults.salesHistory && (
             <div className="space-y-6">
               {/* Results Summary with Display Options */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {searchResults.data.salesHistory.length} Results for {make} {model} ({yearFrom}-{yearTo})
+                    {searchResults.salesHistory.length} Results for {make} {model} ({yearFrom}-{yearTo})
                   </h3>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults.data.salesHistory))}
+                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults.salesHistory))}
                   </div>
                 </div>
                 
@@ -373,7 +373,7 @@ export default function Copart() {
               {activeTab === TabType.TIMELINE && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
                   <div className="p-6">
-                    <SalesAnalytics salesHistory={searchResults.data.salesHistory} />
+                    <SalesAnalytics salesHistory={searchResults.salesHistory} />
                   </div>
                 </div>
               )}
@@ -446,7 +446,7 @@ export default function Copart() {
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {searchResults.data.salesHistory.map((sale: any, index: number) => (
+                        {searchResults.salesHistory.map((sale: any, index: number) => (
                           <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
                             <td className="px-4 py-4">
                               <div className="flex items-center">
@@ -558,7 +558,7 @@ export default function Copart() {
               {activeTab === TabType.PHOTOS && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {searchResults.data.salesHistory.map((sale: any, index: number) => (
+                    {searchResults.salesHistory.map((sale: any, index: number) => (
                       <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                         {/* Vehicle Image */}
                         <div className="h-48 bg-gray-200 dark:bg-gray-600 relative">
@@ -639,7 +639,7 @@ export default function Copart() {
           )}
 
           {/* No Results State */}
-          {hasSearched && !isSearching && (!searchResults || !searchResults.data || !searchResults.data.salesHistory || searchResults.data.salesHistory.length === 0) && (
+          {hasSearched && !isSearching && (!searchResults || !searchResults.salesHistory || searchResults.salesHistory.length === 0) && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
               <div className="mx-auto max-w-md">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
