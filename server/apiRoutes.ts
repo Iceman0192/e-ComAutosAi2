@@ -191,7 +191,26 @@ export function setupApiRoutes(app: Express) {
         }
       } else if (apiResponse?.success) {
         salesHistoryList = apiResponse.data.data || [];
-        totalCount = apiResponse.data.count || salesHistoryList.length;
+        
+        // Always try to get database count first for consistency
+        try {
+          const totalCountResult = await db.select({ count: sql`count(*)` }).from(salesHistory)
+            .where(and(
+              eq(salesHistory.make, make),
+              eq(salesHistory.site, 2), // IAAI only
+              model ? eq(salesHistory.model, model) : sql`1=1`,
+              yearFrom ? gte(salesHistory.year, yearFrom) : sql`1=1`,
+              yearTo ? lte(salesHistory.year, yearTo) : sql`1=1`
+            ));
+          
+          const dbCount = parseInt(totalCountResult[0]?.count?.toString() || '0');
+          // Use database count if we have significant cached data, otherwise use API count
+          totalCount = dbCount > 0 ? dbCount : (apiResponse.data.count || salesHistoryList.length);
+          console.log(`Using ${dbCount > 0 ? 'database' : 'API'} count: ${totalCount} IAAI records for ${make} ${model || ''}`);
+        } catch (countError) {
+          console.error('Error getting database count for API response:', countError);
+          totalCount = apiResponse.data.count || salesHistoryList.length;
+        }
       }
       
       // Transform data to match expected format
