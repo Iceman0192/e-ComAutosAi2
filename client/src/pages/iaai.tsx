@@ -46,6 +46,11 @@ export default function IAAI() {
   const [resultsPerPage, setResultsPerPage] = useState(25);
   const [totalResults, setTotalResults] = useState(0);
   
+  // Intelligent Caching System
+  const [pageCache, setPageCache] = useState<Map<string, any>>(new Map());
+  const [preloadQueue, setPreloadQueue] = useState<Set<number>>(new Set());
+  const [currentSearchKey, setCurrentSearchKey] = useState<string>('');
+  
   // UI state
   const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
   
@@ -69,8 +74,203 @@ export default function IAAI() {
     return total / salesWithPrices.length;
   };
 
+  // Intelligent Caching Utilities
+  const generateSearchKey = (searchParams: any) => {
+    return JSON.stringify({
+      make: searchParams.make,
+      model: searchParams.model,
+      yearFrom: searchParams.yearFrom,
+      yearTo: searchParams.yearTo,
+      auctionDateFrom: searchParams.auctionDateFrom,
+      auctionDateTo: searchParams.auctionDateTo,
+      resultsPerPage: searchParams.resultsPerPage
+    });
+  };
+
+  const getCacheKey = (searchKey: string, pageNum: number) => {
+    return `${searchKey}_page_${pageNum}`;
+  };
+
+  const getFromCache = (searchKey: string, pageNum: number) => {
+    const cacheKey = getCacheKey(searchKey, pageNum);
+    const cached = pageCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.data;
+    }
+    return null;
+  };
+
+  const setToCache = (searchKey: string, pageNum: number, data: any) => {
+    const cacheKey = getCacheKey(searchKey, pageNum);
+    setPageCache(prev => {
+      const newCache = new Map(prev);
+      newCache.set(cacheKey, {
+        data,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (5 * 60 * 1000) // 5 minutes
+      });
+      return newCache;
+    });
+  };
+
+  const clearExpiredCache = () => {
+    const now = Date.now();
+    setPageCache(prev => {
+      const newCache = new Map(prev);
+      for (const [key, value] of newCache.entries()) {
+        if (value.expiresAt < now) {
+          newCache.delete(key);
+        }
+      }
+      return newCache;
+    });
+  };
+
+  const clearCacheForNewSearch = () => {
+    setPageCache(new Map());
+    setPreloadQueue(new Set());
+  };
+
   // State to hold the actual results data
   const [searchResults, setSearchResults] = useState<any>(null);
+  
+  // Background preloading function
+  const preloadAdjacentPages = async (currentPage: number, searchKey: string) => {
+    const searchParams = {
+      make,
+      model: model || undefined,
+      yearFrom,
+      yearTo,
+      auctionDateFrom,
+      auctionDateTo,
+      resultsPerPage
+    };
+
+    const totalPages = Math.ceil(totalResults / resultsPerPage);
+    const pagesToPreload: number[] = [];
+
+    // Determine which pages to preload
+    if (currentPage > 1) pagesToPreload.push(currentPage - 1); // Previous page
+    if (currentPage < totalPages) pagesToPreload.push(currentPage + 1); // Next page
+    
+    // Preload up to 2 additional forward pages for smooth browsing
+    if (currentPage + 2 <= totalPages) pagesToPreload.push(currentPage + 2);
+
+    for (const pageToLoad of pagesToPreload) {
+      // Skip if already cached or currently being preloaded
+      if (getFromCache(searchKey, pageToLoad) || preloadQueue.has(pageToLoad)) {
+        continue;
+      }
+
+      // Add to preload queue
+      setPreloadQueue(prev => new Set(prev).add(pageToLoad));
+
+      try {
+        const params = new URLSearchParams({
+          make: searchParams.make,
+          ...(searchParams.model && { model: searchParams.model }),
+          yearFrom: searchParams.yearFrom.toString(),
+          yearTo: searchParams.yearTo.toString(),
+          auctionDateFrom: searchParams.auctionDateFrom,
+          auctionDateTo: searchParams.auctionDateTo,
+          page: pageToLoad.toString(),
+          size: searchParams.resultsPerPage.toString()
+        });
+
+        console.log(`🚀 Preloading IAAI page ${pageToLoad} in background...`);
+        
+        const response = await fetch(`/api/iaai/sales-history?${params}`);
+        const result = await response.json();
+
+        if (result.success) {
+          setToCache(searchKey, pageToLoad, result.data);
+          console.log(`✅ Successfully preloaded IAAI page ${pageToLoad}`);
+        }
+      } catch (error) {
+        console.log(`⚠️ Failed to preload IAAI page ${pageToLoad}:`, error);
+      } finally {
+        // Remove from preload queue
+        setPreloadQueue(prev => {
+          const newQueue = new Set(prev);
+          newQueue.delete(pageToLoad);
+          return newQueue;
+        });
+      }
+    }
+  };
+
+  // Enhanced fetch function with intelligent caching
+  const fetchSalesHistory = async (pageNum: number = page, useCache: boolean = true) => {
+    const searchParams = {
+      make,
+      model: model || undefined,
+      yearFrom,
+      yearTo,
+      auctionDateFrom,
+      auctionDateTo,
+      resultsPerPage
+    };
+
+    const searchKey = generateSearchKey(searchParams);
+    
+    // Check cache first if enabled
+    if (useCache) {
+      const cachedData = getFromCache(searchKey, pageNum);
+      if (cachedData) {
+        console.log(`⚡ Using cached data for IAAI page ${pageNum}`);
+        setSearchResults(cachedData);
+        setTotalResults(cachedData.pagination?.totalCount || 0);
+        
+        // Trigger background preloading for adjacent pages
+        setTimeout(() => preloadAdjacentPages(pageNum, searchKey), 100);
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    clearExpiredCache(); // Clean up expired cache entries
+
+    try {
+      const params = new URLSearchParams({
+        make: searchParams.make,
+        ...(searchParams.model && { model: searchParams.model }),
+        yearFrom: searchParams.yearFrom.toString(),
+        yearTo: searchParams.yearTo.toString(),
+        auctionDateFrom: searchParams.auctionDateFrom,
+        auctionDateTo: searchParams.auctionDateTo,
+        page: pageNum.toString(),
+        size: searchParams.resultsPerPage.toString()
+      });
+
+      console.log(`🔍 Fetching IAAI page ${pageNum} from API...`);
+      
+      const response = await fetch(`/api/iaai/sales-history?${params}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setSearchResults(result.data);
+        setTotalResults(result.data.pagination?.totalCount || 0);
+        setHasSearched(true);
+        
+        // Cache the result
+        setToCache(searchKey, pageNum, result.data);
+        
+        // Update current search key
+        setCurrentSearchKey(searchKey);
+        
+        // Trigger background preloading for adjacent pages
+        setTimeout(() => preloadAdjacentPages(pageNum, searchKey), 200);
+        
+        console.log(`✅ Successfully fetched and cached IAAI page ${pageNum}`);
+      } else {
+        console.error('IAAI API returned error:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching IAAI sales history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // State for detailed vehicle modal
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);

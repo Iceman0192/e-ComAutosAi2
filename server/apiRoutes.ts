@@ -169,6 +169,8 @@ export function setupApiRoutes(app: Express) {
       let salesHistoryList: any = [];
       let totalCount = 0;
       
+      console.log(`IAAI Page ${page} Debug: fromDatabase=${fromDatabase}, dbResults.length=${dbResults.length}`);
+      
       if (fromDatabase) {
         salesHistoryList = dbResults;
         
