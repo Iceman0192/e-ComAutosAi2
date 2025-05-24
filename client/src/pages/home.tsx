@@ -306,7 +306,13 @@ export default function Home() {
       <header className="bg-blue-600 text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Copart Vehicle Sales History</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Copart Vehicle Sales History</h1>
+            <div className="hidden sm:block">
+              <PlatformToggle />
+            </div>
+          </div>
+          {/* Mobile platform toggle */}
+          <div className="sm:hidden mt-3">
             <PlatformToggle />
           </div>
         </div>
@@ -316,10 +322,10 @@ export default function Home() {
       <main className="container mx-auto px-4 py-6">
         {/* Search Filters Card */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Vehicle Sales History</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* Make - Required */}
               <div>
                 <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
