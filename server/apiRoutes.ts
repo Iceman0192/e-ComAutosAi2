@@ -74,7 +74,7 @@ export function setupApiRoutes(app: Express) {
             
             return and(...conditions);
           },
-          orderBy: (fields, { desc }) => [desc(fields.created_at)],
+          orderBy: (fields, { desc }) => [desc(fields.sale_date), desc(fields.created_at)],
           limit: size,
           offset: (page - 1) * size
         });
@@ -115,7 +115,7 @@ export function setupApiRoutes(app: Express) {
             const insertPromises = apiResponse.data.data.map(async (item: any) => {
               try {
                 const saleHistoryItem = {
-                  id: `${item.lot_id}-${item.site || 2}-${page}`,
+                  id: `${item.lot_id}-${item.site || 2}`,
                   lot_id: item.lot_id || null,
                   site: 2, // IAAI
                   base_site: 'iaai',
@@ -455,7 +455,7 @@ export function setupApiRoutes(app: Express) {
               try {
                 // Format the data according to our database schema
                 const saleHistoryItem = {
-                  id: `${item.id || item.lot_id}-1`,
+                  id: `${item.lot_id}-${item.site || 1}`,
                   lot_id: item.lot_id || 0,
                   site: item.site || 1,
                   base_site: item.base_site || 'copart',
