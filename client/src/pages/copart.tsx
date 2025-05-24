@@ -446,7 +446,7 @@ export default function Copart() {
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {searchResults.salesHistory.map((sale: any, index: number) => (
+                        {searchResults.data.salesHistory.map((sale: any, index: number) => (
                           <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
                             <td className="px-4 py-4">
                               <div className="flex items-center">
@@ -639,7 +639,7 @@ export default function Copart() {
           )}
 
           {/* No Results State */}
-          {hasSearched && !isSearching && (!searchResults || !searchResults.salesHistory || searchResults.salesHistory.length === 0) && (
+          {hasSearched && !isSearching && (!searchResults || !searchResults.data || !searchResults.data.salesHistory || searchResults.data.salesHistory.length === 0) && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
               <div className="mx-auto max-w-md">
                 <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
