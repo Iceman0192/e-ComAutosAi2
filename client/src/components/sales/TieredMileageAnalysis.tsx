@@ -141,7 +141,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
     <div className="space-y-4">
       {/* Free Tier: Limited Mileage Analysis */}
       <PermissionGate 
-        permission="ADVANCED_ANALYTICS" 
+        permission="FULL_ANALYTICS" 
         fallback={
           <Card>
             <CardHeader>

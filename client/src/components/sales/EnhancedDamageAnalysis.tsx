@@ -21,7 +21,7 @@ interface DamageData {
   opportunityScore: number;
 }
 
-interface TieredDamageAnalysisProps {
+interface EnhancedDamageAnalysisProps {
   salesHistory: Array<{
     vehicle_damage?: string;
     purchase_price?: number;
@@ -29,10 +29,9 @@ interface TieredDamageAnalysisProps {
   }>;
 }
 
-export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnalysisProps) {
+export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageAnalysisProps) {
   const { user } = useAuth();
 
-  // Calculate enhanced damage analysis data
   const damageAnalysis = useMemo(() => {
     const damageMap = new Map<string, { prices: number[], sales: any[] }>();
     
@@ -61,22 +60,15 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
       const average = sum / prices.length;
       const median = prices[Math.floor(prices.length / 2)];
       
-      // Calculate success rate (sold vs not sold)
       const soldCount = sales.filter(sale => 
         sale.sale_status && !sale.sale_status.toLowerCase().includes('not sold')
       ).length;
       const successRate = (soldCount / sales.length) * 100;
       
-      // Create price range string
       const priceRange = `${formatCurrency(prices[0])} - ${formatCurrency(prices[prices.length - 1])}`;
-      
-      // Calculate market position (ranking by average price)
-      const marketPosition = 0; // Will be calculated after all damages are processed
-      
-      // Calculate opportunity score based on success rate and price volatility
       const priceVolatility = (prices[prices.length - 1] - prices[0]) / average;
       const opportunityScore = Math.round((successRate * 0.6) + ((1 - priceVolatility) * 40));
-      
+
       return {
         damage,
         average: Math.round(average),
@@ -87,12 +79,11 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
         color: colors[colorIndex++ % colors.length],
         successRate: Math.round(successRate),
         priceRange,
-        marketPosition,
+        marketPosition: 0,
         opportunityScore,
       };
     });
 
-    // Sort by average price (highest first) and assign market positions
     const sortedResult = result.sort((a, b) => b.average - a.average);
     sortedResult.forEach((item, index) => {
       item.marketPosition = index + 1;
@@ -101,13 +92,11 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
     return sortedResult;
   }, [salesHistory]);
 
-  // Free tier: Show top 3 damage types only
   const freeTierData = damageAnalysis.slice(0, 3);
   const hiddenCount = Math.max(0, damageAnalysis.length - 3);
 
   return (
     <div className="space-y-4">
-      {/* Free Tier: Limited Damage Analysis */}
       <PermissionGate 
         permission="MULTIPLE_DAMAGE_TYPES" 
         fallback={
@@ -115,32 +104,23 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Damage Analysis</CardTitle>
-                <Badge variant="outline" className="text-xs">
-                  FREE TIER
-                </Badge>
+                <Badge variant="outline" className="text-xs">FREE TIER</Badge>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {freeTierData.map((data, index) => (
+                {freeTierData.map((data) => (
                   <div key={data.damage} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: data.color }}
-                      />
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: data.color }} />
                       <div>
                         <div className="font-medium">{data.damage}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {data.count} vehicles
-                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{data.count} vehicles</div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="font-semibold">{formatCurrency(data.average)}</div>
-                      <div className="text-xs text-gray-500">
-                        avg
-                      </div>
+                      <div className="text-xs text-gray-500">avg</div>
                     </div>
                   </div>
                 ))}
@@ -166,7 +146,6 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
           </Card>
         }
       >
-        {/* Gold/Platinum Tier: Complete Enhanced Analysis */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -191,14 +170,11 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {damageAnalysis.map((data, index) => (
+                  {damageAnalysis.map((data) => (
                     <TableRow key={data.damage} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: data.color }}
-                          />
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
                           {data.damage}
                         </div>
                       </TableCell>
@@ -214,9 +190,7 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                       <TableCell className="text-center text-sm">
                         <div>
                           <div className="font-medium">{data.priceRange}</div>
-                          <div className="text-xs text-gray-500">
-                            Median: {formatCurrency(data.median)}
-                          </div>
+                          <div className="text-xs text-gray-500">Median: {formatCurrency(data.median)}</div>
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
@@ -231,9 +205,7 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="outline" className="text-xs">
-                          {data.count} vehicles
-                        </Badge>
+                        <Badge variant="outline" className="text-xs">{data.count} vehicles</Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
@@ -255,7 +227,6 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
               </Table>
             </div>
             
-            {/* Market Insights Summary */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2">
@@ -295,49 +266,6 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                   Score: {damageAnalysis.sort((a, b) => b.opportunityScore - a.opportunityScore)[0]?.opportunityScore || 0}/100
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </PermissionGate>
-    </div>
-  );
-}
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-2 font-medium text-gray-700 dark:text-gray-300">Damage Type</th>
-                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Count</th>
-                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Average</th>
-                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Range</th>
-                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Median</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {damageAnalysis.map((data, index) => (
-                    <tr key={data.damage} className="border-b border-gray-100 dark:border-gray-800">
-                      <td className="py-3">
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: data.color }}
-                          />
-                          <span className="font-medium">{data.damage}</span>
-                        </div>
-                      </td>
-                      <td className="text-right py-3 text-gray-600 dark:text-gray-400">
-                        {data.count}
-                      </td>
-                      <td className="text-right py-3 font-semibold">
-                        {formatCurrency(data.average)}
-                      </td>
-                      <td className="text-right py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {formatCurrency(data.min)} - {formatCurrency(data.max)}
-                      </td>
-                      <td className="text-right py-3 font-medium">
-                        {formatCurrency(data.median)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </CardContent>
         </Card>

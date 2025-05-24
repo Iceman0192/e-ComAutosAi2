@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, Gauge, AlertTriangle, CheckCircle } from 'lucide-react';
 import PermissionGate from '../auth/PermissionGate';
+import EnhancedDamageAnalysis from './EnhancedDamageAnalysis';
+import TieredMileageAnalysis from './TieredMileageAnalysis';
 
 interface SalesAnalyticsProps {
   salesHistory: Array<{
