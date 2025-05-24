@@ -214,7 +214,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                     <TableHead className="text-center">Price Range</TableHead>
 
                     <TableHead className="text-center">Sample Size</TableHead>
-                    <TableHead className="text-center">Value Score</TableHead>
+
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -240,20 +240,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                       <TableCell className="text-center">
                         <Badge variant="outline" className="text-xs">{data.count} vehicles</Badge>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Star className={`h-3 w-3 ${
-                            data.opportunityScore >= 80 ? 'text-green-500' :
-                            data.opportunityScore >= 60 ? 'text-yellow-500' : 'text-gray-400'
-                          }`} />
-                          <span className={`font-semibold text-sm ${
-                            data.opportunityScore >= 80 ? 'text-green-600' :
-                            data.opportunityScore >= 60 ? 'text-yellow-600' : 'text-gray-600'
-                          }`}>
-                            {data.opportunityScore}
-                          </span>
-                        </div>
-                      </TableCell>
+
                     </TableRow>
                   ))}
                 </TableBody>

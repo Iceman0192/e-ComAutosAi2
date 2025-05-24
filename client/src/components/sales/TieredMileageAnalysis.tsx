@@ -354,7 +354,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
 
                     <TableHead className="text-center">Depreciation/Mile</TableHead>
 
-                    <TableHead className="text-center">Success Rate</TableHead>
+
                     <TableHead className="text-center">Sample Size</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -388,20 +388,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                         </div>
                       </TableCell>
 
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Percent className={`h-3 w-3 ${
-                            bracket.successRate >= 70 ? 'text-green-500' :
-                            bracket.successRate >= 50 ? 'text-yellow-500' : 'text-red-400'
-                          }`} />
-                          <span className={`font-semibold text-sm ${
-                            bracket.successRate >= 70 ? 'text-green-600' :
-                            bracket.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {bracket.successRate}%
-                          </span>
-                        </div>
-                      </TableCell>
+
                       <TableCell className="text-center">
                         <Badge variant="outline" className="text-xs">
                           {bracket.sampleSize} vehicles
