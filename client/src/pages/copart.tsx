@@ -113,17 +113,25 @@ export default function Copart() {
     try {
       console.log('Performing Copart search with filters:', filterState);
       
-      // Make the API call
-      const response = await fetch('/api/sales-history?' + new URLSearchParams({
-        make: filterState.make,
-        model: filterState.model || '',
-        year_from: filterState.year_from?.toString() || '',
-        year_to: filterState.year_to?.toString() || '',
-        auction_date_from: filterState.auction_date_from || '',
-        auction_date_to: filterState.auction_date_to || '',
-        page: filterState.page?.toString() || '1',
-        size: filterState.size?.toString() || '25'
-      }).toString());
+      // Build search parameters for Copart (site=1)
+      const searchParams = new URLSearchParams({
+        make: make,
+        site: '1', // Copart site ID
+        page: page.toString(),
+        size: resultsPerPage.toString(),
+        year_from: yearFrom.toString(),
+        year_to: yearTo.toString(),
+        sale_date_from: auctionDateFrom,
+        sale_date_to: auctionDateTo
+      });
+
+      // Add model if specified
+      if (model) {
+        searchParams.append('model', model);
+      }
+      
+      // Make the API call to Copart endpoint
+      const response = await fetch('/api/sales-history?' + searchParams.toString());
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -139,9 +147,9 @@ export default function Copart() {
         console.error('Search failed:', data.error);
         alert('Search failed: ' + (data.error || 'Unknown error'));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Search error:', error);
-      alert('Search failed: ' + error.message);
+      alert('Search failed: ' + (error?.message || 'Unknown error'));
     } finally {
       setIsSearching(false);
     }
