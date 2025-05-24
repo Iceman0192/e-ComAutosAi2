@@ -218,8 +218,9 @@ export default function IAAI() {
       const cachedData = getFromCache(searchKey, pageNum);
       if (cachedData) {
         console.log(`⚡ Using cached data for IAAI page ${pageNum}`);
-        setSearchResults(cachedData);
+        setSearchResults({ success: true, data: cachedData });
         setTotalResults(cachedData.pagination?.totalCount || 0);
+        setHasSearched(true);
         
         // Trigger background preloading for adjacent pages
         setTimeout(() => preloadAdjacentPages(pageNum, searchKey), 100);
@@ -248,7 +249,7 @@ export default function IAAI() {
       const result = await response.json();
 
       if (result.success) {
-        setSearchResults(result.data);
+        setSearchResults(result);
         setTotalResults(result.data.pagination?.totalCount || 0);
         setHasSearched(true);
         
