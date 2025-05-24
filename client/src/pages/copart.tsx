@@ -627,9 +627,252 @@ export default function Copart() {
 
           {/* Search Results */}
           {hasSearched && searchResults && searchResults.salesHistory && (
-            <SalesAnalytics 
-              salesHistory={searchResults.salesHistory}
-            />
+            <div className="space-y-6">
+              {/* Results Summary */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Search Results: {make} {model} ({yearFrom}-{yearTo})
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Found {searchResults.salesHistory.length} vehicles • Average Price: {formatCurrency(calculateAveragePrice(searchResults.salesHistory))}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      Copart Data
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* View Tabs */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="border-b border-gray-200 dark:border-gray-700">
+                  <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                    <button
+                      onClick={() => setActiveTab(TabType.TIMELINE)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === TabType.TIMELINE
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      Analytics Dashboard
+                    </button>
+                    <button
+                      onClick={() => setActiveTab(TabType.TABLE)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === TabType.TABLE
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      Table View
+                    </button>
+                    <button
+                      onClick={() => setActiveTab(TabType.PHOTOS)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                        activeTab === TabType.PHOTOS
+                          ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                      }`}
+                    >
+                      Photo Grid
+                    </button>
+                  </nav>
+                </div>
+
+                <div className="p-6">
+                  {/* Analytics Dashboard */}
+                  {activeTab === TabType.TIMELINE && (
+                    <SalesAnalytics salesHistory={searchResults.salesHistory} />
+                  )}
+
+                  {/* Table View */}
+                  {activeTab === TabType.TABLE && (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Vehicle
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Sale Date
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Price
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Mileage
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Damage
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Location
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                              Status
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                          {searchResults.salesHistory.map((sale: any) => (
+                            <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onClick={() => openVehicleDetails(sale)}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-12 w-12">
+                                    {sale.link_img_small && sale.link_img_small[0] ? (
+                                      <img 
+                                        className="h-12 w-12 rounded object-cover" 
+                                        src={sale.link_img_small[0]} 
+                                        alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                        onError={(e) => {
+                                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yNCAzNkMzMC42Mjc0IDM2IDM2IDMwLjYyNzQgMzYgMjRDMzYgMTcuMzcyNiAzMC42Mjc0IDEyIDI0IDEyQzE3LjM3MjYgMTIgMTIgMTcuMzcyNiAxMiAyNEMxMiAzMC42Mjc0IDE3LjM3MjYgMzYgMjQgMzZaIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yNCAyOFYyNCIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMjQgMjBIMjQuMDEiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+';
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="h-12 w-12 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                        <span className="text-gray-400 text-xs">No Image</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {sale.year} {sale.make} {sale.model}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {sale.series} • VIN: {sale.vin?.slice(-8)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {new Date(sale.sale_date).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                {formatCurrency(sale.purchase_price)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {(sale.vehicle_mileage || sale.odometer)?.toLocaleString()} miles
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                  {sale.vehicle_damage || 'Unknown'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                {sale.auction_location}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  sale.sale_status === 'Sold' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                                }`}>
+                                  {sale.sale_status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Photo Grid */}
+                  {activeTab === TabType.PHOTOS && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {searchResults.salesHistory.map((sale: any) => (
+                        <div key={sale.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer hover:shadow-md transition-shadow" onClick={() => openVehicleDetails(sale)}>
+                          <div className="aspect-w-16 aspect-h-12 relative">
+                            {sale.link_img_small && sale.link_img_small[0] ? (
+                              <img 
+                                className="w-full h-48 object-cover" 
+                                src={sale.link_img_small[0]} 
+                                alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                onError={(e) => {
+                                  e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDMyMCAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMjAiIGhlaWdodD0iMTkyIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xNjAgMTI4QzE3Ny42NzMgMTI4IDE5MiAxMTMuNjczIDE5MiA5NkMxOTIgNzguMzI2OSAxNzcuNjczIDY0IDE2MCA2NEMxNDIuMzI3IDY0IDEyOCA3OC4zMjY5IDEyOCA5NkMxMjggMTEzLjY3MyAxNDIuMzI3IDEyOCAxNjAgMTI4WiIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYwIDEwNFY5NiIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYwIDg4SDE2MC4wMSIgc3Ryb2tlPSIjOUNBM0FGIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4=';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <span className="text-gray-400">No Image Available</span>
+                              </div>
+                            )}
+                            <div className="absolute top-2 right-2">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                sale.sale_status === 'Sold' 
+                                  ? 'bg-green-500 text-white'
+                                  : 'bg-gray-500 text-white'
+                              }`}>
+                                {sale.sale_status}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                              {sale.year} {sale.make} {sale.model} {sale.series}
+                            </h3>
+                            <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                              <div className="flex justify-between">
+                                <span>Price:</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(sale.purchase_price)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Mileage:</span>
+                                <span>{(sale.vehicle_mileage || sale.odometer)?.toLocaleString()} mi</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Damage:</span>
+                                <span>{sale.vehicle_damage || 'Unknown'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Location:</span>
+                                <span>{sale.auction_location}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pagination */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 px-6 py-4">
+                <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
+                    <span className="font-medium">{Math.min(page * resultsPerPage, totalResults)}</span> of{' '}
+                    <span className="font-medium">{totalResults}</span> results
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+                      Page {page}
+                    </span>
+                    <button
+                      onClick={() => setPage(page + 1)}
+                      disabled={searchResults.salesHistory.length < resultsPerPage}
+                      className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* No Results State */}
@@ -643,6 +886,105 @@ export default function Copart() {
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Try adjusting your search criteria or expanding the date range.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Vehicle Details Modal */}
+          {isModalOpen && selectedVehicle && (
+            <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={closeModal}></div>
+                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                  <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                        {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model} {selectedVehicle.series}
+                      </h3>
+                      <button
+                        onClick={closeModal}
+                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        <span className="sr-only">Close</span>
+                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Vehicle Image */}
+                      <div>
+                        {selectedVehicle.link_img_hd && selectedVehicle.link_img_hd[0] ? (
+                          <img 
+                            className="w-full h-64 object-cover rounded-lg" 
+                            src={selectedVehicle.link_img_hd[0]} 
+                            alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model}`}
+                          />
+                        ) : (
+                          <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                            <span className="text-gray-400">No Image Available</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Vehicle Details */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Sale Price:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{formatCurrency(selectedVehicle.purchase_price)}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Sale Date:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{new Date(selectedVehicle.sale_date).toLocaleDateString()}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Mileage:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{(selectedVehicle.vehicle_mileage || selectedVehicle.odometer)?.toLocaleString()} miles</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">VIN:</span>
+                            <p className="text-gray-600 dark:text-gray-400 font-mono text-xs">{selectedVehicle.vin}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Damage:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.vehicle_damage || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Title:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.vehicle_title || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Location:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.auction_location}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900 dark:text-white">Status:</span>
+                            <p className="text-gray-600 dark:text-gray-400">{selectedVehicle.sale_status}</p>
+                          </div>
+                        </div>
+                        
+                        {selectedVehicle.link && (
+                          <div className="pt-4">
+                            <a 
+                              href={selectedVehicle.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                            >
+                              View on Copart
+                              <svg className="ml-2 -mr-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
