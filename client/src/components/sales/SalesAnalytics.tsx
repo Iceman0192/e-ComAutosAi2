@@ -299,12 +299,16 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         </TabsContent>
 
         <TabsContent value="scatter" className="mt-6">
+          <TieredMileageAnalysis salesHistory={salesHistory} />
+        </TabsContent>
+
+        <TabsContent value="mileage" className="mt-6">
           <PermissionGate permission="FULL_ANALYTICS">
             <Card>
               <CardHeader>
-                <CardTitle>Mileage vs Price Analysis</CardTitle>
+                <CardTitle>Basic Mileage vs Price Scatter</CardTitle>
                 <CardDescription>
-                  Clear correlation between mileage and price - organized by mileage ranges for easy comparison
+                  Simple scatter plot view - upgrade to Gold for enhanced analytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
