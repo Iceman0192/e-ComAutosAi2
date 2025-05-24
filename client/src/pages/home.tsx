@@ -330,16 +330,33 @@ export default function Home() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value="">Select Make</option>
-                  <option value="Toyota">Toyota</option>
-                  <option value="Honda">Honda</option>
-                  <option value="Ford">Ford</option>
-                  <option value="Chevrolet">Chevrolet</option>
-                  <option value="Nissan">Nissan</option>
-                  <option value="BMW">BMW</option>
-                  <option value="Mercedes-Benz">Mercedes-Benz</option>
-                  <option value="Lexus">Lexus</option>
+                  <option value="Acura">Acura</option>
                   <option value="Audi">Audi</option>
+                  <option value="BMW">BMW</option>
+                  <option value="Buick">Buick</option>
+                  <option value="Cadillac">Cadillac</option>
+                  <option value="Chevrolet">Chevrolet</option>
+                  <option value="Chrysler">Chrysler</option>
+                  <option value="Dodge">Dodge</option>
+                  <option value="Ford">Ford</option>
+                  <option value="GMC">GMC</option>
+                  <option value="Honda">Honda</option>
+                  <option value="Hyundai">Hyundai</option>
+                  <option value="Infiniti">Infiniti</option>
                   <option value="Jeep">Jeep</option>
+                  <option value="Kia">Kia</option>
+                  <option value="Lexus">Lexus</option>
+                  <option value="Lincoln">Lincoln</option>
+                  <option value="Mazda">Mazda</option>
+                  <option value="Mercedes-Benz">Mercedes-Benz</option>
+                  <option value="Mitsubishi">Mitsubishi</option>
+                  <option value="Nissan">Nissan</option>
+                  <option value="Ram">Ram</option>
+                  <option value="Subaru">Subaru</option>
+                  <option value="Tesla">Tesla</option>
+                  <option value="Toyota">Toyota</option>
+                  <option value="Volkswagen">Volkswagen</option>
+                  <option value="Volvo">Volvo</option>
                 </select>
               </div>
               
@@ -357,28 +374,279 @@ export default function Home() {
                   <option value="">All Models</option>
                   {make === 'Toyota' && (
                     <>
+                      <option value="4Runner">4Runner</option>
+                      <option value="Avalon">Avalon</option>
                       <option value="Camry">Camry</option>
                       <option value="Corolla">Corolla</option>
-                      <option value="RAV4">RAV4</option>
-                      <option value="Tacoma">Tacoma</option>
                       <option value="Highlander">Highlander</option>
-                      <option value="4Runner">4Runner</option>
+                      <option value="Prius">Prius</option>
+                      <option value="RAV4">RAV4</option>
+                      <option value="Sequoia">Sequoia</option>
+                      <option value="Sienna">Sienna</option>
+                      <option value="Tacoma">Tacoma</option>
+                      <option value="Tundra">Tundra</option>
+                      <option value="Venza">Venza</option>
                     </>
                   )}
                   {make === 'Honda' && (
                     <>
-                      <option value="Civic">Civic</option>
                       <option value="Accord">Accord</option>
+                      <option value="Civic">Civic</option>
                       <option value="CR-V">CR-V</option>
+                      <option value="HR-V">HR-V</option>
+                      <option value="Odyssey">Odyssey</option>
+                      <option value="Passport">Passport</option>
                       <option value="Pilot">Pilot</option>
+                      <option value="Ridgeline">Ridgeline</option>
                     </>
                   )}
                   {make === 'Ford' && (
                     <>
-                      <option value="F-150">F-150</option>
+                      <option value="Bronco">Bronco</option>
+                      <option value="Edge">Edge</option>
                       <option value="Escape">Escape</option>
+                      <option value="Expedition">Expedition</option>
                       <option value="Explorer">Explorer</option>
+                      <option value="F-150">F-150</option>
+                      <option value="F-250">F-250</option>
+                      <option value="F-350">F-350</option>
+                      <option value="Focus">Focus</option>
+                      <option value="Fusion">Fusion</option>
                       <option value="Mustang">Mustang</option>
+                      <option value="Ranger">Ranger</option>
+                    </>
+                  )}
+                  {make === 'Chevrolet' && (
+                    <>
+                      <option value="Blazer">Blazer</option>
+                      <option value="Camaro">Camaro</option>
+                      <option value="Colorado">Colorado</option>
+                      <option value="Corvette">Corvette</option>
+                      <option value="Cruze">Cruze</option>
+                      <option value="Equinox">Equinox</option>
+                      <option value="Impala">Impala</option>
+                      <option value="Malibu">Malibu</option>
+                      <option value="Silverado 1500">Silverado 1500</option>
+                      <option value="Silverado 2500">Silverado 2500</option>
+                      <option value="Suburban">Suburban</option>
+                      <option value="Tahoe">Tahoe</option>
+                      <option value="Traverse">Traverse</option>
+                    </>
+                  )}
+                  {make === 'Nissan' && (
+                    <>
+                      <option value="Altima">Altima</option>
+                      <option value="Armada">Armada</option>
+                      <option value="Frontier">Frontier</option>
+                      <option value="Maxima">Maxima</option>
+                      <option value="Murano">Murano</option>
+                      <option value="Pathfinder">Pathfinder</option>
+                      <option value="Rogue">Rogue</option>
+                      <option value="Sentra">Sentra</option>
+                      <option value="Titan">Titan</option>
+                      <option value="Versa">Versa</option>
+                    </>
+                  )}
+                  {make === 'BMW' && (
+                    <>
+                      <option value="3 Series">3 Series</option>
+                      <option value="5 Series">5 Series</option>
+                      <option value="7 Series">7 Series</option>
+                      <option value="X1">X1</option>
+                      <option value="X3">X3</option>
+                      <option value="X5">X5</option>
+                      <option value="X7">X7</option>
+                    </>
+                  )}
+                  {make === 'Mercedes-Benz' && (
+                    <>
+                      <option value="C-Class">C-Class</option>
+                      <option value="E-Class">E-Class</option>
+                      <option value="S-Class">S-Class</option>
+                      <option value="GLC">GLC</option>
+                      <option value="GLE">GLE</option>
+                      <option value="GLS">GLS</option>
+                    </>
+                  )}
+                  {make === 'Lexus' && (
+                    <>
+                      <option value="ES">ES</option>
+                      <option value="GX">GX</option>
+                      <option value="IS">IS</option>
+                      <option value="LS">LS</option>
+                      <option value="LX">LX</option>
+                      <option value="NX">NX</option>
+                      <option value="RX">RX</option>
+                    </>
+                  )}
+                  {make === 'Audi' && (
+                    <>
+                      <option value="A3">A3</option>
+                      <option value="A4">A4</option>
+                      <option value="A6">A6</option>
+                      <option value="A8">A8</option>
+                      <option value="Q3">Q3</option>
+                      <option value="Q5">Q5</option>
+                      <option value="Q7">Q7</option>
+                      <option value="Q8">Q8</option>
+                    </>
+                  )}
+                  {make === 'Jeep' && (
+                    <>
+                      <option value="Cherokee">Cherokee</option>
+                      <option value="Compass">Compass</option>
+                      <option value="Grand Cherokee">Grand Cherokee</option>
+                      <option value="Gladiator">Gladiator</option>
+                      <option value="Renegade">Renegade</option>
+                      <option value="Wrangler">Wrangler</option>
+                    </>
+                  )}
+                  {make === 'Hyundai' && (
+                    <>
+                      <option value="Accent">Accent</option>
+                      <option value="Elantra">Elantra</option>
+                      <option value="Genesis">Genesis</option>
+                      <option value="Palisade">Palisade</option>
+                      <option value="Santa Fe">Santa Fe</option>
+                      <option value="Sonata">Sonata</option>
+                      <option value="Tucson">Tucson</option>
+                    </>
+                  )}
+                  {make === 'Kia' && (
+                    <>
+                      <option value="Forte">Forte</option>
+                      <option value="Optima">Optima</option>
+                      <option value="Rio">Rio</option>
+                      <option value="Sorento">Sorento</option>
+                      <option value="Soul">Soul</option>
+                      <option value="Sportage">Sportage</option>
+                      <option value="Telluride">Telluride</option>
+                    </>
+                  )}
+                  {make === 'Subaru' && (
+                    <>
+                      <option value="Ascent">Ascent</option>
+                      <option value="Forester">Forester</option>
+                      <option value="Impreza">Impreza</option>
+                      <option value="Legacy">Legacy</option>
+                      <option value="Outback">Outback</option>
+                      <option value="WRX">WRX</option>
+                    </>
+                  )}
+                  {make === 'Tesla' && (
+                    <>
+                      <option value="Model 3">Model 3</option>
+                      <option value="Model S">Model S</option>
+                      <option value="Model X">Model X</option>
+                      <option value="Model Y">Model Y</option>
+                    </>
+                  )}
+                  {make === 'Dodge' && (
+                    <>
+                      <option value="Challenger">Challenger</option>
+                      <option value="Charger">Charger</option>
+                      <option value="Durango">Durango</option>
+                      <option value="Journey">Journey</option>
+                    </>
+                  )}
+                  {make === 'Ram' && (
+                    <>
+                      <option value="1500">1500</option>
+                      <option value="2500">2500</option>
+                      <option value="3500">3500</option>
+                    </>
+                  )}
+                  {make === 'GMC' && (
+                    <>
+                      <option value="Acadia">Acadia</option>
+                      <option value="Canyon">Canyon</option>
+                      <option value="Sierra 1500">Sierra 1500</option>
+                      <option value="Sierra 2500">Sierra 2500</option>
+                      <option value="Terrain">Terrain</option>
+                      <option value="Yukon">Yukon</option>
+                    </>
+                  )}
+                  {make === 'Mazda' && (
+                    <>
+                      <option value="CX-3">CX-3</option>
+                      <option value="CX-5">CX-5</option>
+                      <option value="CX-9">CX-9</option>
+                      <option value="Mazda3">Mazda3</option>
+                      <option value="Mazda6">Mazda6</option>
+                      <option value="MX-5 Miata">MX-5 Miata</option>
+                    </>
+                  )}
+                  {make === 'Volkswagen' && (
+                    <>
+                      <option value="Atlas">Atlas</option>
+                      <option value="Golf">Golf</option>
+                      <option value="Jetta">Jetta</option>
+                      <option value="Passat">Passat</option>
+                      <option value="Tiguan">Tiguan</option>
+                    </>
+                  )}
+                  {make === 'Acura' && (
+                    <>
+                      <option value="ILX">ILX</option>
+                      <option value="MDX">MDX</option>
+                      <option value="RDX">RDX</option>
+                      <option value="TLX">TLX</option>
+                    </>
+                  )}
+                  {make === 'Infiniti' && (
+                    <>
+                      <option value="Q50">Q50</option>
+                      <option value="Q60">Q60</option>
+                      <option value="QX50">QX50</option>
+                      <option value="QX60">QX60</option>
+                      <option value="QX80">QX80</option>
+                    </>
+                  )}
+                  {make === 'Cadillac' && (
+                    <>
+                      <option value="CT4">CT4</option>
+                      <option value="CT5">CT5</option>
+                      <option value="Escalade">Escalade</option>
+                      <option value="XT4">XT4</option>
+                      <option value="XT5">XT5</option>
+                      <option value="XT6">XT6</option>
+                    </>
+                  )}
+                  {make === 'Lincoln' && (
+                    <>
+                      <option value="Aviator">Aviator</option>
+                      <option value="Continental">Continental</option>
+                      <option value="Corsair">Corsair</option>
+                      <option value="Navigator">Navigator</option>
+                    </>
+                  )}
+                  {make === 'Buick' && (
+                    <>
+                      <option value="Enclave">Enclave</option>
+                      <option value="Encore">Encore</option>
+                      <option value="Envision">Envision</option>
+                    </>
+                  )}
+                  {make === 'Chrysler' && (
+                    <>
+                      <option value="300">300</option>
+                      <option value="Pacifica">Pacifica</option>
+                    </>
+                  )}
+                  {make === 'Mitsubishi' && (
+                    <>
+                      <option value="Eclipse Cross">Eclipse Cross</option>
+                      <option value="Mirage">Mirage</option>
+                      <option value="Outlander">Outlander</option>
+                    </>
+                  )}
+                  {make === 'Volvo' && (
+                    <>
+                      <option value="S60">S60</option>
+                      <option value="S90">S90</option>
+                      <option value="XC40">XC40</option>
+                      <option value="XC60">XC60</option>
+                      <option value="XC90">XC90</option>
                     </>
                   )}
                 </select>
