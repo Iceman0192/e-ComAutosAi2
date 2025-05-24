@@ -168,7 +168,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                     <TableHead className="text-center">Market Rank</TableHead>
                     <TableHead className="text-center">Avg Price</TableHead>
                     <TableHead className="text-center">Price Range</TableHead>
-                    <TableHead className="text-center">Success Rate</TableHead>
+
                     <TableHead className="text-center">Sample Size</TableHead>
                     <TableHead className="text-center">Value Score</TableHead>
                   </TableRow>
@@ -197,17 +197,7 @@ export default function EnhancedDamageAnalysis({ salesHistory }: EnhancedDamageA
                           <div className="text-xs text-gray-500">Median: {formatCurrency(data.median)}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Percent className="h-3 w-3 text-gray-500" />
-                          <span className={`font-semibold ${
-                            data.successRate >= 70 ? 'text-green-600' : 
-                            data.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {data.successRate}%
-                          </span>
-                        </div>
-                      </TableCell>
+
                       <TableCell className="text-center">
                         <Badge variant="outline" className="text-xs">{data.count} vehicles</Badge>
                       </TableCell>

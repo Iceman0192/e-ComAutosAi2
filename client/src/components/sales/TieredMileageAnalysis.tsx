@@ -113,9 +113,9 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
       // VALUE-FOCUSED SCORING: Find best deals for business buyers
       const belowMarketCount = prices.filter(p => p < averagePrice * 0.8).length;
       const valueOpportunity = (belowMarketCount / prices.length) * 100;
-      const liquidityScore = Math.min(100, (successRate / 60) * 100); // 60% as baseline
-      const volumeBonus = Math.min(20, vehiclesInBracket.length * 2); // More data = more confidence
-      const investmentScore = Math.round((valueOpportunity * 0.5) + (liquidityScore * 0.4) + (volumeBonus * 0.1));
+      const sampleConfidence = Math.min(100, (vehiclesInBracket.length / 5) * 100); // More samples = more confidence
+      const priceConsistency = 1 - ((prices[prices.length - 1] - prices[0]) / averagePrice);
+      const investmentScore = Math.round((valueOpportunity * 0.6) + (sampleConfidence * 0.3) + (Math.max(0, priceConsistency) * 10));
 
       return {
         ...bracket,
@@ -259,7 +259,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                   <TableRow>
                     <TableHead className="w-[100px]">Mileage Range</TableHead>
                     <TableHead className="text-center">Avg Price</TableHead>
-                    <TableHead className="text-center">Success Rate</TableHead>
+
                     <TableHead className="text-center">Depreciation/Mile</TableHead>
                     <TableHead className="text-center">Market Demand</TableHead>
                     <TableHead className="text-center">Value Score</TableHead>
@@ -286,17 +286,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <Percent className="h-3 w-3 text-gray-500" />
-                          <span className={`font-semibold ${
-                            bracket.successRate >= 70 ? 'text-green-600' : 
-                            bracket.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {bracket.successRate}%
-                          </span>
-                        </div>
-                      </TableCell>
+
                       <TableCell className="text-center">
                         <div className="flex items-center justify-center gap-1">
                           <TrendingDown className="h-3 w-3 text-gray-500" />
