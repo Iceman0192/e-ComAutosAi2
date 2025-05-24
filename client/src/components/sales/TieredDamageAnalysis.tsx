@@ -148,18 +148,160 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                 {hiddenCount > 0 && (
                   <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-lg text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
-                      <Lock className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-blue-700 dark:text-blue-300">
+                      <Lock className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-blue-900 dark:text-blue-100">
                         {hiddenCount} More Damage Types Available
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                      Upgrade to Gold to see complete damage analysis with pricing insights, ranges, and detailed statistics.
+                    <p className="text-sm text-blue-700 dark:text-blue-200 mb-3">
+                      Unlock detailed analysis including success rates, price ranges, and investment opportunities
                     </p>
-                    <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
                       Upgrade to Gold
-                    </button>
+                    </Badge>
                   </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        }
+      >
+        {/* Gold/Platinum Tier: Complete Enhanced Analysis */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Enhanced Damage Analysis</CardTitle>
+              <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                {user?.role === UserRole.PLATINUM ? 'PLATINUM' : 'GOLD'} TIER
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[140px]">Damage Type</TableHead>
+                    <TableHead className="text-center">Market Rank</TableHead>
+                    <TableHead className="text-center">Avg Price</TableHead>
+                    <TableHead className="text-center">Price Range</TableHead>
+                    <TableHead className="text-center">Success Rate</TableHead>
+                    <TableHead className="text-center">Sample Size</TableHead>
+                    <TableHead className="text-center">Opportunity Score</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {damageAnalysis.map((data, index) => (
+                    <TableRow key={data.damage} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: data.color }}
+                          />
+                          {data.damage}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Target className="h-3 w-3 text-gray-500" />
+                          #{data.marketPosition}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-semibold">
+                        {formatCurrency(data.average)}
+                      </TableCell>
+                      <TableCell className="text-center text-sm">
+                        <div>
+                          <div className="font-medium">{data.priceRange}</div>
+                          <div className="text-xs text-gray-500">
+                            Median: {formatCurrency(data.median)}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Percent className="h-3 w-3 text-gray-500" />
+                          <span className={`font-semibold ${
+                            data.successRate >= 70 ? 'text-green-600' : 
+                            data.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {data.successRate}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="outline" className="text-xs">
+                          {data.count} vehicles
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Star className={`h-3 w-3 ${
+                            data.opportunityScore >= 80 ? 'text-green-500' :
+                            data.opportunityScore >= 60 ? 'text-yellow-500' : 'text-gray-400'
+                          }`} />
+                          <span className={`font-semibold text-sm ${
+                            data.opportunityScore >= 80 ? 'text-green-600' :
+                            data.opportunityScore >= 60 ? 'text-yellow-600' : 'text-gray-600'
+                          }`}>
+                            {data.opportunityScore}
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            
+            {/* Market Insights Summary */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-green-800 dark:text-green-200">Best Value Retention</span>
+                </div>
+                <div className="text-lg font-bold text-green-900 dark:text-green-100">
+                  {damageAnalysis[0]?.damage || 'N/A'}
+                </div>
+                <div className="text-sm text-green-700 dark:text-green-300">
+                  {formatCurrency(damageAnalysis[0]?.average || 0)} avg price
+                </div>
+              </div>
+              
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-blue-800 dark:text-blue-200">Highest Success Rate</span>
+                </div>
+                <div className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                  {damageAnalysis.sort((a, b) => b.successRate - a.successRate)[0]?.damage || 'N/A'}
+                </div>
+                <div className="text-sm text-blue-700 dark:text-blue-300">
+                  {damageAnalysis.sort((a, b) => b.successRate - a.successRate)[0]?.successRate || 0}% success rate
+                </div>
+              </div>
+              
+              <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Star className="h-4 w-4 text-purple-600" />
+                  <span className="font-medium text-purple-800 dark:text-purple-200">Top Investment Opportunity</span>
+                </div>
+                <div className="text-lg font-bold text-purple-900 dark:text-purple-100">
+                  {damageAnalysis.sort((a, b) => b.opportunityScore - a.opportunityScore)[0]?.damage || 'N/A'}
+                </div>
+                <div className="text-sm text-purple-700 dark:text-purple-300">
+                  Score: {damageAnalysis.sort((a, b) => b.opportunityScore - a.opportunityScore)[0]?.opportunityScore || 0}/100
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </PermissionGate>
+    </div>
+  );
+}
                 )}
               </div>
             </CardContent>
