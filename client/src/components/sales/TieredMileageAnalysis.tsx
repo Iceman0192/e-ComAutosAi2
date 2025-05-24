@@ -131,7 +131,9 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
       };
     });
 
-    return bracketData.filter(bracket => bracket.sampleSize > 0);
+    return bracketData
+      .filter(bracket => bracket.sampleSize > 0)
+      .sort((a, b) => a.minMiles - b.minMiles); // Sort by minimum mileage ascending
   }, [salesHistory]);
 
   // Free tier: Show only first 3 brackets
