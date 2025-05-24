@@ -4,9 +4,7 @@ import PermissionGate from '../auth/PermissionGate';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Lock } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Lock, TrendingUp } from 'lucide-react';
 
 interface DamageData {
   damage: string;
@@ -22,14 +20,13 @@ interface TieredDamageAnalysisProps {
   salesHistory: Array<{
     vehicle_damage?: string;
     purchase_price?: number;
-    sale_status?: string;
   }>;
 }
 
 export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnalysisProps) {
   const { user } = useAuth();
 
-  // Simple damage analysis data - back to basics
+  // Calculate damage analysis data
   const damageAnalysis = useMemo(() => {
     const damageMap = new Map<string, number[]>();
     
@@ -47,155 +44,146 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
       }
     });
 
-    const damageColors: Record<string, string> = {
-      'Front End': '#ff6b6b',
-      'Rear End': '#ffa726',
-      'Side': '#66bb6a',
-      'Hail': '#42a5f5',
-      'Water/Flood': '#26a69a',
-      'Fire': '#ff7043',
-      'Theft': '#ab47bc',
-      'All Over': '#78909c',
-      'Unknown': '#bdbdbd'
-    };
+    const colors = ['#ff6b6b', '#66bb6a', '#42a5f5', '#ffa726', '#ab47bc', '#78909c'];
+    let colorIndex = 0;
 
-    const analysis: DamageData[] = Array.from(damageMap.entries()).map(([damage, prices]) => {
-      const sortedPrices = [...prices].sort((a, b) => a - b);
-      
-      const average = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-      const median = sortedPrices[Math.floor(sortedPrices.length / 2)];
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
+    const result: DamageData[] = Array.from(damageMap.entries()).map(([damage, prices]) => {
+      prices.sort((a, b) => a - b);
+      const sum = prices.reduce((acc, price) => acc + price, 0);
+      const average = sum / prices.length;
+      const median = prices[Math.floor(prices.length / 2)];
       
       return {
         damage,
-        average,
-        min,
-        max,
-        median,
+        average: Math.round(average),
+        min: Math.min(...prices),
+        max: Math.max(...prices),
+        median: Math.round(median),
         count: prices.length,
-        color: damageColors[damage] || '#78909c'
+        color: colors[colorIndex++ % colors.length]
       };
-    }).sort((a, b) => b.average - a.average);
+    });
 
-    return analysis;
+    // Sort by average price (highest first)
+    return result.sort((a, b) => b.average - a.average);
   }, [salesHistory]);
 
+  // Free tier: Show top 3 damage types only
+  const freeTierData = damageAnalysis.slice(0, 3);
+  const hiddenCount = Math.max(0, damageAnalysis.length - 3);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Free Tier: Limited Damage Analysis */}
       <PermissionGate 
-        permission="FULL_ANALYTICS"
+        permission="MULTIPLE_DAMAGE_TYPES" 
         fallback={
-          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-800">
-            <CardHeader className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Lock className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Damage Analysis</CardTitle>
+                <Badge variant="outline" className="text-xs">
+                  FREE TIER
+                </Badge>
               </div>
-              <CardTitle className="text-yellow-800 dark:text-yellow-200">
-                Damage Analysis - Gold Feature
-              </CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
-              <p className="text-yellow-700 dark:text-yellow-300 mb-4">
-                Analyze vehicle damage patterns and their impact on pricing with detailed breakdowns.
-              </p>
-              <Badge variant="outline" className="border-yellow-400 text-yellow-700 dark:text-yellow-300">
-                Upgrade to Gold to unlock
-              </Badge>
+            <CardContent>
+              <div className="space-y-3">
+                {freeTierData.map((data, index) => (
+                  <div key={data.damage} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: data.color }}
+                      />
+                      <div>
+                        <div className="font-medium">{data.damage}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {data.count} vehicles
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold">{formatCurrency(data.average)}</div>
+                      <div className="text-xs text-gray-500">
+                        avg
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {hiddenCount > 0 && (
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border border-blue-200 dark:border-gray-600 rounded-lg text-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Lock className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-blue-700 dark:text-blue-300">
+                        {hiddenCount} More Damage Types Available
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                      Upgrade to Gold to see complete damage analysis with pricing insights, ranges, and detailed statistics.
+                    </p>
+                    <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                      Upgrade to Gold
+                    </button>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         }
       >
+        {/* Gold+ Tier: Full Damage Analysis */}
         <Card>
           <CardHeader>
-            <CardTitle>Damage Type Price Analysis</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Complete Damage Analysis</CardTitle>
+              <Badge className="bg-yellow-100 text-yellow-800">
+                {user?.role.toUpperCase()} TIER
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
-            {damageAnalysis.length > 0 ? (
-              <div className="space-y-6">
-                {/* Visual Chart FIRST - like original */}
-                <div>
-                  <h4 className="text-lg font-semibold mb-4">Damage Type Price Distribution</h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={damageAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="damage"
-                        type="category"
-                        angle={-45}
-                        textAnchor="end"
-                        height={80}
-                        interval={0}
-                      />
-                      <YAxis 
-                        type="number"
-                        tickFormatter={(value) => formatCurrency(value)}
-                      />
-                      <Tooltip 
-                        formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
-                        labelFormatter={(label) => `${label} Damage`}
-                      />
-                      <Bar dataKey="average" radius={[4, 4, 0, 0]}>
-                        {damageAnalysis.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Clean Data Table SECOND - like original */}
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
-                      <tr>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
-                          Damage Type
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Avg Price
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Price Range
-                        </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Sample Size
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {damageAnalysis.map((data, index) => (
-                        <tr key={data.damage} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
-                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 font-medium">
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className="w-3 h-3 rounded-full" 
-                                style={{ backgroundColor: data.color }}
-                              />
-                              {data.damage}
-                            </div>
-                          </td>
-                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                            {formatCurrency(data.average)}
-                          </td>
-                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                            {formatCurrency(data.min)} - {formatCurrency(data.max)}
-                            <div className="text-xs text-gray-500">Median: {formatCurrency(data.median)}</div>
-                          </td>
-                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right">
-                            {data.count} vehicles
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-gray-500">
-                No damage data available for analysis
-              </div>
-            )}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-2 font-medium text-gray-700 dark:text-gray-300">Damage Type</th>
+                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Count</th>
+                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Average</th>
+                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Range</th>
+                    <th className="text-right py-2 font-medium text-gray-700 dark:text-gray-300">Median</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {damageAnalysis.map((data, index) => (
+                    <tr key={data.damage} className="border-b border-gray-100 dark:border-gray-800">
+                      <td className="py-3">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: data.color }}
+                          />
+                          <span className="font-medium">{data.damage}</span>
+                        </div>
+                      </td>
+                      <td className="text-right py-3 text-gray-600 dark:text-gray-400">
+                        {data.count}
+                      </td>
+                      <td className="text-right py-3 font-semibold">
+                        {formatCurrency(data.average)}
+                      </td>
+                      <td className="text-right py-3 text-sm text-gray-600 dark:text-gray-400">
+                        {formatCurrency(data.min)} - {formatCurrency(data.max)}
+                      </td>
+                      <td className="text-right py-3 font-medium">
+                        {formatCurrency(data.median)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </PermissionGate>

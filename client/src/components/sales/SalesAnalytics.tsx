@@ -7,9 +7,6 @@ import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, Gauge, AlertTriangle, CheckCircle } from 'lucide-react';
-import PermissionGate from '../auth/PermissionGate';
-import TieredDamageAnalysis from './TieredDamageAnalysis';
-import TieredMileageAnalysis from './TieredMileageAnalysis';
 
 interface SalesAnalyticsProps {
   salesHistory: Array<{
@@ -268,50 +265,43 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         </TabsList>
 
         <TabsContent value="distribution" className="mt-6">
-          <PermissionGate permission="FULL_ANALYTICS">
-            <Card>
-              <CardHeader>
-                <CardTitle>Price Distribution</CardTitle>
-                <CardDescription>
-                  How prices are distributed across {validSales.length} vehicles
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={priceDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="range" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`${value} vehicles`, 'Count']}
-                      labelFormatter={(label) => `Price Range: ${label}`}
-                    />
-                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                      {priceDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </PermissionGate>
+          <Card>
+            <CardHeader>
+              <CardTitle>Price Distribution</CardTitle>
+              <CardDescription>
+                How prices are distributed across {validSales.length} vehicles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={priceDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="range" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value) => [`${value} vehicles`, 'Count']}
+                    labelFormatter={(label) => `Price Range: ${label}`}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {priceDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="scatter" className="mt-6">
-          <TieredMileageAnalysis salesHistory={salesHistory} />
-        </TabsContent>
-
-        <TabsContent value="mileage" className="mt-6">
-          <PermissionGate permission="FULL_ANALYTICS">
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Mileage vs Price Scatter</CardTitle>
-                <CardDescription>
-                  Simple scatter plot view - upgrade to Gold for enhanced analytics
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Mileage vs Price Analysis</CardTitle>
+              <CardDescription>
+                Clear correlation between mileage and price - organized by mileage ranges for easy comparison
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-6">
                 {/* Beautiful Interactive Chart - Enhanced Design */}
                 <div className="relative">
@@ -460,27 +450,47 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                   </div>
                 </div>
 
-
+                {/* Smart Value Teaser - Shows potential without giving it all away */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <h4 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">🚀 Unlock Advanced Insights</h4>
+                  <div className="text-sm text-purple-700 dark:text-purple-300 space-y-2">
+                    <p className="font-medium">Gold Members Get Access To:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Complete vehicle breakdown table</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Price-per-mile calculations</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Damage type filtering</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        <span>Location-based comparisons</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-purple-200 dark:border-purple-700">
+                      <span className="text-xs">Currently viewing: {mileageVsPrice.filter(i => i.mileage > 0).length} vehicles</span>
+                      <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Upgrade to Gold
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
-          </PermissionGate>
         </TabsContent>
 
         <TabsContent value="damage" className="mt-6">
-          <TieredDamageAnalysis salesHistory={salesHistory} />
-        </TabsContent>
-
-        <TabsContent value="mileage" className="mt-6">
-          <TieredMileageAnalysis salesHistory={salesHistory} />
-        </TabsContent>
-
-        <TabsContent value="original-damage" className="mt-6">
-          <PermissionGate permission="FULL_ANALYTICS">
-            <Card>
-              <CardHeader>
-                <CardTitle>Damage Type Price Analysis</CardTitle>
-                <CardDescription>
+          <Card>
+            <CardHeader>
+              <CardTitle>Damage Type Price Analysis</CardTitle>
+              <CardDescription>
                 Clear pricing breakdown by damage type - organized for easy comparison
               </CardDescription>
             </CardHeader>
@@ -541,7 +551,25 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                         ))}
                       </tbody>
                     </table>
-
+                    
+                    {/* Upgrade Teaser for additional damage types */}
+                    {damageTypeAnalysis.length > 1 && (
+                      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-blue-800 dark:text-blue-200">
+                              🔍 {damageTypeAnalysis.length - 1} more damage types to analyze!
+                            </p>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              See complete damage breakdown, title analysis, and geographic trends with Gold
+                            </p>
+                          </div>
+                          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                            Upgrade to Gold
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Visual Chart */}
@@ -582,7 +610,6 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
               )}
             </CardContent>
           </Card>
-          </PermissionGate>
         </TabsContent>
       </Tabs>
     </div>
