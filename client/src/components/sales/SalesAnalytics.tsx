@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, Gauge, AlertTriangle, CheckCircle } from 'lucide-react';
 import PermissionGate from '../auth/PermissionGate';
-import EnhancedDamageAnalysis from './EnhancedDamageAnalysis';
+import TieredDamageAnalysis from './TieredDamageAnalysis';
 import TieredMileageAnalysis from './TieredMileageAnalysis';
 
 interface SalesAnalyticsProps {
@@ -468,7 +468,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         </TabsContent>
 
         <TabsContent value="damage" className="mt-6">
-          <EnhancedDamageAnalysis salesHistory={salesHistory} />
+          <TieredDamageAnalysis salesHistory={salesHistory} />
         </TabsContent>
 
         <TabsContent value="mileage" className="mt-6">
