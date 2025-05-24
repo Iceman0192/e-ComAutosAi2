@@ -626,11 +626,9 @@ export default function Copart() {
           </div>
 
           {/* Search Results */}
-          {hasSearched && searchResults && (
+          {hasSearched && searchResults && searchResults.salesHistory && (
             <SalesAnalytics 
-              data={searchResults}
-              platform="copart"
-              isLoading={isSearching}
+              salesHistory={searchResults.salesHistory}
             />
           )}
 
