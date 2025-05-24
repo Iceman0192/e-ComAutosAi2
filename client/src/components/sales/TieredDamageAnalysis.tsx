@@ -84,8 +84,7 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
   return (
     <div className="space-y-6">
       <PermissionGate 
-        userRole={user?.role} 
-        requiredRole={UserRole.GOLD}
+        permission="FULL_ANALYTICS"
         fallback={
           <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-yellow-200 dark:border-yellow-800">
             <CardHeader className="text-center">
