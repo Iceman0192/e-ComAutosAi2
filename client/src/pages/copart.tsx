@@ -73,6 +73,10 @@ export default function Copart() {
   // API hook for sales history
   const { data: searchResults, isLoading: isSearching, error, refetch } = useSalesHistory(filterState);
   const hasSearched = !!searchResults;
+  
+  // Extract sales data safely
+  const salesData = searchResults?.data?.salesHistory || searchResults?.salesHistory || [];
+  const hasResults = salesData.length > 0;
 
   // Reset function
   const handleReset = () => {
@@ -300,16 +304,16 @@ export default function Copart() {
           )}
 
           {/* Results Display */}
-          {hasSearched && !isSearching && searchResults && searchResults.data && searchResults.data.salesHistory && searchResults.data.salesHistory.length > 0 && (
+          {hasSearched && !isSearching && hasResults && (
             <div className="space-y-6">
               {/* Results Summary with Display Options */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {searchResults.data.salesHistory.length} Results for {make} {model} ({yearFrom}-{yearTo})
+                    {salesData.length} Results for {make} {model} ({yearFrom}-{yearTo})
                   </h3>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults.data.salesHistory))}
+                    Average sold price: {formatCurrency(calculateAveragePrice(salesData))}
                   </div>
                 </div>
                 
@@ -352,7 +356,7 @@ export default function Copart() {
               {activeTab === TabType.TIMELINE && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
                   <div className="p-6">
-                    <SalesAnalytics salesHistory={searchResults.salesHistory} />
+                    <SalesAnalytics salesHistory={salesData} />
                   </div>
                 </div>
               )}
