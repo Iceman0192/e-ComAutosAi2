@@ -492,10 +492,11 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         </TabsContent>
 
         <TabsContent value="damage" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Damage Type Price Analysis</CardTitle>
-              <CardDescription>
+          <PermissionGate permission="FULL_ANALYTICS">
+            <Card>
+              <CardHeader>
+                <CardTitle>Damage Type Price Analysis</CardTitle>
+                <CardDescription>
                 Clear pricing breakdown by damage type - organized for easy comparison
               </CardDescription>
             </CardHeader>
@@ -615,6 +616,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
               )}
             </CardContent>
           </Card>
+          </PermissionGate>
         </TabsContent>
       </Tabs>
     </div>
