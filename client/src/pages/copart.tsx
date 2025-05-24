@@ -13,17 +13,39 @@ enum TabType {
   PHOTOS = "photos"
 }
 
-// Vehicle makes data
+// Comprehensive vehicle makes data
 const vehicleMakes = {
-  'Toyota': ['4Runner', 'Avalon', 'Camry', 'Corolla', 'Highlander', 'Prius', 'RAV4', 'Sienna', 'Tacoma', 'Tundra'],
-  'Honda': ['Accord', 'Civic', 'CR-V', 'Fit', 'HR-V', 'Odyssey', 'Passport', 'Pilot', 'Ridgeline'],
-  'Ford': ['Bronco', 'Edge', 'Escape', 'Explorer', 'F-150', 'Focus', 'Fusion', 'Mustang', 'Ranger'],
-  'Chevrolet': ['Blazer', 'Camaro', 'Corvette', 'Cruze', 'Equinox', 'Malibu', 'Silverado', 'Suburban', 'Tahoe'],
-  'Nissan': ['Altima', 'Armada', 'Frontier', 'Maxima', 'Murano', 'Pathfinder', 'Rogue', 'Sentra', 'Titan', 'Versa'],
-  'BMW': ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', 'X7'],
-  'Mercedes-Benz': ['C-Class', 'E-Class', 'S-Class', 'GLC', 'GLE', 'GLS'],
-  'Lexus': ['ES', 'GX', 'IS', 'LS', 'LX', 'NX', 'RX'],
-  'Audi': ['A3', 'A4', 'A6', 'A8', 'Q3', 'Q5', 'Q7', 'Q8']
+  'Acura': ['ILX', 'MDX', 'RDX', 'TLX', 'TSX', 'ZDX'],
+  'Audi': ['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q3', 'Q5', 'Q7', 'Q8', 'R8', 'RS3', 'RS4', 'RS5', 'RS6', 'RS7', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'SQ5', 'SQ7', 'TT'],
+  'BMW': ['1 Series', '2 Series', '3 Series', '4 Series', '5 Series', '6 Series', '7 Series', '8 Series', 'i3', 'i8', 'M2', 'M3', 'M4', 'M5', 'M6', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'Z3', 'Z4'],
+  'Buick': ['Enclave', 'Encore', 'Envision', 'LaCrosse', 'Regal', 'Verano'],
+  'Cadillac': ['ATS', 'CT4', 'CT5', 'CT6', 'CTS', 'DeVille', 'DTS', 'Escalade', 'SRX', 'STS', 'XLR', 'XT4', 'XT5', 'XT6'],
+  'Chevrolet': ['Avalanche', 'Aveo', 'Blazer', 'Camaro', 'Captiva', 'Cobalt', 'Colorado', 'Corvette', 'Cruze', 'Equinox', 'Express', 'HHR', 'Impala', 'Malibu', 'Monte Carlo', 'Silverado', 'Sonic', 'Spark', 'Suburban', 'Tahoe', 'Trailblazer', 'Traverse', 'Trax', 'Uplander', 'Volt'],
+  'Chrysler': ['200', '300', 'Aspen', 'Crossfire', 'Pacifica', 'PT Cruiser', 'Sebring', 'Town & Country', 'Voyager'],
+  'Dodge': ['Avenger', 'Caliber', 'Challenger', 'Charger', 'Dakota', 'Dart', 'Durango', 'Grand Caravan', 'Journey', 'Magnum', 'Nitro', 'Ram', 'Stratus', 'Viper'],
+  'Ford': ['Bronco', 'C-MAX', 'Crown Victoria', 'E-Series', 'Edge', 'Escape', 'Expedition', 'Explorer', 'F-150', 'F-250', 'F-350', 'F-450', 'Fiesta', 'Five Hundred', 'Flex', 'Focus', 'Freestyle', 'Fusion', 'GT', 'Mustang', 'Ranger', 'Taurus', 'Thunderbird', 'Transit'],
+  'GMC': ['Acadia', 'Canyon', 'Envoy', 'Jimmy', 'Safari', 'Savana', 'Sierra', 'Terrain', 'Yukon'],
+  'Honda': ['Accord', 'Civic', 'CR-V', 'CR-Z', 'Crosstour', 'Element', 'Fit', 'HR-V', 'Insight', 'Odyssey', 'Passport', 'Pilot', 'Ridgeline', 'S2000'],
+  'Hyundai': ['Accent', 'Azera', 'Elantra', 'Genesis', 'Santa Fe', 'Sonata', 'Tucson', 'Veloster', 'Veracruz'],
+  'Infiniti': ['EX35', 'FX35', 'FX45', 'G25', 'G35', 'G37', 'I30', 'I35', 'M35', 'M45', 'Q40', 'Q45', 'Q50', 'Q60', 'Q70', 'QX30', 'QX50', 'QX56', 'QX60', 'QX70', 'QX80'],
+  'Jaguar': ['F-PACE', 'F-TYPE', 'S-TYPE', 'X-TYPE', 'XE', 'XF', 'XJ', 'XK'],
+  'Jeep': ['Cherokee', 'Commander', 'Compass', 'Grand Cherokee', 'Grand Wagoneer', 'Liberty', 'Patriot', 'Renegade', 'Wagoneer', 'Wrangler'],
+  'Kia': ['Forte', 'Optima', 'Rio', 'Sedona', 'Sorento', 'Soul', 'Sportage', 'Stinger'],
+  'Land Rover': ['Defender', 'Discovery', 'Freelander', 'LR2', 'LR3', 'LR4', 'Range Rover', 'Range Rover Evoque', 'Range Rover Sport', 'Range Rover Velar'],
+  'Lexus': ['CT', 'ES', 'GS', 'GX', 'IS', 'LC', 'LS', 'LX', 'NX', 'RC', 'RX', 'SC', 'UX'],
+  'Lincoln': ['Aviator', 'Continental', 'Corsair', 'LS', 'Mark LT', 'MKC', 'MKS', 'MKT', 'MKX', 'MKZ', 'Navigator', 'Town Car', 'Zephyr'],
+  'Mazda': ['CX-3', 'CX-5', 'CX-7', 'CX-9', 'Mazda2', 'Mazda3', 'Mazda5', 'Mazda6', 'MX-5 Miata', 'RX-8', 'Tribute'],
+  'Mercedes-Benz': ['A-Class', 'B-Class', 'C-Class', 'CL-Class', 'CLA-Class', 'CLK-Class', 'CLS-Class', 'E-Class', 'G-Class', 'GL-Class', 'GLA-Class', 'GLC-Class', 'GLE-Class', 'GLK-Class', 'GLS-Class', 'M-Class', 'Metris', 'R-Class', 'S-Class', 'SL-Class', 'SLK-Class', 'SLS-Class', 'Sprinter'],
+  'Mini': ['Clubman', 'Convertible', 'Cooper', 'Countryman', 'Hardtop', 'Paceman'],
+  'Mitsubishi': ['Eclipse', 'Galant', 'Lancer', 'Mirage', 'Montero', 'Outlander', 'Outlander Sport'],
+  'Nissan': ['350Z', '370Z', 'Altima', 'Armada', 'Cube', 'Frontier', 'GT-R', 'Juke', 'Kicks', 'Leaf', 'Maxima', 'Murano', 'NV200', 'Pathfinder', 'Quest', 'Rogue', 'Sentra', 'Titan', 'Versa', 'Xterra'],
+  'Porsche': ['911', 'Boxster', 'Cayenne', 'Cayman', 'Macan', 'Panamera', 'Taycan'],
+  'Ram': ['1500', '2500', '3500', 'ProMaster'],
+  'Subaru': ['Ascent', 'BRZ', 'Crosstrek', 'Forester', 'Impreza', 'Legacy', 'Outback', 'Tribeca', 'WRX'],
+  'Tesla': ['Model 3', 'Model S', 'Model X', 'Model Y'],
+  'Toyota': ['4Runner', 'Avalon', 'Avanza', 'C-HR', 'Camry', 'Celica', 'Corolla', 'FJ Cruiser', 'Highlander', 'Land Cruiser', 'Matrix', 'Prius', 'RAV4', 'Sequoia', 'Sienna', 'Solara', 'Tacoma', 'Tundra', 'Venza', 'Yaris'],
+  'Volkswagen': ['Atlas', 'Beetle', 'CC', 'Eos', 'Golf', 'GTI', 'Jetta', 'Passat', 'Routan', 'Tiguan', 'Touareg'],
+  'Volvo': ['C30', 'C70', 'S40', 'S60', 'S80', 'S90', 'V40', 'V50', 'V60', 'V70', 'V90', 'XC40', 'XC60', 'XC70', 'XC90']
 };
 
 // Get current year for the year picker default value
