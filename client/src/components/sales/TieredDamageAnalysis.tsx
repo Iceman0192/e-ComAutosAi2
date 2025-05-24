@@ -4,7 +4,8 @@ import PermissionGate from '../auth/PermissionGate';
 import { formatCurrency } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Lock, TrendingUp } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Lock, TrendingUp, Target, Percent, Star } from 'lucide-react';
 
 interface DamageData {
   damage: string;
@@ -14,21 +15,26 @@ interface DamageData {
   median: number;
   count: number;
   color: string;
+  successRate: number;
+  priceRange: string;
+  marketPosition: number;
+  opportunityScore: number;
 }
 
 interface TieredDamageAnalysisProps {
   salesHistory: Array<{
     vehicle_damage?: string;
     purchase_price?: number;
+    sale_status?: string;
   }>;
 }
 
 export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnalysisProps) {
   const { user } = useAuth();
 
-  // Calculate damage analysis data
+  // Calculate enhanced damage analysis data
   const damageAnalysis = useMemo(() => {
-    const damageMap = new Map<string, number[]>();
+    const damageMap = new Map<string, { prices: number[], sales: any[] }>();
     
     salesHistory.forEach(sale => {
       const damage = sale.vehicle_damage || 'Unknown';
@@ -38,28 +44,51 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
         
       if (price && !isNaN(price) && price > 0) {
         if (!damageMap.has(damage)) {
-          damageMap.set(damage, []);
+          damageMap.set(damage, { prices: [], sales: [] });
         }
-        damageMap.get(damage)!.push(price);
+        const damageData = damageMap.get(damage)!;
+        damageData.prices.push(price);
+        damageData.sales.push(sale);
       }
     });
 
     const colors = ['#ff6b6b', '#66bb6a', '#42a5f5', '#ffa726', '#ab47bc', '#78909c'];
     let colorIndex = 0;
 
-    const result: DamageData[] = Array.from(damageMap.entries()).map(([damage, prices]) => {
+    const result: DamageData[] = Array.from(damageMap.entries()).map(([damage, { prices, sales }]) => {
       prices.sort((a, b) => a - b);
       const sum = prices.reduce((acc, price) => acc + price, 0);
       const average = sum / prices.length;
       const median = prices[Math.floor(prices.length / 2)];
       
+      // Calculate success rate (sold vs not sold)
+      const soldCount = sales.filter(sale => 
+        sale.sale_status && !sale.sale_status.toLowerCase().includes('not sold')
+      ).length;
+      const successRate = (soldCount / sales.length) * 100;
+      
+      // Create price range string
+      const priceRange = `${formatCurrency(prices[0])} - ${formatCurrency(prices[prices.length - 1])}`;
+      
+      // Calculate market position (ranking by average price)
+      const marketPosition = 0; // Will be calculated after all damages are processed
+      
+      // Calculate opportunity score based on success rate and price volatility
+      const priceVolatility = (prices[prices.length - 1] - prices[0]) / average;
+      const opportunityScore = Math.round((successRate * 0.6) + ((1 - priceVolatility) * 40));
+      
       return {
         damage,
         average: Math.round(average),
-        min: Math.min(...prices),
-        max: Math.max(...prices),
+        min: prices[0],
+        max: prices[prices.length - 1],
         median: Math.round(median),
         count: prices.length,
+        color: colors[colorIndex++ % colors.length],
+        successRate: Math.round(successRate),
+        priceRange,
+        marketPosition,
+        opportunityScore
         color: colors[colorIndex++ % colors.length]
       };
     });
