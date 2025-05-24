@@ -117,11 +117,11 @@ export default function IAAI() {
     const now = Date.now();
     setPageCache(prev => {
       const newCache = new Map(prev);
-      for (const [key, value] of newCache.entries()) {
+      Array.from(newCache.entries()).forEach(([key, value]) => {
         if (value.expiresAt < now) {
           newCache.delete(key);
         }
-      }
+      });
       return newCache;
     });
   };
@@ -310,113 +310,22 @@ export default function IAAI() {
   
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
-    setHasSearched(true); // Mark that a search has been performed
-    setIsLoading(true); // Show loading state
+    clearCacheForNewSearch(); // Clear cache when starting new search
     
-    // Build parameters for initial search - HARDCODED for IAAI (site=2)
-    const params = new URLSearchParams();
-    params.append('make', make);
-    if (model) params.append('model', model);
-    if (yearFrom) params.append('year_from', yearFrom.toString());
-    if (yearTo) params.append('year_to', yearTo.toString());
-    params.append('page', '1');
-    params.append('size', resultsPerPage.toString());
-    params.append('sale_date_from', auctionDateFrom);
-    params.append('sale_date_to', auctionDateTo);
+    console.log(`🔍 Starting new IAAI search with intelligent caching...`);
     
-    // HARDCODED for IAAI ONLY
-    params.append('site', '2'); // IAAI site ID
-    
-    console.log(`Initial IAAI search with params:`, params.toString());
-    
-    // Make direct fetch request to dedicated IAAI endpoint
-    fetch(`/api/iaai/sales-history?${params.toString()}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(result => {
-        console.log("Received initial IAAI search data:", result);
-        
-        // Only update if successful
-        if (result && result.success && result.data) {
-          // Store results in local state
-          setSearchResults(result);
-          setIsLoading(false);
-          
-          // Update total results count for pagination - check the correct location
-          if (result.data.pagination && result.data.pagination.totalCount) {
-            setTotalResults(result.data.pagination.totalCount);
-            console.log(`Setting total results from pagination: ${result.data.pagination.totalCount}`);
-          } else {
-            // Fallback - no results found
-            setTotalResults(0);
-          }
-        } else {
-          console.error("Invalid response format:", result);
-          setSearchResults(null);
-          setTotalResults(0);
-          setIsLoading(false);
-        }
-      })
-      .catch(error => {
-        console.error("Error during IAAI search:", error);
-        setIsLoading(false);
-      });
+    // Use the enhanced fetchSalesHistory function with cache disabled for fresh search
+    fetchSalesHistory(1, false);
   };
   
-  // Handle page change - fetch new data with updated page number
+  // Handle page change with intelligent caching
   const handlePageChange = (newPage: number) => {
-    // Update current page state
     setPage(newPage);
     
-    // Build complete URL parameters for API request - HARDCODED for IAAI
-    const params = new URLSearchParams();
-    params.append('make', make);
-    if (model) params.append('model', model);
-    if (yearFrom) params.append('year_from', yearFrom.toString());
-    if (yearTo) params.append('year_to', yearTo.toString());
-    params.append('page', newPage.toString());
-    params.append('size', resultsPerPage.toString());
-    params.append('sale_date_from', auctionDateFrom);
-    params.append('sale_date_to', auctionDateTo);
+    console.log(`📄 Navigating to IAAI page ${newPage} with intelligent caching...`);
     
-    // HARDCODED for IAAI ONLY
-    params.append('site', '2'); // IAAI site ID
-    
-    console.log(`Requesting IAAI page ${newPage} with params:`, params.toString());
-    
-    // Make direct fetch request to dedicated IAAI endpoint
-    fetch(`/api/iaai/sales-history?${params.toString()}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(result => {
-        console.log("Received IAAI data for page", newPage, result);
-        
-        // Only update if successful
-        if (result.success && result.data) {
-          // Store results in local state
-          setSearchResults(result);
-          
-          // Make sure we're showing search has been performed
-          setHasSearched(true);
-          
-          // Update total results count for pagination - get from pagination field
-          if (result.data.pagination && result.data.pagination.totalCount) {
-            setTotalResults(result.data.pagination.totalCount);
-            console.log(`Page ${newPage}: Setting total results from pagination: ${result.data.pagination.totalCount}`);
-          }
-        }
-      })
-      .catch(error => {
-        console.error("Error fetching IAAI page", newPage, error);
-      });
+    // Use the enhanced fetchSalesHistory function with caching enabled
+    fetchSalesHistory(newPage, true);
   };
   
   return (
