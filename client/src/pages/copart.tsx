@@ -300,16 +300,16 @@ export default function Copart() {
           )}
 
           {/* Results Display */}
-          {hasSearched && !isSearching && searchResults && searchResults.salesHistory && searchResults.salesHistory.length > 0 && (
+          {hasSearched && !isSearching && searchResults && searchResults.data && searchResults.data.salesHistory && searchResults.data.salesHistory.length > 0 && (
             <div className="space-y-6">
               {/* Results Summary with Display Options */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {searchResults.salesHistory.length} Results for {make} {model} ({yearFrom}-{yearTo})
+                    {searchResults.data.salesHistory.length} Results for {make} {model} ({yearFrom}-{yearTo})
                   </h3>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults.salesHistory))}
+                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults.data.salesHistory))}
                   </div>
                 </div>
                 
