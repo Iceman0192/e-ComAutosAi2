@@ -219,7 +219,7 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                   Mileage vs Price Distribution
                 </h4>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={mileageAnalysis}>
+                  <BarChart data={mileageAnalysis.sort((a, b) => a.minMiles - b.minMiles)}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="range" 
