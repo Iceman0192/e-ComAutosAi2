@@ -464,6 +464,14 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         </TabsContent>
 
         <TabsContent value="damage" className="mt-6">
+          <EnhancedDamageAnalysis salesHistory={salesHistory} />
+        </TabsContent>
+
+        <TabsContent value="mileage" className="mt-6">
+          <TieredMileageAnalysis salesHistory={salesHistory} />
+        </TabsContent>
+
+        <TabsContent value="original-damage" className="mt-6">
           <PermissionGate permission="FULL_ANALYTICS">
             <Card>
               <CardHeader>
