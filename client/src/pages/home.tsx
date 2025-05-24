@@ -1043,6 +1043,8 @@ export default function Home() {
                                         src={imageUrl} 
                                         alt={`${sale.year} ${sale.make} ${sale.model}`}
                                         className="h-16 w-20 object-cover rounded-lg border border-blue-200 dark:border-blue-700 shadow-sm"
+                                        crossOrigin="anonymous"
+                                        loading="lazy"
                                         onError={(e) => {
                                           const target = e.target as HTMLImageElement;
                                           target.style.display = 'none';
@@ -1173,6 +1175,8 @@ export default function Home() {
                                 src={imageUrl} 
                                 alt={`${sale.year} ${sale.make} ${sale.model}`}
                                 className="h-full w-full object-cover"
+                                crossOrigin="anonymous"
+                                loading="lazy"
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;
                                   target.style.display = 'none';
