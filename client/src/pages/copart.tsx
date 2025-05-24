@@ -584,7 +584,11 @@ export default function Copart() {
                     {/* Pagination buttons */}
                     <div className="flex items-center space-x-1">
                       <button
-                        onClick={() => setPage(Math.max(1, page - 1))}
+                        onClick={() => {
+                          const newPage = Math.max(1, page - 1);
+                          setPage(newPage);
+                          refetch(); // Trigger new API request
+                        }}
                         disabled={page <= 1}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
                       >
@@ -597,7 +601,10 @@ export default function Copart() {
                         return (
                           <button
                             key={pageNum}
-                            onClick={() => setPage(pageNum)}
+                            onClick={() => {
+                              setPage(pageNum);
+                              refetch(); // Trigger new API request
+                            }}
                             className={`px-3 py-1 text-sm border rounded-md ${
                               page === pageNum
                                 ? 'bg-blue-600 text-white border-blue-600'
@@ -610,7 +617,11 @@ export default function Copart() {
                       })}
                       
                       <button
-                        onClick={() => setPage(page + 1)}
+                        onClick={() => {
+                          const newPage = page + 1;
+                          setPage(newPage);
+                          refetch(); // Trigger new API request
+                        }}
                         disabled={page >= Math.ceil(salesData.length / resultsPerPage)}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
                       >
