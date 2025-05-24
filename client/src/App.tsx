@@ -5,16 +5,14 @@ import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
 
 // Pages
-import Dashboard from "./pages/dashboard";
-import Copart from "./pages/copart";
+import Home from "./pages/home";
 import IAAI from "./pages/iaai";
 import NotFound from "./pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/copart" component={Copart} />
+      <Route path="/" component={Home} />
       <Route path="/iaai" component={IAAI} />
       <Route component={NotFound} />
     </Switch>
