@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Lock, TrendingDown, Target, Percent, Star, Gauge } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface MileageBracket {
   range: string;
@@ -219,37 +219,57 @@ export default function TieredMileageAnalysis({ salesHistory }: TieredMileageAna
                   Mileage vs Price Distribution
                 </h4>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={mileageAnalysis.sort((a, b) => a.minMiles - b.minMiles)}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <ScatterChart 
+                    data={salesHistory.filter(sale => {
+                      const price = sale.purchase_price || 0;
+                      const mileageRaw = sale.odometer || sale.vehicle_mileage;
+                      const mileage = typeof mileageRaw === 'string' ? parseFloat(mileageRaw) : mileageRaw;
+                      return price && !isNaN(price) && price > 0 && mileage && !isNaN(mileage) && mileage > 0;
+                    }).map(sale => ({
+                      mileage: sale.odometer || sale.vehicle_mileage,
+                      price: sale.purchase_price
+                    }))}
+                    margin={{ top: 20, right: 30, left: 40, bottom: 60 }}
+                  >
+                    <CartesianGrid 
+                      strokeDasharray="3 3" 
+                      stroke="#e5e7eb" 
+                      strokeOpacity={0.6}
+                    />
                     <XAxis 
-                      dataKey="range" 
+                      dataKey="mileage" 
+                      name="Mileage"
+                      type="number"
+                      tickFormatter={(value) => `${Math.round(value / 1000)}k`}
+                      domain={['dataMin - 5000', 'dataMax + 5000']}
                       stroke="#6b7280"
                       fontSize={12}
                     />
                     <YAxis 
+                      dataKey="price" 
+                      name="Price"
+                      type="number"
                       tickFormatter={(value) => `$${Math.round(value / 1000)}k`}
+                      domain={['dataMin - 1000', 'dataMax + 1000']}
                       stroke="#6b7280"
                       fontSize={12}
                     />
                     <Tooltip 
+                      cursor={{ strokeDasharray: '3 3' }}
                       formatter={(value, name) => [
-                        name === 'averagePrice' ? formatCurrency(value as number) : value,
-                        name === 'averagePrice' ? 'Average Price' : 'Sample Size'
+                        name === 'price' ? formatCurrency(value as number) : `${(value as number).toLocaleString()} miles`,
+                        name === 'price' ? 'Price' : 'Mileage'
                       ]}
-                      labelFormatter={(label) => `Mileage Range: ${label}`}
-                      contentStyle={{
-                        backgroundColor: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px'
-                      }}
                     />
-                    <Bar 
-                      dataKey="averagePrice" 
+                    <Scatter 
+                      dataKey="price" 
                       fill="#3b82f6" 
-                      radius={[4, 4, 0, 0]}
-                      name="Average Price"
+                      fillOpacity={0.8}
+                      stroke="#1d4ed8"
+                      strokeWidth={1}
+                      r={6}
                     />
-                  </BarChart>
+                  </ScatterChart>
                 </ResponsiveContainer>
               </div>
             </div>
