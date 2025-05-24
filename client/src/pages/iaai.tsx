@@ -146,19 +146,12 @@ export default function IAAI() {
           setSearchResults(result);
           setIsLoading(false);
           
-          // Update total results count for pagination
+          // Update total results count for pagination - check the correct location
           if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
-          } else if (result.data.salesHistory && result.data.salesHistory.length > 0) {
-            // If we got a full page, assume there are more results
-            const displayedCount = result.data.salesHistory.length;
-            if (displayedCount === resultsPerPage) {
-              setTotalResults(resultsPerPage * 2); // Assume at least 2 pages
-            } else {
-              setTotalResults(displayedCount);
-            }
+            console.log(`Setting total results from pagination: ${result.data.pagination.totalCount}`);
           } else {
-            // No results found
+            // Fallback - no results found
             setTotalResults(0);
           }
         } else {
@@ -214,21 +207,10 @@ export default function IAAI() {
           // Make sure we're showing search has been performed
           setHasSearched(true);
           
-          // Update total results count for pagination - preserve existing count if higher
+          // Update total results count for pagination - get from pagination field
           if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
-          } else if (result.data.salesHistory) {
-            // Preserve the existing totalResults if we already have a higher count
-            const displayedCount = result.data.salesHistory.length;
-            if (displayedCount === resultsPerPage) {
-              // If we got a full page, keep the existing total or estimate higher
-              const estimatedTotal = newPage * resultsPerPage + resultsPerPage;
-              setTotalResults(prev => Math.max(prev, estimatedTotal));
-            } else {
-              // If we got a partial page, we can calculate the exact total
-              const exactTotal = (newPage - 1) * resultsPerPage + displayedCount;
-              setTotalResults(prev => Math.max(prev, exactTotal));
-            }
+            console.log(`Page ${newPage}: Setting total results from pagination: ${result.data.pagination.totalCount}`);
           }
         }
       })
