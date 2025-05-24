@@ -106,26 +106,6 @@ export default function IAAI() {
     }
   };
   
-  // Handle reset button click
-  const handleReset = () => {
-    setMake('Toyota');
-    setModel('');
-    setYearFrom(currentYear - 5);
-    setYearTo(currentYear);
-    setAuctionDateFrom(() => {
-      const date = new Date();
-      date.setMonth(date.getMonth() - 3);
-      return date.toISOString().split('T')[0];
-    });
-    setAuctionDateTo(() => {
-      return new Date().toISOString().split('T')[0];
-    });
-    setPage(1);
-    setActiveTab(TabType.TIMELINE);
-    setSearchResults(null);
-    setHasSearched(false);
-  };
-
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
@@ -259,14 +239,7 @@ export default function IAAI() {
       <header className="bg-red-600 text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="text-white hover:text-red-200 transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              </Link>
-              <h1 className="text-2xl font-bold">IAAI Vehicle Sales History</h1>
-            </div>
+            <h1 className="text-2xl font-bold">IAAI Vehicle Sales History</h1>
             <PlatformToggle />
           </div>
         </div>
@@ -679,13 +652,13 @@ export default function IAAI() {
             
 
             
-            {/* Search and Reset Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            {/* Search Button */}
+            <div className="mt-6">
               <button
                 type="button"
                 onClick={handleSearch}
                 disabled={!make || isLoading}
-                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
               >
                 {isLoading ? (
                   <>
@@ -698,13 +671,6 @@ export default function IAAI() {
                 ) : (
                   'Search Vehicle History'
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={handleReset}
-                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
-              >
-                Reset Search
               </button>
             </div>
           </div>
