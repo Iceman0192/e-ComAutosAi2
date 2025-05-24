@@ -10,8 +10,8 @@ const USAGE_LIMITS = {
     cachedPageCredit: 2 // 2 cached pages = 1 API call credit
   },
   [UserRole.GOLD]: {
-    monthlySearches: -1, // unlimited
-    apiCallsPerSearch: -1, // unlimited
+    monthlySearches: 75, // 75 vehicle searches monthly
+    apiCallsPerSearch: 10, // 10 pages per search
     resultsPerPage: 25,
     cachedPageCredit: 1 // better rate for paid users
   },

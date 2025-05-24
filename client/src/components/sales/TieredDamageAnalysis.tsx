@@ -68,7 +68,7 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
     return result.sort((a, b) => b.average - a.average);
   }, [salesHistory]);
 
-  // Free tier: Show top 3 damage types
+  // Free tier: Show top 3 damage types only
   const freeTierData = damageAnalysis.slice(0, 3);
   const hiddenCount = Math.max(0, damageAnalysis.length - 3);
 
