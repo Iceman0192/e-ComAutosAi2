@@ -6,12 +6,14 @@ import ErrorBoundary from "./components/ui/error-boundary";
 
 // Pages
 import Home from "./pages/home";
+import IAAI from "./pages/iaai";
 import NotFound from "./pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/iaai" component={IAAI} />
       <Route component={NotFound} />
     </Switch>
   );
