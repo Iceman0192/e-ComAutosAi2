@@ -743,9 +743,10 @@ export default function IAAI() {
             )}
 
             {activeTab === TabType.TABLE && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                {/* Enhanced Filters Section */}
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <PermissionGate permission="ADVANCED_FILTERS">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                  {/* Enhanced Filters Section */}
+                  <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">SALE FILTERS</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div>
@@ -1052,7 +1053,7 @@ export default function IAAI() {
                     </nav>
                   </div>
                 </div>
-              </div>
+              </PermissionGate>
             )}
           </div>
         )}
