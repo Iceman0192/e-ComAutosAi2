@@ -161,9 +161,6 @@ export default function TieredDamageAnalysis({ salesHistory }: TieredDamageAnaly
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
                           Sample Size
                         </th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
-                          Price Range
-                        </th>
                       </tr>
                     </thead>
                     <tbody>
