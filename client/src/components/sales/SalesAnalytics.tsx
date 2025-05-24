@@ -7,6 +7,7 @@ import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, Gauge, AlertTriangle, CheckCircle } from 'lucide-react';
+import PermissionGate from '../auth/PermissionGate';
 
 interface SalesAnalyticsProps {
   salesHistory: Array<{
@@ -265,43 +266,46 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         </TabsList>
 
         <TabsContent value="distribution" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Price Distribution</CardTitle>
-              <CardDescription>
-                How prices are distributed across {validSales.length} vehicles
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={priceDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="range" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => [`${value} vehicles`, 'Count']}
-                    labelFormatter={(label) => `Price Range: ${label}`}
-                  />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {priceDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <PermissionGate permission="FULL_ANALYTICS">
+            <Card>
+              <CardHeader>
+                <CardTitle>Price Distribution</CardTitle>
+                <CardDescription>
+                  How prices are distributed across {validSales.length} vehicles
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={priceDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="range" />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [`${value} vehicles`, 'Count']}
+                      labelFormatter={(label) => `Price Range: ${label}`}
+                    />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                      {priceDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </PermissionGate>
         </TabsContent>
 
         <TabsContent value="scatter" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mileage vs Price Analysis</CardTitle>
-              <CardDescription>
-                Clear correlation between mileage and price - organized by mileage ranges for easy comparison
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+          <PermissionGate permission="FULL_ANALYTICS">
+            <Card>
+              <CardHeader>
+                <CardTitle>Mileage vs Price Analysis</CardTitle>
+                <CardDescription>
+                  Clear correlation between mileage and price - organized by mileage ranges for easy comparison
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
               <div className="space-y-6">
                 {/* Beautiful Interactive Chart - Enhanced Design */}
                 <div className="relative">
@@ -484,6 +488,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
               </div>
             </CardContent>
           </Card>
+          </PermissionGate>
         </TabsContent>
 
         <TabsContent value="damage" className="mt-6">
