@@ -109,10 +109,28 @@ export class VehicleCacheService {
         .from(salesHistory)
         .where(and(...conditions));
       
+      // Transform cached data to match frontend expectations
+      const transformedResults = results.map((item: any) => {
+        // For IAAI (site 2), ensure images are in the correct format
+        if (params.site === 2) {
+          // Parse images from JSON string and add to link_img_hd field
+          if (item.images && typeof item.images === 'string') {
+            try {
+              const parsedImages = JSON.parse(item.images);
+              item.link_img_hd = Array.isArray(parsedImages) ? parsedImages : [parsedImages];
+            } catch (error) {
+              console.error('Error parsing cached images:', error);
+              item.link_img_hd = [];
+            }
+          }
+        }
+        return item;
+      });
+
       console.log(`Cache served: ${results.length} results for page ${page}`);
       
       return {
-        data: results,
+        data: transformedResults,
         totalCount: totalCount.length,
         fromCache: true
       };
