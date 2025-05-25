@@ -154,6 +154,7 @@ export async function fetchSalesHistory(params: URLSearchParams | Object): Promi
     queryString = searchParams.toString();
   }
   
-  const endpoint = `/api/sales-history?${queryString}`;
+  // Use the clean v2 endpoint for better cache performance
+  const endpoint = `/api/v2/sales-history?${queryString}`;
   return apiFetch<SalesHistoryData>(endpoint);
 }
