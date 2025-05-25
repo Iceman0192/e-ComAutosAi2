@@ -787,7 +787,7 @@ export default function Home() {
                     {searchResults?.data?.salesHistory.length || 0} Results for {make} {model} {yearFrom && yearTo ? `(${yearFrom}-${yearTo})` : ''}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Average sold price: {formatCurrency(searchResults?.data?.stats?.averagePrice || 0)}
+                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults?.data?.salesHistory))}
                   </p>
                 </div>
                 
@@ -973,12 +973,8 @@ export default function Home() {
               {activeTab === TabType.PHOTOS && (
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {searchResults?.data?.salesHistory?.map((sale: any) => (
-                      <div 
-                        key={sale.id} 
-                        className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                        onClick={() => setSelectedVehicle(sale)}
-                      >
+                    {searchResults?.data?.salesHistory?.map((sale) => (
+                      <div key={sale.id} className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
                         <div className="h-48 w-full bg-gray-200 dark:bg-gray-600 relative">
                           {(() => {
                             // Handle different image formats (API direct vs database cached)

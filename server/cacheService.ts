@@ -111,10 +111,6 @@ export class VehicleCacheService {
       
       // Transform cached data to match frontend expectations
       const transformedResults = results.map((item: any) => {
-        // Convert purchase_price from string to number for frontend calculations
-        if (item.purchase_price) {
-          item.purchase_price = Number(item.purchase_price);
-        }
         // For IAAI (site 2), ensure images are in the correct format
         if (params.site === 2) {
           // Parse images from JSON string and add to link_img_hd field
@@ -126,14 +122,6 @@ export class VehicleCacheService {
               console.error('Error parsing cached images:', error);
               item.link_img_hd = [];
             }
-          } else if (!item.link_img_hd && item.images) {
-            // If images exist but link_img_hd doesn't, copy them over
-            item.link_img_hd = Array.isArray(item.images) ? item.images : [item.images];
-          }
-          
-          // Ensure link_img_hd exists for IAAI items, even if empty
-          if (!item.link_img_hd) {
-            item.link_img_hd = [];
           }
         }
         return item;

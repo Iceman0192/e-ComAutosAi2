@@ -61,7 +61,7 @@ export function setupApiRoutes(app: Express) {
               stats: {
                 totalSales: cachedResult.totalCount,
                 averagePrice: cachedResult.data.reduce((sum: number, item: any) => 
-                  sum + Number(item.purchase_price || 0), 0) / Math.max(cachedResult.data.length, 1),
+                  sum + (item.purchase_price || 0), 0) / Math.max(cachedResult.data.length, 1),
                 successRate: 0.75,
                 priceTrend: 0.05,
                 topLocations: []
@@ -113,7 +113,7 @@ export function setupApiRoutes(app: Express) {
           stats: {
             totalSales: apiResponse.data.count || 0,
             averagePrice: (apiResponse.data.data || []).reduce((sum: number, item: any) => 
-              sum + Number(item.purchase_price || 0), 0) / Math.max((apiResponse.data.data || []).length, 1),
+              sum + (item.purchase_price || 0), 0) / Math.max((apiResponse.data.data || []).length, 1),
             successRate: 0.75,
             priceTrend: 0.05,
             topLocations: []
@@ -190,7 +190,7 @@ export function setupApiRoutes(app: Express) {
               stats: {
                 totalSales: cachedResult.totalCount,
                 averagePrice: cachedResult.data.reduce((sum: number, item: any) => 
-                  sum + Number(item.purchase_price || 0), 0) / Math.max(cachedResult.data.length, 1),
+                  sum + (item.purchase_price || 0), 0) / Math.max(cachedResult.data.length, 1),
                 successRate: 0.75,
                 priceTrend: 0.05,
                 topLocations: []
@@ -242,7 +242,7 @@ export function setupApiRoutes(app: Express) {
           stats: {
             totalSales: apiResponse.data.count || 0,
             averagePrice: (apiResponse.data.data || []).reduce((sum: number, item: any) => 
-              sum + Number(item.purchase_price || 0), 0) / Math.max((apiResponse.data.data || []).length, 1),
+              sum + (item.purchase_price || 0), 0) / Math.max((apiResponse.data.data || []).length, 1),
             successRate: 0.75,
             priceTrend: 0.05,
             topLocations: []
