@@ -30,21 +30,14 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
   // Clean and prepare data
   const validSales = useMemo(() => 
     salesHistory.filter(sale => {
-      // Convert price to number, handling both string and number inputs
-      const priceRaw = sale.purchase_price;
-      const price = typeof priceRaw === 'string' ? parseFloat(priceRaw) : priceRaw;
-      
-      // Convert mileage to number
-      const mileageRaw = sale.odometer || sale.vehicle_mileage;
-      const mileage = typeof mileageRaw === 'string' ? parseFloat(mileageRaw) : mileageRaw;
-      
-      return price && !isNaN(price) && price > 0 && mileage && !isNaN(mileage) && mileage > 0;
+      const price = Number(sale.purchase_price);
+      const mileage = Number(sale.odometer || sale.vehicle_mileage);
+      return price > 0 && !isNaN(price) && mileage > 0 && !isNaN(mileage);
     }).map(sale => ({
       ...sale,
-      // Ensure all numeric fields are properly converted
-      purchase_price: typeof sale.purchase_price === 'string' ? parseFloat(sale.purchase_price) : sale.purchase_price,
-      odometer: sale.odometer ? (typeof sale.odometer === 'string' ? parseFloat(sale.odometer) : sale.odometer) : undefined,
-      vehicle_mileage: sale.vehicle_mileage ? (typeof sale.vehicle_mileage === 'string' ? parseFloat(sale.vehicle_mileage) : sale.vehicle_mileage) : undefined
+      purchase_price: Number(sale.purchase_price),
+      odometer: sale.odometer ? Number(sale.odometer) : undefined,
+      vehicle_mileage: sale.vehicle_mileage ? Number(sale.vehicle_mileage) : undefined
     })),
     [salesHistory]
   );
@@ -53,14 +46,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
   const stats = useMemo(() => {
     if (validSales.length === 0) return { avg: 0, min: 0, max: 0, total: 0 };
     
-    const prices = validSales.map(sale => {
-      const price = sale.purchase_price!;
-      // Ensure we have a proper number, not a concatenated string
-      return typeof price === 'string' ? parseFloat(price) : price;
-    }).filter(price => !isNaN(price) && price > 0);
-    
-    if (prices.length === 0) return { avg: 0, min: 0, max: 0, total: 0 };
-    
+    const prices = validSales.map(sale => sale.purchase_price);
     const sum = prices.reduce((acc, price) => acc + price, 0);
     
     return {
