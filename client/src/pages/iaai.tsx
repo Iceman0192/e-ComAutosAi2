@@ -4,7 +4,7 @@ import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
 import TieredDamageAnalysis from '../components/sales/TieredDamageAnalysis';
-import UsageDisplay from '../components/auth/UsageDisplay';
+
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
 
@@ -241,7 +241,13 @@ export default function IAAI() {
       <header className="bg-red-600 text-white">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">IAAI Vehicle Sales History</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">IAAI Vehicle Sales History</h1>
+            <div className="hidden sm:block">
+              <PlatformToggle />
+            </div>
+          </div>
+          {/* Mobile platform toggle */}
+          <div className="sm:hidden mt-3">
             <PlatformToggle />
           </div>
         </div>
@@ -251,10 +257,10 @@ export default function IAAI() {
       <main className="container mx-auto px-4 py-6">
         {/* Search Filters Card */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-6">
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Vehicle Sales History</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* Make - Required */}
               <div>
                 <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -589,9 +595,9 @@ export default function IAAI() {
                 </select>
               </div>
               
-              {/* Year Range */}
-              <div className="flex space-x-2">
-                <div className="flex-1">
+              {/* Year Range - Mobile Optimized */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Year From
                   </label>
@@ -599,7 +605,7 @@ export default function IAAI() {
                     id="yearFrom"
                     value={yearFrom}
                     onChange={(e) => setYearFrom(parseInt(e.target.value))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base"
                   >
                     {Array.from({ length: 30 }, (_, i) => currentYear - 29 + i).map(year => (
                       <option key={year} value={year}>{year}</option>
@@ -624,8 +630,8 @@ export default function IAAI() {
               </div>
               
               {/* Auction Date Range */}
-              <div className="flex space-x-2">
-                <div className="flex-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Auction Date From
                   </label>
@@ -634,7 +640,7 @@ export default function IAAI() {
                     id="auctionDateFrom"
                     value={auctionDateFrom}
                     onChange={(e) => setAuctionDateFrom(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base"
                   />
                 </div>
                 <div className="flex-1">
@@ -660,7 +666,7 @@ export default function IAAI() {
                 type="button"
                 onClick={handleSearch}
                 disabled={!make || isLoading}
-                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                className="w-full inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors min-h-[48px] touch-manipulation"
               >
                 {isLoading ? (
                   <>
@@ -1002,13 +1008,13 @@ export default function IAAI() {
                   <button
                     onClick={() => handlePageChange(Math.max(1, page - 1))}
                     disabled={page <= 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                    className="relative inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 min-h-[48px] touch-manipulation"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageChange(page + 1)}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="ml-3 relative inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[48px] touch-manipulation"
                   >
                     Next
                   </button>
