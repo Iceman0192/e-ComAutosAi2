@@ -129,8 +129,8 @@ export default function IAAI() {
     
     console.log(`Initial IAAI search with params:`, params.toString());
     
-    // Make direct fetch request to clean v2 IAAI endpoint
-    fetch(`/api/v2/iaai/sales-history?${params.toString()}`)
+    // Make direct fetch request to clean IAAI endpoint
+    fetch(`/api/iaai/sales-history?${params.toString()}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -196,8 +196,8 @@ export default function IAAI() {
     
     console.log(`Requesting IAAI page ${newPage} with params:`, params.toString());
     
-    // Make direct fetch request to clean v2 IAAI endpoint
-    fetch(`/api/v2/iaai/sales-history?${params.toString()}`)
+    // Make direct fetch request to clean IAAI endpoint
+    fetch(`/api/iaai/sales-history?${params.toString()}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
