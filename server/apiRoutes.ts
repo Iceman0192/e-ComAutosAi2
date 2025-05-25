@@ -353,55 +353,8 @@ export function setupApiRoutes(app: Express) {
         // Continue to API call if database query fails
       }
       
-      // For high page numbers, handle them carefully to prevent API spam
-      if (page >= 40) {
-        try {
-          // Get total count using Drizzle ORM instead of raw SQL
-          const totalCountResult = await db.select({ count: sql`count(*)` }).from(salesHistory)
-            .where(and(
-              eq(salesHistory.make, make),
-              eq(salesHistory.site, parseInt(site) || 1),
-              model ? eq(salesHistory.model, model) : sql`1=1`,
-              yearFrom && !isNaN(yearFrom) ? gte(salesHistory.year, yearFrom) : sql`1=1`,
-              yearTo && !isNaN(yearTo) ? lte(salesHistory.year, yearTo) : sql`1=1`
-            ));
-          
-          const totalCount = parseInt(totalCountResult[0]?.count?.toString() || '0');
-          console.log(`Found ${totalCount} total entries in database for ${make} ${model || ''}`);
-          
-          // If we have enough results already cached, use them instead of API
-          if (totalCount > (page - 5) * size) {
-            fromDatabase = true;
-            
-            // Use a safe fallback page to prevent excessive API calls
-            const fallbackPage = Math.max(1, page - 2);
-            const fallbackOffset = (fallbackPage - 1) * size;
-            
-            console.log(`Using fallback page ${fallbackPage} (offset ${fallbackOffset}) for page ${page}`);
-            
-            const dbSalesHistory = await db.query.salesHistory.findMany({
-              where: (fields: any) => {
-                let conditions = [
-                  eq(fields.make, make),
-                  eq(fields.site, parseInt(site) || 1)
-                ];
-                if (model) conditions.push(eq(fields.model, model));
-                if (yearFrom && !isNaN(yearFrom)) conditions.push(gte(fields.year, yearFrom));
-                if (yearTo && !isNaN(yearTo)) conditions.push(lte(fields.year, yearTo));
-                return and(...conditions);
-              },
-              orderBy: (fields, { desc }) => [desc(fields.created_at)],
-              limit: size,
-              offset: fallbackOffset
-            });
-            
-            dbResults = dbSalesHistory;
-            console.log(`Using cached results from page ${fallbackPage} as fallback for page ${page}`);
-          }
-        } catch (err) {
-          console.error('Error checking total counts:', err);
-        }
-      }
+      // Always try API first - let the API determine pagination limits
+      // Remove artificial page limits and trust the external API's pagination system
         
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
@@ -511,8 +464,14 @@ export function setupApiRoutes(app: Express) {
           totalCount = apiData.count;
         }
       
-        // Process API data if available
+        // Process API data - handle empty results properly
         if (apiData && apiData.data && Array.isArray(apiData.data)) {
+          // If API returns empty array, this is the end of results - don't fallback
+          if (apiData.data.length === 0) {
+            console.log(`API returned empty results for page ${page} - end of data reached`);
+            // Set totalCount to reflect actual end of data
+            totalCount = (page - 1) * size;
+          }
           // Extract vehicle info from first record
           if (apiData.data.length > 0) {
             const firstItem = apiData.data[0];
@@ -696,7 +655,9 @@ export function setupApiRoutes(app: Express) {
             totalCount: totalCount,
             currentPage: page,
             pageSize: size,
-            totalPages: Math.ceil(totalCount / size)
+            totalPages: Math.ceil(totalCount / size),
+            hasNextPage: salesHistoryList.length === size && totalCount > page * size,
+            hasPreviousPage: page > 1
           }
         }
       });
