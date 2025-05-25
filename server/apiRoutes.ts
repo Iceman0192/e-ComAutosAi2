@@ -60,9 +60,10 @@ export function setupApiRoutes(app: Express) {
               eq(fields.site, 2) // IAAI only
             ];
             
-            if (model) {
+            if (model && model.trim() !== '') {
               conditions.push(eq(fields.model, model));
             }
+            // Note: When model is undefined/empty, we search across all models for the make
             
             if (yearFrom) {
               conditions.push(gte(fields.year, yearFrom));
@@ -325,9 +326,10 @@ export function setupApiRoutes(app: Express) {
               eq(fields.site, siteNum)
             ];
             
-            if (model) {
+            if (model && model.trim() !== '') {
               conditions.push(eq(fields.model, model));
             }
+            // Note: When model is undefined/empty, we search across all models for the make
             
             if (yearFrom && !isNaN(yearFrom)) {
               conditions.push(gte(fields.year, yearFrom));
