@@ -10,9 +10,9 @@ import { cacheService } from './cacheService';
 export function setupCleanApiRoutes(app: Express) {
   
   /**
-   * Clean Copart Sales History Endpoint
+   * Copart Sales History Endpoint - Clean Cache System
    */
-  app.get('/api/v2/sales-history', async (req: Request, res: Response) => {
+  app.get('/api/sales-history', async (req: Request, res: Response) => {
     try {
       // Extract and validate parameters
       const make = req.query.make as string;
@@ -140,9 +140,9 @@ export function setupCleanApiRoutes(app: Express) {
   });
   
   /**
-   * Clean IAAI Sales History Endpoint
+   * IAAI Sales History Endpoint - Clean Cache System
    */
-  app.get('/api/v2/iaai/sales-history', async (req: Request, res: Response) => {
+  app.get('/api/iaai/sales-history', async (req: Request, res: Response) => {
     try {
       // Extract and validate parameters
       const make = req.query.make as string;
