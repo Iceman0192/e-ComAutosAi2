@@ -423,7 +423,11 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                  No mileage vs price data available
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
