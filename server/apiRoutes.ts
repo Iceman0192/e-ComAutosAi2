@@ -166,7 +166,7 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Prepare response
-      let salesHistoryList: any = [];
+      let salesHistoryList: any[] = [];
       let totalCount = 0;
       
       if (fromDatabase) {
@@ -224,8 +224,8 @@ export function setupApiRoutes(app: Express) {
         vehicle_damage: item.vehicle_damage || item.damage_pr,
         vehicle_mileage: item.vehicle_mileage || item.odometer,
         vehicle_has_keys: item.vehicle_has_keys || (item.keys === 'Yes'),
-        link_img_small: item.link_img_small || (item.images ? JSON.parse(item.images) : []),
-        link_img_hd: item.link_img_hd || (item.images ? JSON.parse(item.images) : []),
+        link_img_small: item.link_img_small || (item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : []),
+        link_img_hd: item.link_img_hd || (item.images ? (typeof item.images === 'string' ? JSON.parse(item.images) : item.images) : []),
         link: item.link
       }));
       
@@ -254,11 +254,12 @@ export function setupApiRoutes(app: Express) {
         data: responseData
       });
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('IAAI API Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch IAAI sales history: ' + error.message
+        message: 'Failed to fetch IAAI sales history: ' + errorMessage
       });
     }
   });
@@ -300,30 +301,36 @@ export function setupApiRoutes(app: Express) {
       }
       
       // First try to get results from database if we have them
-      let dbResults = [];
-      let apiResponse;
+      let dbResults: any[] = [];
+      let apiResponse: any = null;
       let fromDatabase = false;
       
       try {
         // Check if we have cached results in the database
         console.log('Checking database for cached results with query:', { make, model, page, size, site });
         
+        // Safely parse site parameter
+        const siteNum = site ? parseInt(site) : 1;
+        if (isNaN(siteNum)) {
+          throw new Error('Invalid site parameter');
+        }
+        
         const dbSalesHistory = await db.query.salesHistory.findMany({
           where: (fields: any) => {
             let conditions = [
               eq(fields.make, make),
-              eq(fields.site, parseInt(site))
+              eq(fields.site, siteNum)
             ];
             
             if (model) {
               conditions.push(eq(fields.model, model));
             }
             
-            if (yearFrom) {
+            if (yearFrom && !isNaN(yearFrom)) {
               conditions.push(gte(fields.year, yearFrom));
             }
             
-            if (yearTo) {
+            if (yearTo && !isNaN(yearTo)) {
               conditions.push(lte(fields.year, yearTo));
             }
             
@@ -346,50 +353,41 @@ export function setupApiRoutes(app: Express) {
         // Continue to API call if database query fails
       }
       
-      // For page 40 and 41 specifically, we'll handle them specially to prevent API spam
-      // This prevents repeated API calls for high page numbers
-      if (page === 40 || page === 41) {
+      // For high page numbers, handle them carefully to prevent API spam
+      if (page >= 40) {
         try {
-          // First, get a total count of database entries for this make/model
-          const countQuery = `
-            SELECT COUNT(*) as total FROM sales_history 
-            WHERE make = $1 
-            ${model ? 'AND model = $2' : ''}
-            ${yearFrom ? `AND year >= ${model ? '$3' : '$2'}` : ''}
-            ${yearTo ? `AND year <= ${yearFrom ? (model ? '$4' : '$3') : (model ? '$3' : '$2')}` : ''}
-          `;
+          // Get total count using Drizzle ORM instead of raw SQL
+          const totalCountResult = await db.select({ count: sql`count(*)` }).from(salesHistory)
+            .where(and(
+              eq(salesHistory.make, make),
+              eq(salesHistory.site, parseInt(site) || 1),
+              model ? eq(salesHistory.model, model) : sql`1=1`,
+              yearFrom && !isNaN(yearFrom) ? gte(salesHistory.year, yearFrom) : sql`1=1`,
+              yearTo && !isNaN(yearTo) ? lte(salesHistory.year, yearTo) : sql`1=1`
+            ));
           
-          const queryParams = [make];
-          if (model) queryParams.push(model);
-          if (yearFrom) queryParams.push(yearFrom.toString());
-          if (yearTo) queryParams.push(yearTo.toString());
-          
-          // Pool is now imported at the top of the file
-          const countResult = await pool.query(countQuery, queryParams);
-          const totalCount = parseInt(countResult.rows[0]?.total || '0');
-          
+          const totalCount = parseInt(totalCountResult[0]?.count?.toString() || '0');
           console.log(`Found ${totalCount} total entries in database for ${make} ${model || ''}`);
           
-          // If we have enough results already cached, don't hit the API again
-          if (totalCount > (page - 5) * size) { // If we have at least 5 pages before this cached
+          // If we have enough results already cached, use them instead of API
+          if (totalCount > (page - 5) * size) {
             fromDatabase = true;
             
-            // For page 40-41, use the cache from page 39 to prevent unnecessary API calls
-            const fallbackPage = page === 41 ? 39 : 38;
+            // Use a safe fallback page to prevent excessive API calls
+            const fallbackPage = Math.max(1, page - 2);
             const fallbackOffset = (fallbackPage - 1) * size;
             
             console.log(`Using fallback page ${fallbackPage} (offset ${fallbackOffset}) for page ${page}`);
             
-            // Get the data from a previous page
             const dbSalesHistory = await db.query.salesHistory.findMany({
               where: (fields: any) => {
                 let conditions = [
                   eq(fields.make, make),
-                  eq(fields.site, parseInt(site))
+                  eq(fields.site, parseInt(site) || 1)
                 ];
                 if (model) conditions.push(eq(fields.model, model));
-                if (yearFrom) conditions.push(gte(fields.year, yearFrom));
-                if (yearTo) conditions.push(lte(fields.year, yearTo));
+                if (yearFrom && !isNaN(yearFrom)) conditions.push(gte(fields.year, yearFrom));
+                if (yearTo && !isNaN(yearTo)) conditions.push(lte(fields.year, yearTo));
                 return and(...conditions);
               },
               orderBy: (fields, { desc }) => [desc(fields.created_at)],
