@@ -469,8 +469,32 @@ export function setupApiRoutes(app: Express) {
           // If API returns empty array, this is the end of results - don't fallback
           if (apiData.data.length === 0) {
             console.log(`API returned empty results for page ${page} - end of data reached`);
-            // Set totalCount to reflect actual end of data
-            totalCount = (page - 1) * size;
+            // API has hit its limit - set realistic totalCount
+            totalCount = Math.max((page - 1) * size, 0);
+            // Return empty results immediately - no fallback to cached data
+            return res.json({
+              success: true,
+              data: {
+                salesHistory: [],
+                vehicle: null,
+                stats: {
+                  totalSales: 0,
+                  averagePrice: 0,
+                  successRate: 0,
+                  priceTrend: 0
+                },
+                priceTrend: generatePriceTrend(0),
+                geographicData: [],
+                pagination: {
+                  totalCount: totalCount,
+                  currentPage: page,
+                  pageSize: size,
+                  totalPages: Math.ceil(totalCount / size),
+                  hasNextPage: false,
+                  hasPreviousPage: page > 1
+                }
+              }
+            });
           }
           // Extract vehicle info from first record
           if (apiData.data.length > 0) {
