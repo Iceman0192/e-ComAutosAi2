@@ -7,7 +7,7 @@ import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { db, pool } from './db';
 import { salesHistory, vehicles } from '@shared/schema';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, sql, desc } from 'drizzle-orm';
 
 export function setupApiRoutes(app: Express) {
   /**
@@ -319,40 +319,36 @@ export function setupApiRoutes(app: Express) {
           throw new Error('Invalid site parameter');
         }
         
-        const dbSalesHistory = await db.query.salesHistory.findMany({
-          where: (fields: any) => {
-            let conditions = [
-              eq(fields.make, make),
-              eq(fields.site, siteNum)
-            ];
-            
-            if (model && model.trim() !== '') {
-              conditions.push(eq(fields.model, model));
-            }
-            // Note: When model is undefined/empty, we search across all models for the make
-            
-            if (yearFrom && !isNaN(yearFrom)) {
-              conditions.push(gte(fields.year, yearFrom));
-            }
-            
-            if (yearTo && !isNaN(yearTo)) {
-              conditions.push(lte(fields.year, yearTo));
-            }
-            
-            // Note: Intentionally not filtering by sale dates in cache lookup
-            // to allow broader cache utilization while API calls remain filtered
-            
-            return and(...conditions);
-          },
-          orderBy: (fields, { desc }) => [desc(fields.created_at)],
-          limit: size,
-          offset: (page - 1) * size
-        });
+        // Simplified cache check - just verify we have data for this exact search
+        const cacheCheckConditions = [
+          eq(salesHistory.make, make),
+          eq(salesHistory.site, siteNum)
+        ];
+        
+        if (model && model.trim() !== '') {
+          cacheCheckConditions.push(eq(salesHistory.model, model));
+        }
+        
+        if (yearFrom && !isNaN(yearFrom)) {
+          cacheCheckConditions.push(gte(salesHistory.year, yearFrom));
+        }
+        
+        if (yearTo && !isNaN(yearTo)) {
+          cacheCheckConditions.push(lte(salesHistory.year, yearTo));
+        }
+        
+        const dbSalesHistory = await db.select()
+          .from(salesHistory)
+          .where(and(...cacheCheckConditions))
+          .orderBy(desc(salesHistory.created_at))
+          .limit(size)
+          .offset((page - 1) * size);
         
         console.log(`Found ${dbSalesHistory.length} results in database cache for page ${page}`);
         
-        // Use cached results if we have them - this is more efficient
-        if (dbSalesHistory.length > 0) {
+        // Check if we have enough cached data for this page
+        // Only use cache if we have the exact page size we need
+        if (dbSalesHistory.length >= size) {
           dbResults = dbSalesHistory;
           fromDatabase = true;
         }
@@ -361,7 +357,7 @@ export function setupApiRoutes(app: Express) {
         // Continue to API call if database query fails
       }
       
-      // Always call the API first - trust it completely for all pagination
+      // If we don't have cached data, call the API
       if (!fromDatabase) {
         const siteParam = site || '1';
         const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${siteParam}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
