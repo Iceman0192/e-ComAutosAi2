@@ -10,9 +10,20 @@ import { fromZodError } from "zod-validation-error";
 const APICAR_BASE_URL = process.env.APICAR_BASE_URL || "https://api.apicar.store";
 const APICAR_API_KEY = process.env.APICAR_API_KEY || "";
 
-// Simple in-memory cache with expiration
+// Simple in-memory cache with expiration and cleanup
 const cache = new Map<string, { data: any; expiry: number }>();
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+const CACHE_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+// Clean up expired cache entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of cache.entries()) {
+    if (value.expiry <= now) {
+      cache.delete(key);
+    }
+  }
+}, CACHE_CLEANUP_INTERVAL);
 
 async function cachedApiRequest(url: string): Promise<any> {
   const cacheKey = url;
