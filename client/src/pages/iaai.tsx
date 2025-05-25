@@ -824,12 +824,12 @@ export default function IAAI() {
                               {/* Vehicle Image */}
                               <div className="flex-shrink-0 h-16 w-20 mr-4 relative">
                                 {(() => {
-                                  // Enhanced image handling - try multiple sources
+                                  // Use HD images first for IAAI - they're more reliable
                                   let imageUrl = '';
-                                  if (sale.link_img_small && sale.link_img_small.length > 0) {
-                                    imageUrl = sale.link_img_small[0];
-                                  } else if (sale.link_img_hd && sale.link_img_hd.length > 0) {
+                                  if (sale.link_img_hd && sale.link_img_hd.length > 0) {
                                     imageUrl = sale.link_img_hd[0];
+                                  } else if (sale.link_img_small && sale.link_img_small.length > 0) {
+                                    imageUrl = sale.link_img_small[0];
                                   }
                                   
                                   return imageUrl ? (
