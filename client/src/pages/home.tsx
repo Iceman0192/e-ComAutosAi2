@@ -1119,8 +1119,7 @@ export default function Home() {
                       
                       <button
                         onClick={() => handlePageChange(page + 1)}
-                        // Never disable the next button when we have results
-                        disabled={false}
+                        disabled={searchResults?.data?.salesHistory?.length === 0}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                       >
                         <span className="sr-only">Next</span>
