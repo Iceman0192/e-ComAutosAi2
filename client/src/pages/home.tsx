@@ -787,7 +787,7 @@ export default function Home() {
                     {searchResults?.data?.salesHistory.length || 0} Results for {make} {model} {yearFrom && yearTo ? `(${yearFrom}-${yearTo})` : ''}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Average sold price: {formatCurrency(calculateAveragePrice(searchResults?.data?.salesHistory))}
+                    Average sold price: {formatCurrency(searchResults?.data?.stats?.averagePrice || 0)}
                   </p>
                 </div>
                 
