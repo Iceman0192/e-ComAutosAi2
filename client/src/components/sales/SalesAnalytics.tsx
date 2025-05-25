@@ -41,7 +41,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
   const stats = useMemo(() => {
     if (validSales.length === 0) return { avg: 0, min: 0, max: 0, total: 0 };
     
-    const prices = validSales.map(sale => sale.purchase_price).filter(price => price != null) as number[];
+    const prices = validSales.map(sale => Number(sale.purchase_price)).filter(price => !isNaN(price) && price > 0);
     const sum = prices.reduce((acc, price) => acc + price, 0);
     
     return {
