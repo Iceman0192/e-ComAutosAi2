@@ -444,6 +444,109 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="damage" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Damage Type Price Analysis</CardTitle>
+              <CardDescription>
+                Clear pricing breakdown by damage type - organized for easy comparison
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {damageTypeAnalysis.length > 0 ? (
+                <div className="space-y-6">
+                  {/* Clean Data Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[600px] border-collapse border border-gray-300 dark:border-gray-600">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-3 text-left font-semibold text-sm">
+                            Damage Type
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
+                            Count
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
+                            Average Price
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm hidden sm:table-cell">
+                            Price Range
+                          </th>
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
+                            Median
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {damageTypeAnalysis.map((damage, index) => (
+                          <tr key={damage.damage} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <td className="border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-3">
+                              <div className="flex items-center gap-3">
+                                <div 
+                                  className="w-4 h-4 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: damage.color }}
+                                />
+                                <span className="font-medium text-sm">{damage.damage}</span>
+                              </div>
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right text-gray-600 dark:text-gray-400 text-sm">
+                              {damage.count}
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
+                              {formatCurrency(damage.average)}
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right text-sm text-gray-600 dark:text-gray-400 hidden sm:table-cell">
+                              {formatCurrency(damage.min)} - {formatCurrency(damage.max)}
+                            </td>
+                            <td className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-medium text-sm">
+                              {formatCurrency(damage.median)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Visual Chart */}
+                  <div className="mt-6">
+                    <h4 className="text-lg font-semibold mb-4">Visual Comparison</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={damageTypeAnalysis} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="damage"
+                          type="category"
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          interval={0}
+                        />
+                        <YAxis 
+                          type="number"
+                          tickFormatter={(value) => formatCurrency(value)}
+                        />
+                        <Tooltip 
+                          formatter={(value) => [formatCurrency(Number(value)), 'Average Price']}
+                          labelFormatter={(label) => `${label} Damage`}
+                        />
+                        <Bar dataKey="average" radius={[4, 4, 0, 0]}>
+                          {damageTypeAnalysis.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-48 text-gray-500">
+                  No damage data available for analysis
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
