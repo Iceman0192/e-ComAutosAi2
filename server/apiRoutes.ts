@@ -405,7 +405,8 @@ export function setupApiRoutes(app: Express) {
         
       // If we don't have enough cached results, call the API
       if (!fromDatabase) {
-        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${site}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
+        const siteParam = site || '1';
+        const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${siteParam}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
         console.log(`Requesting from APICAR API: ${apiUrl}`);
         
         apiResponse = await getVehicleSalesHistory(
@@ -417,7 +418,7 @@ export function setupApiRoutes(app: Express) {
           yearTo,
           saleFrom,
           saleTo,
-          site
+          siteParam
         );
         
         // Save response to database for future use
