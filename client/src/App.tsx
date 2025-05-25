@@ -14,6 +14,8 @@ import Home from "./pages/home";
 import IAAI from "./pages/iaai";
 import CrossPlatform from "./pages/cross-platform";
 import Datasets from "./pages/datasets";
+import Account from "./pages/account";
+import Billing from "./pages/billing";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -26,6 +28,8 @@ function Router() {
         <Route path="/iaai" component={IAAI} />
         <Route path="/cross-platform" component={CrossPlatform} />
         <Route path="/datasets" component={Datasets} />
+        <Route path="/account" component={Account} />
+        <Route path="/billing" component={Billing} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>
