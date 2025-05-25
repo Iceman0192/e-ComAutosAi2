@@ -974,7 +974,11 @@ export default function Home() {
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {searchResults?.data?.salesHistory?.map((sale) => (
-                      <div key={sale.id} className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
+                      <div 
+                        key={sale.id} 
+                        className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => setSelectedVehicle(sale)}
+                      >
                         <div className="h-48 w-full bg-gray-200 dark:bg-gray-600 relative">
                           {(() => {
                             // Handle different image formats (API direct vs database cached)

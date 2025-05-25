@@ -53,7 +53,14 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
   const stats = useMemo(() => {
     if (validSales.length === 0) return { avg: 0, min: 0, max: 0, total: 0 };
     
-    const prices = validSales.map(sale => sale.purchase_price!);
+    const prices = validSales.map(sale => {
+      const price = sale.purchase_price!;
+      // Ensure we have a proper number, not a concatenated string
+      return typeof price === 'string' ? parseFloat(price) : price;
+    }).filter(price => !isNaN(price) && price > 0);
+    
+    if (prices.length === 0) return { avg: 0, min: 0, max: 0, total: 0 };
+    
     const sum = prices.reduce((acc, price) => acc + price, 0);
     
     return {
