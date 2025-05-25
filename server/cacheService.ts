@@ -122,6 +122,14 @@ export class VehicleCacheService {
               console.error('Error parsing cached images:', error);
               item.link_img_hd = [];
             }
+          } else if (!item.link_img_hd && item.images) {
+            // If images exist but link_img_hd doesn't, copy them over
+            item.link_img_hd = Array.isArray(item.images) ? item.images : [item.images];
+          }
+          
+          // Ensure link_img_hd exists for IAAI items, even if empty
+          if (!item.link_img_hd) {
+            item.link_img_hd = [];
           }
         }
         return item;
