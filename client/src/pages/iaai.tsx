@@ -929,7 +929,7 @@ export default function IAAI() {
                       {/* Vehicle Image */}
                       <div className="h-48 bg-gray-200 dark:bg-gray-600 relative">
                         {(() => {
-                          // Handle different image formats (API direct vs database cached)
+                          // Use HD images first for IAAI - they're more reliable
                           let imageUrl = null;
                           if (sale.link_img_hd && sale.link_img_hd.length > 0) {
                             imageUrl = sale.link_img_hd[0];
