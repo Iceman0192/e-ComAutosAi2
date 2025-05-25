@@ -3,6 +3,8 @@ import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
+import PermissionGate from '../components/auth/PermissionGate';
+import { useAuth } from '../contexts/AuthContext';
 
 
 import { formatCurrency } from '../utils/formatters';
@@ -829,8 +831,6 @@ export default function Home() {
               {/* Result content based on active tab */}
               {activeTab === TabType.TIMELINE && (
                 <div className="p-4 space-y-6">
-
-                  {/* Sales analytics */}
                   <SalesAnalytics 
                     salesHistory={searchResults?.data?.salesHistory || []}
                   />
