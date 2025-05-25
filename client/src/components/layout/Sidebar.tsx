@@ -1,0 +1,236 @@
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Home,
+  Car, 
+  Search,
+  BarChart3, 
+  Database, 
+  Users, 
+  Settings,
+  CreditCard,
+  LogOut,
+  Menu,
+  X
+} from 'lucide-react';
+import { Link, useLocation } from 'wouter';
+import { useState } from 'react';
+
+interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className = '' }: SidebarProps) {
+  const { user, hasPermission, logout } = useAuth();
+  const [location] = useLocation();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const navigationItems = [
+    {
+      title: 'Dashboard',
+      href: '/dashboard',
+      icon: Home,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'Copart Search',
+      href: '/',
+      icon: Car,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'IAAI Search',
+      href: '/iaai',
+      icon: Search,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'Cross-Platform',
+      href: '/cross-platform',
+      icon: BarChart3,
+      permission: 'CROSS_PLATFORM_SEARCH',
+      badge: 'PLATINUM'
+    },
+    {
+      title: 'Datasets',
+      href: '/datasets',
+      icon: Database,
+      permission: 'FULL_ANALYTICS',
+      badge: 'GOLD+'
+    },
+    {
+      title: 'Team Management',
+      href: '/team',
+      icon: Users,
+      permission: 'ADMIN_TOOLS',
+      badge: 'ENTERPRISE'
+    }
+  ];
+
+  const accountItems = [
+    {
+      title: 'Account Settings',
+      href: '/account',
+      icon: Settings,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'Billing',
+      href: '/billing',
+      icon: CreditCard,
+      permission: 'BASIC_SEARCH'
+    }
+  ];
+
+  const isActiveRoute = (href: string) => {
+    if (href === '/dashboard') return location === '/dashboard';
+    if (href === '/') return location === '/' && !location.includes('/dashboard');
+    return location.startsWith(href);
+  };
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Logo and User Info */}
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+          VehicleIntel
+        </h2>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+            {user?.name?.charAt(0)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              {user?.name}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {user?.email}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          <Badge variant="outline" className="text-xs">
+            {user?.role.toUpperCase()}
+          </Badge>
+          <Badge 
+            variant={user?.subscriptionStatus === 'active' ? 'default' : 'secondary'}
+            className="text-xs"
+          >
+            {user?.subscriptionStatus.toUpperCase()}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 p-4 space-y-1">
+        <div className="mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+            Main Navigation
+          </h3>
+          {navigationItems.map((item) => {
+            if (!hasPermission(item.permission as any)) return null;
+            
+            const Icon = item.icon;
+            const isActive = isActiveRoute(item.href);
+            
+            return (
+              <Link key={item.href} href={item.href}>
+                <Button
+                  variant={isActive ? "default" : "ghost"}
+                  className={`w-full justify-start gap-3 mb-1 ${
+                    isActive 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="flex-1 text-left">{item.title}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+            Account
+          </h3>
+          {accountItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = isActiveRoute(item.href);
+            
+            return (
+              <Link key={item.href} href={item.href}>
+                <Button
+                  variant={isActive ? "default" : "ghost"}
+                  className={`w-full justify-start gap-3 mb-1 ${
+                    isActive 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.title}
+                </Button>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          onClick={logout}
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden"
+        onClick={() => setIsMobileOpen(!isMobileOpen)}
+      >
+        {isMobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+
+      {/* Mobile Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className={`hidden md:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 ${className}`}>
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Sidebar */}
+      <aside className={`fixed top-0 left-0 z-50 w-64 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out md:hidden ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <SidebarContent />
+      </aside>
+    </>
+  );
+}

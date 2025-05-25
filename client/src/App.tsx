@@ -6,20 +6,29 @@ import ErrorBoundary from "./components/ui/error-boundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { UsageProvider } from "./contexts/UsageContext";
 import RoleSwitcher from "./components/auth/RoleSwitcher";
+import { MainLayout } from "./components/layout/MainLayout";
 
 // Pages
+import Dashboard from "./pages/dashboard";
 import Home from "./pages/home";
 import IAAI from "./pages/iaai";
+import CrossPlatform from "./pages/cross-platform";
+import Datasets from "./pages/datasets";
 import NotFound from "./pages/not-found";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/copart" component={Home} />
-      <Route path="/iaai" component={IAAI} />
-      <Route component={NotFound} />
-    </Switch>
+    <MainLayout>
+      <Switch>
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/" component={Home} />
+        <Route path="/copart" component={Home} />
+        <Route path="/iaai" component={IAAI} />
+        <Route path="/cross-platform" component={CrossPlatform} />
+        <Route path="/datasets" component={Datasets} />
+        <Route component={NotFound} />
+      </Switch>
+    </MainLayout>
   );
 }
 
