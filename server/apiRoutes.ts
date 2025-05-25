@@ -343,9 +343,8 @@ export function setupApiRoutes(app: Express) {
         
         console.log(`Found ${dbSalesHistory.length} results in database cache for page ${page}`);
         
-        // Only use cached results for the first few pages to improve performance
-        // For pages beyond 5, always call the API to ensure we get all available data
-        if (dbSalesHistory.length > 0 && page <= 5) {
+        // Use cached results if we have them - this is more efficient
+        if (dbSalesHistory.length > 0) {
           dbResults = dbSalesHistory;
           fromDatabase = true;
         }
