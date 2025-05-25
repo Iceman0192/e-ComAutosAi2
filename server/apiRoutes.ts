@@ -72,13 +72,8 @@ export function setupApiRoutes(app: Express) {
               conditions.push(lte(fields.year, yearTo));
             }
             
-            if (saleFrom) {
-              conditions.push(gte(fields.sale_date, new Date(saleFrom)));
-            }
-            
-            if (saleTo) {
-              conditions.push(lte(fields.sale_date, new Date(saleTo)));
-            }
+            // Note: Intentionally not filtering by sale dates in cache lookup
+            // to allow broader cache utilization while API calls remain filtered
             
             return and(...conditions);
           },
