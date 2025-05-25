@@ -18,7 +18,8 @@ const CACHE_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 // Clean up expired cache entries periodically
 setInterval(() => {
   const now = Date.now();
-  for (const [key, value] of cache.entries()) {
+  const entries = Array.from(cache.entries());
+  for (const [key, value] of entries) {
     if (value.expiry <= now) {
       cache.delete(key);
     }
