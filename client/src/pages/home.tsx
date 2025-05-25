@@ -838,197 +838,36 @@ export default function Home() {
               )}
               
               {activeTab === TabType.TABLE && (
-                <div className="flex flex-col lg:flex-row">
-                  {/* Secondary filters sidebar (appears after search results) */}
-                  <div className="w-full lg:w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-4">
-                    <h3 className="font-medium text-sm mb-4 text-gray-700 dark:text-gray-300">SALE FILTERS</h3>
-                    
-                    {/* Vehicle info filters */}
-                    <div className="space-y-4 mb-6">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Vehicle title type
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All title types</option>
-                          <option>Clean Title</option>
-                          <option>Salvage Title</option>
-                          <option>Rebuilt/Rebuildable</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Year
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All years</option>
-                          {Array.from({ length: 10 }, (_, i) => currentYear - i).map(year => (
-                            <option key={year}>{year}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Vehicle condition type
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All conditions</option>
-                          <option>Run & Drive</option>
-                          <option>Engine Start</option>
-                          <option>Non-Running</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Damage type
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All damage types</option>
-                          <option>Front End</option>
-                          <option>Rear End</option>
-                          <option>Side</option>
-                          <option>Minor Dent/Scratches</option>
-                          <option>Undercarriage</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Odometer
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All mileages</option>
-                          <option>Under 25,000 miles</option>
-                          <option>25,001 - 50,000 miles</option>
-                          <option>50,001 - 100,000 miles</option>
-                          <option>100,001 - 150,000 miles</option>
-                          <option>Over 150,000 miles</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    {/* Technical filters */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Engine type
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All engines</option>
-                          <option>4 Cylinder</option>
-                          <option>6 Cylinder</option>
-                          <option>8 Cylinder</option>
-                          <option>Hybrid</option>
-                          <option>Electric</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Transmission
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All transmissions</option>
-                          <option>Automatic</option>
-                          <option>Manual</option>
-                          <option>CVT</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Fuel type
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All fuel types</option>
-                          <option>Gasoline</option>
-                          <option>Diesel</option>
-                          <option>Hybrid</option>
-                          <option>Electric</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Drive train
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All drive types</option>
-                          <option>AWD</option>
-                          <option>FWD</option>
-                          <option>RWD</option>
-                          <option>4WD</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Auction location
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All locations</option>
-                          <option>FL - MIAMI CENTRAL</option>
-                          <option>FL - MIAMI SOUTH</option>
-                          <option>NY - LONG ISLAND</option>
-                          <option>CA - LOS ANGELES</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                          Sale date
-                        </label>
-                        <select className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
-                          <option>All dates</option>
-                          <option>Last 7 days</option>
-                          <option>Last 30 days</option>
-                          <option>Last 90 days</option>
-                          <option>Last 6 months</option>
-                          <option>Last year</option>
-                        </select>
-                      </div>
-                      
-                      <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm">
-                        Apply Filters
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Sales Results Table */}
-                  <div className="flex-1 overflow-x-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+                  {/* Clean, Simple Table - No filters sidebar */}
+                  <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Vehicle
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            VEHICLE
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Odometer
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            ODOMETER
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Title/Damage
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            TITLE/DAMAGE
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Location
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            LOCATION
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Sale Date
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            SALE PRICE
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Current Bid
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Action
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            SALE DATE
                           </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {searchResults?.data?.salesHistory?.map((sale) => (
-                          <tr key={sale.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                        {searchResults?.data?.salesHistory?.map((sale: any, index: number) => (
+                          <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
+                            <td className="px-4 py-4">
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-16 w-20 mr-4 relative">
                                   {(() => {
@@ -1088,7 +927,7 @@ export default function Home() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 py-4">
                               <div className="text-sm text-gray-900 dark:text-white">
                                 {sale.odometer ? `${sale.odometer.toLocaleString()} mi` : 
                                  sale.vehicle_mileage ? `${sale.vehicle_mileage.toLocaleString()} mi` : 'N/A'}
@@ -1097,7 +936,7 @@ export default function Home() {
                                 {sale.odometer || sale.vehicle_mileage ? '(ACTUAL)' : '(NOT ACTUAL)'}
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 py-4">
                               <div className="text-sm text-gray-900 dark:text-white font-medium">
                                 {sale.vehicle_title || sale.title || 'Unknown'}
                               </div>
@@ -1105,46 +944,23 @@ export default function Home() {
                                 {sale.damage_pr || sale.vehicle_damage || 'Normal Wear'}
                               </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 py-4">
                               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                                {(sale.base_site === 'copart' ? 'COPART: ' : 'IAAI: ') + (sale.location || sale.auction_location || sale.buyer_state || 'Unknown')}
+                                {sale.location || sale.auction_location || 'Unknown'}
                               </div>
-                              {sale.buyer_state && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {sale.buyer_state}/{sale.buyer_country}
-                                </div>
-                              )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <td className="px-4 py-4">
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">
+                                {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
                               <div className="text-sm text-gray-900 dark:text-white">
                                 {new Date(sale.sale_date).toLocaleDateString()}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
                                 {sale.sale_status}
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-bold text-gray-900 dark:text-white">
-                                {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
-                              </div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                Item# {sale.id.substring(0, 4)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-xs">
-                                View Details
-                              </button>
-                              {sale.link && (
-                                <a 
-                                  href={sale.link} 
-                                  target="_blank"
-                                  rel="noopener noreferrer" 
-                                  className="block mt-2 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                >
-                                  View Sale List
-                                </a>
-                              )}
                             </td>
                           </tr>
                         ))}
