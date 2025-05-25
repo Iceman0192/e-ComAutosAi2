@@ -49,22 +49,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Cross-Platform',
       href: '/cross-platform',
       icon: BarChart3,
-      permission: 'CROSS_PLATFORM_SEARCH',
-      badge: 'PLATINUM'
+      permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
       title: 'Datasets',
       href: '/datasets',
       icon: Database,
-      permission: 'FULL_ANALYTICS',
-      badge: 'GOLD+'
+      permission: 'FULL_ANALYTICS'
     },
     {
       title: 'Team Management',
       href: '/team',
       icon: Users,
-      permission: 'ADMIN_TOOLS',
-      badge: 'ENTERPRISE'
+      permission: 'ADMIN_TOOLS'
     }
   ];
 
@@ -147,11 +144,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.title}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
                 </Button>
               </Link>
             );
