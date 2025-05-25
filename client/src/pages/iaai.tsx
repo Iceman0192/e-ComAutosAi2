@@ -150,10 +150,11 @@ export default function IAAI() {
           if (result.data.pagination && result.data.pagination.totalCount) {
             setTotalResults(result.data.pagination.totalCount);
           } else if (result.data.salesHistory && result.data.salesHistory.length > 0) {
-            // If we got a full page, assume there are more results
+            // If we got a full page, assume there are more results for pagination
             const displayedCount = result.data.salesHistory.length;
             if (displayedCount === resultsPerPage) {
-              setTotalResults(resultsPerPage * 2); // Assume at least 2 pages
+              // Full page means there are likely more results - enable pagination
+              setTotalResults(Math.max(resultsPerPage + 1, displayedCount * 3)); // Conservative estimate to show pagination
             } else {
               setTotalResults(displayedCount);
             }
