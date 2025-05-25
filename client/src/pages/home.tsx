@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
-import SalesAnalytics from '../components/sales/SalesAnalytics';
-import PermissionGate from '../components/auth/PermissionGate';
-import { useAuth } from '../contexts/AuthContext';
+import TieredTimelineContent from '../components/sales/TieredTimelineContent';
+import TieredTableContent from '../components/sales/TieredTableContent';
 
 
 import { formatCurrency } from '../utils/formatters';
@@ -830,14 +829,14 @@ export default function Home() {
               
               {/* Result content based on active tab */}
               {activeTab === TabType.TIMELINE && (
-                <div className="p-4 space-y-6">
-                  <SalesAnalytics 
-                    salesHistory={searchResults?.data?.salesHistory || []}
-                  />
-                </div>
+                <TieredTimelineContent searchResults={searchResults} />
               )}
               
               {activeTab === TabType.TABLE && (
+                <TieredTableContent searchResults={searchResults} />
+              )}
+              
+              {activeTab === TabType.PHOTOS && (
                 <div className="flex flex-col lg:flex-row">
                   {/* Secondary filters sidebar (appears after search results) */}
                   <div className="w-full lg:w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 p-4">
