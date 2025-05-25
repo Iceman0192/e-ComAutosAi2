@@ -660,9 +660,9 @@ export default function Home() {
                 </select>
               </div>
               
-              {/* Year Range */}
-              <div className="flex space-x-2">
-                <div className="flex-1">
+              {/* Year Range - Mobile Optimized */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Year From
                   </label>
@@ -670,14 +670,14 @@ export default function Home() {
                     id="yearFrom"
                     value={yearFrom}
                     onChange={(e) => setYearFrom(parseInt(e.target.value))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base"
                   >
                     {Array.from({ length: 30 }, (_, i) => currentYear - 29 + i).map(year => (
                       <option key={year} value={year}>{year}</option>
                     ))}
                   </select>
                 </div>
-                <div className="flex-1">
+                <div>
                   <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Year To
                   </label>
@@ -730,7 +730,7 @@ export default function Home() {
                 type="button"
                 onClick={handleSearch}
                 disabled={!make || isSearching}
-                className="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="w-full inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors min-h-[48px] touch-manipulation"
               >
                 {isSearching ? (
                   <>
@@ -1240,13 +1240,13 @@ export default function Home() {
                   <button
                     onClick={() => handlePageChange(Math.max(1, page - 1))}
                     disabled={page <= 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                    className="relative inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 min-h-[48px] touch-manipulation"
                   >
                     Previous
                   </button>
                   <button
                     onClick={() => handlePageChange(page + 1)}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                    className="ml-3 relative inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[48px] touch-manipulation"
                   >
                     Next
                   </button>
@@ -1403,17 +1403,17 @@ export default function Home() {
                                 <>
                                   <button
                                     onClick={prevImage}
-                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                                    className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 hover:bg-opacity-80 text-white p-3 sm:p-2 rounded-full transition-all min-h-[44px] min-w-[44px] touch-manipulation"
                                   >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                     </svg>
                                   </button>
                                   <button
                                     onClick={nextImage}
-                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 hover:bg-opacity-80 text-white p-2 rounded-full transition-all"
+                                    className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 hover:bg-opacity-80 text-white p-3 sm:p-2 rounded-full transition-all min-h-[44px] min-w-[44px] touch-manipulation"
                                   >
-                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                     </svg>
                                   </button>

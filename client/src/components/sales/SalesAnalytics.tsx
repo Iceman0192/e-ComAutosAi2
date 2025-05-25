@@ -499,22 +499,22 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
                 <div className="space-y-6">
                   {/* Clean Data Table */}
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <table className="w-full min-w-[600px] border-collapse border border-gray-300 dark:border-gray-600">
                       <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
-                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-left font-semibold">
+                          <th className="border border-gray-300 dark:border-gray-600 px-3 sm:px-4 py-3 text-left font-semibold text-sm">
                             Damage Type
                           </th>
-                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
                             Count
                           </th>
-                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
                             Average Price
                           </th>
-                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm hidden sm:table-cell">
                             Price Range
                           </th>
-                          <th className="border border-gray-300 dark:border-gray-600 px-4 py-3 text-right font-semibold">
+                          <th className="border border-gray-300 dark:border-gray-600 px-2 sm:px-4 py-3 text-right font-semibold text-sm">
                             Median
                           </th>
                         </tr>
