@@ -245,7 +245,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
       <Tabs defaultValue="distribution" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="distribution">Price Distribution</TabsTrigger>
-          <TabsTrigger value="scatter">Mileage vs Price</TabsTrigger>
+          <TabsTrigger value="scatter">Price vs Mileage</TabsTrigger>
           <TabsTrigger value="damage">Damage Analysis</TabsTrigger>
         </TabsList>
 
@@ -327,8 +327,9 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              {mileageVsPrice.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <ResponsiveContainer width="100%" height={400}>
                       <ScatterChart 
                         data={mileageVsPrice.filter(item => item.mileage > 0)}
