@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
 import { Link } from 'wouter';
-import TieredTimelineContent from '../components/sales/TieredTimelineContent';
-import TieredTableContent from '../components/sales/TieredTableContent';
+import SalesAnalytics from '../components/sales/SalesAnalytics';
 
 
 import { formatCurrency } from '../utils/formatters';
@@ -742,7 +741,11 @@ export default function IAAI() {
 
             {/* Content based on active tab */}
             {activeTab === TabType.TIMELINE && (
-              <TieredTimelineContent searchResults={searchResults} />
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                <div className="p-6">
+                  <SalesAnalytics salesHistory={searchResults.data.salesHistory} />
+                </div>
+              </div>
             )}
 
             {activeTab === TabType.TABLE && (
