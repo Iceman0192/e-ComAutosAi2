@@ -261,7 +261,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="distribution">Price Distribution</TabsTrigger>
           <TabsTrigger value="scatter">Mileage vs Price</TabsTrigger>
-          <TabsTrigger value="damage">Damage Analysis</TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="distribution" className="mt-6">
