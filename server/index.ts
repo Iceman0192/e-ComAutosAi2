@@ -1,7 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
-import { setupApiRoutes } from "./apiRoutes"; // Use our clean implementation
+import { setupApiRoutes } from "./apiRoutes"; // Original implementation
+import { setupCleanApiRoutes } from "./cleanApiRoutes"; // New clean implementation
 
 const app = express();
 app.use(express.json());
@@ -43,6 +44,9 @@ app.use((req, res, next) => {
   
   // Set up our API routes
   setupApiRoutes(app);
+  
+  // Set up clean cache routes (v2 endpoints for testing)
+  setupCleanApiRoutes(app);
   
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
