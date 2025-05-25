@@ -112,7 +112,7 @@ export function setupApiRoutes(app: Express) {
           stats: {
             totalSales: apiResponse.data.count || 0,
             averagePrice: (apiResponse.data.data || []).reduce((sum: number, item: any) => 
-            averagePrice: (() => { const validPrices = (apiResponse.data.data || []).filter((item: any) => item.purchase_price != null && !isNaN(parseFloat(item.purchase_price))); const total = validPrices.reduce((sum: number, item: any) => sum + parseFloat(item.purchase_price), 0); return total / Math.max(validPrices.length, 1); })(),
+              sum + (item.purchase_price != null ? parseFloat(item.purchase_price) : 0), 0) / Math.max((apiResponse.data.data || []).length, 1),
             successRate: 0.75,
             priceTrend: 0.05,
             topLocations: []
