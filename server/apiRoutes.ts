@@ -353,10 +353,7 @@ export function setupApiRoutes(app: Express) {
         // Continue to API call if database query fails
       }
       
-      // Always try API first - let the API determine pagination limits
-      // Remove artificial page limits and trust the external API's pagination system
-        
-      // If we don't have enough cached results, call the API
+      // Always call the API first - trust it completely for all pagination
       if (!fromDatabase) {
         const siteParam = site || '1';
         const apiUrl = `https://api.apicar.store/api/history-cars?make=${make}&site=${siteParam}&page=${page}&size=${size}${yearFrom ? '&year_from=' + yearFrom : ''}${yearTo ? '&year_to=' + yearTo : ''}${saleFrom ? '&sale_date_from=' + saleFrom : ''}${saleTo ? '&sale_date_to=' + saleTo : ''}${model ? '&model=' + model : ''}`;
