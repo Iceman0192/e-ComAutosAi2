@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
-import { setupCleanApiRoutes } from "./cleanApiRoutes"; // Clean cache implementation
+import { setupApiRoutes } from "./apiRoutes";
 
 const app = express();
 app.use(express.json());
@@ -42,7 +42,7 @@ app.use((req, res, next) => {
   const server = createServer(app);
   
   // Set up clean cache routes (now the primary system)
-  setupCleanApiRoutes(app);
+  setupApiRoutes(app);
   
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
