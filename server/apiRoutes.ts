@@ -337,6 +337,9 @@ export function setupApiRoutes(app: Express) {
               conditions.push(lte(fields.year, yearTo));
             }
             
+            // Note: Intentionally not filtering by sale dates in cache lookup
+            // to allow broader cache utilization while API calls remain filtered
+            
             return and(...conditions);
           },
           orderBy: (fields, { desc }) => [desc(fields.created_at)],
