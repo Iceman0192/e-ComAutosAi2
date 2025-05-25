@@ -94,7 +94,7 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
     
     validSales.forEach(sale => {
       const damage = sale.vehicle_damage || 'Unknown';
-      const price = sale.purchase_price!;
+      const price = Number(sale.purchase_price!);
       
       if (!damageMap.has(damage)) {
         damageMap.set(damage, []);
