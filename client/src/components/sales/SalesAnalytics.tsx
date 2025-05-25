@@ -321,31 +321,14 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
         <TabsContent value="scatter" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Mileage vs Price Correlation</CardTitle>
+              <CardTitle>Price vs Mileage Analysis</CardTitle>
               <CardDescription>
-                Clear correlation between mileage and price - organized by mileage ranges for easy comparison
+                Interactive chart showing pricing patterns - hover points for vehicle details
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {/* Beautiful Interactive Chart - Enhanced Design */}
-                <div className="relative">
-                  <div className="mb-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <h4 className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                        💎 Price vs Mileage Analysis
-                      </h4>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span>Hover points for vehicle details</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Discover pricing patterns across {mileageVsPrice.filter(item => item.mileage > 0).length} vehicles
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                     <ResponsiveContainer width="100%" height={400}>
                       <ScatterChart 
                         data={mileageVsPrice.filter(item => item.mileage > 0)}
