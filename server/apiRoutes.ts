@@ -72,6 +72,14 @@ export function setupApiRoutes(app: Express) {
               conditions.push(lte(fields.year, yearTo));
             }
             
+            if (saleFrom) {
+              conditions.push(gte(fields.sale_date, new Date(saleFrom)));
+            }
+            
+            if (saleTo) {
+              conditions.push(lte(fields.sale_date, new Date(saleTo)));
+            }
+            
             return and(...conditions);
           },
           orderBy: (fields, { desc }) => [desc(fields.created_at)],
