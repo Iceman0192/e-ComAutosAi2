@@ -973,7 +973,7 @@ export default function Home() {
               {activeTab === TabType.PHOTOS && (
                 <div className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {searchResults?.data?.salesHistory?.map((sale) => (
+                    {searchResults?.data?.salesHistory?.map((sale: any) => (
                       <div 
                         key={sale.id} 
                         className="bg-white dark:bg-gray-700 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
