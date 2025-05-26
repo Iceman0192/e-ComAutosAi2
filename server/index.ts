@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
+import { freshDataManager } from "./freshDataManager";
 
 const app = express();
 app.use(express.json());

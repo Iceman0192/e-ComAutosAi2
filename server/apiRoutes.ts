@@ -6,6 +6,7 @@
 import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { cacheService } from './cacheService';
+import { freshDataManager } from './freshDataManager';
 import { pool } from './db';
 import axios from 'axios';
 
@@ -44,7 +45,7 @@ export function setupApiRoutes(app: Express) {
       
       // Handle Fresh Data Toggle for Gold+ users
       if (freshDataEnabled) {
-        console.log(`🔥 FRESH DATA REQUEST: ${make} ${model || 'all models'}, page ${page}, site ${site} - Bypassing cache`);
+        console.log(`🔥 FRESH DATA REQUEST: ${make} ${model || 'all models'}, page ${page}, site ${site} - Premium Access`);
         // Override date range to last 14 days for fresh data
         const today = new Date();
         const fourteenDaysAgo = new Date();
@@ -52,6 +53,66 @@ export function setupApiRoutes(app: Express) {
         
         auctionDateFrom = fourteenDaysAgo.toISOString().split('T')[0];
         auctionDateTo = today.toISOString().split('T')[0];
+        
+        // Use temporary database for fresh data
+        const freshParams = { make, model, site, yearFrom, yearTo, auctionDateFrom, auctionDateTo };
+        
+        // Check if fresh data exists in temporary database
+        const hasFreshData = await freshDataManager.checkFreshDataExists(freshParams, page, size);
+        
+        if (hasFreshData) {
+          console.log(`💎 Serving from fresh temporary database`);
+          const freshResult = await freshDataManager.getFreshData(freshParams, page, size);
+          
+          return res.json({
+            success: true,
+            data: {
+              salesHistory: freshResult.data,
+              stats: {
+                totalSales: freshResult.totalCount,
+                averagePrice: (freshResult.data as any[]).reduce((sum: number, item: any) => 
+                  sum + (item.purchase_price != null ? parseFloat(item.purchase_price) : 0), 0) / Math.max((freshResult.data as any[]).length, 1),
+                successRate: 0.75,
+                priceTrend: 0.05,
+                topLocations: []
+              },
+              priceTrend: [],
+              geographicData: [],
+              pagination: {
+                totalCount: freshResult.totalCount,
+                currentPage: page,
+                pageSize: size,
+                totalPages: Math.ceil(freshResult.totalCount / size)
+              }
+            }
+          });
+        } else {
+          console.log(`🌊 Fetching fresh data from API and storing in temporary database`);
+          const freshResult = await freshDataManager.fetchAndStoreFreshData(freshParams, page, size);
+          
+          return res.json({
+            success: true,
+            data: {
+              salesHistory: freshResult.data,
+              stats: {
+                totalSales: freshResult.totalCount,
+                averagePrice: (freshResult.data as any[]).reduce((sum: number, item: any) => 
+                  sum + (item.purchase_price != null ? parseFloat(item.purchase_price) : 0), 0) / Math.max((freshResult.data as any[]).length, 1),
+                successRate: 0.75,
+                priceTrend: 0.05,
+                topLocations: []
+              },
+              priceTrend: [],
+              geographicData: [],
+              pagination: {
+                totalCount: freshResult.totalCount,
+                currentPage: page,
+                pageSize: size,
+                totalPages: Math.ceil(freshResult.totalCount / size)
+              }
+            }
+          });
+        }
       } else {
         console.log(`Clean API request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
       }
