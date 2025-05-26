@@ -60,8 +60,8 @@ export function setupApiRoutes(app: Express) {
         auctionDateTo
       };
       
-      // Check if we have sufficient cached data
-      const hasCachedData = await cacheService.hasCachedData(cacheParams, page, size);
+      // Check if we have sufficient cached data (bypass cache for Fresh Data requests)
+      const hasCachedData = !freshDataEnabled && await cacheService.hasCachedData(cacheParams, page, size);
       
       if (hasCachedData) {
         // Serve from cache
@@ -201,8 +201,8 @@ export function setupApiRoutes(app: Express) {
         auctionDateTo
       };
       
-      // Check if we have sufficient cached data
-      const hasCachedData = await cacheService.hasCachedData(cacheParams, page, size);
+      // Check if we have sufficient cached data (bypass cache for Fresh Data requests)
+      const hasCachedData = !freshDataEnabled && await cacheService.hasCachedData(cacheParams, page, size);
       
       if (hasCachedData) {
         // Serve from cache
