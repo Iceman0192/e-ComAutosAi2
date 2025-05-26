@@ -284,7 +284,7 @@ export function setupApiRoutes(app: Express) {
       
       console.log(`Live Copart lot lookup: ${lotId}`);
       
-      const requestUrl = `https://api.apicar.store/cars/${lotId}?site=1`;
+      const requestUrl = `https://api.apicar.store/api/cars/${lotId}?site=1`;
       console.log('Requesting live lot from:', requestUrl);
       
       // Make API call using the exact same pattern as working sales history
@@ -329,7 +329,7 @@ export function setupApiRoutes(app: Express) {
       
       console.log(`Live IAAI lot lookup: ${lotId}`);
       
-      const requestUrl = `https://api.apicar.store/cars/${lotId}?site=2`;
+      const requestUrl = `https://api.apicar.store/api/cars/${lotId}?site=2`;
       console.log('Requesting live lot from:', requestUrl);
       
       // Make API call using the exact same pattern as working sales history
