@@ -21,7 +21,10 @@ import {
   FileText,
   ExternalLink,
   Filter,
-  Zap
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  X
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -80,6 +83,8 @@ export default function LiveIAAI() {
   const [lotId, setLotId] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showImageViewer, setShowImageViewer] = useState(false);
   const [filters, setFilters] = useState<ComparableFilters>({
     yearFrom: 2020,
     yearTo: 2025,
@@ -119,6 +124,29 @@ export default function LiveIAAI() {
   const handleSearch = () => {
     if (lotId.trim()) {
       setSearchTriggered(true);
+      setCurrentImageIndex(0); // Reset image viewer when searching new lot
+    }
+  };
+
+  // Image viewer navigation functions
+  const openImageViewer = (index: number) => {
+    setCurrentImageIndex(index);
+    setShowImageViewer(true);
+  };
+
+  const nextImage = () => {
+    if (lotData?.lot?.link_img_hd) {
+      setCurrentImageIndex((prev) => 
+        prev === lotData.lot.link_img_hd.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+    if (lotData?.lot?.link_img_hd) {
+      setCurrentImageIndex((prev) => 
+        prev === 0 ? lotData.lot.link_img_hd.length - 1 : prev - 1
+      );
     }
   };
 
@@ -259,17 +287,76 @@ export default function LiveIAAI() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Vehicle Images */}
-              {lotData.lot.link_img_small?.length > 0 && (
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-6">
-                  {lotData.lot.link_img_small.slice(0, 6).map((img, index) => (
+              {/* Interactive Vehicle Images */}
+              {lotData.lot.link_img_hd?.length > 0 && (
+                <div className="mb-6">
+                  {/* Main Image with Navigation */}
+                  <div className="relative mb-4 group">
                     <img
-                      key={index}
-                      src={img}
-                      alt={`Vehicle image ${index + 1}`}
-                      className="w-full h-20 object-cover rounded border"
+                      src={lotData.lot.link_img_hd[currentImageIndex]}
+                      alt={`Vehicle image ${currentImageIndex + 1}`}
+                      className="w-full h-64 md:h-96 object-cover rounded-lg border cursor-pointer"
+                      onClick={() => openImageViewer(currentImageIndex)}
+                      onError={(e) => {
+                        // Fallback to standard quality if HD fails
+                        const target = e.target as HTMLImageElement;
+                        if (lotData.lot.link_img_small?.[currentImageIndex]) {
+                          target.src = lotData.lot.link_img_small[currentImageIndex];
+                        }
+                      }}
                     />
-                  ))}
+                    
+                    {/* Navigation Arrows - Always visible on mobile */}
+                    {lotData.lot.link_img_hd.length > 1 && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="absolute left-2 top-1/2 transform -translate-y-1/2 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                          onClick={prevImage}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                          onClick={nextImage}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                    
+                    {/* Image Counter */}
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                      {currentImageIndex + 1} / {lotData.lot.link_img_hd.length}
+                    </div>
+                  </div>
+                  
+                  {/* Thumbnail Strip - Mobile Optimized */}
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {lotData.lot.link_img_hd.map((img: string, index: number) => (
+                      <img
+                        key={index}
+                        src={img}
+                        alt={`Thumbnail ${index + 1}`}
+                        className={`flex-shrink-0 w-14 h-14 md:w-16 md:h-16 object-cover rounded border-2 cursor-pointer transition-all touch-manipulation ${
+                          index === currentImageIndex 
+                            ? 'border-blue-500 ring-2 ring-blue-200' 
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                        onClick={() => setCurrentImageIndex(index)}
+                        onError={(e) => {
+                          // Fallback to standard quality if HD thumbnail fails
+                          const target = e.target as HTMLImageElement;
+                          if (lotData.lot.link_img_small?.[index]) {
+                            target.src = lotData.lot.link_img_small[index];
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -526,6 +613,89 @@ export default function LiveIAAI() {
             </Card>
           )}
         </>
+      )}
+
+      {/* Full-Screen Image Modal - Mobile Optimized */}
+      {showImageViewer && lotData?.lot?.link_img_hd && (
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center p-2 md:p-4">
+            {/* Close Button - Larger for mobile */}
+            <Button
+              variant="secondary"
+              size="lg"
+              className="absolute top-2 right-2 md:top-4 md:right-4 z-10 touch-manipulation"
+              onClick={() => setShowImageViewer(false)}
+            >
+              <X className="h-5 w-5 md:h-4 md:w-4" />
+            </Button>
+            
+            {/* Navigation Arrows - Mobile Optimized */}
+            {lotData.lot.link_img_hd.length > 1 && (
+              <>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 touch-manipulation md:left-4"
+                  onClick={prevImage}
+                >
+                  <ChevronLeft className="h-6 w-6 md:h-6 md:w-6" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 touch-manipulation md:right-4"
+                  onClick={nextImage}
+                >
+                  <ChevronRight className="h-6 w-6 md:h-6 md:w-6" />
+                </Button>
+              </>
+            )}
+            
+            {/* Full-Size Image with Error Handling */}
+            <img
+              src={lotData.lot.link_img_hd[currentImageIndex]}
+              alt={`Vehicle image ${currentImageIndex + 1}`}
+              className="max-w-full max-h-full object-contain touch-manipulation"
+              onClick={() => setShowImageViewer(false)}
+              onError={(e) => {
+                // Fallback to standard quality if HD fails in modal
+                const target = e.target as HTMLImageElement;
+                if (lotData.lot.link_img_small?.[currentImageIndex]) {
+                  target.src = lotData.lot.link_img_small[currentImageIndex];
+                }
+              }}
+            />
+            
+            {/* Image Counter */}
+            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/80 text-white px-3 py-2 rounded-lg text-sm md:bottom-4 md:px-4">
+              {currentImageIndex + 1} / {lotData.lot.link_img_hd.length}
+            </div>
+            
+            {/* Thumbnail Strip in Modal - Hidden on small mobile */}
+            <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 gap-2 max-w-screen-lg overflow-x-auto hidden sm:flex md:bottom-16">
+              {lotData.lot.link_img_hd.map((img: string, index: number) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`Thumbnail ${index + 1}`}
+                  className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 object-cover rounded border-2 cursor-pointer transition-all touch-manipulation ${
+                    index === currentImageIndex 
+                      ? 'border-blue-500 ring-2 ring-blue-300' 
+                      : 'border-white/50 hover:border-white'
+                  }`}
+                  onClick={() => setCurrentImageIndex(index)}
+                  onError={(e) => {
+                    // Fallback for modal thumbnails
+                    const target = e.target as HTMLImageElement;
+                    if (lotData.lot.link_img_small?.[index]) {
+                      target.src = lotData.lot.link_img_small[index];
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
