@@ -96,7 +96,13 @@ export default function LiveIAAI() {
   // Fetch live lot data
   const { data: lotData, isLoading: lotLoading, error: lotError } = useQuery({
     queryKey: ['/api/live-iaai', lotId],
-    queryFn: () => apiRequest('GET', `/api/live-iaai/${lotId}`),
+    queryFn: async () => {
+      const response = await fetch(`/api/live-iaai/${lotId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch lot data');
+      }
+      return response.json();
+    },
     enabled: searchTriggered && !!lotId,
   });
 
