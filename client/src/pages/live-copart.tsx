@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '../components/ComparableSearchForm';
+import AILotAnalysis from '../components/AILotAnalysis';
 
 import { 
   Car, 
@@ -74,7 +75,7 @@ interface SalesHistoryResponse {
 }
 
 export default function LiveCopart() {
-  const { userRole } = useAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [lotId, setLotId] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
@@ -82,8 +83,9 @@ export default function LiveCopart() {
   const [showImageViewer, setShowImageViewer] = useState(false);
 
   const hasPermission = (requiredRole: string) => {
+    if (!user) return false;
     const roleHierarchy = ['FREE', 'GOLD', 'PLATINUM', 'ADMIN'];
-    const userRoleIndex = roleHierarchy.indexOf(userRole);
+    const userRoleIndex = roleHierarchy.indexOf(user.role.toUpperCase());
     const requiredRoleIndex = roleHierarchy.indexOf(requiredRole);
     return userRoleIndex >= requiredRoleIndex;
   };
@@ -282,6 +284,14 @@ export default function LiveCopart() {
                     </div>
                   </div>
                 </div>
+
+                {/* AI Cross-Platform Analysis - Platinum Tier */}
+                {hasPermission('PLATINUM') && (
+                  <AILotAnalysis 
+                    lotData={lotData.lot}
+                    platform="copart"
+                  />
+                )}
 
                 {/* Find Comparables Section - Gold Tier Manual Filtering */}
                 {hasPermission('FULL_ANALYTICS') && (
