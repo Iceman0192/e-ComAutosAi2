@@ -366,7 +366,8 @@ export function setupApiRoutes(app: Express) {
     try {
       const { make, model, series, yearFrom, yearTo, damageType, maxMileage, sites } = req.body;
       
-      console.log('Search params received:', req.body);
+      console.log('=== SEARCH DEBUG ===');
+      console.log('Search params received:', JSON.stringify(req.body, null, 2));
       
       // Build clean WHERE clause using only existing database columns
       let whereConditions = [];
