@@ -5,9 +5,9 @@
 import { pool } from './db';
 
 export async function findComparableVehicles(searchParams: any) {
-  const { make, model, series, yearFrom, yearTo, damageType, maxMileage } = searchParams;
+  const { make, model, series, yearFrom, yearTo, damageType, maxMileage, sites } = searchParams;
   
-  console.log('Search params received:', { make, model, series, yearFrom, yearTo, damageType, maxMileage });
+  console.log('Search params received:', searchParams);
   
   // Build clean WHERE clause using only existing database columns
   let whereConditions = [];
