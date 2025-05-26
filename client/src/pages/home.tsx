@@ -4,8 +4,23 @@ import ErrorBoundary from '../components/ui/error-boundary';
 import { Link, useLocation } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
 import { Button } from '@/components/ui/button';
-import { Car } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  Car, 
+  TrendingUp, 
+  BarChart3, 
+  Zap, 
+  Crown, 
+  Database,
+  Search,
+  Brain,
+  ArrowRight,
+  CheckCircle,
+  Star
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { EcomNavbar } from '../components/layout/EcomNavbar';
 
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
