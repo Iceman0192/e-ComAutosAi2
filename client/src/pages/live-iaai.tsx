@@ -704,6 +704,7 @@ export default function LiveIAAI() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
