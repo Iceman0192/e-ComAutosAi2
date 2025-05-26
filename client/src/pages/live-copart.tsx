@@ -94,10 +94,13 @@ export default function LiveCopart() {
     queryKey: ['/api/live-copart', lotId],
     queryFn: async () => {
       const response = await fetch(`/api/live-copart/${lotId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch lot data');
+      const result = await response.json();
+      
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'Failed to fetch lot data');
       }
-      return response.json();
+      
+      return result;
     },
     enabled: searchTriggered && !!lotId,
   });
