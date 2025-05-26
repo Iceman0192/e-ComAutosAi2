@@ -35,7 +35,16 @@ export default function ComparableSearchForm({ lotData }: ComparableSearchFormPr
   const { data: comparableData, isLoading, error } = useQuery({
     queryKey: ['/api/find-comparables', searchParams, hasSearched],
     queryFn: async () => {
-      const response = await apiRequest('POST', '/api/find-comparables', searchParams);
+      const response = await fetch('/api/find-comparables', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchParams),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch comparable vehicles');
+      }
       return await response.json();
     },
     enabled: hasSearched && !!searchParams.make,
