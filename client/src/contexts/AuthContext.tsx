@@ -17,7 +17,8 @@ export const PERMISSIONS = {
   EXPORT_DATA: [UserRole.PLATINUM, UserRole.ADMIN],
   ADMIN_TOOLS: [UserRole.ADMIN],
   MULTIPLE_DAMAGE_TYPES: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  CROSS_PLATFORM_SEARCH: [UserRole.PLATINUM, UserRole.ADMIN]
+  CROSS_PLATFORM_SEARCH: [UserRole.PLATINUM, UserRole.ADMIN],
+  NEWEST_DATA_FIRST: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN]
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

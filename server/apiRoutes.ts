@@ -53,7 +53,8 @@ export function setupApiRoutes(app: Express) {
       if (hasCachedData) {
         // Serve from cache
         console.log('Serving from cache');
-        const cachedResult = await cacheService.getCachedData(cacheParams, page, size);
+        const userRole = req.headers['user-role'] as string || 'free';
+        const cachedResult = await cacheService.getCachedData(cacheParams, page, size, userRole);
         
         if (cachedResult) {
           return res.json({
@@ -181,7 +182,8 @@ export function setupApiRoutes(app: Express) {
       if (hasCachedData) {
         // Serve from cache
         console.log('Serving IAAI from cache');
-        const cachedResult = await cacheService.getCachedData(cacheParams, page, size);
+        const userRole = req.headers['user-role'] as string || 'free';
+        const cachedResult = await cacheService.getCachedData(cacheParams, page, size, userRole);
         
         if (cachedResult) {
           return res.json({

@@ -129,9 +129,9 @@ export interface SalesHistoryData {
 }
 
 /**
- * Fetch sales history data based on filters
+ * Fetch sales history data based on filters with role-based ordering
  */
-export async function fetchSalesHistory(params: URLSearchParams | Object): Promise<ApiResponse<SalesHistoryData>> {
+export async function fetchSalesHistory(params: URLSearchParams | Object, userRole?: string): Promise<ApiResponse<SalesHistoryData>> {
   // Build query string (handle both URLSearchParams and plain objects)
   let queryString: string;
   
@@ -154,7 +154,15 @@ export async function fetchSalesHistory(params: URLSearchParams | Object): Promi
     queryString = searchParams.toString();
   }
   
-  // Use the clean cache system endpoint
-  const endpoint = `/api/sales-history?${queryString}`;
-  return apiFetch<SalesHistoryData>(endpoint);
+  // Determine endpoint based on site parameter
+  const site = params instanceof URLSearchParams ? params.get('site') : (params as any).site;
+  const endpoint = site === '2' ? `/api/iaai/sales-history?${queryString}` : `/api/sales-history?${queryString}`;
+  
+  // Include user role in request headers for role-based data ordering
+  const headers: Record<string, string> = {};
+  if (userRole) {
+    headers['user-role'] = userRole;
+  }
+  
+  return apiFetch<SalesHistoryData>(endpoint, { headers });
 }

@@ -77,9 +77,9 @@ export class VehicleCacheService {
   }
   
   /**
-   * Get cached data for pagination
+   * Get cached data for pagination with role-based ordering
    */
-  async getCachedData(params: CacheKey, page: number = 1, size: number = 25) {
+  async getCachedData(params: CacheKey, page: number = 1, size: number = 25, userRole: string = 'free') {
     try {
       const conditions = [
         eq(salesHistory.make, params.make),
@@ -100,10 +100,16 @@ export class VehicleCacheService {
       
       const offset = (page - 1) * size;
       
+      // Role-based data ordering:
+      // FREE users: Oldest to Newest (oldest data first)
+      // GOLD/PLATINUM users: Newest to Oldest (newest data first)
+      const isGoldOrPlatinum = userRole === 'gold' || userRole === 'platinum' || userRole === 'admin';
+      const sortOrder = isGoldOrPlatinum ? desc(salesHistory.sale_date) : salesHistory.sale_date;
+      
       const results = await db.select()
         .from(salesHistory)
         .where(and(...conditions))
-        .orderBy(desc(salesHistory.created_at))
+        .orderBy(sortOrder)
         .limit(size)
         .offset(offset);
       
