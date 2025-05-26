@@ -12,7 +12,9 @@ import {
   DollarSign,
   Calendar,
   MapPin,
-  Loader2
+  Loader2,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
