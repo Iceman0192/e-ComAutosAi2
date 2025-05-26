@@ -348,12 +348,12 @@ export function setupApiRoutes(app: Express) {
         lot: lotData
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Live IAAI lot lookup error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error details:', error.response?.status, error.response?.data);
       res.status(500).json({
         success: false,
-        message: 'Failed to fetch live lot data: ' + errorMessage
+        message: 'Failed to fetch live lot data: ' + (error.response?.data?.message || error.message)
       });
     }
   });
