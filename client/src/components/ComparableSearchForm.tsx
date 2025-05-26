@@ -129,7 +129,7 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
               <SelectValue placeholder="Select damage type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               {damageTypes.map((damage) => (
                 <SelectItem key={damage} value={damage}>
                   {damage}
