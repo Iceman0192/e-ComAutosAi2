@@ -132,6 +132,11 @@ export default function IAAI() {
     // HARDCODED for IAAI ONLY
     params.append('site', '2'); // IAAI site ID
     
+    // Add Fresh Data parameter for Gold+ users
+    if (freshDataEnabled) {
+      params.append('fresh_data', 'true');
+    }
+    
     console.log(`Initial IAAI search with params:`, params.toString());
     
     // Make direct fetch request to clean IAAI endpoint
@@ -198,6 +203,11 @@ export default function IAAI() {
     
     // HARDCODED for IAAI ONLY
     params.append('site', '2'); // IAAI site ID
+    
+    // Add Fresh Data parameter for Gold+ users
+    if (freshDataEnabled) {
+      params.append('fresh_data', 'true');
+    }
     
     console.log(`Requesting IAAI page ${newPage} with params:`, params.toString());
     
