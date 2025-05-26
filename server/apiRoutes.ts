@@ -405,7 +405,7 @@ export function setupApiRoutes(app: Express) {
       }
       
       if (damageType) {
-        whereConditions.push(`(vehicle_damage ILIKE $${paramIndex} OR damage_pr ILIKE $${paramIndex} OR damage_sec ILIKE $${paramIndex})`);
+        whereConditions.push(`vehicle_damage ILIKE $${paramIndex}`);
         params.push(`%${damageType}%`);
         paramIndex++;
       }
