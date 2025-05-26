@@ -28,6 +28,11 @@ export function setupApiRoutes(app: Express) {
       let auctionDateTo = req.query.sale_date_to as string;
       const freshDataEnabled = req.query.fresh_data === 'true'; // Gold+ Fresh Data Toggle
       
+      console.log('🔍 Fresh Data Debug:', { 
+        fresh_data_param: req.query.fresh_data, 
+        freshDataEnabled: freshDataEnabled 
+      });
+      
       if (!make) {
         return res.status(400).json({
           success: false,
