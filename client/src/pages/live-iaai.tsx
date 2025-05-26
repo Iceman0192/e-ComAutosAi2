@@ -231,7 +231,7 @@ export default function LiveIAAI() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="bg-orange-500 text-white hover:bg-orange-600 rounded-full px-6 py-2 font-medium shadow-sm"
+                className="bg-red-500 text-white hover:bg-red-600 rounded-full px-6 py-2 font-medium shadow-sm"
               >
                 IAAI
               </Button>
