@@ -7,10 +7,23 @@ interface PlatformToggleProps {
 
 export default function PlatformToggle({ onPlatformChange }: PlatformToggleProps) {
   const [location, setLocation] = useLocation();
-  const currentPlatform = location === '/iaai' ? 'iaai' : 'copart';
+  
+  // Determine current platform and page type
+  const isIAAI = location.includes('iaai');
+  const isLiveLot = location.includes('live-');
+  const currentPlatform = isIAAI ? 'iaai' : 'copart';
 
   const handleToggle = (platform: 'copart' | 'iaai') => {
-    const newPath = platform === 'iaai' ? '/iaai' : '/';
+    let newPath: string;
+    
+    if (isLiveLot) {
+      // On live lot pages, switch between live-copart and live-iaai
+      newPath = platform === 'iaai' ? '/live-iaai' : '/live-copart';
+    } else {
+      // On sales history pages, switch between / and /iaai
+      newPath = platform === 'iaai' ? '/iaai' : '/';
+    }
+    
     setLocation(newPath);
     onPlatformChange?.(platform);
   };
