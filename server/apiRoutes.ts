@@ -54,6 +54,132 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
+   * AI Lot Analysis Endpoint - Cross-Platform Intelligence
+   */
+  app.post('/api/ai-lot-analysis', async (req: Request, res: Response) => {
+    try {
+      const { lotData, platform } = req.body;
+
+      if (!lotData) {
+        return res.status(400).json({
+          success: false,
+          message: 'Lot data is required'
+        });
+      }
+
+      // Initialize OpenAI client
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      // Step 1: AI Analysis of Vehicle
+      const vehicleAnalysis = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert vehicle appraiser specializing in auction vehicles and export markets. Analyze vehicle data and provide insights for auction buyers."
+          },
+          {
+            role: "user",
+            content: `Analyze this auction vehicle for export potential and investment value:
+
+Vehicle: ${lotData.year} ${lotData.make} ${lotData.model}
+VIN: ${lotData.vin}
+Mileage: ${lotData.odometer ? lotData.odometer.toLocaleString() : 'Unknown'} miles
+Primary Damage: ${lotData.damage_pr || 'None listed'}
+Secondary Damage: ${lotData.damage_sec || 'None listed'}
+Title: ${lotData.title || 'Unknown'}
+Location: ${lotData.location || 'Unknown'}
+Current Bid: $${lotData.current_bid ? lotData.current_bid.toLocaleString() : '0'}
+
+Provide analysis in JSON format with:
+- damageAssessment: Brief damage evaluation
+- exportSuitability: Rating 1-10 for Central America export
+- investmentRisk: LOW/MEDIUM/HIGH
+- repairEstimate: Estimated repair cost range
+- recommendation: BUY/CONSIDER/PASS
+- keyInsights: Array of 3-4 key points`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 800,
+      });
+
+      const aiAnalysis = JSON.parse(vehicleAnalysis.choices[0].message.content || '{}');
+
+      // Step 2: Search Database for Cross-Platform Comparisons
+      const searchQuery = `
+        SELECT 
+          site, base_site, sale_date, purchase_price, sale_status,
+          year, make, model, odometer, damage_pr, damage_sec,
+          buyer_state, buyer_country
+        FROM sales_history 
+        WHERE make ILIKE $1 
+        AND model ILIKE $2 
+        AND year BETWEEN $3 AND $4
+        AND purchase_price IS NOT NULL
+        ORDER BY sale_date DESC 
+        LIMIT 50
+      `;
+
+      const result = await pool.query(searchQuery, [
+        lotData.make,
+        lotData.model,
+        lotData.year - 2,
+        lotData.year + 2
+      ]);
+
+      const comparableVehicles = result.rows;
+
+      // Separate by platform
+      const copartSales = comparableVehicles.filter(v => v.base_site === 'Copart');
+      const iaaiSales = comparableVehicles.filter(v => v.base_site === 'IAAI');
+
+      // Calculate statistics
+      const copartAvgPrice = copartSales.length > 0 
+        ? copartSales.reduce((sum, v) => sum + parseFloat(v.purchase_price), 0) / copartSales.length
+        : 0;
+
+      const iaaiAvgPrice = iaaiSales.length > 0 
+        ? iaaiSales.reduce((sum, v) => sum + parseFloat(v.purchase_price), 0) / iaaiSales.length
+        : 0;
+
+      const priceDifferential = copartAvgPrice && iaaiAvgPrice 
+        ? ((iaaiAvgPrice - copartAvgPrice) / copartAvgPrice * 100).toFixed(1)
+        : null;
+
+      return res.json({
+        success: true,
+        data: {
+          aiAnalysis,
+          crossPlatformData: {
+            copart: {
+              count: copartSales.length,
+              averagePrice: Math.round(copartAvgPrice),
+              recentSales: copartSales.slice(0, 10)
+            },
+            iaai: {
+              count: iaaiSales.length,
+              averagePrice: Math.round(iaaiAvgPrice),
+              recentSales: iaaiSales.slice(0, 10)
+            },
+            priceDifferential,
+            totalComparables: comparableVehicles.length
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error('AI Lot Analysis error:', error);
+      return res.status(500).json({
+        success: false,
+        message: `Analysis failed: ${error.message}`
+      });
+    }
+  });
+
+  /**
    * Copart Sales History Endpoint - Clean Cache System
    */
   app.get('/api/sales-history', async (req: Request, res: Response) => {
