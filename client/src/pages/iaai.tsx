@@ -824,12 +824,24 @@ export default function IAAI() {
                               {/* Vehicle Image */}
                               <div className="flex-shrink-0 h-16 w-20 mr-4 relative">
                                 {(() => {
-                                  // Use HD images first for IAAI - they're more reliable
+                                  // Handle IAAI image format - images are stored in 'images' field as JSON
                                   let imageUrl = '';
+                                  
+                                  // First try the standard fields
                                   if (sale.link_img_hd && sale.link_img_hd.length > 0) {
                                     imageUrl = sale.link_img_hd[0];
                                   } else if (sale.link_img_small && sale.link_img_small.length > 0) {
                                     imageUrl = sale.link_img_small[0];
+                                  } else if (sale.images) {
+                                    // Parse IAAI images from JSON string
+                                    try {
+                                      const images = typeof sale.images === 'string' ? JSON.parse(sale.images) : sale.images;
+                                      if (Array.isArray(images) && images.length > 0) {
+                                        imageUrl = images[0];
+                                      }
+                                    } catch (e) {
+                                      console.log('Error parsing IAAI images:', e);
+                                    }
                                   }
                                   
                                   return imageUrl ? (
@@ -1098,23 +1110,35 @@ export default function IAAI() {
                     {/* Vehicle Images - Interactive Gallery */}
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Photos</h3>
-                      {selectedVehicle.link_img_hd && selectedVehicle.link_img_hd.length > 0 ? (
+                      {(() => {
+                        // Get images from IAAI format
+                        let images = [];
+                        if (selectedVehicle.link_img_hd && selectedVehicle.link_img_hd.length > 0) {
+                          images = selectedVehicle.link_img_hd;
+                        } else if (selectedVehicle.images) {
+                          images = typeof selectedVehicle.images === 'string' 
+                            ? JSON.parse(selectedVehicle.images) 
+                            : Array.isArray(selectedVehicle.images) 
+                              ? selectedVehicle.images 
+                              : [];
+                        }
+                        return images.length > 0 ? (
                         <div>
                           {/* Main Image Display */}
                           <div className="relative mb-4">
                             <img
-                              src={selectedVehicle.link_img_hd[currentImageIndex]}
+                              src={images[currentImageIndex]}
                               alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model} - Image ${currentImageIndex + 1}`}
                               className="w-full h-80 object-cover rounded-lg border"
                             />
                             
                             {/* Image Counter */}
                             <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm">
-                              {currentImageIndex + 1} of {selectedVehicle.link_img_hd.length}
+                              {currentImageIndex + 1} of {images.length}
                             </div>
                             
                             {/* Navigation Arrows */}
-                            {selectedVehicle.link_img_hd.length > 1 && (
+                            {images.length > 1 && (
                               <>
                                 <button
                                   onClick={prevImage}
@@ -1137,9 +1161,9 @@ export default function IAAI() {
                           </div>
                           
                           {/* Thumbnail Gallery */}
-                          {selectedVehicle.link_img_hd.length > 1 && (
+                          {images.length > 1 && (
                             <div className="flex space-x-2 overflow-x-auto pb-2">
-                              {selectedVehicle.link_img_hd.map((img: string, index: number) => (
+                              {images.map((img: string, index: number) => (
                                 <button
                                   key={index}
                                   onClick={() => setCurrentImageIndex(index)}
@@ -1159,11 +1183,12 @@ export default function IAAI() {
                             </div>
                           )}
                         </div>
-                      ) : (
+                        ) : (
                         <div className="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded-lg border flex items-center justify-center">
                           <span className="text-gray-500 dark:text-gray-400">No images available</span>
                         </div>
-                      )}
+                        );
+                      })()}
                     </div>
 
                     {/* Sale Information */}
