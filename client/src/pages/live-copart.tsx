@@ -269,24 +269,7 @@ export default function LiveCopart() {
               </Button>
             </div>
           </div>
-          
-          {/* Quick Examples */}
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Try these example lot IDs:</p>
-            <div className="flex flex-wrap gap-2">
-              {['57442255', '89257515', '57442220'].map((exampleId) => (
-                <Button
-                  key={exampleId}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setLotId(exampleId)}
-                  className="text-xs"
-                >
-                  {exampleId}
-                </Button>
-              ))}
-            </div>
-          </div>
+
         </CardContent>
       </Card>
 
