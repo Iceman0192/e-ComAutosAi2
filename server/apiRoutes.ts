@@ -411,7 +411,7 @@ export function setupApiRoutes(app: Express) {
       }
       
       if (maxMileage && maxMileage > 0) {
-        whereConditions.push(`(vehicle_mileage <= $${paramIndex} OR odometer <= $${paramIndex})`);
+        whereConditions.push(`vehicle_mileage <= $${paramIndex}`);
         params.push(maxMileage);
         paramIndex++;
       }
