@@ -360,110 +360,13 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
-   * Find Comparable Vehicles Endpoint
+   * Find Comparable Vehicles Endpoint - Clean Rebuild
    */
   app.post('/api/find-comparables', async (req: Request, res: Response) => {
     try {
-      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, sites } = req.body;
-      
-      if (!make) {
-        return res.status(400).json({
-          success: false,
-          message: 'Vehicle make is required'
-        });
-      }
-      
-      console.log('Finding comparable vehicles for:', { make, model, series, yearFrom, yearTo, damageType, maxMileage });
-      
-      // Build SQL query with enhanced filtering for precise matches
-      let whereConditions = ['make ILIKE $1'];
-      let params = [`%${make}%`];
-      let paramIndex = 2;
-      
-      if (model) {
-        whereConditions.push(`model ILIKE $${paramIndex}`);
-        params.push(`%${model}%`);
-        paramIndex++;
-      }
-      
-      if (series) {
-        whereConditions.push(`(series ILIKE $${paramIndex} OR trim ILIKE $${paramIndex})`);
-        params.push(`%${series}%`);
-        paramIndex++;
-      }
-      
-      if (yearFrom) {
-        whereConditions.push(`year >= $${paramIndex}`);
-        params.push(yearFrom);
-        paramIndex++;
-      }
-      
-      if (yearTo) {
-        whereConditions.push(`year <= $${paramIndex}`);
-        params.push(yearTo);
-        paramIndex++;
-      }
-      
-      if (damageType && damageType !== 'all') {
-        whereConditions.push(`vehicle_damage ILIKE $${paramIndex}`);
-        params.push(`%${damageType}%`);
-        paramIndex++;
-      }
-      
-      if (maxMileage && maxMileage > 0) {
-        whereConditions.push(`vehicle_mileage <= $${paramIndex}`);
-        params.push(maxMileage);
-        paramIndex++;
-      }
-      
-      const whereClause = whereConditions.join(' AND ');
-      
-      // Query ALL Copart data for accurate averages (site = 1)
-      const copartQuery = `
-        SELECT * FROM sales_history 
-        WHERE ${whereClause} AND site = $${paramIndex}
-        ORDER BY sale_date DESC 
-      `;
-      const copartResult = await pool.query(copartQuery, [...params, 1]);
-      
-      // Query ALL IAAI data for accurate averages (site = 2) 
-      const iaaiQuery = `
-        SELECT * FROM sales_history 
-        WHERE ${whereClause} AND site = $${paramIndex}
-        ORDER BY sale_date DESC 
-      `;
-      const iaaiResult = await pool.query(iaaiQuery, [...params, 2]);
-      
-      const results = {
-        copart: copartResult.rows,
-        iaai: iaaiResult.rows
-      };
-      
-      // Calculate statistics
-      const copartSales = results.copart.filter((sale: any) => sale.purchase_price && sale.purchase_price > 0);
-      const iaaiSales = results.iaai.filter((sale: any) => sale.purchase_price && sale.purchase_price > 0);
-      
-      const stats = {
-        totalFound: results.copart.length + results.iaai.length,
-        copartCount: results.copart.length,
-        iaaiCount: results.iaai.length,
-        copartAvgPrice: copartSales.length > 0 ? 
-          copartSales.reduce((sum: number, sale: any) => sum + (parseInt(sale.purchase_price) || 0), 0) / copartSales.length : 0,
-        iaaiAvgPrice: iaaiSales.length > 0 ? 
-          iaaiSales.reduce((sum: number, sale: any) => sum + (parseInt(sale.purchase_price) || 0), 0) / iaaiSales.length : 0
-      };
-      
-      // Calculate price difference
-      const priceDifference = stats.copartAvgPrice && stats.iaaiAvgPrice ? 
-        stats.copartAvgPrice - stats.iaaiAvgPrice : 0;
-      
-      return res.json({
-        success: true,
-        comparables: results,
-        statistics: { ...stats, priceDifference },
-        searchCriteria: { make, model, yearFrom, yearTo, damageType, maxMileage }
-      });
-      
+      const { findComparableVehicles } = await import('./comparableSearch');
+      const result = await findComparableVehicles(req.body);
+      res.json(result);
     } catch (error: any) {
       console.error('Find comparables error:', error);
       res.status(500).json({
