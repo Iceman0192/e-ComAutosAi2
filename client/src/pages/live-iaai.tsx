@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
+import ComparableSearchForm from '@/components/ComparableSearchForm';
 import { 
   Car, 
   Search, 
@@ -605,18 +606,10 @@ export default function LiveIAAI() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <div className="text-gray-500 dark:text-gray-400">
-                <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">Comparable Search Ready</p>
-                <p className="text-sm">
-                  Vehicle: {lotData.lot.year} {lotData.lot.make} {lotData.lot.model}
-                </p>
-                <p className="text-xs text-red-600 mt-2">
-                  Feature coming online - will search database for similar vehicles
-                </p>
-              </div>
-            </div>
+            <ComparableSearchForm 
+              lotData={lotData.lot}
+              platform="iaai"
+            />
           </CardContent>
         </Card>
       )}
