@@ -14,7 +14,8 @@ import {
   MapPin,
   Loader2,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -410,6 +411,9 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const itemsPerPage = 20;
 
   const formatCurrency = (amount: number) => {
@@ -419,6 +423,36 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const openModal = (vehicle: any) => {
+    setSelectedVehicle(vehicle);
+    setCurrentImageIndex(0);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null);
+    setCurrentImageIndex(0);
+  };
+
+  const nextImage = () => {
+    if (selectedVehicle?.images) {
+      const images = typeof selectedVehicle.images === 'string' 
+        ? JSON.parse(selectedVehicle.images) 
+        : selectedVehicle.images;
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (selectedVehicle?.images) {
+      const images = typeof selectedVehicle.images === 'string' 
+        ? JSON.parse(selectedVehicle.images) 
+        : selectedVehicle.images;
+      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
   };
 
   // Get platform sales based on user permissions
@@ -504,12 +538,8 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
             {currentSales.map((vehicle: any, index: number) => (
               <tr 
                 key={`${vehicle.vin}-${index}`}
-                onClick={() => setSelectedSaleId(selectedSaleId === vehicle.id ? null : vehicle.id)}
-                className={`cursor-pointer transition-colors ${
-                  selectedSaleId === vehicle.id 
-                    ? 'bg-blue-50 dark:bg-blue-900/20' 
-                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`}
+                onClick={() => openModal(vehicle)}
+                className="cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
