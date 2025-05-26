@@ -34,7 +34,10 @@ export default function ComparableSearchForm({ lotData }: ComparableSearchFormPr
   // Fetch comparable vehicles
   const { data: comparableData, isLoading, error } = useQuery({
     queryKey: ['/api/find-comparables', searchParams, hasSearched],
-    queryFn: () => apiRequest('POST', '/api/find-comparables', searchParams),
+    queryFn: async () => {
+      const response = await apiRequest('POST', '/api/find-comparables', searchParams);
+      return await response.json();
+    },
     enabled: hasSearched && !!searchParams.make,
   });
 
@@ -135,39 +138,39 @@ export default function ComparableSearchForm({ lotData }: ComparableSearchFormPr
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Copart Average</p>
                   <p className="text-xl font-bold text-blue-600">
-                    {formatCurrency(comparableData.statistics?.copartAvgPrice || 0)}
+                    {formatCurrency(comparableData?.statistics?.copartAvgPrice || 0)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {comparableData.statistics?.copartCount || 0} vehicles found
+                    {comparableData?.statistics?.copartCount || 0} vehicles found
                   </p>
                 </div>
                 
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">IAAI Average</p>
                   <p className="text-xl font-bold text-red-600">
-                    {formatCurrency(comparableData.statistics?.iaaiAvgPrice || 0)}
+                    {formatCurrency(comparableData?.statistics?.iaaiAvgPrice || 0)}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {comparableData.statistics?.iaaiCount || 0} vehicles found
+                    {comparableData?.statistics?.iaaiCount || 0} vehicles found
                   </p>
                 </div>
                 
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Price Difference</p>
                   <div className="flex items-center justify-center gap-1">
-                    {(comparableData.statistics?.priceDifference || 0) > 0 ? (
+                    {(comparableData?.statistics?.priceDifference || 0) > 0 ? (
                       <TrendingUp className="h-4 w-4 text-green-600" />
                     ) : (
                       <TrendingDown className="h-4 w-4 text-red-600" />
                     )}
                     <p className={`text-xl font-bold ${
-                      (comparableData.statistics?.priceDifference || 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      (comparableData?.statistics?.priceDifference || 0) > 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {formatCurrency(Math.abs(comparableData.statistics?.priceDifference || 0))}
+                      {formatCurrency(Math.abs(comparableData?.statistics?.priceDifference || 0))}
                     </p>
                   </div>
                   <p className="text-xs text-gray-500">
-                    {(comparableData.statistics?.priceDifference || 0) > 0 ? 'Copart higher' : 'IAAI higher'}
+                    {(comparableData?.statistics?.priceDifference || 0) > 0 ? 'Copart higher' : 'IAAI higher'}
                   </p>
                 </div>
               </div>
@@ -175,19 +178,19 @@ export default function ComparableSearchForm({ lotData }: ComparableSearchFormPr
           </Card>
 
           {/* Recent Sales List */}
-          {comparableData.comparables && (
+          {comparableData?.comparables && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Recent Comparable Sales</CardTitle>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Found {comparableData.statistics?.totalFound || 0} similar vehicles in database
+                  Found {comparableData?.statistics?.totalFound || 0} similar vehicles in database
                 </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {[
-                    ...(comparableData.comparables.copart || []).slice(0, 5),
-                    ...(comparableData.comparables.iaai || []).slice(0, 5)
+                    ...(comparableData?.comparables?.copart || []).slice(0, 5),
+                    ...(comparableData?.comparables?.iaai || []).slice(0, 5)
                   ]
                     .sort((a, b) => new Date(b.sale_date || b.auction_date || '').getTime() - new Date(a.sale_date || a.auction_date || '').getTime())
                     .slice(0, 8)
