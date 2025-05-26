@@ -6,6 +6,7 @@
 import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { cacheService } from './cacheService';
+import { pool } from './db';
 import axios from 'axios';
 
 export function setupApiRoutes(app: Express) {
@@ -374,55 +375,66 @@ export function setupApiRoutes(app: Express) {
       
       console.log('Finding comparable vehicles for:', { make, model, yearFrom, yearTo });
       
-      // Build search parameters using your existing cache service
-      const cacheParams = {
-        make,
-        model: model || undefined,
-        site: 1, // Will be updated per platform
-        yearFrom: yearFrom || undefined,
-        yearTo: yearTo || undefined
+      // Build SQL query to search your actual sales_history table
+      let whereConditions = ['make ILIKE $1'];
+      let params = [`%${make}%`];
+      let paramIndex = 2;
+      
+      if (model) {
+        whereConditions.push(`model ILIKE $${paramIndex}`);
+        params.push(`%${model}%`);
+        paramIndex++;
+      }
+      
+      if (yearFrom) {
+        whereConditions.push(`year >= $${paramIndex}`);
+        params.push(yearFrom);
+        paramIndex++;
+      }
+      
+      if (yearTo) {
+        whereConditions.push(`year <= $${paramIndex}`);
+        params.push(yearTo);
+        paramIndex++;
+      }
+      
+      const whereClause = whereConditions.join(' AND ');
+      
+      // Query Copart data (site = 1)
+      const copartQuery = `
+        SELECT * FROM sales_history 
+        WHERE ${whereClause} AND site = $${paramIndex}
+        ORDER BY sale_date DESC 
+        LIMIT 25
+      `;
+      const copartResult = await pool.query(copartQuery, [...params, 1]);
+      
+      // Query IAAI data (site = 2) 
+      const iaaiQuery = `
+        SELECT * FROM sales_history 
+        WHERE ${whereClause} AND site = $${paramIndex}
+        ORDER BY sale_date DESC 
+        LIMIT 25
+      `;
+      const iaaiResult = await pool.query(iaaiQuery, [...params, 2]);
+      
+      const results = {
+        copart: copartResult.rows,
+        iaai: iaaiResult.rows
       };
       
-      const results: { copart: any[], iaai: any[] } = { copart: [], iaai: [] };
-      
-      // Search Copart if requested
-      if (!sites || sites.includes('copart')) {
-        try {
-          const copartParams = { ...cacheParams, site: 1 };
-          const copartData = await cacheService.getCachedData(copartParams, 1, 50);
-          if (copartData?.data) {
-            results.copart = copartData.data;
-          }
-        } catch (error) {
-          console.error('Error fetching Copart comparables:', error);
-        }
-      }
-      
-      // Search IAAI if requested
-      if (!sites || sites.includes('iaai')) {
-        try {
-          const iaaiParams = { ...cacheParams, site: 2 };
-          const iaaiData = await cacheService.getCachedData(iaaiParams, 1, 50);
-          if (iaaiData?.data) {
-            results.iaai = iaaiData.data;
-          }
-        } catch (error) {
-          console.error('Error fetching IAAI comparables:', error);
-        }
-      }
-      
       // Calculate statistics
-      const copartSales = results.copart.filter(sale => sale.purchase_price && sale.purchase_price > 0);
-      const iaaiSales = results.iaai.filter(sale => sale.purchase_price && sale.purchase_price > 0);
+      const copartSales = results.copart.filter((sale: any) => sale.purchase_price && sale.purchase_price > 0);
+      const iaaiSales = results.iaai.filter((sale: any) => sale.purchase_price && sale.purchase_price > 0);
       
       const stats = {
         totalFound: results.copart.length + results.iaai.length,
         copartCount: results.copart.length,
         iaaiCount: results.iaai.length,
         copartAvgPrice: copartSales.length > 0 ? 
-          copartSales.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0) / copartSales.length : 0,
+          copartSales.reduce((sum: number, sale: any) => sum + (parseInt(sale.purchase_price) || 0), 0) / copartSales.length : 0,
         iaaiAvgPrice: iaaiSales.length > 0 ? 
-          iaaiSales.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0) / iaaiSales.length : 0
+          iaaiSales.reduce((sum: number, sale: any) => sum + (parseInt(sale.purchase_price) || 0), 0) / iaaiSales.length : 0
       };
       
       // Calculate price difference
@@ -431,11 +443,9 @@ export function setupApiRoutes(app: Express) {
       
       return res.json({
         success: true,
-        data: {
-          comparables: results,
-          statistics: { ...stats, priceDifference },
-          searchCriteria: { make, model, yearFrom, yearTo, damageType, maxMileage }
-        }
+        comparables: results,
+        statistics: { ...stats, priceDifference },
+        searchCriteria: { make, model, yearFrom, yearTo, damageType, maxMileage }
       });
       
     } catch (error: any) {
