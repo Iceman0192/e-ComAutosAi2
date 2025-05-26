@@ -357,4 +357,93 @@ export function setupApiRoutes(app: Express) {
       });
     }
   });
+
+  /**
+   * Find Comparable Vehicles Endpoint
+   */
+  app.post('/api/find-comparables', async (req: Request, res: Response) => {
+    try {
+      const { make, model, yearFrom, yearTo, damageType, maxMileage, sites } = req.body;
+      
+      if (!make) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vehicle make is required'
+        });
+      }
+      
+      console.log('Finding comparable vehicles for:', { make, model, yearFrom, yearTo });
+      
+      // Build search parameters using your existing cache service
+      const cacheParams = {
+        make,
+        model: model || undefined,
+        site: 1, // Will be updated per platform
+        yearFrom: yearFrom || undefined,
+        yearTo: yearTo || undefined
+      };
+      
+      const results: { copart: any[], iaai: any[] } = { copart: [], iaai: [] };
+      
+      // Search Copart if requested
+      if (!sites || sites.includes('copart')) {
+        try {
+          const copartParams = { ...cacheParams, site: 1 };
+          const copartData = await cacheService.getCachedData(copartParams, 1, 50);
+          if (copartData?.data) {
+            results.copart = copartData.data;
+          }
+        } catch (error) {
+          console.error('Error fetching Copart comparables:', error);
+        }
+      }
+      
+      // Search IAAI if requested
+      if (!sites || sites.includes('iaai')) {
+        try {
+          const iaaiParams = { ...cacheParams, site: 2 };
+          const iaaiData = await cacheService.getCachedData(iaaiParams, 1, 50);
+          if (iaaiData?.data) {
+            results.iaai = iaaiData.data;
+          }
+        } catch (error) {
+          console.error('Error fetching IAAI comparables:', error);
+        }
+      }
+      
+      // Calculate statistics
+      const copartSales = results.copart.filter(sale => sale.purchase_price && sale.purchase_price > 0);
+      const iaaiSales = results.iaai.filter(sale => sale.purchase_price && sale.purchase_price > 0);
+      
+      const stats = {
+        totalFound: results.copart.length + results.iaai.length,
+        copartCount: results.copart.length,
+        iaaiCount: results.iaai.length,
+        copartAvgPrice: copartSales.length > 0 ? 
+          copartSales.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0) / copartSales.length : 0,
+        iaaiAvgPrice: iaaiSales.length > 0 ? 
+          iaaiSales.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0) / iaaiSales.length : 0
+      };
+      
+      // Calculate price difference
+      const priceDifference = stats.copartAvgPrice && stats.iaaiAvgPrice ? 
+        stats.copartAvgPrice - stats.iaaiAvgPrice : 0;
+      
+      return res.json({
+        success: true,
+        data: {
+          comparables: results,
+          statistics: { ...stats, priceDifference },
+          searchCriteria: { make, model, yearFrom, yearTo, damageType, maxMileage }
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('Find comparables error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to find comparable vehicles: ' + error.message
+      });
+    }
+  });
 }
