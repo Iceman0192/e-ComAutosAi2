@@ -15,18 +15,27 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ComparableSearchFormProps {
   lotData: any;
+  platform?: 'copart' | 'iaai';
 }
 
-export default function ComparableSearchForm({ lotData }: ComparableSearchFormProps) {
+export default function ComparableSearchForm({ lotData, platform = 'copart' }: ComparableSearchFormProps) {
+  const { hasPermission } = useAuth();
+  
+  // Gold users only see their current platform, Platinum+ gets cross-platform
+  const allowedSites = hasPermission('CROSS_PLATFORM_SEARCH') 
+    ? ['copart', 'iaai'] 
+    : [platform];
+    
   const [searchParams, setSearchParams] = useState({
     make: lotData.make || '',
     model: lotData.model || '',
     yearFrom: lotData.year ? lotData.year - 2 : 2020,
     yearTo: lotData.year ? lotData.year + 2 : 2025,
-    sites: ['copart', 'iaai']
+    sites: allowedSites
   });
 
   const [hasSearched, setHasSearched] = useState(false);
@@ -134,55 +143,82 @@ export default function ComparableSearchForm({ lotData }: ComparableSearchFormPr
       {/* Results Section */}
       {comparableData && (
         <div className="space-y-4">
-          {/* Price Comparison Summary */}
+          {/* Price Analysis Summary */}
           <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200 text-lg">
                 <DollarSign className="h-5 w-5" />
-                Cross-Platform Price Analysis
+                {hasPermission('CROSS_PLATFORM_SEARCH') ? 'Cross-Platform Price Analysis' : `${platform === 'copart' ? 'Copart' : 'IAAI'} Price Analysis`}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Copart Average</p>
-                  <p className="text-xl font-bold text-blue-600">
-                    {formatCurrency(comparableData?.statistics?.copartAvgPrice || 0)}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {comparableData?.statistics?.copartCount || 0} vehicles found
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">IAAI Average</p>
-                  <p className="text-xl font-bold text-red-600">
-                    {formatCurrency(comparableData?.statistics?.iaaiAvgPrice || 0)}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {comparableData?.statistics?.iaaiCount || 0} vehicles found
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Price Difference</p>
-                  <div className="flex items-center justify-center gap-1">
-                    {(comparableData?.statistics?.priceDifference || 0) > 0 ? (
-                      <TrendingUp className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-600" />
-                    )}
-                    <p className={`text-xl font-bold ${
-                      (comparableData?.statistics?.priceDifference || 0) > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {formatCurrency(Math.abs(comparableData?.statistics?.priceDifference || 0))}
+              {hasPermission('CROSS_PLATFORM_SEARCH') ? (
+                // Platinum users see cross-platform comparison
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Copart Average</p>
+                    <p className="text-xl font-bold text-blue-600">
+                      {formatCurrency(comparableData?.statistics?.copartAvgPrice || 0)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {comparableData?.statistics?.copartCount || 0} vehicles found
                     </p>
                   </div>
-                  <p className="text-xs text-gray-500">
-                    {(comparableData?.statistics?.priceDifference || 0) > 0 ? 'Copart higher' : 'IAAI higher'}
-                  </p>
+                  
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">IAAI Average</p>
+                    <p className="text-xl font-bold text-red-600">
+                      {formatCurrency(comparableData?.statistics?.iaaiAvgPrice || 0)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {comparableData?.statistics?.iaaiCount || 0} vehicles found
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Price Difference</p>
+                    <div className="flex items-center justify-center gap-1">
+                      {(comparableData?.statistics?.priceDifference || 0) > 0 ? (
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      )}
+                      <p className={`text-xl font-bold ${
+                        (comparableData?.statistics?.priceDifference || 0) > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {formatCurrency(Math.abs(comparableData?.statistics?.priceDifference || 0))}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {(comparableData?.statistics?.priceDifference || 0) > 0 ? 'Copart higher' : 'IAAI higher'}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                // Gold users see only their current platform
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    {platform === 'copart' ? 'Copart' : 'IAAI'} Average Price
+                  </p>
+                  <p className={`text-3xl font-bold ${platform === 'copart' ? 'text-blue-600' : 'text-red-600'}`}>
+                    {formatCurrency(platform === 'copart' ? 
+                      (comparableData?.statistics?.copartAvgPrice || 0) : 
+                      (comparableData?.statistics?.iaaiAvgPrice || 0)
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Based on {platform === 'copart' ? 
+                      (comparableData?.statistics?.copartCount || 0) : 
+                      (comparableData?.statistics?.iaaiCount || 0)
+                    } comparable vehicles
+                  </p>
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                      Upgrade to Platinum for cross-platform price comparisons
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
