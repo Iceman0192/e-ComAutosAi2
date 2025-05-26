@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
   TrendingUp, 
@@ -36,12 +37,20 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     series: lotData.series || lotData.trim || '',
     yearFrom: lotData.year ? lotData.year - 1 : 2020,
     yearTo: lotData.year ? lotData.year + 1 : 2025,
-    damageType: lotData.damage_primary || lotData.vehicle_damage || '',
+    damageType: lotData.damage_pr || lotData.damage_primary || lotData.vehicle_damage || '',
     maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
     sites: allowedSites
   });
 
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Authentic damage types from your database
+  const damageTypes = [
+    'Burn Engine', 'Damage History', 'Suspension', 'Electrical', 'Mechanical',
+    'Replaced Vin', 'Burn', 'Unknown', 'Top/Roof', 'Partial Repair', 'Theft',
+    'Rear End', 'Minor Dent/Scratches', 'Front End', 'Engine Damage', 'Side',
+    'All Over', 'Stripped', 'Water/Flood', 'Repossession'
+  ];
 
   // Fetch comparable vehicles
   const { data: comparableData, isLoading, error } = useQuery({
@@ -112,13 +121,22 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
 
         <div>
           <Label htmlFor="damageType" className="text-sm font-medium">Damage Type</Label>
-          <Input
-            id="damageType"
+          <Select
             value={searchParams.damageType}
-            onChange={(e) => setSearchParams({ ...searchParams, damageType: e.target.value })}
-            className="mt-1"
-            placeholder="e.g., Front End, Flood"
-          />
+            onValueChange={(value) => setSearchParams({ ...searchParams, damageType: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select damage type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Types</SelectItem>
+              {damageTypes.map((damage) => (
+                <SelectItem key={damage} value={damage}>
+                  {damage}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
