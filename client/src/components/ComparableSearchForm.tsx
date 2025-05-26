@@ -736,6 +736,19 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
                           {formatCurrency(selectedVehicle.purchase_price || 0)}
                         </span>
                       </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Sale Status:</span>
+                        <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                          selectedVehicle.sale_status === 'Sold' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                            : selectedVehicle.sale_status === 'On Approval'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                        }`}>
+                          {selectedVehicle.sale_status || 'Unknown'}
+                        </span>
+                      </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <span className="text-sm text-gray-600 dark:text-gray-400">Sale Date:</span>
@@ -750,16 +763,40 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
                           </Badge>
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4">
                         <div>
                           <span className="text-sm text-gray-600 dark:text-gray-400">VIN:</span>
                           <p className="text-gray-900 dark:text-white font-mono text-xs">{selectedVehicle.vin || 'N/A'}</p>
                         </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Location:</span>
-                          <p className="text-gray-900 dark:text-white">{selectedVehicle.location || 'N/A'}</p>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Auction Location:</span>
+                          <p className="text-gray-900 dark:text-white">
+                            {selectedVehicle.auction_location || selectedVehicle.location || 'N/A'}
+                          </p>
                         </div>
                       </div>
+
+                      {selectedVehicle.link && (
+                        <div className="grid grid-cols-1 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Original Listing:</span>
+                            <a 
+                              href={selectedVehicle.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+                            >
+                              View on {selectedVehicle.site === 1 ? 'Copart' : 'IAAI'}
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
