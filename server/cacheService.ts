@@ -20,6 +20,48 @@ export interface CacheKey {
 export class VehicleCacheService {
   
   /**
+   * Check if Gold+ users need fresh data (for page 1 only)
+   */
+  async needsFreshData(params: CacheKey, userRole: string): Promise<boolean> {
+    // Only Gold+ users get fresh data priority
+    if (userRole !== 'gold' && userRole !== 'platinum' && userRole !== 'admin') {
+      return false;
+    }
+    
+    try {
+      // Get the newest record from our cache for this search
+      const conditions = [
+        eq(salesHistory.make, params.make),
+        eq(salesHistory.site, params.site)
+      ];
+      
+      if (params.model && params.model.trim() !== '') {
+        conditions.push(eq(salesHistory.model, params.model));
+      }
+      
+      const newestCached = await db.select()
+        .from(salesHistory)
+        .where(and(...conditions))
+        .orderBy(desc(salesHistory.sale_date))
+        .limit(1);
+      
+      if (newestCached.length === 0) {
+        return true; // No cache at all, need fresh data
+      }
+      
+      // Check if cached data is older than 1 hour (configurable freshness threshold)
+      const cacheAge = Date.now() - new Date(newestCached[0].created_at).getTime();
+      const oneHour = 60 * 60 * 1000;
+      
+      return cacheAge > oneHour;
+      
+    } catch (error) {
+      console.error('Fresh data check failed:', error);
+      return true; // On error, fetch fresh data to be safe
+    }
+  }
+  
+  /**
    * Generate a consistent cache key for search criteria
    */
   private generateCacheKey(params: CacheKey): string {

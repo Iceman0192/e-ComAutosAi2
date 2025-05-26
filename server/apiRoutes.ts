@@ -47,14 +47,20 @@ export function setupApiRoutes(app: Express) {
         auctionDateTo
       };
       
-      // Check if we have sufficient cached data
-      const hasCachedData = await cacheService.hasCachedData(cacheParams, page, size);
+      const userRole = req.headers['user-role'] as string || 'free';
       
-      if (hasCachedData) {
-        // Serve from cache
-        console.log('Serving from cache');
-        const userRole = req.headers['user-role'] as string || 'free';
-        const cachedResult = await cacheService.getCachedData(cacheParams, page, size, userRole);
+      // For Gold+ users on page 1, check if we need fresh data
+      if (page === 1 && await cacheService.needsFreshData(cacheParams, userRole)) {
+        console.log(`Gold+ user needs fresh data - fetching from API`);
+        // Skip cache check and fetch fresh data
+      } else {
+        // Check if we have sufficient cached data
+        const hasCachedData = await cacheService.hasCachedData(cacheParams, page, size);
+        
+        if (hasCachedData) {
+          // Serve from cache
+          console.log('Serving from cache');
+          const cachedResult = await cacheService.getCachedData(cacheParams, page, size, userRole);
         
         if (cachedResult) {
           return res.json({
