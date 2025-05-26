@@ -45,12 +45,12 @@ export function setupApiRoutes(app: Express) {
       // Handle Fresh Data Toggle for Gold+ users
       if (freshDataEnabled) {
         console.log(`🔥 FRESH DATA REQUEST: ${make} ${model || 'all models'}, page ${page}, site ${site} - Bypassing cache`);
-        // Override date range to last 3 days for fresh data
+        // Override date range to last 14 days for fresh data
         const today = new Date();
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(today.getDate() - 3);
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(today.getDate() - 14);
         
-        auctionDateFrom = threeDaysAgo.toISOString().split('T')[0];
+        auctionDateFrom = fourteenDaysAgo.toISOString().split('T')[0];
         auctionDateTo = today.toISOString().split('T')[0];
       } else {
         console.log(`Clean API request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
@@ -186,12 +186,12 @@ export function setupApiRoutes(app: Express) {
       // Handle Fresh Data Toggle for Gold+ users
       if (freshDataEnabled) {
         console.log(`Gold+ Fresh Data IAAI request: ${make} ${model || 'all models'}, page ${page}`);
-        // Override date range to last 3 days for fresh data
+        // Override date range to last 14 days for fresh data
         const today = new Date();
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(today.getDate() - 3);
+        const fourteenDaysAgo = new Date();
+        fourteenDaysAgo.setDate(today.getDate() - 14);
         
-        auctionDateFrom = threeDaysAgo.toISOString().split('T')[0];
+        auctionDateFrom = fourteenDaysAgo.toISOString().split('T')[0];
         auctionDateTo = today.toISOString().split('T')[0];
       } else {
         console.log(`Clean IAAI request: ${make} ${model || 'all models'}, page ${page}`);
