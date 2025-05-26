@@ -704,6 +704,35 @@ export default function LiveIAAI() {
           </div>
         </div>
       )}
+
+      {/* Find Comparables Section - Gold Tier Manual Filtering */}
+      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
+        <Card className="border-red-200 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50">
+            <CardTitle className="flex items-center gap-2 text-red-900 dark:text-red-100">
+              <Filter className="h-5 w-5" />
+              Find Comparable Vehicles
+            </CardTitle>
+            <CardDescription className="text-red-700 dark:text-red-300">
+              Search for similar vehicles in your database to compare prices across platforms
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <div className="text-gray-500 dark:text-gray-400">
+                <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">Comparable Search Ready</p>
+                <p className="text-sm">
+                  Vehicle: {lotData.lot.year} {lotData.lot.make} {lotData.lot.model}
+                </p>
+                <p className="text-xs text-red-600 mt-2">
+                  Feature coming online - will search database for similar vehicles
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       </div>
     </div>
   );
