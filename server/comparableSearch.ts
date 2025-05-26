@@ -7,6 +7,8 @@ import { pool } from './db';
 export async function findComparableVehicles(searchParams: any) {
   const { make, model, series, yearFrom, yearTo, damageType, maxMileage } = searchParams;
   
+  console.log('Search params received:', { make, model, series, yearFrom, yearTo, damageType, maxMileage });
+  
   // Build clean WHERE clause using only existing database columns
   let whereConditions = [];
   let params = [];
@@ -56,12 +58,16 @@ export async function findComparableVehicles(searchParams: any) {
   
   const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
   
+  console.log('Final query conditions:', whereConditions);
+  console.log('Query parameters:', params);
+  
   // Query Copart data (site = 1)
   const copartQuery = `
     SELECT * FROM sales_history 
     WHERE ${whereClause} AND site = $${paramIndex}
     ORDER BY sale_date DESC
   `;
+  console.log('Copart query:', copartQuery);
   const copartResult = await pool.query(copartQuery, [...params, 1]);
   
   // Query IAAI data (site = 2) 
