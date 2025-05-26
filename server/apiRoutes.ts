@@ -6,6 +6,7 @@
 import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { cacheService } from './cacheService';
+import axios from 'axios';
 
 export function setupApiRoutes(app: Express) {
   
@@ -286,8 +287,8 @@ export function setupApiRoutes(app: Express) {
       const requestUrl = `https://api.apicar.store/cars/${lotId}?site=1`;
       console.log('Requesting live lot from:', requestUrl);
       
-      // Make API call to get live lot data (no caching for live data)
-      const response = await fetch(requestUrl, {
+      // Make API call using the exact same pattern as working sales history
+      const response = await axios.get(requestUrl, {
         headers: {
           'api-key': process.env.APICAR_API_KEY || '',
           'Accept': 'application/json',
@@ -295,11 +296,7 @@ export function setupApiRoutes(app: Express) {
         }
       });
       
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.status}`);
-      }
-      
-      const lotData = await response.json();
+      const lotData = response.data;
       
       return res.json({
         success: true,
@@ -332,8 +329,11 @@ export function setupApiRoutes(app: Express) {
       
       console.log(`Live IAAI lot lookup: ${lotId}`);
       
-      // Make API call to get live lot data (no caching for live data)
-      const response = await fetch(`https://api.apicar.store/cars/${lotId}?site=2`, {
+      const requestUrl = `https://api.apicar.store/cars/${lotId}?site=2`;
+      console.log('Requesting live lot from:', requestUrl);
+      
+      // Make API call using the exact same pattern as working sales history
+      const response = await axios.get(requestUrl, {
         headers: {
           'api-key': process.env.APICAR_API_KEY || '',
           'Accept': 'application/json',
@@ -341,11 +341,7 @@ export function setupApiRoutes(app: Express) {
         }
       });
       
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.status}`);
-      }
-      
-      const lotData = await response.json();
+      const lotData = response.data;
       
       return res.json({
         success: true,
