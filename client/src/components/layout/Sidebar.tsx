@@ -46,6 +46,18 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
+      title: 'Live Copart Lots',
+      href: '/live-copart',
+      icon: Car,
+      permission: 'FULL_ANALYTICS'
+    },
+    {
+      title: 'Live IAAI Lots',
+      href: '/live-iaai',
+      icon: Search,
+      permission: 'FULL_ANALYTICS'
+    },
+    {
       title: 'Cross-Platform',
       href: '/cross-platform',
       icon: BarChart3,

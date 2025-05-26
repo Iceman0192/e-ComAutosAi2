@@ -266,4 +266,84 @@ export function setupApiRoutes(app: Express) {
       });
     }
   });
+
+  /**
+   * Live Copart Lot Lookup Endpoint
+   */
+  app.get('/api/live-copart/:lotId', async (req: Request, res: Response) => {
+    try {
+      const { lotId } = req.params;
+      
+      if (!lotId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Lot ID is required'
+        });
+      }
+      
+      console.log(`Live Copart lot lookup: ${lotId}`);
+      
+      // Make API call to get live lot data (no caching for live data)
+      const response = await fetch(`https://api.apicar.one/cars/${lotId}?site=1`);
+      
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`);
+      }
+      
+      const lotData = await response.json();
+      
+      return res.json({
+        success: true,
+        lot: lotData
+      });
+      
+    } catch (error) {
+      console.error('Live Copart lot lookup error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch live lot data: ' + errorMessage
+      });
+    }
+  });
+
+  /**
+   * Live IAAI Lot Lookup Endpoint
+   */
+  app.get('/api/live-iaai/:lotId', async (req: Request, res: Response) => {
+    try {
+      const { lotId } = req.params;
+      
+      if (!lotId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Lot ID is required'
+        });
+      }
+      
+      console.log(`Live IAAI lot lookup: ${lotId}`);
+      
+      // Make API call to get live lot data (no caching for live data)
+      const response = await fetch(`https://api.apicar.one/cars/${lotId}?site=2`);
+      
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`);
+      }
+      
+      const lotData = await response.json();
+      
+      return res.json({
+        success: true,
+        lot: lotData
+      });
+      
+    } catch (error) {
+      console.error('Live IAAI lot lookup error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch live lot data: ' + errorMessage
+      });
+    }
+  });
 }
