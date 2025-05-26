@@ -697,6 +697,35 @@ export default function LiveCopart() {
           </div>
         </div>
       )}
+
+      {/* Find Comparables Section - Gold Tier Manual Filtering */}
+      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
+        <Card className="border-blue-200 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+            <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+              <Filter className="h-5 w-5" />
+              Find Comparable Vehicles
+            </CardTitle>
+            <CardDescription className="text-blue-700 dark:text-blue-300">
+              Search for similar vehicles in your database to compare prices across platforms
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <div className="text-gray-500 dark:text-gray-400">
+                <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">Comparable Search Ready</p>
+                <p className="text-sm">
+                  Vehicle: {lotData.lot.year} {lotData.lot.make} {lotData.lot.model}
+                </p>
+                <p className="text-xs text-blue-600 mt-2">
+                  Feature coming online - will search database for similar vehicles
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       </div>
     </div>
   );
