@@ -74,7 +74,11 @@ export default function AILotAnalysis({ lotData, platform }: AIAnalysisProps) {
   const { data: analysisData, isLoading, error } = useQuery({
     queryKey: ['ai-lot-analysis', lotData.vin],
     queryFn: async () => {
-      const response = await apiRequest('POST', '/api/ai-lot-analysis', { lotData, platform });
+      const response = await fetch('/api/ai-lot-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lotData, platform })
+      });
       return response.json();
     },
     enabled: analysisTriggered,

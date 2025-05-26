@@ -292,20 +292,7 @@ export default function LiveCopart() {
       {/* Enhanced Live Lot Display */}
       {lotData?.lot && (
         <>
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="details" className="flex items-center gap-2">
-                <Car className="h-4 w-4" />
-                Lot Details
-              </TabsTrigger>
-              <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                AI Analysis
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="details">
-              <Card className="border-green-200 shadow-lg">
+          <Card className="border-green-200 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -623,17 +610,30 @@ export default function LiveCopart() {
                   </CardContent>
                 </Card>
               )}
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="ai-analysis">
-              <AILotAnalysis 
-                lotData={lotData.lot}
-                platform="copart"
-              />
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
         </>
+      )}
+
+      {/* AI Analysis Section - Platinum Feature */}
+      {lotData?.lot && (
+        <Card className="border-purple-200 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50">
+            <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
+              <Brain className="h-6 w-6" />
+              AI Cross-Platform Analysis
+            </CardTitle>
+            <CardDescription className="text-purple-700 dark:text-purple-300">
+              Platinum Feature: Get intelligent insights and cross-platform price comparison
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <AILotAnalysis 
+              lotData={lotData.lot}
+              platform="copart"
+            />
+          </CardContent>
+        </Card>
       )}
       </div>
     </div>
