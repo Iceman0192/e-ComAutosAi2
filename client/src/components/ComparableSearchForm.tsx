@@ -647,6 +647,169 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
           </div>
         </div>
       </div>
+
+      {/* Vehicle Detail Modal */}
+      {isModalOpen && selectedVehicle && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {selectedVehicle.year} {selectedVehicle.make} {selectedVehicle.model} {selectedVehicle.series}
+              </h2>
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl">
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Photos</h3>
+                    {(() => {
+                      let images = [];
+                      if (selectedVehicle.images) {
+                        images = typeof selectedVehicle.images === 'string' 
+                          ? JSON.parse(selectedVehicle.images) 
+                          : selectedVehicle.images;
+                      }
+                      return images.length > 0 ? (
+                        <div>
+                          <div className="relative mb-4">
+                            <img
+                              src={images[currentImageIndex]}
+                              alt={`${selectedVehicle.year} ${selectedVehicle.make} ${selectedVehicle.model}`}
+                              className="w-full h-80 object-cover rounded-lg border"
+                            />
+                            <div className="absolute top-4 right-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm">
+                              {currentImageIndex + 1} of {images.length}
+                            </div>
+                            {images.length > 1 && (
+                              <>
+                                <button onClick={prevImage} className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80">
+                                  <ChevronLeft className="h-5 w-5" />
+                                </button>
+                                <button onClick={nextImage} className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80">
+                                  <ChevronRight className="h-5 w-5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          {images.length > 1 && (
+                            <div className="flex space-x-2 overflow-x-auto pb-2">
+                              {images.map((img: string, index: number) => (
+                                <button
+                                  key={index}
+                                  onClick={() => setCurrentImageIndex(index)}
+                                  className={`flex-shrink-0 w-20 h-16 rounded border-2 overflow-hidden ${
+                                    currentImageIndex === index ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-blue-300'
+                                  }`}
+                                >
+                                  <img src={img} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded-lg border flex items-center justify-center">
+                          <p className="text-gray-500 dark:text-gray-400">No images available</p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Sale Details</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Final Sale Price:</span>
+                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                          {formatCurrency(selectedVehicle.purchase_price || 0)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Sale Date:</span>
+                          <p className="text-gray-900 dark:text-white">
+                            {selectedVehicle.sale_date ? new Date(selectedVehicle.sale_date).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Platform:</span>
+                          <Badge variant={selectedVehicle.site === 1 ? 'default' : 'destructive'}>
+                            {selectedVehicle.site === 1 ? 'Copart' : 'IAAI'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">VIN:</span>
+                          <p className="text-gray-900 dark:text-white font-mono text-xs">{selectedVehicle.vin || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Location:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedVehicle.location || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Specifications</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Mileage:</span>
+                          <p className="text-gray-900 dark:text-white">
+                            {selectedVehicle.vehicle_mileage ? selectedVehicle.vehicle_mileage.toLocaleString() + ' mi' : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Color:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedVehicle.color || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Transmission:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedVehicle.transmission || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Drive Type:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedVehicle.drive || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Fuel Type:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedVehicle.fuel || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Keys:</span>
+                          <p className="text-gray-900 dark:text-white">{selectedVehicle.keys || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Damage Information</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Primary Damage:</span>
+                        <p className="text-gray-900 dark:text-white">{selectedVehicle.vehicle_damage || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Title Status:</span>
+                        <p className="text-gray-900 dark:text-white">{selectedVehicle.vehicle_title || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
