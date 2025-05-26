@@ -24,8 +24,9 @@ export function setupApiRoutes(app: Express) {
       const site = parseInt(req.query.site as string) || 1;
       const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
       const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
-      const auctionDateFrom = req.query.sale_date_from as string;
-      const auctionDateTo = req.query.sale_date_to as string;
+      let auctionDateFrom = req.query.sale_date_from as string;
+      let auctionDateTo = req.query.sale_date_to as string;
+      const freshDataEnabled = req.query.fresh_data === 'true'; // Gold+ Fresh Data Toggle
       
       if (!make) {
         return res.status(400).json({
@@ -34,7 +35,19 @@ export function setupApiRoutes(app: Express) {
         });
       }
       
-      console.log(`Clean API request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
+      // Handle Fresh Data Toggle for Gold+ users
+      if (freshDataEnabled) {
+        console.log(`Gold+ Fresh Data request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
+        // Override date range to last 3 days for fresh data
+        const today = new Date();
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(today.getDate() - 3);
+        
+        auctionDateFrom = threeDaysAgo.toISOString().split('T')[0];
+        auctionDateTo = today.toISOString().split('T')[0];
+      } else {
+        console.log(`Clean API request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
+      }
       
       // Create cache parameters
       const cacheParams = {
@@ -152,8 +165,9 @@ export function setupApiRoutes(app: Express) {
       const size = parseInt(req.query.size as string) || 25;
       const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
       const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
-      const auctionDateFrom = req.query.sale_date_from as string;
-      const auctionDateTo = req.query.sale_date_to as string;
+      let auctionDateFrom = req.query.sale_date_from as string;
+      let auctionDateTo = req.query.sale_date_to as string;
+      const freshDataEnabled = req.query.fresh_data === 'true'; // Gold+ Fresh Data Toggle
       
       if (!make) {
         return res.status(400).json({
@@ -162,7 +176,19 @@ export function setupApiRoutes(app: Express) {
         });
       }
       
-      console.log(`Clean IAAI request: ${make} ${model || 'all models'}, page ${page}`);
+      // Handle Fresh Data Toggle for Gold+ users
+      if (freshDataEnabled) {
+        console.log(`Gold+ Fresh Data IAAI request: ${make} ${model || 'all models'}, page ${page}`);
+        // Override date range to last 3 days for fresh data
+        const today = new Date();
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(today.getDate() - 3);
+        
+        auctionDateFrom = threeDaysAgo.toISOString().split('T')[0];
+        auctionDateTo = today.toISOString().split('T')[0];
+      } else {
+        console.log(`Clean IAAI request: ${make} ${model || 'all models'}, page ${page}`);
+      }
       
       // Create cache parameters for IAAI (site 2)
       const cacheParams = {
