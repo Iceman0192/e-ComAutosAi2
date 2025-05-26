@@ -284,7 +284,12 @@ export function setupApiRoutes(app: Express) {
       console.log(`Live Copart lot lookup: ${lotId}`);
       
       // Make API call to get live lot data (no caching for live data)
-      const response = await fetch(`https://api.apicar.one/cars/${lotId}?site=1`);
+      const response = await fetch(`https://api.apicar.store/cars/${lotId}?site=1`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`API call failed: ${response.status}`);
@@ -324,7 +329,12 @@ export function setupApiRoutes(app: Express) {
       console.log(`Live IAAI lot lookup: ${lotId}`);
       
       // Make API call to get live lot data (no caching for live data)
-      const response = await fetch(`https://api.apicar.one/cars/${lotId}?site=2`);
+      const response = await fetch(`https://api.apicar.store/cars/${lotId}?site=2`, {
+        headers: {
+          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`API call failed: ${response.status}`);
