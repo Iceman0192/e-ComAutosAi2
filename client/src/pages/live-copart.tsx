@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { useLocation } from 'wouter';
 import { 
   Car, 
   Search, 
@@ -76,6 +77,7 @@ interface ComparableFilters {
 
 export default function LiveCopart() {
   const { user, hasPermission } = useAuth();
+  const [, setLocation] = useLocation();
   const [lotId, setLotId] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -198,20 +200,40 @@ export default function LiveCopart() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with Platform Toggle */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Copart Live Lots
+            Live Lot Analysis
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Search current auction lots and analyze comparable sales
           </p>
         </div>
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-          <Car className="h-4 w-4 mr-1" />
-          COPART
-        </Badge>
+        
+        {/* Platform Toggle */}
+        <div className="flex items-center gap-4">
+          <div className="bg-white dark:bg-gray-800 p-1 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-blue-500 text-white hover:bg-blue-600 rounded-full px-6 py-2 font-medium shadow-sm"
+              >
+                <Car className="h-4 w-4 mr-2" />
+                Copart
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation('/live-iaai')}
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700 rounded-full px-6 py-2"
+              >
+                IAAI
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Enhanced Search Section */}
