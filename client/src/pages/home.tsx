@@ -5,6 +5,7 @@ import { Link, useLocation } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
 import { Button } from '@/components/ui/button';
 import { Car } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
@@ -88,6 +89,11 @@ export default function Home() {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Fresh Data Toggle for Gold+ (Gold and Platinum) users
+  const { hasPermission } = useAuth();
+  const [freshDataEnabled, setFreshDataEnabled] = useState(false);
+  const [fetchingFreshData, setFetchingFreshData] = useState(false);
   
   // Function to open vehicle details modal
   const openVehicleDetails = (vehicle: any) => {
