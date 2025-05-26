@@ -283,10 +283,14 @@ export function setupApiRoutes(app: Express) {
       
       console.log(`Live Copart lot lookup: ${lotId}`);
       
+      const requestUrl = `https://api.apicar.store/cars/${lotId}?site=1`;
+      console.log('Requesting live lot from:', requestUrl);
+      
       // Make API call to get live lot data (no caching for live data)
-      const response = await fetch(`https://api.apicar.store/cars/${lotId}?site=1`, {
+      const response = await fetch(requestUrl, {
         headers: {
-          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
+          'api-key': process.env.APICAR_API_KEY || '',
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
@@ -331,7 +335,8 @@ export function setupApiRoutes(app: Express) {
       // Make API call to get live lot data (no caching for live data)
       const response = await fetch(`https://api.apicar.store/cars/${lotId}?site=2`, {
         headers: {
-          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
+          'api-key': process.env.APICAR_API_KEY || '',
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
