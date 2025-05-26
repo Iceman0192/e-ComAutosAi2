@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
 import ErrorBoundary from '../components/ui/error-boundary';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import SalesAnalytics from '../components/sales/SalesAnalytics';
-
+import { Button } from '@/components/ui/button';
+import { Car } from 'lucide-react';
 
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
