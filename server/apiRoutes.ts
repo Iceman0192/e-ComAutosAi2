@@ -37,7 +37,7 @@ export function setupApiRoutes(app: Express) {
       
       // Handle Fresh Data Toggle for Gold+ users
       if (freshDataEnabled) {
-        console.log(`Gold+ Fresh Data request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
+        console.log(`Gold+ Fresh Data request: ${make} ${model || 'all models'}, page ${page}, site ${site} - Freshest to Oldest`);
         // Override date range to last 3 days for fresh data
         const today = new Date();
         const threeDaysAgo = new Date();

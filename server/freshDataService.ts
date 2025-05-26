@@ -144,7 +144,7 @@ export class FreshDataService {
       const results = await db.select()
         .from(salesHistory)
         .where(and(...conditions))
-        .orderBy(desc(salesHistory.sale_date))
+        .orderBy(desc(salesHistory.sale_date), desc(salesHistory.created_at))
         .limit(size)
         .offset(offset);
       
