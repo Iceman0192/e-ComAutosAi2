@@ -34,27 +34,15 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Copart Search',
+      title: 'Sales History',
       href: '/',
-      icon: Car,
-      permission: 'BASIC_SEARCH'
-    },
-    {
-      title: 'IAAI Search',
-      href: '/iaai',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Live Copart Lots',
+      title: 'Live Lot Analysis',
       href: '/live-copart',
       icon: Car,
-      permission: 'FULL_ANALYTICS'
-    },
-    {
-      title: 'Live IAAI Lots',
-      href: '/live-iaai',
-      icon: Search,
       permission: 'FULL_ANALYTICS'
     },
     {
