@@ -214,33 +214,70 @@ export default function LiveCopart() {
         </Badge>
       </div>
 
-      {/* Search Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      {/* Enhanced Search Section */}
+      <Card className="border-blue-200 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+          <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
             <Search className="h-5 w-5" />
-            Lot Lookup
+            Live Lot Lookup
           </CardTitle>
-          <CardDescription>
-            Enter a Copart lot ID to view current auction details
+          <CardDescription className="text-blue-700 dark:text-blue-300">
+            Enter a Copart lot ID to view current auction details and photos
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <Label htmlFor="lotId">Lot ID</Label>
-              <Input
-                id="lotId"
-                placeholder="Enter lot ID (e.g., 57442255)"
-                value={lotId}
-                onChange={(e) => setLotId(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
+              <Label htmlFor="lotId" className="text-sm font-medium">Lot ID</Label>
+              <div className="mt-1 relative">
+                <Input
+                  id="lotId"
+                  placeholder="Enter lot ID (e.g., 57442255)"
+                  value={lotId}
+                  onChange={(e) => setLotId(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pr-12 text-lg h-12"
+                />
+                <Car className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
             </div>
             <div className="flex items-end">
-              <Button onClick={handleSearch} disabled={!lotId.trim() || lotLoading}>
-                {lotLoading ? 'Searching...' : 'Search Lot'}
+              <Button 
+                onClick={handleSearch} 
+                disabled={!lotId.trim() || lotLoading}
+                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                size="lg"
+              >
+                {lotLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Search Lot
+                  </>
+                )}
               </Button>
+            </div>
+          </div>
+          
+          {/* Quick Examples */}
+          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Try these example lot IDs:</p>
+            <div className="flex flex-wrap gap-2">
+              {['57442255', '89257515', '57442220'].map((exampleId) => (
+                <Button
+                  key={exampleId}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLotId(exampleId)}
+                  className="text-xs"
+                >
+                  {exampleId}
+                </Button>
+              ))}
             </div>
           </div>
         </CardContent>
@@ -258,24 +295,44 @@ export default function LiveCopart() {
         </Card>
       )}
 
-      {/* Live Lot Display */}
+      {/* Enhanced Live Lot Display */}
       {lotData?.lot && (
         <>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5" />
-                  {lotData.lot.title}
-                </CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">Lot #{lotData.lot.lot_id}</Badge>
-                  <Button variant="outline" size="sm" asChild>
+          <Card className="border-green-200 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100 text-xl lg:text-2xl">
+                    <Car className="h-6 w-6" />
+                    {lotData.lot.title}
+                  </CardTitle>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      Lot #{lotData.lot.lot_id}
+                    </Badge>
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      VIN: {lotData.lot.vin}
+                    </Badge>
+                    <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                      {lotData.lot.year} {lotData.lot.make} {lotData.lot.model}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" asChild className="bg-white hover:bg-gray-50">
                     <a href={lotData.lot.link} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4 mr-1" />
+                      <ExternalLink className="h-4 w-4 mr-2" />
                       View on Copart
                     </a>
                   </Button>
+                  {lotData.lot.current_bid > 0 && (
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Current Bid</p>
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(lotData.lot.current_bid)}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardHeader>
