@@ -343,7 +343,7 @@ function ComparableAnalytics({ data, platform, hasPermission }: any) {
   const stats = data?.statistics || {};
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className={`grid grid-cols-1 gap-4 mb-6 ${hasPermission('CROSS_PLATFORM_SEARCH') ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
         <div className="flex items-center">
           <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
@@ -377,31 +377,41 @@ function ComparableAnalytics({ data, platform, hasPermission }: any) {
 
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
         <div className="flex items-center">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-            <Badge className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          <div className={`p-2 rounded-lg ${platform === 'copart' ? 'bg-blue-100 dark:bg-blue-900' : 'bg-red-100 dark:bg-red-900'}`}>
+            <Badge className={`h-5 w-5 ${platform === 'copart' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`} />
           </div>
           <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Copart Sales</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {hasPermission('CROSS_PLATFORM_SEARCH') ? 'Copart Sales' : `${platform === 'copart' ? 'Copart' : 'IAAI'} Sales`}
+            </p>
             <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-              {stats.copartCount || 0}
+              {hasPermission('CROSS_PLATFORM_SEARCH') 
+                ? stats.copartCount || 0
+                : platform === 'copart' 
+                  ? stats.copartCount || 0 
+                  : stats.iaaiCount || 0
+              }
             </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-        <div className="flex items-center">
-          <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-            <Badge className="h-5 w-5 text-red-600 dark:text-red-400" />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">IAAI Sales</p>
-            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-              {stats.iaaiCount || 0}
-            </p>
+      {/* Only show both platform counts for Platinum+ users */}
+      {hasPermission('CROSS_PLATFORM_SEARCH') && (
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+          <div className="flex items-center">
+            <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+              <Badge className="h-5 w-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">IAAI Sales</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                {stats.iaaiCount || 0}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
