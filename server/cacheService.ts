@@ -37,9 +37,9 @@ export class VehicleCacheService {
   }
   
   /**
-   * Check if we have sufficient cached data for this search
+   * Check if we have sufficient cached data for this search and page
    */
-  async hasCachedData(params: CacheKey, requiredCount: number = 25): Promise<boolean> {
+  async hasCachedData(params: CacheKey, page: number = 1, size: number = 25): Promise<boolean> {
     try {
       const conditions = [
         eq(salesHistory.make, params.make),
@@ -58,14 +58,17 @@ export class VehicleCacheService {
         conditions.push(lte(salesHistory.year, params.yearTo));
       }
       
-      const cachedResults = await db.select()
+      // Count total records instead of limiting to required count
+      const totalRecords = await db.select()
         .from(salesHistory)
-        .where(and(...conditions))
-        .limit(requiredCount);
+        .where(and(...conditions));
       
-      console.log(`Cache check: Found ${cachedResults.length} results for ${this.generateCacheKey(params)}`);
+      const totalCount = totalRecords.length;
+      const requiredForPage = page * size; // Need at least this many records to serve the requested page
       
-      return cachedResults.length >= requiredCount;
+      console.log(`Cache check: Found ${totalCount} results for ${this.generateCacheKey(params)}, need ${requiredForPage} for page ${page}`);
+      
+      return totalCount >= requiredForPage;
       
     } catch (error) {
       console.error('Cache check failed:', error);

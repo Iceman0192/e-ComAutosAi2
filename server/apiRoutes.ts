@@ -48,7 +48,7 @@ export function setupApiRoutes(app: Express) {
       };
       
       // Check if we have sufficient cached data
-      const hasCachedData = await cacheService.hasCachedData(cacheParams, size * page);
+      const hasCachedData = await cacheService.hasCachedData(cacheParams, page, size);
       
       if (hasCachedData) {
         // Serve from cache
@@ -176,7 +176,7 @@ export function setupApiRoutes(app: Express) {
       };
       
       // Check if we have sufficient cached data
-      const hasCachedData = await cacheService.hasCachedData(cacheParams, size * page);
+      const hasCachedData = await cacheService.hasCachedData(cacheParams, page, size);
       
       if (hasCachedData) {
         // Serve from cache
