@@ -92,7 +92,7 @@ function PlatformFeatures() {
       title: "Copart Intelligence",
       description: "Access Copart's vast auction database with advanced filtering and real-time lot tracking.",
       color: "bg-gradient-to-br from-blue-500 to-blue-600",
-      href: "/",
+      href: "/copart-search",
       badge: "Live"
     },
     {
@@ -152,8 +152,8 @@ function PlatformFeatures() {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <Link key={feature.href} href={feature.href}>
-                <Card className="auction-card group cursor-pointer border-0 shadow-lg h-full">
+              <Card key={feature.href} className="auction-card group cursor-pointer border-0 shadow-lg" asChild>
+                <Link href={feature.href}>
                   <CardHeader>
                     <div className="flex items-center justify-between mb-3">
                       <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center`}>
@@ -175,8 +175,8 @@ function PlatformFeatures() {
                       {feature.description}
                     </CardDescription>
                   </CardContent>
-                </Card>
-              </Link>
+                </Link>
+              </Card>
             );
           })}
         </div>
@@ -239,7 +239,7 @@ function QuickSearchSection() {
             
             <div className="flex flex-col sm:flex-row gap-3">
               <Button className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" asChild>
-                <Link href="/">
+                <Link href="/copart-search">
                   <Car className="w-4 h-4 mr-2" />
                   Search Copart
                 </Link>
