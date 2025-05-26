@@ -72,6 +72,45 @@ export const insertVehicleSchema = createInsertSchema(vehicles);
 export type InsertVehicle = z.infer<typeof insertVehicleSchema>;
 export type Vehicle = typeof vehicles.$inferSelect;
 
+// Temporary database for fresh data (Gold/Platinum exclusive)
+export const freshSalesHistory = pgTable("fresh_sales_history", {
+  id: text("id").primaryKey(),
+  lot_id: integer("lot_id"),
+  site: integer("site").notNull(),
+  base_site: text("base_site"),
+  vin: text("vin"),
+  sale_status: text("sale_status"),
+  sale_date: timestamp("sale_date"),
+  purchase_price: text("purchase_price"),
+  buyer_state: text("buyer_state"),
+  buyer_country: text("buyer_country"),
+  buyer_type: text("buyer_type"),
+  auction_location: text("auction_location"),
+  vehicle_mileage: integer("vehicle_mileage"),
+  vehicle_damage: text("vehicle_damage"),
+  vehicle_title: text("vehicle_title"),
+  vehicle_has_keys: boolean("vehicle_has_keys"),
+  year: integer("year"),
+  make: text("make"),
+  model: text("model"),
+  series: text("series"),
+  trim: text("trim"),
+  transmission: text("transmission"),
+  drive: text("drive"),
+  fuel: text("fuel"),
+  color: text("color"),
+  images: text("images"),
+  link: text("link"),
+  link_img_hd: text("link_img_hd").array(),
+  link_img_small: text("link_img_small").array(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  expires_at: timestamp("expires_at").notNull(), // 3-day expiration
+});
+
+export const insertFreshSalesHistorySchema = createInsertSchema(freshSalesHistory);
+export type InsertFreshSalesHistory = z.infer<typeof insertFreshSalesHistorySchema>;
+export type FreshSalesHistory = typeof freshSalesHistory.$inferSelect;
+
 // API schemas for APICAR
 // Updated schema based on actual APICAR API response format
 export const SaleHistoryResponseSchema = z.object({
