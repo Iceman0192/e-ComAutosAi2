@@ -30,7 +30,9 @@ export function setupApiRoutes(app: Express) {
       
       console.log('🔍 Fresh Data Debug:', { 
         fresh_data_param: req.query.fresh_data, 
-        freshDataEnabled: freshDataEnabled 
+        freshDataEnabled: freshDataEnabled,
+        type_of_param: typeof req.query.fresh_data,
+        all_query_params: req.query
       });
       
       if (!make) {
@@ -42,7 +44,7 @@ export function setupApiRoutes(app: Express) {
       
       // Handle Fresh Data Toggle for Gold+ users
       if (freshDataEnabled) {
-        console.log(`🔥 FRESH DATA REQUEST: ${make} ${model || 'all models'}, page ${page}, site ${site} - Bypassing cache completely`);
+        console.log(`🔥 FRESH DATA REQUEST: ${make} ${model || 'all models'}, page ${page}, site ${site} - Bypassing cache`);
         // Override date range to last 3 days for fresh data
         const today = new Date();
         const threeDaysAgo = new Date();
@@ -50,45 +52,6 @@ export function setupApiRoutes(app: Express) {
         
         auctionDateFrom = threeDaysAgo.toISOString().split('T')[0];
         auctionDateTo = today.toISOString().split('T')[0];
-        
-        // Make direct API call for fresh data - skip all cache logic
-        console.log(`🌊 Making fresh API call with date range: ${auctionDateFrom} to ${auctionDateTo}`);
-        const apiResponse = await getVehicleSalesHistory(
-          make,
-          model,
-          page,
-          size,
-          yearFrom,
-          yearTo,
-          auctionDateFrom,
-          auctionDateTo,
-          site
-        );
-        
-        if (apiResponse.success && apiResponse.data) {
-          return res.json({
-            success: true,
-            data: {
-              salesHistory: apiResponse.data.data || [],
-              stats: {
-                totalSales: apiResponse.data.count || 0,
-                averagePrice: (apiResponse.data.data || []).reduce((sum: number, item: any) => 
-                  sum + (item.purchase_price != null ? parseFloat(item.purchase_price) : 0), 0) / Math.max((apiResponse.data.data || []).length, 1),
-                successRate: 0.75,
-                priceTrend: 0.05,
-                topLocations: []
-              },
-              priceTrend: [],
-              geographicData: [],
-              pagination: {
-                totalCount: apiResponse.data.count || 0,
-                currentPage: page,
-                pageSize: size,
-                totalPages: Math.ceil((apiResponse.data.count || 0) / size)
-              }
-            }
-          });
-        }
       } else {
         console.log(`Clean API request: ${make} ${model || 'all models'}, page ${page}, site ${site}`);
       }
