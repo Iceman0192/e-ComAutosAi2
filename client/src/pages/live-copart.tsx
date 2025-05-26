@@ -714,6 +714,7 @@ export default function LiveCopart() {
           <CardContent className="pt-6">
             <ComparableSearchForm 
               lotData={lotData.lot}
+              platform="copart"
             />
           </CardContent>
         </Card>
