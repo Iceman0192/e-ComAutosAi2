@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '../components/ComparableSearchForm';
+import AILotAnalysis from '@/components/AILotAnalysis';
 import { 
   Car, 
   Search, 
@@ -18,6 +20,7 @@ import {
   DollarSign,
   AlertCircle,
   Calendar,
+  Brain,
   Gauge,
   Wrench,
   Key,
@@ -289,7 +292,20 @@ export default function LiveCopart() {
       {/* Enhanced Live Lot Display */}
       {lotData?.lot && (
         <>
-          <Card className="border-green-200 shadow-lg">
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details" className="flex items-center gap-2">
+                <Car className="h-4 w-4" />
+                Lot Details
+              </TabsTrigger>
+              <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                AI Analysis
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="details">
+              <Card className="border-green-200 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -587,25 +603,37 @@ export default function LiveCopart() {
         </div>
       )}
 
-      {/* Find Comparables Section - Gold Tier Manual Filtering */}
-      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
-        <Card className="border-blue-200 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
-            <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-              <Filter className="h-5 w-5" />
-              Find Comparable Vehicles
-            </CardTitle>
-            <CardDescription className="text-blue-700 dark:text-blue-300">
-              Search for similar vehicles in your database to compare prices across platforms
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ComparableSearchForm 
-              lotData={lotData.lot}
-              platform="copart"
-            />
-          </CardContent>
-        </Card>
+              {/* Find Comparables Section - Gold Tier Manual Filtering */}
+              {hasPermission('FULL_ANALYTICS') && (
+                <Card className="border-blue-200 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+                    <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                      <Filter className="h-5 w-5" />
+                      Find Comparable Vehicles
+                    </CardTitle>
+                    <CardDescription className="text-blue-700 dark:text-blue-300">
+                      Search for similar vehicles in your database to compare prices across platforms
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ComparableSearchForm 
+                      lotData={lotData.lot}
+                      platform="copart"
+                    />
+                  </CardContent>
+                </Card>
+              )}
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="ai-analysis">
+              <AILotAnalysis 
+                lotData={lotData.lot}
+                platform="copart"
+              />
+            </TabsContent>
+          </Tabs>
+        </>
       )}
       </div>
     </div>
