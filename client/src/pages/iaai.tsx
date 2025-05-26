@@ -77,6 +77,11 @@ export default function IAAI() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
+  // Fresh Data Toggle for Gold+ (Gold and Platinum) users
+  const { hasPermission } = useAuth();
+  const [freshDataEnabled, setFreshDataEnabled] = useState(false);
+  const [fetchingFreshData, setFetchingFreshData] = useState(false);
+  
   // Function to open vehicle details modal
   const openVehicleDetails = (vehicle: any) => {
     setSelectedVehicle(vehicle);
@@ -661,6 +666,46 @@ export default function IAAI() {
             
 
             
+            {/* Fresh Data Toggle for Gold+ (Gold and Platinum) Users */}
+            {hasPermission('ADVANCED_FILTERS') && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg border border-amber-200 dark:border-amber-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="freshDataToggle"
+                        checked={freshDataEnabled}
+                        onChange={(e) => setFreshDataEnabled(e.target.checked)}
+                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="freshDataToggle" className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Include Last 3 Days Fresh Auctions
+                      </label>
+                    </div>
+                    <div className="px-2 py-1 bg-amber-200 dark:bg-amber-700 text-amber-800 dark:text-amber-200 text-xs font-semibold rounded-full">
+                      GOLD+
+                    </div>
+                  </div>
+                  {fetchingFreshData && (
+                    <div className="flex items-center space-x-2 text-amber-700 dark:text-amber-300">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-xs">Fetching fresh data...</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                  {freshDataEnabled 
+                    ? "✓ Fresh auction data will be included in your search results"
+                    : "Enable to fetch the latest auction data from the last 3 days"
+                  }
+                </p>
+              </div>
+            )}
+
             {/* Search Button */}
             <div className="mt-6">
               <button
