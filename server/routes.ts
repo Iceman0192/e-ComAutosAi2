@@ -191,7 +191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           buyer_type: 'Unknown',
           auction_location: item.location || '',
           vehicle_mileage: item.odometer || 0,
-          vehicle_damage: item.damage_pr || '',
+          vehicle_damage: item.vehicle_damage || '',
           vehicle_title: item.document || '',
           vehicle_has_keys: item.keys === 'Yes',
           // Additional fields from the APICAR API
