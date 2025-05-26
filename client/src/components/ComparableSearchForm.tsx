@@ -33,8 +33,11 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
   const [searchParams, setSearchParams] = useState({
     make: lotData.make || '',
     model: lotData.model || '',
-    yearFrom: lotData.year ? lotData.year - 2 : 2020,
-    yearTo: lotData.year ? lotData.year + 2 : 2025,
+    series: lotData.series || lotData.trim || '',
+    yearFrom: lotData.year ? lotData.year - 1 : 2020,
+    yearTo: lotData.year ? lotData.year + 1 : 2025,
+    damageType: lotData.damage_primary || lotData.damage_pr || '',
+    maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
     sites: allowedSites
   });
 
@@ -74,7 +77,7 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
 
   return (
     <div className="space-y-6">
-      {/* Pre-filled Search Form */}
+      {/* Pre-filled Search Form with Enhanced Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="make" className="text-sm font-medium">Vehicle Make</Label>
@@ -93,6 +96,28 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
             value={searchParams.model}
             onChange={(e) => setSearchParams({ ...searchParams, model: e.target.value })}
             className="mt-1"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="series" className="text-sm font-medium">Series/Trim</Label>
+          <Input
+            id="series"
+            value={searchParams.series}
+            onChange={(e) => setSearchParams({ ...searchParams, series: e.target.value })}
+            className="mt-1"
+            placeholder="e.g., TRD Pro, Limited"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="damageType" className="text-sm font-medium">Damage Type</Label>
+          <Input
+            id="damageType"
+            value={searchParams.damageType}
+            onChange={(e) => setSearchParams({ ...searchParams, damageType: e.target.value })}
+            className="mt-1"
+            placeholder="e.g., Front End, Flood"
           />
         </div>
 
@@ -117,6 +142,18 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
               max="2025"
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="maxMileage" className="text-sm font-medium">Max Mileage</Label>
+          <Input
+            id="maxMileage"
+            type="number"
+            value={searchParams.maxMileage}
+            onChange={(e) => setSearchParams({ ...searchParams, maxMileage: e.target.value })}
+            className="mt-1"
+            placeholder="Maximum odometer reading"
+          />
         </div>
 
         <div className="flex items-end">
@@ -233,13 +270,21 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {[
-                    ...(comparableData?.comparables?.copart || []).slice(0, 5),
-                    ...(comparableData?.comparables?.iaai || []).slice(0, 5)
-                  ]
-                    .sort((a, b) => new Date(b.sale_date || b.auction_date || '').getTime() - new Date(a.sale_date || a.auction_date || '').getTime())
-                    .slice(0, 8)
-                    .map((vehicle, index) => (
+                  {(() => {
+                    // Gold users only see their current platform, Platinum sees both
+                    const platformSales = hasPermission('CROSS_PLATFORM_SEARCH') 
+                      ? [
+                          ...(comparableData?.comparables?.copart || []).slice(0, 5),
+                          ...(comparableData?.comparables?.iaai || []).slice(0, 5)
+                        ]
+                      : platform === 'copart' 
+                        ? (comparableData?.comparables?.copart || []).slice(0, 8)
+                        : (comparableData?.comparables?.iaai || []).slice(0, 8);
+                    
+                    return platformSales
+                      .sort((a: any, b: any) => new Date(b.sale_date || b.auction_date || '').getTime() - new Date(a.sale_date || a.auction_date || '').getTime())
+                      .slice(0, 8)
+                      .map((vehicle: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -276,7 +321,8 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
                           )}
                         </div>
                       </div>
-                    ))}
+                    ));
+                  })()}
                 </div>
               </CardContent>
             </Card>
