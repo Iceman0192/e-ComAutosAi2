@@ -66,7 +66,9 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
       if (!response.ok) {
         throw new Error('Failed to fetch comparable vehicles');
       }
-      return await response.json();
+      const result = await response.json();
+      // Extract data from the wrapper if it exists
+      return result.data || result;
     },
     enabled: hasSearched && !!searchParams.make,
   });
