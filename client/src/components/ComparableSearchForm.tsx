@@ -36,7 +36,7 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     series: lotData.series || lotData.trim || '',
     yearFrom: lotData.year ? lotData.year - 1 : 2020,
     yearTo: lotData.year ? lotData.year + 1 : 2025,
-    damageType: lotData.damage_primary || lotData.damage_pr || '',
+    damageType: lotData.damage_primary || lotData.vehicle_damage || '',
     maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
     sites: allowedSites
   });
