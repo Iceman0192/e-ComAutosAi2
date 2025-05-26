@@ -9,9 +9,50 @@ import { cacheService } from './cacheService';
 import { freshDataManager } from './freshDataManager';
 import { pool } from './db';
 import axios from 'axios';
+import OpenAI from 'openai';
 
 export function setupApiRoutes(app: Express) {
   
+  /**
+   * OpenAI API Key Validation Endpoint
+   */
+  app.get('/api/openai/validate', async (req: Request, res: Response) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({
+          success: false,
+          message: 'OpenAI API key not configured'
+        });
+      }
+
+      // Initialize OpenAI client
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      // Test API key with a minimal request
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: "Test connection" }],
+        max_tokens: 5,
+      });
+
+      return res.json({
+        success: true,
+        message: 'OpenAI API key validated successfully',
+        model: response.model,
+        status: 'ready'
+      });
+    } catch (error: any) {
+      console.error('OpenAI API validation error:', error);
+      return res.status(400).json({
+        success: false,
+        message: `OpenAI API validation failed: ${error.message}`,
+        status: 'error'
+      });
+    }
+  });
+
   /**
    * Copart Sales History Endpoint - Clean Cache System
    */
