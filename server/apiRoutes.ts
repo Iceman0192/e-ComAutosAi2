@@ -364,7 +364,7 @@ export function setupApiRoutes(app: Express) {
    */
   app.post('/api/find-comparables', async (req: Request, res: Response) => {
     try {
-      const { make, model, yearFrom, yearTo, damageType, maxMileage, sites } = req.body;
+      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, sites } = req.body;
       
       if (!make) {
         return res.status(400).json({
@@ -373,9 +373,9 @@ export function setupApiRoutes(app: Express) {
         });
       }
       
-      console.log('Finding comparable vehicles for:', { make, model, yearFrom, yearTo });
+      console.log('Finding comparable vehicles for:', { make, model, series, yearFrom, yearTo, damageType, maxMileage });
       
-      // Build SQL query to search your actual sales_history table
+      // Build SQL query with enhanced filtering for precise matches
       let whereConditions = ['make ILIKE $1'];
       let params = [`%${make}%`];
       let paramIndex = 2;
@@ -383,6 +383,12 @@ export function setupApiRoutes(app: Express) {
       if (model) {
         whereConditions.push(`model ILIKE $${paramIndex}`);
         params.push(`%${model}%`);
+        paramIndex++;
+      }
+      
+      if (series) {
+        whereConditions.push(`(series ILIKE $${paramIndex} OR trim ILIKE $${paramIndex})`);
+        params.push(`%${series}%`);
         paramIndex++;
       }
       
@@ -398,23 +404,33 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
+      if (damageType) {
+        whereConditions.push(`(vehicle_damage ILIKE $${paramIndex} OR damage_pr ILIKE $${paramIndex} OR damage_sec ILIKE $${paramIndex})`);
+        params.push(`%${damageType}%`);
+        paramIndex++;
+      }
+      
+      if (maxMileage && maxMileage > 0) {
+        whereConditions.push(`(vehicle_mileage <= $${paramIndex} OR odometer <= $${paramIndex})`);
+        params.push(maxMileage);
+        paramIndex++;
+      }
+      
       const whereClause = whereConditions.join(' AND ');
       
-      // Query Copart data (site = 1)
+      // Query ALL Copart data for accurate averages (site = 1)
       const copartQuery = `
         SELECT * FROM sales_history 
         WHERE ${whereClause} AND site = $${paramIndex}
         ORDER BY sale_date DESC 
-        LIMIT 25
       `;
       const copartResult = await pool.query(copartQuery, [...params, 1]);
       
-      // Query IAAI data (site = 2) 
+      // Query ALL IAAI data for accurate averages (site = 2) 
       const iaaiQuery = `
         SELECT * FROM sales_history 
         WHERE ${whereClause} AND site = $${paramIndex}
         ORDER BY sale_date DESC 
-        LIMIT 25
       `;
       const iaaiResult = await pool.query(iaaiQuery, [...params, 2]);
       
