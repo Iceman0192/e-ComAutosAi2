@@ -45,6 +45,15 @@ app.use((req, res, next) => {
   // Set up clean cache routes (now the primary system)
   setupApiRoutes(app);
   
+  // Start 3-day migration scheduler
+  setInterval(async () => {
+    try {
+      await freshDataManager.migrateExpiredData();
+    } catch (error) {
+      console.error('Migration cycle error:', error);
+    }
+  }, 24 * 60 * 60 * 1000); // Run every 24 hours
+  
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
