@@ -175,6 +175,11 @@ export default function Home() {
       if (site === 'iaai') params.append('site', '2');
     });
     
+    // Add Fresh Data parameter for Gold+ users
+    if (freshDataEnabled) {
+      params.append('fresh_data', 'true');
+    }
+    
     console.log(`Initial search with params:`, params.toString());
     
     // Make direct fetch request to be consistent with pagination
@@ -240,6 +245,11 @@ export default function Home() {
       if (site === 'copart') params.append('site', '1');
       if (site === 'iaai') params.append('site', '2');
     });
+    
+    // Add Fresh Data parameter for Gold+ users
+    if (freshDataEnabled) {
+      params.append('fresh_data', 'true');
+    }
     
     console.log(`Requesting page ${newPage} with params:`, params.toString());
     
