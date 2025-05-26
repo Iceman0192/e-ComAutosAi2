@@ -281,23 +281,24 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
             </CardContent>
           </Card>
 
-          {/* Recent Sales List */}
+          {/* Analytics and Sales Table */}
           {comparableData?.comparables && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Recent Comparable Sales</CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Found {comparableData?.statistics?.totalFound || 0} similar vehicles in database
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ComparableSalesTable 
-                  data={comparableData} 
-                  platform={platform}
-                  hasPermission={hasPermission}
-                />
-              </CardContent>
-            </Card>
+            <>
+              <ComparableAnalytics 
+                data={comparableData} 
+                platform={platform}
+                hasPermission={hasPermission}
+              />
+              <Card>
+                <CardContent className="p-0">
+                  <ComparableSalesTable 
+                    data={comparableData} 
+                    platform={platform}
+                    hasPermission={hasPermission}
+                  />
+                </CardContent>
+              </Card>
+            </>
           )}
         </div>
       )}
@@ -327,9 +328,89 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
   );
 }
 
-// Table component for comparable sales
+// Analytics component for comparable sales
+function ComparableAnalytics({ data, platform, hasPermission }: any) {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const stats = data?.statistics || {};
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+        <div className="flex items-center">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <Search className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Found</p>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              {stats.totalFound || 0}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+        <div className="flex items-center">
+          <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+            <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Price</p>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              {hasPermission('CROSS_PLATFORM_SEARCH') 
+                ? formatCurrency((stats.copartAvgPrice + stats.iaaiAvgPrice) / 2 || 0)
+                : formatCurrency(platform === 'copart' ? stats.copartAvgPrice || 0 : stats.iaaiAvgPrice || 0)
+              }
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+        <div className="flex items-center">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <Badge className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Copart Sales</p>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              {stats.copartCount || 0}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+        <div className="flex items-center">
+          <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+            <Badge className="h-5 w-5 text-red-600 dark:text-red-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">IAAI Sales</p>
+            <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              {stats.iaaiCount || 0}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Table component for comparable sales with pagination
 function ComparableSalesTable({ data, platform, hasPermission }: any) {
-  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
+  const itemsPerPage = 20;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -340,139 +421,201 @@ function ComparableSalesTable({ data, platform, hasPermission }: any) {
     }).format(amount);
   };
 
-  const toggleRow = (index: number) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(index)) {
-      newExpanded.delete(index);
-    } else {
-      newExpanded.add(index);
-    }
-    setExpandedRows(newExpanded);
-  };
-
   // Get platform sales based on user permissions
   const platformSales = hasPermission('CROSS_PLATFORM_SEARCH') 
     ? [
-        ...(data?.comparables?.copart || []).slice(0, 5),
-        ...(data?.comparables?.iaai || []).slice(0, 5)
+        ...(data?.comparables?.copart || []),
+        ...(data?.comparables?.iaai || [])
       ]
     : platform === 'copart' 
-      ? (data?.comparables?.copart || []).slice(0, 10)
-      : (data?.comparables?.iaai || []).slice(0, 10);
+      ? (data?.comparables?.copart || [])
+      : (data?.comparables?.iaai || []);
 
-  const sortedSales = platformSales
-    .sort((a: any, b: any) => new Date(b.sale_date || '').getTime() - new Date(a.sale_date || '').getTime())
-    .slice(0, 10);
+  // Search filter
+  const filteredSales = platformSales.filter((sale: any) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (sale.make && sale.make.toLowerCase().includes(query)) ||
+      (sale.model && sale.model.toLowerCase().includes(query)) ||
+      (sale.vin && sale.vin.toLowerCase().includes(query)) ||
+      (sale.location && sale.location.toLowerCase().includes(query)) ||
+      (sale.vehicle_damage && sale.vehicle_damage.toLowerCase().includes(query))
+    );
+  });
+
+  // Sort by sale date (newest first)
+  const sortedSales = filteredSales.sort((a: any, b: any) => 
+    new Date(b.sale_date || '').getTime() - new Date(a.sale_date || '').getTime()
+  );
+
+  // Pagination
+  const totalPages = Math.ceil(sortedSales.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentSales = sortedSales.slice(startIndex, endIndex);
 
   return (
-    <div className="overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className="p-4">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-lg font-medium">Comparable Sales Records</h3>
+        <div className="mt-2 sm:mt-0 flex space-x-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-2 text-gray-500 h-4 w-4" />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1); // Reset to first page on search
+              }}
+              placeholder="Search records" 
+              className="pl-9 pr-4 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm w-48 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Vehicle
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Sale Date
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Damage
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Mileage
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Final Price
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Details
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Platform
               </th>
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-            {sortedSales.map((vehicle: any, index: number) => (
-              <>
-                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <Badge variant={vehicle.site === 1 ? 'default' : 'destructive'} className="mr-2">
-                        {vehicle.site === 1 ? 'Copart' : 'IAAI'}
-                      </Badge>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {vehicle.year} {vehicle.make} {vehicle.model}
+            {currentSales.map((vehicle: any, index: number) => (
+              <tr 
+                key={`${vehicle.vin}-${index}`}
+                onClick={() => setSelectedSaleId(selectedSaleId === vehicle.id ? null : vehicle.id)}
+                className={`cursor-pointer transition-colors ${
+                  selectedSaleId === vehicle.id 
+                    ? 'bg-blue-50 dark:bg-blue-900/20' 
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+              >
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {vehicle.year} {vehicle.make} {vehicle.model}
+                      </div>
+                      {vehicle.series && (
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {vehicle.series}
                         </div>
-                        {vehicle.series && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {vehicle.series}
-                          </div>
-                        )}
+                      )}
+                      <div className="text-xs text-gray-400 dark:text-gray-500">
+                        VIN: {vehicle.vin}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {vehicle.sale_date ? new Date(vehicle.sale_date).toLocaleDateString() : 'N/A'}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {vehicle.vehicle_damage || 'N/A'}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {vehicle.vehicle_mileage ? vehicle.vehicle_mileage.toLocaleString() + ' mi' : 'N/A'}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {formatCurrency(vehicle.purchase_price || 0)}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button
-                      onClick={() => toggleRow(index)}
-                      className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400"
-                    >
-                      {expandedRows.has(index) ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                      View
-                    </button>
-                  </td>
-                </tr>
-                {expandedRows.has(index) && (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-4 bg-gray-50 dark:bg-gray-800">
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">VIN:</span>
-                          <div className="text-gray-900 dark:text-gray-100">{vehicle.vin || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Location:</span>
-                          <div className="text-gray-900 dark:text-gray-100">{vehicle.location || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Fuel:</span>
-                          <div className="text-gray-900 dark:text-gray-100">{vehicle.fuel || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Transmission:</span>
-                          <div className="text-gray-900 dark:text-gray-100">{vehicle.transmission || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Color:</span>
-                          <div className="text-gray-900 dark:text-gray-100">{vehicle.color || 'N/A'}</div>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-600 dark:text-gray-400">Keys:</span>
-                          <div className="text-gray-900 dark:text-gray-100">{vehicle.keys || 'N/A'}</div>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  {vehicle.sale_date ? new Date(vehicle.sale_date).toLocaleDateString() : 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  {vehicle.vehicle_damage || 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                  {vehicle.vehicle_mileage ? vehicle.vehicle_mileage.toLocaleString() + ' mi' : 'N/A'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {formatCurrency(vehicle.purchase_price || 0)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <Badge variant={vehicle.site === 1 ? 'default' : 'destructive'}>
+                    {vehicle.site === 1 ? 'Copart' : 'IAAI'}
+                  </Badge>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex-1 flex justify-between sm:hidden">
+          <Button
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            variant="outline"
+            size="sm"
+          >
+            Previous
+          </Button>
+          <Button
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            variant="outline"
+            size="sm"
+          >
+            Next
+          </Button>
+        </div>
+        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+              <span className="font-medium">{Math.min(endIndex, sortedSales.length)}</span> of{' '}
+              <span className="font-medium">{sortedSales.length}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+              <Button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                variant="outline"
+                size="sm"
+                className="rounded-l-md"
+              >
+                Previous
+              </Button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <Button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    variant={currentPage === pageNum ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-none"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              <Button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                variant="outline"
+                size="sm"
+                className="rounded-r-md"
+              >
+                Next
+              </Button>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
   );
