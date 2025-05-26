@@ -28,24 +28,24 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const navigationItems = [
   { 
-    name: "Dashboard", 
-    href: "/dashboard", 
-    icon: BarChart3,
-    description: "Analytics overview"
-  },
-  { 
-    name: "Copart Intelligence", 
+    name: "Copart Sales History", 
     href: "/", 
     icon: Car,
     description: "Blue auction platform",
     badge: "Live"
   },
   { 
-    name: "IAAI Intelligence", 
+    name: "IAAI Sales History", 
     href: "/iaai", 
     icon: TrendingUp,
     description: "Red auction platform",
     badge: "Live"
+  },
+  { 
+    name: "Dashboard", 
+    href: "/dashboard", 
+    icon: BarChart3,
+    description: "Analytics overview"
   },
   { 
     name: "Cross-Platform AI", 
