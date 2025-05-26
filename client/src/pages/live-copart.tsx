@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '../components/ComparableSearchForm';
-import AILotAnalysis from '@/components/AILotAnalysis';
+
 import { 
   Car, 
   Search, 
@@ -590,45 +590,20 @@ export default function LiveCopart() {
         </div>
       )}
 
-              {/* Find Comparables Section - Gold Tier Manual Filtering */}
-              {hasPermission('FULL_ANALYTICS') && (
-                <Card className="border-blue-200 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
-                    <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-                      <Filter className="h-5 w-5" />
-                      Find Comparable Vehicles
-                    </CardTitle>
-                    <CardDescription className="text-blue-700 dark:text-blue-300">
-                      Search for similar vehicles in your database to compare prices across platforms
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <ComparableSearchForm 
-                      lotData={lotData.lot}
-                      platform="copart"
-                    />
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-          </Card>
-        </>
-      )}
-
-      {/* AI Analysis Section - Platinum Feature */}
-      {lotData?.lot && (
-        <Card className="border-purple-200 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50">
-            <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
-              <Brain className="h-6 w-6" />
-              AI Cross-Platform Analysis
+      {/* Find Comparables Section - Gold Tier Manual Filtering */}
+      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
+        <Card className="border-blue-200 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+            <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+              <Filter className="h-5 w-5" />
+              Find Comparable Vehicles
             </CardTitle>
-            <CardDescription className="text-purple-700 dark:text-purple-300">
-              Platinum Feature: Get intelligent insights and cross-platform price comparison
+            <CardDescription className="text-blue-700 dark:text-blue-300">
+              Search for similar vehicles in your database to compare prices across platforms
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <AILotAnalysis 
+            <ComparableSearchForm 
               lotData={lotData.lot}
               platform="copart"
             />
