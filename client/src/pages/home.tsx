@@ -740,7 +740,45 @@ export default function Home() {
               </div>
             </div>
             
-
+            {/* Fresh Data Toggle for Gold+ (Gold and Platinum) Users */}
+            {hasPermission('ADVANCED_FILTERS') && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="freshDataToggle"
+                        checked={freshDataEnabled}
+                        onChange={(e) => setFreshDataEnabled(e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="freshDataToggle" className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Fresh data
+                      </label>
+                    </div>
+                    <div className="px-2 py-1 bg-blue-200 dark:bg-blue-700 text-blue-800 dark:text-blue-200 text-xs font-semibold rounded-full">
+                      GOLD+
+                    </div>
+                  </div>
+                  {fetchingFreshData && (
+                    <div className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span className="text-xs">Fetching fresh data...</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                  {freshDataEnabled 
+                    ? "✓ Fresh auction data will be included in your search results"
+                    : "Enable to fetch the latest auction data from the last 3 days"
+                  }
+                </p>
+              </div>
+            )}
             
             <div className="mt-6">
               <button
