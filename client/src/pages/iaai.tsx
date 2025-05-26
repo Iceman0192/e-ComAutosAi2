@@ -690,7 +690,7 @@ export default function IAAI() {
                         className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                       />
                       <label htmlFor="freshDataToggle" className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                        Include Last 3 Days Fresh Auctions
+                        Fresh data
                       </label>
                     </div>
                     <div className="px-2 py-1 bg-amber-200 dark:bg-amber-700 text-amber-800 dark:text-amber-200 text-xs font-semibold rounded-full">
