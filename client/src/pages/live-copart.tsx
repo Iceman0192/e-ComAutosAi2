@@ -18,6 +18,7 @@ import {
   DollarSign,
   AlertCircle,
   Calendar,
+  Brain,
   Gauge,
   Wrench,
   Key,
@@ -31,6 +32,8 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AIAnalysis } from '@/components/AIAnalysis';
 
 interface LiveLot {
   id: string;
@@ -286,10 +289,23 @@ export default function LiveCopart() {
         </Card>
       )}
 
-      {/* Enhanced Live Lot Display */}
+      {/* Enhanced Live Lot Display with AI Analysis Tab */}
       {lotData?.lot && (
-        <>
-          <Card className="border-green-200 shadow-lg">
+        <Tabs defaultValue="lot-details" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="lot-details">Lot Details</TabsTrigger>
+            <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              AI Analysis
+              {hasPermission('PLATINUM_FEATURES') && (
+                <Badge variant="secondary" className="text-xs">Platinum</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="lot-details" className="space-y-6">
+            <Card className="border-green-200 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex-1">

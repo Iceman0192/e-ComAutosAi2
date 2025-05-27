@@ -11,6 +11,179 @@ import { pool } from './db';
 import axios from 'axios';
 import OpenAI from 'openai';
 
+// AI Analysis Helper Functions
+async function analyzeVehicleImages(openai: OpenAI, vehicleData: any) {
+  try {
+    if (!vehicleData.images || vehicleData.images.length === 0) {
+      return {
+        hasImages: false,
+        analysis: "No images available for analysis",
+        damageAssessment: "Unable to assess damage without images",
+        confidenceScore: 0
+      };
+    }
+
+    // Analyze the first few images with AI vision
+    const imagesToAnalyze = vehicleData.images.slice(0, 3); // Limit to first 3 images for cost control
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional vehicle damage assessor. Analyze vehicle images and provide detailed damage assessment, repair cost estimates, and market impact. Focus on structural damage, cosmetic issues, and overall condition."
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Analyze this ${vehicleData.year} ${vehicleData.make} ${vehicleData.model} with ${vehicleData.damage || 'unknown damage'}. Current bid: $${vehicleData.currentBid}. Provide damage assessment, repair cost estimate, and market value impact.`
+            },
+            ...imagesToAnalyze.map((imageUrl: string) => ({
+              type: "image_url",
+              image_url: { url: imageUrl }
+            }))
+          ]
+        }
+      ],
+      max_tokens: 500,
+    });
+
+    return {
+      hasImages: true,
+      analysis: response.choices[0].message.content,
+      damageAssessment: response.choices[0].message.content,
+      confidenceScore: 0.85
+    };
+  } catch (error) {
+    console.error('Image analysis error:', error);
+    return {
+      hasImages: false,
+      analysis: "Image analysis unavailable",
+      damageAssessment: "Could not analyze images",
+      confidenceScore: 0
+    };
+  }
+}
+
+async function searchCrossPlatformComparables(vehicleData: any) {
+  try {
+    // Search both Copart and IAAI data for similar vehicles
+    const query = `
+      SELECT 
+        site,
+        COUNT(*) as count,
+        AVG(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' 
+            THEN CAST(purchase_price AS DECIMAL) 
+            ELSE NULL END) as avg_price,
+        MIN(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' 
+            THEN CAST(purchase_price AS DECIMAL) 
+            ELSE NULL END) as min_price,
+        MAX(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' 
+            THEN CAST(purchase_price AS DECIMAL) 
+            ELSE NULL END) as max_price
+      FROM sales_history 
+      WHERE make ILIKE $1 
+        AND model ILIKE $2 
+        AND year BETWEEN $3 AND $4
+        AND purchase_price IS NOT NULL 
+        AND purchase_price != ''
+      GROUP BY site
+      ORDER BY site
+    `;
+
+    const yearRange = 2; // +/- 2 years
+    const result = await pool.query(query, [
+      vehicleData.make,
+      vehicleData.model,
+      vehicleData.year - yearRange,
+      vehicleData.year + yearRange
+    ]);
+
+    const copartData = result.rows.find(row => row.site === 1) || { count: 0, avg_price: 0 };
+    const iaaiData = result.rows.find(row => row.site === 2) || { count: 0, avg_price: 0 };
+
+    const copartAvg = parseFloat(copartData.avg_price) || 0;
+    const iaaiAvg = parseFloat(iaaiData.avg_price) || 0;
+    const priceDifference = iaaiAvg - copartAvg;
+    const priceAdvantage = priceDifference > 0 ? `Copart averages $${Math.abs(priceDifference).toFixed(0)} less` : 
+                          priceDifference < 0 ? `IAAI averages $${Math.abs(priceDifference).toFixed(0)} less` : 
+                          'Similar pricing on both platforms';
+
+    return {
+      copart: {
+        count: parseInt(copartData.count),
+        averagePrice: copartAvg,
+        platform: 'Copart'
+      },
+      iaai: {
+        count: parseInt(iaaiData.count),
+        averagePrice: iaaiAvg,
+        platform: 'IAAI'
+      },
+      priceDifference,
+      priceAdvantage,
+      totalComparables: parseInt(copartData.count) + parseInt(iaaiData.count)
+    };
+  } catch (error) {
+    console.error('Cross-platform search error:', error);
+    return {
+      copart: { count: 0, averagePrice: 0, platform: 'Copart' },
+      iaai: { count: 0, averagePrice: 0, platform: 'IAAI' },
+      priceDifference: 0,
+      priceAdvantage: 'Unable to compare platforms',
+      totalComparables: 0
+    };
+  }
+}
+
+async function generateAIRecommendation(openai: OpenAI, vehicleData: any, imageAnalysis: any, crossPlatformData: any) {
+  try {
+    const prompt = `
+    As a professional vehicle auction advisor, analyze this investment opportunity:
+
+    Vehicle: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}
+    Current Bid: $${vehicleData.currentBid}
+    Damage: ${vehicleData.damage}
+    Platform: ${vehicleData.site === 1 ? 'Copart' : 'IAAI'}
+
+    Image Analysis: ${imageAnalysis.analysis}
+
+    Market Data:
+    - Copart: ${crossPlatformData.copart.count} vehicles, avg $${crossPlatformData.copart.averagePrice}
+    - IAAI: ${crossPlatformData.iaai.count} vehicles, avg $${crossPlatformData.iaai.averagePrice}
+    - ${crossPlatformData.priceAdvantage}
+
+    Provide a clear BUY or PASS recommendation with:
+    1. Confidence score (0-100)
+    2. Key reasons
+    3. Optimal selling strategy
+    4. Risk factors
+
+    Format as JSON with: {"action": "BUY|PASS", "confidence": number, "reasoning": "string", "strategy": "string", "risks": "string"}
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      max_tokens: 400,
+    });
+
+    return JSON.parse(response.choices[0].message.content || '{}');
+  } catch (error) {
+    console.error('AI recommendation error:', error);
+    return {
+      action: "INSUFFICIENT_DATA",
+      confidence: 0,
+      reasoning: "Unable to generate recommendation due to analysis error",
+      strategy: "Seek additional professional assessment",
+      risks: "Analysis incomplete"
+    };
+  }
+}
+
 export function setupApiRoutes(app: Express) {
   
   /**
@@ -49,6 +222,57 @@ export function setupApiRoutes(app: Express) {
         success: false,
         message: `OpenAI API validation failed: ${error.message}`,
         status: 'error'
+      });
+    }
+  });
+
+  /**
+   * AI Cross-Platform Vehicle Analysis Endpoint
+   */
+  app.post('/api/ai-lot-analysis', async (req: Request, res: Response) => {
+    try {
+      const { vehicleData } = req.body;
+      
+      if (!vehicleData) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vehicle data is required'
+        });
+      }
+
+      // Initialize OpenAI client
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      // Step 1: AI Vision Analysis of Vehicle Images
+      const imageAnalysis = await analyzeVehicleImages(openai, vehicleData);
+
+      // Step 2: Search Cross-Platform Database for Similar Vehicles
+      const crossPlatformData = await searchCrossPlatformComparables(vehicleData);
+
+      // Step 3: Generate AI Recommendation
+      const recommendation = await generateAIRecommendation(openai, vehicleData, imageAnalysis, crossPlatformData);
+
+      return res.json({
+        success: true,
+        data: {
+          imageAnalysis,
+          crossPlatformData,
+          recommendation,
+          summary: {
+            confidence: recommendation.confidence,
+            action: recommendation.action,
+            priceAdvantage: crossPlatformData.priceAdvantage
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      return res.status(500).json({
+        success: false,
+        message: `AI analysis failed: ${error.message}`
       });
     }
   });
