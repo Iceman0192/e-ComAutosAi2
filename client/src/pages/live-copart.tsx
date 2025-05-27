@@ -338,19 +338,19 @@ export default function LiveCopart() {
                           location: lotData.data.location || '',
                           title: lotData.data.title || '',
                           document: lotData.data.document || '',
-                          keys: lotData.lot.keys || '',
-                          engine: lotData.lot.engine || '',
-                          fuel: lotData.lot.fuel || '',
-                          transmission: lotData.lot.transmission || '',
-                          drive: lotData.lot.drive || '',
-                          current_bid: lotData.lot.current_bid || 0,
-                          reserve_price: lotData.lot.reserve_price || 0,
-                          auction_date: lotData.lot.auction_date || '',
-                          status: lotData.lot.status || '',
-                          seller: lotData.lot.seller || '',
-                          images_hd: lotData.lot.link_img_hd || [],
-                          images_small: lotData.lot.link_img_small || [],
-                          link: lotData.lot.link || ''
+                          keys: lotData.data.keys || '',
+                          engine: lotData.data.engine || '',
+                          fuel: lotData.data.fuel || '',
+                          transmission: lotData.data.transmission || '',
+                          drive: lotData.data.drive || '',
+                          current_bid: lotData.data.current_bid || 0,
+                          reserve_price: lotData.data.reserve_price || 0,
+                          auction_date: lotData.data.auction_date || '',
+                          status: lotData.data.status || '',
+                          seller: lotData.data.seller || '',
+                          images_hd: lotData.data.link_img_hd || [],
+                          images_small: lotData.data.link_img_small || [],
+                          link: lotData.data.link || ''
                         };
                         
                         const analysisUrl = `/ai-analysis?data=${encodeURIComponent(JSON.stringify(vehicleData))}`;
