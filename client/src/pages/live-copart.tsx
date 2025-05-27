@@ -297,7 +297,7 @@ export default function LiveCopart() {
             <TabsTrigger value="ai-analysis" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
               AI Analysis
-              {hasPermission('PLATINUM_FEATURES') && (
+              {hasPermission('FULL_ANALYTICS') && (
                 <Badge variant="secondary" className="text-xs">Platinum</Badge>
               )}
             </TabsTrigger>
@@ -306,7 +306,6 @@ export default function LiveCopart() {
           <TabsContent value="lot-details" className="space-y-6">
             <Card className="border-green-200 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex-1">
                   <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100 text-xl lg:text-2xl">
@@ -515,9 +514,46 @@ export default function LiveCopart() {
               </div>
             </CardContent>
           </Card>
+          </TabsContent>
 
-
-        </>
+          <TabsContent value="ai-analysis" className="space-y-6">
+            {hasPermission('FULL_ANALYTICS') ? (
+              <AIAnalysis 
+                vehicleData={{
+                  year: lotData.lot.year,
+                  make: lotData.lot.make,
+                  model: lotData.lot.model,
+                  currentBid: lotData.lot.current_bid,
+                  damage: lotData.lot.damage_pr,
+                  images: lotData.lot.link_img_hd,
+                  site: lotData.lot.site,
+                  vin: lotData.lot.vin,
+                  color: lotData.lot.color,
+                  odometer: lotData.lot.odometer
+                }}
+              />
+            ) : (
+              <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <Brain className="h-12 w-12 text-purple-400 mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">
+                        AI Cross-Platform Analysis
+                      </h3>
+                      <p className="text-purple-600 dark:text-purple-400 mt-2">
+                        Unlock powerful vehicle analysis with AI vision damage assessment and cross-platform price intelligence.
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                      Platinum Feature
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Full-Screen Image Modal - Mobile Optimized */}

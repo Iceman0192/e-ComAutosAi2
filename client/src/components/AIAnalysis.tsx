@@ -117,7 +117,7 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
       )}
 
       {/* Analysis Results */}
-      {aiAnalysis?.data && (
+      {aiAnalysis && (
         <>
           {/* AI Recommendation */}
           <Card className="border-green-200 shadow-lg">
