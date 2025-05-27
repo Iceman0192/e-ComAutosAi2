@@ -61,29 +61,17 @@ export default function AIAnalysis() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute('/ai-analysis');
   
-  // Extract complete vehicle data from URL parameters
+  // Extract URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const dataParam = urlParams.get('data');
-  let vehicleData: any = {};
-  
-  if (dataParam) {
-    try {
-      vehicleData = JSON.parse(decodeURIComponent(dataParam));
-    } catch (error) {
-      console.error('Failed to parse vehicle data:', error);
-    }
-  }
-  
-  // Extract essential fields for compatibility and fallback to individual params
-  const platform = vehicleData.platform || urlParams.get('platform');
-  const lotId = vehicleData.lotId || urlParams.get('lotId');
-  const vin = vehicleData.vin || urlParams.get('vin');
-  const year = vehicleData.year || urlParams.get('year');
-  const make = vehicleData.make || urlParams.get('make');
-  const model = vehicleData.model || urlParams.get('model');
-  const mileage = vehicleData.mileage || urlParams.get('mileage');
-  const damage = vehicleData.damage_primary || urlParams.get('damage');
-  const images = vehicleData.images_hd || urlParams.get('images')?.split(',') || [];
+  const platform = urlParams.get('platform');
+  const lotId = urlParams.get('lotId');
+  const vin = urlParams.get('vin');
+  const year = urlParams.get('year');
+  const make = urlParams.get('make');
+  const model = urlParams.get('model');
+  const mileage = urlParams.get('mileage');
+  const damage = urlParams.get('damage');
+  const images = urlParams.get('images')?.split(',') || [];
 
   const [analysisStage, setAnalysisStage] = useState<'initializing' | 'analyzing' | 'complete' | 'error'>('initializing');
 
@@ -132,39 +120,21 @@ export default function AIAnalysis() {
     queryKey: ['/api/ai-analysis', { platform, lotId, vin, year, make, model, mileage, damage }],
     queryFn: async () => {
       setAnalysisStage('analyzing');
-      
-      try {
-        const response = await fetch('/api/ai-analysis', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            platform,
-            lotId,
-            vin,
-            vehicleData: vehicleData.platform ? vehicleData : {
-              year: parseInt(year || '0'),
-              make,
-              model,
-              mileage: parseInt(mileage || '0'),
-              damage,
-              images
-            }
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Analysis failed: ${response.statusText}`);
+      const response = await apiRequest('POST', '/api/ai-analysis', {
+        platform,
+        lotId,
+        vin,
+        vehicleData: {
+          year: parseInt(year || '0'),
+          make,
+          model,
+          mileage: parseInt(mileage || '0'),
+          damage,
+          images
         }
-        
-        const result = await response.json();
-        setAnalysisStage('complete');
-        return result;
-      } catch (err) {
-        setAnalysisStage('error');
-        throw err;
-      }
+      });
+      setAnalysisStage('complete');
+      return response;
     },
     enabled: !!platform && !!lotId && !!vin,
   });
