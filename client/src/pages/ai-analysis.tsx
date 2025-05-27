@@ -61,17 +61,29 @@ export default function AIAnalysis() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute('/ai-analysis');
   
-  // Extract URL parameters
+  // Extract complete vehicle data from URL parameters
   const urlParams = new URLSearchParams(window.location.search);
-  const platform = urlParams.get('platform');
-  const lotId = urlParams.get('lotId');
-  const vin = urlParams.get('vin');
-  const year = urlParams.get('year');
-  const make = urlParams.get('make');
-  const model = urlParams.get('model');
-  const mileage = urlParams.get('mileage');
-  const damage = urlParams.get('damage');
-  const images = urlParams.get('images')?.split(',') || [];
+  const dataParam = urlParams.get('data');
+  let vehicleData: any = {};
+  
+  if (dataParam) {
+    try {
+      vehicleData = JSON.parse(decodeURIComponent(dataParam));
+    } catch (error) {
+      console.error('Failed to parse vehicle data:', error);
+    }
+  }
+  
+  // Extract essential fields for compatibility and fallback to individual params
+  const platform = vehicleData.platform || urlParams.get('platform');
+  const lotId = vehicleData.lotId || urlParams.get('lotId');
+  const vin = vehicleData.vin || urlParams.get('vin');
+  const year = vehicleData.year || urlParams.get('year');
+  const make = vehicleData.make || urlParams.get('make');
+  const model = vehicleData.model || urlParams.get('model');
+  const mileage = vehicleData.mileage || urlParams.get('mileage');
+  const damage = vehicleData.damage_primary || urlParams.get('damage');
+  const images = vehicleData.images_hd || urlParams.get('images')?.split(',') || [];
 
   const [analysisStage, setAnalysisStage] = useState<'initializing' | 'analyzing' | 'complete' | 'error'>('initializing');
 
@@ -131,7 +143,7 @@ export default function AIAnalysis() {
             platform,
             lotId,
             vin,
-            vehicleData: {
+            vehicleData: vehicleData.platform ? vehicleData : {
               year: parseInt(year || '0'),
               make,
               model,

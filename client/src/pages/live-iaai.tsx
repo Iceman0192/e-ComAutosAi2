@@ -297,7 +297,42 @@ export default function LiveIAAI() {
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                       size="sm"
                       onClick={() => {
-                        const analysisUrl = `/ai-analysis?platform=iaai&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}&mileage=${lotData.lot.odometer}&damage=${encodeURIComponent(lotData.lot.damage_pr || '')}&images=${lotData.lot.link_img_hd?.join(',') || ''}`;
+                        // Encode complete vehicle data for comprehensive AI analysis
+                        const vehicleData = {
+                          platform: 'iaai',
+                          lotId: lotData.lot.lot_id,
+                          salvage_id: lotData.lot.salvage_id || '',
+                          vin: lotData.lot.vin,
+                          year: lotData.lot.year,
+                          make: lotData.lot.make,
+                          model: lotData.lot.model,
+                          series: lotData.lot.series || '',
+                          mileage: lotData.lot.odometer,
+                          damage_primary: lotData.lot.damage_pr || '',
+                          damage_secondary: lotData.lot.damage_sec || '',
+                          color: lotData.lot.color || '',
+                          location: lotData.lot.location || '',
+                          title: lotData.lot.title || '',
+                          document: lotData.lot.document || '',
+                          keys: lotData.lot.keys || '',
+                          engine: lotData.lot.engine || '',
+                          fuel: lotData.lot.fuel || '',
+                          transmission: lotData.lot.transmission || '',
+                          drive: lotData.lot.drive || '',
+                          current_bid: lotData.lot.current_bid || 0,
+                          reserve_price: lotData.lot.reserve_price || 0,
+                          auction_date: lotData.lot.auction_date || '',
+                          status: lotData.lot.status || '',
+                          seller: lotData.lot.seller || '',
+                          vehicle_score: lotData.lot.vehicle_score || '',
+                          images_hd: lotData.lot.link_img_hd || [],
+                          images_small: lotData.lot.link_img_small || [],
+                          iaai_360: lotData.lot.iaai_360 || '',
+                          video: lotData.lot.video || '',
+                          link: lotData.lot.link || ''
+                        };
+                        
+                        const analysisUrl = `/ai-analysis?data=${encodeURIComponent(JSON.stringify(vehicleData))}`;
                         setLocation(analysisUrl);
                       }}
                     >
