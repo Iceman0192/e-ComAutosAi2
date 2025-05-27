@@ -285,38 +285,236 @@ export default function LiveCopart() {
                   </div>
                 </div>
 
-                {/* AI Cross-Platform Analysis - Platinum Tier */}
-                {hasPermission('PLATINUM') && (
-                  <AILotAnalysis 
-                    lotData={lotData.lot}
-                    platform="copart"
-                  />
-                )}
+                {/* Vehicle Images */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  {/* Main Image */}
+                  <div className="space-y-4">
+                    <div className="relative aspect-video rounded-lg overflow-hidden border bg-gray-100 dark:bg-gray-800">
+                      {lotData.lot.link_img_hd?.[currentImageIndex] ? (
+                        <img
+                          src={lotData.lot.link_img_hd[currentImageIndex]}
+                          alt={`${lotData.lot.title} - Image ${currentImageIndex + 1}`}
+                          className="w-full h-full object-cover cursor-pointer"
+                          onClick={() => openImageViewer(currentImageIndex)}
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (lotData.lot.link_img_small?.[currentImageIndex]) {
+                              target.src = lotData.lot.link_img_small[currentImageIndex];
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500">
+                          <Car className="h-12 w-12" />
+                        </div>
+                      )}
+                      
+                      {/* Image Navigation */}
+                      {lotData.lot.link_img_hd && lotData.lot.link_img_hd.length > 1 && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={prevImage}
+                            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={nextImage}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+                            {currentImageIndex + 1} / {lotData.lot.link_img_hd.length}
+                          </div>
+                        </>
+                      )}
+                    </div>
 
-                {/* Find Comparables Section - Gold Tier Manual Filtering */}
-                {hasPermission('FULL_ANALYTICS') && (
-                  <Card className="border-blue-200 shadow-lg">
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
-                      <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-                        <Filter className="h-5 w-5" />
-                        Find Comparable Vehicles
-                      </CardTitle>
-                      <CardDescription className="text-blue-700 dark:text-blue-300">
-                        Search for similar vehicles in your database to compare prices across platforms
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                      <ComparableSearchForm 
+                    {/* Thumbnail Strip */}
+                    {lotData.lot.link_img_hd && lotData.lot.link_img_hd.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto">
+                        {lotData.lot.link_img_hd.map((image, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden ${
+                              currentImageIndex === index 
+                                ? 'border-blue-500' 
+                                : 'border-gray-300 hover:border-gray-400'
+                            }`}
+                          >
+                            <img
+                              src={image}
+                              alt={`Thumbnail ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (lotData.lot.link_img_small?.[index]) {
+                                  target.src = lotData.lot.link_img_small[index];
+                                }
+                              }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Vehicle Details Panel */}
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Transmission</Label>
+                        <p className="text-lg font-semibold">{lotData.lot.transmission || 'Unknown'}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Drive</Label>
+                        <p className="text-lg font-semibold">{lotData.lot.drive || 'Unknown'}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Engine</Label>
+                        <p className="text-lg font-semibold">{lotData.lot.engine || 'Unknown'}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Fuel</Label>
+                        <p className="text-lg font-semibold">{lotData.lot.fuel || 'Unknown'}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Color</Label>
+                        <p className="text-lg font-semibold">{lotData.lot.color || 'Unknown'}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">Keys</Label>
+                        <p className="text-lg font-semibold">{lotData.lot.keys || 'Unknown'}</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">Damage Information</h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                            <span className="font-medium text-red-800 dark:text-red-200">Primary Damage</span>
+                          </div>
+                          <p className="text-red-700 dark:text-red-300">{lotData.lot.damage_pr || 'Not specified'}</p>
+                        </div>
+                        {lotData.lot.damage_sec && (
+                          <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Wrench className="h-5 w-5 text-orange-600" />
+                              <span className="font-medium text-orange-800 dark:text-orange-200">Secondary Damage</span>
+                            </div>
+                            <p className="text-orange-700 dark:text-orange-300">{lotData.lot.damage_sec}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Analysis Tabs */}
+                <Tabs defaultValue="timeline" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                    <TabsTrigger value="table">Table View</TabsTrigger>
+                    <TabsTrigger value="ai-analysis" disabled={!hasPermission('PLATINUM')}>
+                      AI Analysis {!hasPermission('PLATINUM') && '(Platinum)'}
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="timeline" className="space-y-4">
+                    <ComparableSearchForm 
+                      lotData={lotData.lot}
+                      platform="copart"
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="table" className="space-y-4">
+                    <div className="text-center py-8 text-gray-500">
+                      Table view implementation coming soon
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="ai-analysis" className="space-y-4">
+                    {hasPermission('PLATINUM') ? (
+                      <AILotAnalysis 
                         lotData={lotData.lot}
                         platform="copart"
                       />
-                    </CardContent>
-                  </Card>
-                )}
+                    ) : (
+                      <div className="text-center py-8">
+                        <Badge className="bg-purple-600 text-white mb-4">Platinum Feature</Badge>
+                        <p className="text-gray-600 dark:text-gray-400">
+                          Upgrade to Platinum to access AI-powered cross-platform analysis
+                        </p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </>
         )}
+
+      {/* Full Screen Image Modal */}
+      {showImageViewer && lotData?.lot?.link_img_hd && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center">
+          <div className="relative max-w-7xl max-h-full w-full h-full flex items-center justify-center p-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowImageViewer(false)}
+              className="absolute top-4 right-4 z-10 bg-white hover:bg-gray-100"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            <img
+              src={lotData.lot.link_img_hd[currentImageIndex]}
+              alt={`${lotData.lot.title} - Full Size`}
+              className="max-w-full max-h-full object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (lotData.lot.link_img_small?.[currentImageIndex]) {
+                  target.src = lotData.lot.link_img_small[currentImageIndex];
+                }
+              }}
+            />
+            
+            {lotData.lot.link_img_hd.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-2 rounded">
+                  {currentImageIndex + 1} / {lotData.lot.link_img_hd.length}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
