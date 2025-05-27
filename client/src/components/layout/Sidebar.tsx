@@ -12,7 +12,8 @@ import {
   CreditCard,
   LogOut,
   Menu,
-  X
+  X,
+  Brain
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
@@ -50,6 +51,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       href: '/cross-platform',
       icon: BarChart3,
       permission: 'CROSS_PLATFORM_SEARCH'
+    },
+    {
+      title: 'AI Analysis',
+      href: '/ai-analysis',
+      icon: Brain,
+      permission: 'FULL_ANALYTICS'
     },
     {
       title: 'Datasets',
