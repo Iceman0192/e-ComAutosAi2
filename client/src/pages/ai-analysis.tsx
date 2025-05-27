@@ -120,21 +120,39 @@ export default function AIAnalysis() {
     queryKey: ['/api/ai-analysis', { platform, lotId, vin, year, make, model, mileage, damage }],
     queryFn: async () => {
       setAnalysisStage('analyzing');
-      const response = await apiRequest('POST', '/api/ai-analysis', {
-        platform,
-        lotId,
-        vin,
-        vehicleData: {
-          year: parseInt(year || '0'),
-          make,
-          model,
-          mileage: parseInt(mileage || '0'),
-          damage,
-          images
+      
+      try {
+        const response = await fetch('/api/ai-analysis', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            platform,
+            lotId,
+            vin,
+            vehicleData: {
+              year: parseInt(year || '0'),
+              make,
+              model,
+              mileage: parseInt(mileage || '0'),
+              damage,
+              images
+            }
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Analysis failed: ${response.statusText}`);
         }
-      });
-      setAnalysisStage('complete');
-      return response;
+        
+        const result = await response.json();
+        setAnalysisStage('complete');
+        return result;
+      } catch (err) {
+        setAnalysisStage('error');
+        throw err;
+      }
     },
     enabled: !!platform && !!lotId && !!vin,
   });
