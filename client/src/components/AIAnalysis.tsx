@@ -128,9 +128,9 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
                   AI Recommendation
                 </div>
                 <div className="flex items-center gap-2">
-                  {getActionBadge(aiAnalysis.data.recommendation.action)}
-                  <span className={`font-semibold ${getConfidenceColor(aiAnalysis.data.recommendation.confidence)}`}>
-                    {aiAnalysis.data.recommendation.confidence}% Confidence
+                  {getActionBadge(aiAnalysis?.data?.recommendation?.action || 'ANALYZE')}
+                  <span className={`font-semibold ${getConfidenceColor(aiAnalysis?.data?.recommendation?.confidence || 0)}`}>
+                    {aiAnalysis?.data?.recommendation?.confidence || 0}% Confidence
                   </span>
                 </div>
               </CardTitle>
@@ -138,17 +138,17 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
             <CardContent className="pt-6 space-y-4">
               <div>
                 <h4 className="font-semibold mb-2">Analysis</h4>
-                <p className="text-sm text-muted-foreground">{aiAnalysis.data.recommendation.reasoning}</p>
+                <p className="text-sm text-muted-foreground">{aiAnalysis?.data?.recommendation?.reasoning || 'Analysis pending...'}</p>
               </div>
               <Separator />
               <div>
                 <h4 className="font-semibold mb-2">Strategy</h4>
-                <p className="text-sm text-muted-foreground">{aiAnalysis.data.recommendation.strategy}</p>
+                <p className="text-sm text-muted-foreground">{aiAnalysis?.data?.recommendation?.strategy || 'Strategy pending...'}</p>
               </div>
               <Separator />
               <div>
                 <h4 className="font-semibold mb-2">Risk Factors</h4>
-                <p className="text-sm text-muted-foreground">{aiAnalysis.data.recommendation.risks}</p>
+                <p className="text-sm text-muted-foreground">{aiAnalysis?.data?.recommendation?.risks || 'Risk assessment pending...'}</p>
               </div>
             </CardContent>
           </Card>
@@ -168,10 +168,10 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
                   <h4 className="font-semibold text-blue-600">Copart Market</h4>
                   <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-blue-700">
-                      ${aiAnalysis.data.crossPlatformData.copart.averagePrice.toLocaleString()}
+                      ${aiAnalysis?.data?.crossPlatformData?.copart?.averagePrice?.toLocaleString() || '0'}
                     </div>
                     <div className="text-sm text-blue-600">
-                      Average from {aiAnalysis.data.crossPlatformData.copart.count} vehicles
+                      Average from {aiAnalysis?.data?.crossPlatformData?.copart?.count || 0} vehicles
                     </div>
                   </div>
                 </div>
@@ -181,10 +181,10 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
                   <h4 className="font-semibold text-red-600">IAAI Market</h4>
                   <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-red-700">
-                      ${aiAnalysis.data.crossPlatformData.iaai.averagePrice.toLocaleString()}
+                      ${aiAnalysis?.data?.crossPlatformData?.iaai?.averagePrice?.toLocaleString() || '0'}
                     </div>
                     <div className="text-sm text-red-600">
-                      Average from {aiAnalysis.data.crossPlatformData.iaai.count} vehicles
+                      Average from {aiAnalysis?.data?.crossPlatformData?.iaai?.count || 0} vehicles
                     </div>
                   </div>
                 </div>
@@ -196,10 +196,10 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
                   <span className="font-semibold text-purple-800 dark:text-purple-200">Market Insight</span>
                 </div>
                 <p className="text-purple-700 dark:text-purple-300">
-                  {aiAnalysis.data.crossPlatformData.priceAdvantage}
+                  {aiAnalysis?.data?.crossPlatformData?.priceAdvantage || 'Price comparison pending...'}
                 </p>
                 <p className="text-sm text-purple-600 dark:text-purple-400 mt-1">
-                  Based on {aiAnalysis.data.crossPlatformData.totalComparables} comparable vehicles
+                  Based on {aiAnalysis?.data?.crossPlatformData?.totalComparables || 0} comparable vehicles
                 </p>
               </div>
             </CardContent>
