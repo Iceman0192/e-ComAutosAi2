@@ -42,12 +42,12 @@ app.use((req, res, next) => {
   // Create HTTP server
   const server = createServer(app);
   
-  // Set up clean cache routes (now the primary system)
-  setupApiRoutes(app);
-  
-  // Register legacy routes for backward compatibility
+  // Register legacy routes for backward compatibility (includes working AI Analysis)
   const { registerRoutes } = await import('./routes.js');
   await registerRoutes(app);
+  
+  // Set up clean cache routes (now the primary system)
+  setupApiRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
