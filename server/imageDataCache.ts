@@ -23,7 +23,7 @@ interface CachedImageData {
 
 class ImageDataCache {
   private cache = new Map<string, CachedImageData>();
-  private readonly EXPIRY_TIME = 60 * 60 * 1000; // 1 hour
+  private readonly EXPIRY_TIME = 30 * 60 * 1000; // 30 minutes
 
   /**
    * Store vehicle data with images and return a reference ID

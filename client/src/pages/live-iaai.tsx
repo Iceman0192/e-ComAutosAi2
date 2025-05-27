@@ -296,8 +296,7 @@ export default function LiveIAAI() {
                     <Button 
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                       size="sm"
-                      onClick={() => {
-                        // Store complete vehicle data in session storage (instant & reliable)
+                      onClick={async () => {
                         const vehicleData = {
                           platform: 'iaai',
                           lotId: lotData.lot.lot_id,
@@ -315,8 +314,29 @@ export default function LiveIAAI() {
                           images: lotData.lot.link_img_hd || []
                         };
 
-                        // Store in session storage and navigate
+                        // Hybrid approach: Session storage for speed + server backup for reliability
                         sessionStorage.setItem('aiAnalysisData', JSON.stringify(vehicleData));
+                        
+                        try {
+                          // Also store on server as backup (survives refresh/new tabs)
+                          const response = await fetch('/api/store-vehicle-data', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(vehicleData)
+                          });
+                          
+                          if (response.ok) {
+                            const data = await response.json();
+                            if (data.success && data.referenceId) {
+                              setLocation(`/ai-analysis?ref=${data.referenceId}`);
+                              return;
+                            }
+                          }
+                        } catch (error) {
+                          console.log('Server backup failed, using session storage only');
+                        }
+                        
+                        // Fallback to session storage only
                         setLocation('/ai-analysis');
                       }}
                     >
