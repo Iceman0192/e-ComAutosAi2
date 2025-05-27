@@ -146,10 +146,30 @@ export default function AIAnalysis() {
   });
 
   const handleAnalyze = () => {
-    if (!analysisRequest.vehicleData?.make || !analysisRequest.vehicleData?.model) {
+    // Use lot data if available, otherwise check for manually entered data
+    const lotData = copartLotData?.lot || iaaiLotData?.lot;
+    
+    if (!lotData && (!analysisRequest.vehicleData?.make || !analysisRequest.vehicleData?.model)) {
       return;
     }
-    analysisMutation.mutate(analysisRequest);
+
+    // Prepare analysis request with lot data
+    const requestData = {
+      ...analysisRequest,
+      vehicleData: lotData ? {
+        make: lotData.make || '',
+        model: lotData.model || '',
+        year: lotData.year || 0,
+        mileage: lotData.odometer || lotData.vehicle_mileage || 0,
+        damage: lotData.damage_pr || lotData.vehicle_damage || '',
+        images: lotData.link_img_hd || []
+      } : analysisRequest.vehicleData,
+      marketData: {
+        platform: copartLotData?.lot ? 'copart' : iaaiLotData?.lot ? 'iaai' : 'both'
+      }
+    };
+
+    analysisMutation.mutate(requestData);
   };
 
   const updateVehicleData = (field: string, value: any) => {
@@ -237,78 +257,159 @@ export default function AIAnalysis() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Analysis Input Form */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Vehicle Information */}
+              {/* Live Lot Analysis Integration */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Car className="h-5 w-5" />
-                    Vehicle Information
+                    <Search className="h-5 w-5" />
+                    Live Lot Analysis
                   </CardTitle>
                   <CardDescription>
-                    Enter vehicle details for analysis or load from live lot lookup
+                    Search for live lots from Copart or IAAI and analyze with AI
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="make">Make *</Label>
+                  {/* Copart Search */}
+                  <div className="border border-blue-200 rounded-lg p-4 bg-blue-50 dark:bg-blue-950/20">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+                      <Car className="h-4 w-4" />
+                      Copart Lot Search
+                    </h4>
+                    <div className="flex gap-3">
                       <Input
-                        id="make"
-                        placeholder="Toyota"
-                        value={analysisRequest.vehicleData?.make || ''}
-                        onChange={(e) => updateVehicleData('make', e.target.value)}
+                        placeholder="Enter Copart Lot ID (e.g., 53678645)"
+                        value={copartLotId}
+                        onChange={(e) => setCopartLotId(e.target.value)}
+                        className="flex-1"
                       />
-                    </div>
-                    <div>
-                      <Label htmlFor="model">Model *</Label>
-                      <Input
-                        id="model"
-                        placeholder="Camry"
-                        value={analysisRequest.vehicleData?.model || ''}
-                        onChange={(e) => updateVehicleData('model', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="year">Year *</Label>
-                      <Input
-                        id="year"
-                        type="number"
-                        placeholder="2020"
-                        value={analysisRequest.vehicleData?.year || ''}
-                        onChange={(e) => updateVehicleData('year', parseInt(e.target.value))}
-                      />
+                      <Button 
+                        onClick={handleCopartSearch}
+                        disabled={!copartLotId.trim() || copartLoading}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {copartLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="mileage">Mileage</Label>
+
+                  {/* IAAI Search */}
+                  <div className="border border-red-200 rounded-lg p-4 bg-red-50 dark:bg-red-950/20">
+                    <h4 className="font-medium text-red-900 dark:text-red-100 mb-3 flex items-center gap-2">
+                      <Search className="h-4 w-4" />
+                      IAAI Lot Search
+                    </h4>
+                    <div className="flex gap-3">
                       <Input
-                        id="mileage"
-                        type="number"
-                        placeholder="50000"
-                        value={analysisRequest.vehicleData?.mileage || ''}
-                        onChange={(e) => updateVehicleData('mileage', parseInt(e.target.value))}
+                        placeholder="Enter IAAI Stock Number (e.g., 12345678)"
+                        value={iaaiLotId}
+                        onChange={(e) => setIaaiLotId(e.target.value)}
+                        className="flex-1"
                       />
+                      <Button 
+                        onClick={handleIaaiSearch}
+                        disabled={!iaaiLotId.trim() || iaaiLoading}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {iaaiLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
-                    <div>
-                      <Label htmlFor="damage">Damage Type</Label>
-                      <Select onValueChange={(value) => updateVehicleData('damage', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select damage type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="front_end">Front End</SelectItem>
-                          <SelectItem value="rear_end">Rear End</SelectItem>
-                          <SelectItem value="side">Side</SelectItem>
-                          <SelectItem value="all_over">All Over</SelectItem>
-                          <SelectItem value="water_flood">Water/Flood</SelectItem>
-                          <SelectItem value="burn">Burn</SelectItem>
-                          <SelectItem value="theft">Theft</SelectItem>
-                          <SelectItem value="minor_dents">Minor Dent/Scratches</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  </div>
+
+                  {/* Display Loaded Vehicle Data */}
+                  {(copartLotData?.lot || iaaiLotData?.lot) && (
+                    <div className="border border-green-200 rounded-lg p-4 bg-green-50 dark:bg-green-950/20">
+                      <h4 className="font-medium text-green-900 dark:text-green-100 mb-3 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Vehicle Loaded for Analysis
+                      </h4>
+                      {copartLotData?.lot && (
+                        <div className="text-sm space-y-1">
+                          <p><strong>Vehicle:</strong> {copartLotData.lot.year} {copartLotData.lot.make} {copartLotData.lot.model}</p>
+                          <p><strong>Mileage:</strong> {copartLotData.lot.odometer?.toLocaleString()} miles</p>
+                          <p><strong>Damage:</strong> {copartLotData.lot.damage_pr}</p>
+                          <p><strong>Location:</strong> {copartLotData.lot.location}</p>
+                        </div>
+                      )}
+                      {iaaiLotData?.lot && (
+                        <div className="text-sm space-y-1">
+                          <p><strong>Vehicle:</strong> {iaaiLotData.lot.year} {iaaiLotData.lot.make} {iaaiLotData.lot.model}</p>
+                          <p><strong>Mileage:</strong> {iaaiLotData.lot.vehicle_mileage?.toLocaleString()} miles</p>
+                          <p><strong>Damage:</strong> {iaaiLotData.lot.vehicle_damage}</p>
+                          <p><strong>Location:</strong> {iaaiLotData.lot.auction_location}</p>
+                        </div>
+                      )}
                     </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Analysis Type Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Analysis Type
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      {
+                        id: 'market_valuation',
+                        title: 'Market Valuation',
+                        description: 'Get current market value and pricing trends',
+                        icon: DollarSign
+                      },
+                      {
+                        id: 'damage_assessment',
+                        title: 'Damage Assessment',
+                        description: 'Analyze damage impact on vehicle value',
+                        icon: AlertCircle
+                      },
+                      {
+                        id: 'investment_potential',
+                        title: 'Investment Analysis',
+                        description: 'Evaluate profit potential and risks',
+                        icon: TrendingUp
+                      },
+                      {
+                        id: 'comprehensive',
+                        title: 'Comprehensive Analysis',
+                        description: 'Complete analysis with all insights',
+                        icon: Brain
+                      }
+                    ].map((type) => {
+                      const Icon = type.icon;
+                      return (
+                        <Card 
+                          key={type.id}
+                          className={`cursor-pointer transition-all ${
+                            analysisRequest.analysisType === type.id 
+                              ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950/20' 
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                          }`}
+                          onClick={() => setAnalysisRequest(prev => ({ ...prev, analysisType: type.id as any }))}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <Icon className="h-5 w-5 text-purple-600 mt-1" />
+                              <div>
+                                <h3 className="font-medium text-sm">{type.title}</h3>
+                                <p className="text-xs text-gray-500 mt-1">{type.description}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -335,7 +436,7 @@ export default function AIAnalysis() {
               {/* Analyze Button */}
               <Button 
                 onClick={handleAnalyze}
-                disabled={!analysisRequest.vehicleData?.make || !analysisRequest.vehicleData?.model || analysisMutation.isPending}
+                disabled={!(copartLotData?.data?.lot || iaaiLotData?.data?.lot) || analysisMutation.isPending}
                 className="w-full bg-purple-600 hover:bg-purple-700"
                 size="lg"
               >
