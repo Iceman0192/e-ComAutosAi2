@@ -7,6 +7,7 @@ import { Express, Request, Response } from 'express';
 import { getVehicleSalesHistory } from './apiClient';
 import { cacheService } from './cacheService';
 import { freshDataManager } from './freshDataManager';
+import { imageDataCache } from './imageDataCache';
 import { pool } from './db';
 import axios from 'axios';
 import OpenAI from 'openai';
@@ -664,6 +665,66 @@ Focus on actionable insights for vehicle export business. Be specific about repa
       res.status(500).json({
         success: false,
         message: 'Failed to fetch live lot data: ' + (error.response?.data?.message || error.message)
+      });
+    }
+  });
+
+  /**
+   * Store Vehicle Image Data Endpoint - For IAAI Long URLs
+   */
+  app.post('/api/store-vehicle-data', async (req: Request, res: Response) => {
+    try {
+      const vehicleData = req.body;
+      
+      if (!vehicleData.platform || !vehicleData.lotId || !vehicleData.vin) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required vehicle data'
+        });
+      }
+
+      const referenceId = imageDataCache.store(vehicleData);
+      
+      res.json({
+        success: true,
+        referenceId
+      });
+      
+    } catch (error: any) {
+      console.error('Store vehicle data error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to store vehicle data: ' + error.message
+      });
+    }
+  });
+
+  /**
+   * Retrieve Vehicle Image Data Endpoint
+   */
+  app.get('/api/vehicle-data/:referenceId', async (req: Request, res: Response) => {
+    try {
+      const { referenceId } = req.params;
+      
+      const vehicleData = imageDataCache.retrieve(referenceId);
+      
+      if (!vehicleData) {
+        return res.status(404).json({
+          success: false,
+          message: 'Vehicle data not found or expired'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: vehicleData
+      });
+      
+    } catch (error: any) {
+      console.error('Retrieve vehicle data error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve vehicle data: ' + error.message
       });
     }
   });

@@ -296,10 +296,36 @@ export default function LiveIAAI() {
                     <Button 
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                       size="sm"
-                      onClick={() => {
-                        // Use the exact same image field that works in Live IAAI display
-                        const analysisUrl = `/ai-analysis?platform=iaai&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}&series=${encodeURIComponent(lotData.lot.series || '')}&mileage=${lotData.lot.odometer}&damage=${encodeURIComponent(lotData.lot.damage_pr || '')}&color=${encodeURIComponent(lotData.lot.color || '')}&location=${encodeURIComponent(lotData.lot.location || '')}&currentBid=${lotData.lot.current_bid || 0}&images=${lotData.lot.link_img_hd?.join(',') || ''}`;
-                        setLocation(analysisUrl);
+                      onClick={async () => {
+                        try {
+                          // Store complete vehicle data for IAAI (handles long image URLs)
+                          const vehicleData = {
+                            platform: 'iaai',
+                            lotId: lotData.lot.lot_id,
+                            vin: lotData.lot.vin,
+                            year: lotData.lot.year.toString(),
+                            make: lotData.lot.make,
+                            model: lotData.lot.model,
+                            series: lotData.lot.series || '',
+                            mileage: lotData.lot.odometer.toString(),
+                            damage: lotData.lot.damage_pr || '',
+                            color: lotData.lot.color || '',
+                            location: lotData.lot.location || '',
+                            currentBid: (lotData.lot.current_bid || 0).toString(),
+                            auctionDate: '',
+                            images: lotData.lot.link_img_hd || []
+                          };
+
+                          const response = await apiRequest('POST', '/api/store-vehicle-data', vehicleData);
+                          const { referenceId } = response;
+                          
+                          setLocation(`/ai-analysis?ref=${referenceId}`);
+                        } catch (error) {
+                          console.error('Failed to store vehicle data:', error);
+                          // Fallback to basic URL transfer
+                          const analysisUrl = `/ai-analysis?platform=iaai&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}`;
+                          setLocation(analysisUrl);
+                        }
                       }}
                     >
                       <Brain className="h-4 w-4 mr-1" />

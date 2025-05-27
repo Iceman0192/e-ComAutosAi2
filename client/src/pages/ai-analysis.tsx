@@ -81,9 +81,11 @@ export default function AIAnalysis() {
   const { user, hasPermission } = useAuth();
   const [, setLocation] = useLocation();
   
-  // Extract vehicle data from URL parameters
+  // Extract vehicle data from URL parameters or reference ID
   const urlParams = new URLSearchParams(window.location.search);
-  const vehicleData: VehicleData = {
+  const referenceId = urlParams.get('ref');
+  
+  const [vehicleData, setVehicleData] = useState<VehicleData>({
     platform: urlParams.get('platform') || '',
     lotId: urlParams.get('lotId') || '',
     vin: urlParams.get('vin') || '',
@@ -98,7 +100,25 @@ export default function AIAnalysis() {
     currentBid: urlParams.get('currentBid') || '',
     auctionDate: urlParams.get('auctionDate') || '',
     images: urlParams.get('images')?.split(',').filter(img => img.length > 0) || []
-  };
+  });
+
+  // Fetch vehicle data from reference ID if available (for IAAI)
+  const { data: storedVehicleData } = useQuery({
+    queryKey: ['stored-vehicle-data', referenceId],
+    queryFn: async () => {
+      if (!referenceId) return null;
+      const response = await apiRequest('GET', `/api/vehicle-data/${referenceId}`);
+      return response.data;
+    },
+    enabled: !!referenceId,
+  });
+
+  // Update vehicle data when stored data is loaded
+  useEffect(() => {
+    if (storedVehicleData) {
+      setVehicleData(storedVehicleData);
+    }
+  }, [storedVehicleData]);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageViewer, setShowImageViewer] = useState(false);
