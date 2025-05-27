@@ -316,8 +316,13 @@ export default function LiveIAAI() {
                             images: lotData.lot.link_img_hd || []
                           };
 
-                          const response = await apiRequest('POST', '/api/store-vehicle-data', vehicleData);
-                          const { referenceId } = response;
+                          const response = await fetch('/api/store-vehicle-data', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(vehicleData)
+                          });
+                          const data = await response.json();
+                          const { referenceId } = data;
                           
                           setLocation(`/ai-analysis?ref=${referenceId}`);
                         } catch (error) {

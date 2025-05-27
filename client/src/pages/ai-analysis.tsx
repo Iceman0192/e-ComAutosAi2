@@ -107,8 +107,9 @@ export default function AIAnalysis() {
     queryKey: ['stored-vehicle-data', referenceId],
     queryFn: async () => {
       if (!referenceId) return null;
-      const response = await apiRequest('GET', `/api/vehicle-data/${referenceId}`);
-      return response.data;
+      const response = await fetch(`/api/vehicle-data/${referenceId}`);
+      const data = await response.json();
+      return data.data;
     },
     enabled: !!referenceId,
   });
