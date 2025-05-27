@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '@/components/ComparableSearchForm';
+import AIAnalysisWidget from '@/components/AIAnalysisWidget';
 import { 
   Car, 
   Search, 
@@ -623,6 +624,27 @@ export default function LiveIAAI() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Analysis Widget - Integrated Analysis */}
+      {lotData?.lot && (
+        <AIAnalysisWidget 
+          vehicleData={{
+            platform: 'iaai',
+            lotId: lotData.lot.lot_id.toString(),
+            vin: lotData.lot.vin,
+            year: lotData.lot.year.toString(),
+            make: lotData.lot.make,
+            model: lotData.lot.model,
+            series: lotData.lot.series || '',
+            mileage: lotData.lot.odometer.toString(),
+            damage: lotData.lot.damage_pr || '',
+            color: lotData.lot.color || '',
+            location: lotData.lot.location || '',
+            currentBid: lotData.lot.current_bid,
+            images: lotData.lot.link_img_hd || []
+          }}
+        />
       )}
 
       {/* Find Comparables Section - Gold Tier Manual Filtering */}
