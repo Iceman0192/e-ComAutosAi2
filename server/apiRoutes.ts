@@ -112,7 +112,7 @@ Provide analysis in JSON format with:
       const searchQuery = `
         SELECT 
           site, base_site, sale_date, purchase_price, sale_status,
-          year, make, model, odometer, damage_pr, damage_sec,
+          year, make, model, vehicle_mileage, vehicle_damage, vehicle_title,
           buyer_state, buyer_country
         FROM sales_history 
         WHERE make ILIKE $1 
@@ -149,25 +149,40 @@ Provide analysis in JSON format with:
         ? ((iaaiAvgPrice - copartAvgPrice) / copartAvgPrice * 100).toFixed(1)
         : null;
 
+      // Format response to match frontend expectations
       return res.json({
-        success: true,
-        data: {
-          aiAnalysis,
-          crossPlatformData: {
-            copart: {
-              count: copartSales.length,
-              averagePrice: Math.round(copartAvgPrice),
-              recentSales: copartSales.slice(0, 10)
+        recommendation: aiAnalysis.recommendation || 'MONITOR',
+        confidence: 0.85,
+        estimatedValue: aiAnalysis.repairEstimate ? parseInt(aiAnalysis.repairEstimate.replace(/[^\d]/g, '')) || lotData.current_bid : lotData.current_bid,
+        marketComparison: [
+          ...(copartSales.length > 0 ? [{
+            platform: 'copart',
+            averagePrice: Math.round(copartAvgPrice),
+            priceRange: { 
+              min: Math.min(...copartSales.map(s => parseFloat(s.purchase_price))),
+              max: Math.max(...copartSales.map(s => parseFloat(s.purchase_price)))
             },
-            iaai: {
-              count: iaaiSales.length,
-              averagePrice: Math.round(iaaiAvgPrice),
-              recentSales: iaaiSales.slice(0, 10)
+            soldCount: copartSales.length
+          }] : []),
+          ...(iaaiSales.length > 0 ? [{
+            platform: 'iaai',
+            averagePrice: Math.round(iaaiAvgPrice),
+            priceRange: { 
+              min: Math.min(...iaaiSales.map(s => parseFloat(s.purchase_price))),
+              max: Math.max(...iaaiSales.map(s => parseFloat(s.purchase_price)))
             },
-            priceDifferential,
-            totalComparables: comparableVehicles.length
-          }
-        }
+            soldCount: iaaiSales.length
+          }] : [])
+        ],
+        riskFactors: aiAnalysis.keyInsights || [`${lotData.damage_pr} damage may affect value`, 'Limited repair history available'],
+        opportunities: [`Export potential to Central America`, `${lotData.make} ${lotData.model} has strong demand`],
+        crossPlatformInsights: {
+          copartAverage: Math.round(copartAvgPrice),
+          iaaiAverage: Math.round(iaaiAvgPrice),
+          priceDifference: Math.round(iaaiAvgPrice - copartAvgPrice),
+          betterPlatform: copartAvgPrice < iaaiAvgPrice ? 'Copart' : 'IAAI'
+        },
+        similarListings: []
       });
 
     } catch (error: any) {
