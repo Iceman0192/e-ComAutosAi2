@@ -53,10 +53,12 @@ export function setupApiRoutes(app: Express) {
     }
   });
 
-  // AI Analysis endpoint removed - using routes.ts version for database integration
+  // AI Analysis endpoint removed - using dedicated aiAnalysis.ts system
 
-      // Step 1: Search our database for cross-platform matches
-      const crossPlatformQuery = `
+  /**
+   * Copart Sales History Endpoint - Clean Cache System
+   */
+  app.get('/api/sales-history', async (req: Request, res: Response) => {
         SELECT 
           site, make, model, year, purchase_price, sale_date, vehicle_damage, 
           vehicle_mileage, sale_status, auction_location, base_site
