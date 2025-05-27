@@ -110,6 +110,8 @@ export default function AIAnalysis() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [analysisStage, setAnalysisStage] = useState<'ready' | 'analyzing' | 'complete' | 'error'>('ready');
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [useCustomPrompt, setUseCustomPrompt] = useState(false);
 
   // Check if user has Platinum access
   if (!hasPermission('AI_ANALYSIS')) {
@@ -151,15 +153,17 @@ export default function AIAnalysis() {
     );
   }
 
-  // Fetch AI analysis data
-  const { data: analysisData, isLoading, error } = useQuery({
-    queryKey: ['ai-analysis', vehicleData],
+  // Fetch AI analysis data with custom prompting for bid intelligence
+  const { data: analysisData, isLoading, error, refetch } = useQuery({
+    queryKey: ['ai-analysis', vehicleData, customPrompt, useCustomPrompt],
     queryFn: async () => {
       setAnalysisStage('analyzing');
       const response = await apiRequest('POST', '/api/ai-analysis', {
         platform: vehicleData.platform,
         lotId: vehicleData.lotId,
         vin: vehicleData.vin,
+        currentBid: vehicleData.currentBid,
+        customPrompt: useCustomPrompt ? customPrompt : undefined,
         vehicleData: {
           year: parseInt(vehicleData.year),
           make: vehicleData.make,
@@ -167,13 +171,15 @@ export default function AIAnalysis() {
           series: vehicleData.series,
           mileage: parseInt(vehicleData.mileage || '0'),
           damage: vehicleData.damage,
+          color: vehicleData.color,
+          location: vehicleData.location,
           images: vehicleData.images
         }
       });
       setAnalysisStage('complete');
       return response.data;
     },
-    enabled: !!vehicleData.platform && !!vehicleData.lotId && !!vehicleData.vin,
+    enabled: false, // Manual trigger only
   });
 
   useEffect(() => {
@@ -288,6 +294,69 @@ export default function AIAnalysis() {
                 <p className="text-xl font-bold text-green-600">
                   ${parseInt(vehicleData.currentBid || '0').toLocaleString()}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Analysis Controls */}
+          <div className="bg-gray-50 p-4 border-b">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-600" />
+                  Pre-Bid Intelligence Analysis
+                </h3>
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={useCustomPrompt}
+                      onChange={(e) => setUseCustomPrompt(e.target.checked)}
+                      className="rounded"
+                    />
+                    Custom Prompt
+                  </label>
+                </div>
+              </div>
+              
+              {useCustomPrompt && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Custom Analysis Prompt:
+                  </label>
+                  <textarea
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Enter your specific analysis requirements (e.g., 'Focus on engine damage and estimate repair costs for this vehicle type in the export market')"
+                    className="w-full p-3 border rounded-md h-24 text-sm"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => refetch()}
+                  disabled={isLoading || !vehicleData.platform}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4 mr-2" />
+                      Analyze for Bidding
+                    </>
+                  )}
+                </Button>
+                
+                {analysisData && (
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    Analysis Complete
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
