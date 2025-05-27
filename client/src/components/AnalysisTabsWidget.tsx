@@ -34,8 +34,11 @@ export default function AnalysisTabsWidget({ vehicleData, lotData }: AnalysisTab
   const hasAIAnalysis = hasPermission('AI_ANALYSIS');
   const hasComparables = hasPermission('FULL_ANALYTICS');
   
+  console.log('AnalysisTabsWidget render:', { hasAIAnalysis, hasComparables });
+  
   // Don't render if user has no access to either feature
   if (!hasAIAnalysis && !hasComparables) {
+    console.log('No permissions, not rendering widget');
     return null;
   }
   
