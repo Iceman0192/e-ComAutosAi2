@@ -53,26 +53,7 @@ export function setupApiRoutes(app: Express) {
     }
   });
 
-  /**
-   * AI Vehicle Analysis Endpoint - Cross-Platform Intelligence (DISABLED - using routes.ts version)
-   */
-  app.post('/api/ai-analysis-disabled', async (req: Request, res: Response) => {
-    try {
-      const { platform, lotId, vin, vehicleData } = req.body;
-      
-      if (!platform || !lotId || !vin || !vehicleData) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required analysis parameters'
-        });
-      }
-
-      // Initialize OpenAI client
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-
-      console.log(`🤖 AI Analysis Request: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}, VIN: ${vin}`);
+  // AI Analysis endpoint removed - using routes.ts version for database integration
 
       // Step 1: Search our database for cross-platform matches
       const crossPlatformQuery = `
