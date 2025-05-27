@@ -322,8 +322,26 @@ export default function LiveCopart() {
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                       size="sm"
                       onClick={() => {
-                        const analysisUrl = `/ai-analysis?platform=copart&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}&series=${encodeURIComponent(lotData.lot.series || '')}&mileage=${lotData.lot.odometer}&damage=${encodeURIComponent(lotData.lot.damage_pr || '')}&color=${encodeURIComponent(lotData.lot.color || '')}&location=${encodeURIComponent(lotData.lot.location || '')}&currentBid=${lotData.lot.current_bid || 0}&images=${lotData.lot.link_img_hd?.join(',') || ''}`;
-                        setLocation(analysisUrl);
+                        const vehicleData = {
+                          platform: 'copart',
+                          lotId: lotData.lot.lot_id.toString(),
+                          vin: lotData.lot.vin,
+                          year: lotData.lot.year.toString(),
+                          make: lotData.lot.make,
+                          model: lotData.lot.model,
+                          series: lotData.lot.series || '',
+                          mileage: lotData.lot.odometer.toString(),
+                          damage: lotData.lot.damage_pr || '',
+                          color: lotData.lot.color || '',
+                          location: lotData.lot.location || '',
+                          currentBid: (lotData.lot.current_bid || 0).toString(),
+                          auctionDate: '',
+                          images: lotData.lot.link_img_hd || []
+                        };
+
+                        // Use unified data transfer system
+                        const hash = btoa(JSON.stringify(vehicleData));
+                        setLocation(`/ai-analysis#${hash}`);
                       }}
                     >
                       <Brain className="h-4 w-4 mr-2" />

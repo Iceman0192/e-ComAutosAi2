@@ -299,7 +299,7 @@ export default function LiveIAAI() {
                       onClick={() => {
                         const vehicleData = {
                           platform: 'iaai',
-                          lotId: lotData.lot.lot_id,
+                          lotId: lotData.lot.lot_id.toString(),
                           vin: lotData.lot.vin,
                           year: lotData.lot.year.toString(),
                           make: lotData.lot.make,
@@ -314,9 +314,9 @@ export default function LiveIAAI() {
                           images: lotData.lot.link_img_hd || []
                         };
 
-                        // Encode vehicle data for URL (survives refresh and works across tabs)
-                        const encodedData = btoa(JSON.stringify(vehicleData));
-                        setLocation(`/ai-analysis?data=${encodedData}`);
+                        // Use unified data transfer system
+                        const hash = btoa(JSON.stringify(vehicleData));
+                        setLocation(`/ai-analysis#${hash}`);
                       }}
                     >
                       <Brain className="h-4 w-4 mr-1" />
