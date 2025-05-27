@@ -45,6 +45,10 @@ app.use((req, res, next) => {
   // Set up clean cache routes (now the primary system)
   setupApiRoutes(app);
   
+  // Register legacy routes for backward compatibility
+  const { registerRoutes } = await import('./routes.js');
+  await registerRoutes(app);
+  
   // Start 3-day migration scheduler
   setInterval(async () => {
     try {
