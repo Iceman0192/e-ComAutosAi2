@@ -21,7 +21,8 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  ExternalLink
 } from 'lucide-react';
 
 interface VehicleData {
@@ -248,29 +249,104 @@ export default function AIAnalysis() {
         </Badge>
       </div>
 
-      {/* Premium Image Gallery Section - Like BMW X5 Example */}
-      {vehicleData.images.length > 0 && (
-        <Card className="border-purple-200 shadow-lg overflow-hidden">
-          <CardContent className="p-0">
-            {/* Image Thumbnails Row */}
-            <div className="bg-white p-4 border-b">
+      {/* Hero Section with Vehicle Title and Main Image */}
+      <Card className="border-purple-200 shadow-lg overflow-hidden">
+        <CardContent className="p-0">
+          {/* Header with Vehicle Title and Actions */}
+          <div className="bg-white p-4 border-b flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Car className="h-8 w-8 text-gray-600" />
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {vehicleData.year} {vehicleData.make.toUpperCase()} {vehicleData.model.toUpperCase()} {vehicleData.series?.toUpperCase() || ''}
+                </h2>
+                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                  <span>Lot #{vehicleData.lotId}</span>
+                  <span>VIN: {vehicleData.vin}</span>
+                  <span>{vehicleData.year} {vehicleData.make} {vehicleData.model}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline"
+                onClick={() => window.open(`https://${vehicleData.platform}.com`, '_blank')}
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View on {vehicleData.platform === 'copart' ? 'Copart' : 'IAAI'}
+              </Button>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Current Bid</p>
+                <p className="text-2xl font-bold text-green-600">
+                  ${parseInt(vehicleData.currentBid || '0').toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Vehicle Image */}
+          {vehicleData.images.length > 0 && (
+            <div className="relative">
+              <img
+                src={vehicleData.images[currentImageIndex]}
+                alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
+                className="w-full h-96 object-cover cursor-pointer"
+                onClick={() => openImageViewer(currentImageIndex)}
+              />
+              {/* Image counter */}
+              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                {currentImageIndex + 1} / {vehicleData.images.length}
+              </div>
+              {/* Navigation arrows */}
+              {vehicleData.images.length > 1 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
+                    onClick={prevImage}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Thumbnail Gallery */}
+          {vehicleData.images.length > 0 && (
+            <div className="bg-white p-4">
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {vehicleData.images.map((image, index) => (
                   <img
                     key={index}
                     src={image}
                     alt={`Vehicle angle ${index + 1}`}
-                    className={`w-16 h-12 object-cover rounded border-2 cursor-pointer flex-shrink-0 ${
+                    className={`w-20 h-16 object-cover rounded border-2 cursor-pointer flex-shrink-0 ${
                       index === currentImageIndex ? 'border-purple-500' : 'border-gray-200'
                     }`}
                     onClick={() => setCurrentImageIndex(index)}
                   />
                 ))}
+                {vehicleData.images.length < 13 && (
+                  <div className="w-20 h-16 bg-gray-100 rounded border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs text-gray-400">+</span>
+                  </div>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       {/* Premium Vehicle Summary - BMW X5 Style Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
