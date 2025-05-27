@@ -112,10 +112,10 @@ export function setupApiRoutes(app: Express) {
     try {
       const { lotId } = req.params;
       
-      const response = await fetch(`https://api.apicar.store/copart/lots/active/${lotId}`, {
+      const response = await fetch(`https://api.apicar.store/api/cars/${lotId}?site=1`, {
         headers: {
-          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
-          'Content-Type': 'application/json'
+          'api-key': process.env.APICAR_API_KEY || '',
+          'accept': '*/*'
         }
       });
       
@@ -144,10 +144,10 @@ export function setupApiRoutes(app: Express) {
     try {
       const { lotId } = req.params;
       
-      const response = await fetch(`https://api.apicar.store/iaai/lots/active/${lotId}`, {
+      const response = await fetch(`https://api.apicar.store/api/cars/${lotId}?site=2`, {
         headers: {
-          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
-          'Content-Type': 'application/json'
+          'api-key': process.env.APICAR_API_KEY || '',
+          'accept': '*/*'
         }
       });
       
