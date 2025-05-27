@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import PlatformToggle from "@/components/ui/platform-toggle";
+import { PlatformToggle } from "@/components/PlatformToggle";
 import { Car, Search, ExternalLink, Brain, AlertCircle } from "lucide-react";
 
 export default function LiveCopart() {
@@ -15,7 +15,7 @@ export default function LiveCopart() {
   const { hasPermission } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Fetch live lot data with clean error handling
+  // Fetch live lot data
   const { data: lotData, isLoading: lotLoading, error: lotError } = useQuery({
     queryKey: ['/api/live-copart', lotId],
     queryFn: async () => {
@@ -26,7 +26,7 @@ export default function LiveCopart() {
         throw new Error(result.message || 'Failed to fetch lot data');
       }
       
-      return result.data;
+      return result.data; // Return just the data part
     },
     enabled: searchTriggered && !!lotId,
   });
@@ -49,8 +49,8 @@ export default function LiveCopart() {
           model: lotData.model || '',
           series: lotData.series || '',
           mileage: lotData.odometer || 0,
-          damage_primary: lotData.damage_primary || lotData.damage_pr || '',
-          damage_secondary: lotData.damage_secondary || lotData.damage_sec || '',
+          damage_primary: lotData.damage_primary || '',
+          damage_secondary: lotData.damage_secondary || '',
           color: lotData.color || '',
           location: lotData.location || '',
           title: lotData.title || '',
@@ -58,7 +58,7 @@ export default function LiveCopart() {
           reserve_price: lotData.reserve_price || 0,
           auction_date: lotData.auction_date || '',
           status: lotData.status || '',
-          images_hd: lotData.images_hd || lotData.link_img_hd || [],
+          images_hd: lotData.images_hd || [],
         }
       };
       
@@ -112,31 +112,6 @@ export default function LiveCopart() {
           </CardContent>
         </Card>
 
-        {/* Sample Lot IDs */}
-        {!lotData && !lotLoading && !lotError && (
-          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 mb-6">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">Try these sample lots:</h3>
-              <div className="flex flex-wrap gap-2">
-                {['55688495', '89022245'].map((sampleId) => (
-                  <Button
-                    key={sampleId}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setLotId(sampleId);
-                      setSearchTriggered(true);
-                    }}
-                    className="bg-white hover:bg-blue-50"
-                  >
-                    {sampleId}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Error State */}
         {lotError && (
           <Card className="border-red-200 bg-red-50 dark:bg-red-950/20 mb-6">
@@ -161,12 +136,12 @@ export default function LiveCopart() {
                   </CardTitle>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      Lot #{lotData.id || lotData.lot_id}
+                      Lot #{lotData.id}
                     </Badge>
                     <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                       VIN: {lotData.vin}
                     </Badge>
-                    {(lotData.current_bid || lotData.current_bid === 0) && (
+                    {lotData.current_bid && (
                       <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                         Current Bid: ${lotData.current_bid?.toLocaleString()}
                       </Badge>
@@ -203,10 +178,10 @@ export default function LiveCopart() {
                     <p className="text-lg font-semibold">{lotData.odometer.toLocaleString()} miles</p>
                   </div>
                 )}
-                {(lotData.damage_primary || lotData.damage_pr) && (
+                {lotData.damage_primary && (
                   <div>
                     <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Primary Damage</label>
-                    <p className="text-lg font-semibold">{lotData.damage_primary || lotData.damage_pr}</p>
+                    <p className="text-lg font-semibold">{lotData.damage_primary}</p>
                   </div>
                 )}
                 {lotData.location && (
