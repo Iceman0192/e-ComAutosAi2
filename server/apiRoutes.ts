@@ -10,7 +10,7 @@ import { freshDataManager } from './freshDataManager';
 import { imageDataCache } from './imageDataCache';
 import { pool } from './db';
 import axios from 'axios';
-import OpenAI from 'openai';
+import { performAIAnalysis } from './aiAnalysisService';
 
 export function setupApiRoutes(app: Express) {
   
@@ -68,12 +68,17 @@ export function setupApiRoutes(app: Express) {
         });
       }
 
-      // Initialize OpenAI client
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
+      // Use our new clean AI analysis service
+      const result = await performAIAnalysis({
+        platform,
+        lotId,
+        vin,
+        currentBid,
+        customPrompt,
+        vehicleData
       });
 
-      console.log(`🤖 AI Analysis Request: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}, VIN: ${vin}`);
+      res.json(result);
 
       // Step 1: Search our database for cross-platform matches
       const crossPlatformQuery = `
