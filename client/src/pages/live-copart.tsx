@@ -20,6 +20,7 @@ import {
   MapPin,
   DollarSign,
   AlertCircle,
+  AlertTriangle,
   Calendar,
   Brain,
   Gauge,
