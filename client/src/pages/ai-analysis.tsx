@@ -107,8 +107,10 @@ export default function AIAnalysis() {
     queryKey: ['stored-vehicle-data', referenceId],
     queryFn: async () => {
       if (!referenceId) return null;
+      console.log('Fetching vehicle data for reference:', referenceId);
       const response = await fetch(`/api/vehicle-data/${referenceId}`);
       const data = await response.json();
+      console.log('Retrieved vehicle data:', data);
       return data.data;
     },
     enabled: !!referenceId,
@@ -116,7 +118,9 @@ export default function AIAnalysis() {
 
   // Update vehicle data when stored data is loaded
   useEffect(() => {
+    console.log('storedVehicleData update:', storedVehicleData);
     if (storedVehicleData) {
+      console.log('Setting vehicle data from storage:', storedVehicleData);
       setVehicleData(storedVehicleData);
     }
   }, [storedVehicleData]);
