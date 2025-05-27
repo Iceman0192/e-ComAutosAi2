@@ -59,7 +59,7 @@ export function setupApiRoutes(app: Express) {
    */
   app.post('/api/ai-analysis', async (req: Request, res: Response) => {
     try {
-      const { platform, lotId, vin, vehicleData } = req.body;
+      const { platform, lotId, vin, vehicleData, currentBid, customPrompt } = req.body;
       
       if (!platform || !lotId || !vin || !vehicleData) {
         return res.status(400).json({
