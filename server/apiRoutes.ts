@@ -10,7 +10,7 @@ import { freshDataManager } from './freshDataManager';
 import { imageDataCache } from './imageDataCache';
 import { pool } from './db';
 import axios from 'axios';
-import { performAIAnalysis } from './aiAnalysisService';
+import OpenAI from 'openai';
 
 export function setupApiRoutes(app: Express) {
   
@@ -55,9 +55,45 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
-   * AI Vehicle Analysis Endpoint - DISABLED (handled by cleanApiRoutes.ts)
+   * AI Vehicle Analysis Endpoint - Cross-Platform Intelligence
    */
-  // AI Analysis endpoint moved to cleanApiRoutes.ts
+  app.post('/api/ai-analysis', async (req: Request, res: Response) => {
+    try {
+      const { platform, lotId, vin, vehicleData } = req.body;
+      
+      if (!platform || !lotId || !vin || !vehicleData) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required analysis parameters'
+        });
+      }
+
+      // Initialize OpenAI client
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      console.log(`🤖 AI Analysis Request: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}, VIN: ${vin}`);
+
+      // Step 1: Search our database for cross-platform matches
+      const crossPlatformQuery = `
+        SELECT 
+          site, make, model, year, purchase_price, sale_date, damage_pr, 
+          odometer, sale_status, location, base_site
+        FROM sales_history 
+        WHERE vin = $1 
+           OR (make ILIKE $2 AND model ILIKE $3 AND year BETWEEN $4 AND $5)
+        ORDER BY sale_date DESC
+        LIMIT 50
+      `;
+
+      const crossPlatformResults = await pool.query(crossPlatformQuery, [
+        vin,
+        `%${vehicleData.make}%`,
+        `%${vehicleData.model}%`, 
+        vehicleData.year - 2,
+        vehicleData.year + 2
+      ]);
 
       // Separate Copart and IAAI data
       const copartData = crossPlatformResults.rows.filter(row => row.site === 1);

@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
-import { setupCleanApiRoutes } from "./cleanApiRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
@@ -43,10 +42,8 @@ app.use((req, res, next) => {
   // Create HTTP server
   const server = createServer(app);
   
-  // Set up clean AI analysis routes only
-  setupCleanApiRoutes(app);
-  
-  // Skip broken apiRoutes.ts for now - only use clean system
+  // Set up clean cache routes (now the primary system)
+  setupApiRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
