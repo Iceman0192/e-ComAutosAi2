@@ -27,7 +27,8 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Brain
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -316,6 +317,19 @@ export default function LiveCopart() {
                       View on Copart
                     </a>
                   </Button>
+                  {hasPermission('AI_ANALYSIS') && (
+                    <Button 
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      size="sm"
+                      onClick={() => {
+                        const analysisUrl = `/ai-analysis?platform=copart&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}&mileage=${lotData.lot.odometer}&damage=${encodeURIComponent(lotData.lot.damage_pr || '')}&images=${lotData.lot.link_img_hd?.join(',') || ''}`;
+                        setLocation(analysisUrl);
+                      }}
+                    >
+                      <Brain className="h-4 w-4 mr-2" />
+                      AI Analysis
+                    </Button>
+                  )}
                   {lotData.lot.current_bid > 0 && (
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Current Bid</p>
