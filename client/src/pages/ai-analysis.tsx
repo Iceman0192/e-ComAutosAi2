@@ -248,106 +248,148 @@ export default function AIAnalysis() {
         </Badge>
       </div>
 
-      {/* Vehicle Summary Card */}
-      <Card className="border-purple-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50">
-          <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
-            <Car className="h-6 w-6" />
-            Vehicle Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Vehicle Details */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">VIN</p>
-                  <p className="font-mono text-sm">{vehicleData.vin}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Year/Make/Model</p>
-                  <p className="font-semibold">{vehicleData.year} {vehicleData.make} {vehicleData.model}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Mileage</p>
-                  <p className="font-semibold">{parseInt(vehicleData.mileage || '0').toLocaleString()} mi</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Primary Damage</p>
-                  <p className="font-semibold">{vehicleData.damage}</p>
-                </div>
-                {vehicleData.color && (
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Color</p>
-                    <p className="font-semibold">{vehicleData.color}</p>
-                  </div>
-                )}
-                {vehicleData.location && (
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Location</p>
-                    <p className="font-semibold">{vehicleData.location}</p>
-                  </div>
-                )}
+      {/* Premium Image Gallery Section - Like BMW X5 Example */}
+      {vehicleData.images.length > 0 && (
+        <Card className="border-purple-200 shadow-lg overflow-hidden">
+          <CardContent className="p-0">
+            {/* Image Thumbnails Row */}
+            <div className="bg-white p-4 border-b">
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {vehicleData.images.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt={`Vehicle angle ${index + 1}`}
+                    className={`w-16 h-12 object-cover rounded border-2 cursor-pointer flex-shrink-0 ${
+                      index === currentImageIndex ? 'border-purple-500' : 'border-gray-200'
+                    }`}
+                    onClick={() => setCurrentImageIndex(index)}
+                  />
+                ))}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
 
-            {/* Vehicle Images */}
-            <div className="space-y-4">
-              {vehicleData.images.length > 0 ? (
-                <>
-                  <div className="relative">
-                    <img
-                      src={vehicleData.images[currentImageIndex]}
-                      alt={`Vehicle image ${currentImageIndex + 1}`}
-                      className="w-full h-48 object-cover rounded-lg border cursor-pointer"
-                      onClick={() => openImageViewer(currentImageIndex)}
-                    />
-                    {vehicleData.images.length > 1 && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
-                          onClick={prevImage}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
-                          onClick={nextImage}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex gap-2 overflow-x-auto">
-                    {vehicleData.images.slice(0, 4).map((image, index) => (
-                      <img
-                        key={index}
-                        src={image}
-                        alt={`Thumbnail ${index + 1}`}
-                        className={`w-16 h-16 object-cover rounded border-2 cursor-pointer ${
-                          index === currentImageIndex ? 'border-purple-500' : 'border-gray-200'
-                        }`}
-                        onClick={() => setCurrentImageIndex(index)}
-                      />
-                    ))}
-                    {vehicleData.images.length > 4 && (
-                      <div className="w-16 h-16 bg-gray-100 rounded border-2 border-gray-200 flex items-center justify-center text-xs text-gray-600">
-                        +{vehicleData.images.length - 4}
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="w-full h-48 bg-gray-100 rounded-lg border flex items-center justify-center">
-                  <p className="text-gray-500">No images available</p>
+      {/* Premium Vehicle Summary - BMW X5 Style Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Financial Information */}
+        <Card className="border-purple-200 shadow-lg">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
+                  <span className="text-2xl font-bold">$</span>
+                  <span className="text-sm font-medium">Current Bid</span>
                 </div>
-              )}
+                <p className="text-3xl font-bold text-green-600">
+                  ${parseInt(vehicleData.currentBid || '0').toLocaleString()}
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
+                  <span className="text-2xl font-bold">$</span>
+                  <span className="text-sm font-medium">Reserve Price</span>
+                </div>
+                <p className="text-3xl font-bold text-blue-600">$53,000</p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-purple-600 mb-2">
+                  <span className="text-2xl">📅</span>
+                  <span className="text-sm font-medium">Auction Date</span>
+                </div>
+                <p className="text-lg font-semibold text-purple-600">
+                  {vehicleData.auctionDate || 'May 27, 2025, 12:00 PM'}
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 text-orange-600 mb-2">
+                  <span className="text-2xl">🛣️</span>
+                  <span className="text-sm font-medium">Odometer</span>
+                </div>
+                <p className="text-lg font-semibold text-orange-600">
+                  {parseInt(vehicleData.mileage || '0').toLocaleString()} miles
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Vehicle Details Card */}
+        <Card className="border-purple-200 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-purple-900">
+              <Car className="h-6 w-6" />
+              Vehicle Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">VIN:</p>
+                  <p className="font-mono text-sm font-semibold">{vehicleData.vin}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Year:</p>
+                  <p className="font-semibold">{vehicleData.year}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Make/Model:</p>
+                  <p className="font-semibold">{vehicleData.make} {vehicleData.model}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Series:</p>
+                  <p className="font-semibold">{vehicleData.series || 'Xdrive40i'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Color:</p>
+                  <p className="font-semibold">{vehicleData.color || 'White'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Engine:</p>
+                  <p className="font-semibold">3.0l 6</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Condition & Location Card */}
+      <Card className="border-purple-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-900">
+            <AlertTriangle className="h-6 w-6" />
+            Condition & Location
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Primary Damage:</p>
+              <p className="font-semibold text-lg">{vehicleData.damage}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Secondary Damage:</p>
+              <p className="font-semibold text-lg">Unknown</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Title Status:</p>
+              <p className="font-semibold text-lg">Clean</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Keys:</p>
+              <p className="font-semibold text-lg">Yes</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Status:</p>
+              <p className="font-semibold text-lg">Run & Drive</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Location:</p>
+              <p className="font-semibold text-lg">{vehicleData.location || 'FL - Miami South'}</p>
             </div>
           </div>
         </CardContent>
