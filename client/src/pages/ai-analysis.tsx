@@ -249,15 +249,15 @@ export default function AIAnalysis() {
         </Badge>
       </div>
 
-      {/* Hero Section with Vehicle Title and Main Image */}
-      <Card className="border-purple-200 shadow-lg overflow-hidden">
+      {/* Unified Vehicle Analysis Card - Exact Toyota Tacoma Layout */}
+      <Card className="border-purple-200 shadow-lg overflow-hidden max-w-6xl mx-auto">
         <CardContent className="p-0">
           {/* Header with Vehicle Title and Actions */}
           <div className="bg-white p-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Car className="h-8 w-8 text-gray-600" />
+              <Car className="h-6 w-6 text-gray-600" />
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-gray-900">
                   {vehicleData.year} {vehicleData.make.toUpperCase()} {vehicleData.model.toUpperCase()} {vehicleData.series?.toUpperCase() || ''}
                 </h2>
                 <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
@@ -278,7 +278,7 @@ export default function AIAnalysis() {
               </Button>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Current Bid</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-xl font-bold text-green-600">
                   ${parseInt(vehicleData.currentBid || '0').toLocaleString()}
                 </p>
               </div>
@@ -291,11 +291,11 @@ export default function AIAnalysis() {
               <img
                 src={vehicleData.images[currentImageIndex]}
                 alt={`${vehicleData.year} ${vehicleData.make} ${vehicleData.model}`}
-                className="w-full h-96 object-cover cursor-pointer"
+                className="w-full h-80 object-cover cursor-pointer"
                 onClick={() => openImageViewer(currentImageIndex)}
               />
               {/* Image counter */}
-              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+              <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-sm">
                 {currentImageIndex + 1} / {vehicleData.images.length}
               </div>
               {/* Navigation arrows */}
@@ -303,19 +303,19 @@ export default function AIAnalysis() {
                 <>
                   <Button
                     variant="outline"
-                    size="lg"
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
+                    size="sm"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
                     onClick={prevImage}
                   >
-                    <ChevronLeft className="h-6 w-6" />
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="outline"
-                    size="lg"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white"
+                    size="sm"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white"
                     onClick={nextImage}
                   >
-                    <ChevronRight className="h-6 w-6" />
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
                 </>
               )}
@@ -324,148 +324,127 @@ export default function AIAnalysis() {
 
           {/* Thumbnail Gallery */}
           {vehicleData.images.length > 0 && (
-            <div className="bg-white p-4">
-              <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="bg-white p-3">
+              <div className="flex gap-2 overflow-x-auto">
                 {vehicleData.images.map((image, index) => (
                   <img
                     key={index}
                     src={image}
                     alt={`Vehicle angle ${index + 1}`}
-                    className={`w-20 h-16 object-cover rounded border-2 cursor-pointer flex-shrink-0 ${
+                    className={`w-16 h-12 object-cover rounded border-2 cursor-pointer flex-shrink-0 ${
                       index === currentImageIndex ? 'border-purple-500' : 'border-gray-200'
                     }`}
                     onClick={() => setCurrentImageIndex(index)}
                   />
                 ))}
-                {vehicleData.images.length < 13 && (
-                  <div className="w-20 h-16 bg-gray-100 rounded border-2 border-gray-200 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs text-gray-400">+</span>
-                  </div>
-                )}
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      {/* Premium Vehicle Summary - BMW X5 Style Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Financial Information */}
-        <Card className="border-purple-200 shadow-lg">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-2 gap-6">
+          {/* Financial Summary Row */}
+          <div className="bg-white px-6 py-4 border-b">
+            <div className="grid grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
-                  <span className="text-2xl font-bold">$</span>
-                  <span className="text-sm font-medium">Current Bid</span>
+                <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
+                  <span className="text-lg font-bold">$</span>
+                  <span className="text-xs font-medium">Current Bid</span>
                 </div>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-green-600">
                   ${parseInt(vehicleData.currentBid || '0').toLocaleString()}
                 </p>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
-                  <span className="text-2xl font-bold">$</span>
-                  <span className="text-sm font-medium">Reserve Price</span>
+                <div className="flex items-center justify-center gap-1 text-blue-600 mb-1">
+                  <span className="text-lg font-bold">$</span>
+                  <span className="text-xs font-medium">Reserve Price</span>
                 </div>
-                <p className="text-3xl font-bold text-blue-600">$53,000</p>
+                <p className="text-2xl font-bold text-blue-600">$0</p>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-purple-600 mb-2">
-                  <span className="text-2xl">📅</span>
-                  <span className="text-sm font-medium">Auction Date</span>
+                <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
+                  <span className="text-lg">📅</span>
+                  <span className="text-xs font-medium">Auction Date</span>
                 </div>
-                <p className="text-lg font-semibold text-purple-600">
-                  {vehicleData.auctionDate || 'May 27, 2025, 12:00 PM'}
+                <p className="text-sm font-semibold text-purple-600">
+                  May 27, 2025, 10:00 AM
                 </p>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-orange-600 mb-2">
-                  <span className="text-2xl">🛣️</span>
-                  <span className="text-sm font-medium">Odometer</span>
+                <div className="flex items-center justify-center gap-1 text-orange-600 mb-1">
+                  <span className="text-lg">🛣️</span>
+                  <span className="text-xs font-medium">Odometer</span>
                 </div>
-                <p className="text-lg font-semibold text-orange-600">
+                <p className="text-sm font-semibold text-orange-600">
                   {parseInt(vehicleData.mileage || '0').toLocaleString()} miles
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Vehicle Details Card */}
-        <Card className="border-purple-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-purple-900">
-              <Car className="h-6 w-6" />
-              Vehicle Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">VIN:</p>
-                  <p className="font-mono text-sm font-semibold">{vehicleData.vin}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Year:</p>
-                  <p className="font-semibold">{vehicleData.year}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Make/Model:</p>
-                  <p className="font-semibold">{vehicleData.make} {vehicleData.model}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Series:</p>
-                  <p className="font-semibold">{vehicleData.series || 'Xdrive40i'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Color:</p>
-                  <p className="font-semibold">{vehicleData.color || 'White'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Engine:</p>
-                  <p className="font-semibold">3.0l 6</p>
+          {/* Vehicle Details and Condition - Two Column Layout */}
+          <div className="bg-gray-50 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Vehicle Details Column */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Vehicle Details</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">VIN:</span>
+                    <span className="font-semibold">{vehicleData.vin}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Year:</span>
+                    <span className="font-semibold">{vehicleData.year}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Make/Model:</span>
+                    <span className="font-semibold">{vehicleData.make} {vehicleData.model}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Series:</span>
+                    <span className="font-semibold">{vehicleData.series || 'Double Cab'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Color:</span>
+                    <span className="font-semibold">{vehicleData.color || 'Green'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Engine:</span>
+                    <span className="font-semibold">3.5l 6</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Condition & Location Card */}
-      <Card className="border-purple-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-900">
-            <AlertTriangle className="h-6 w-6" />
-            Condition & Location
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Primary Damage:</p>
-              <p className="font-semibold text-lg">{vehicleData.damage}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Secondary Damage:</p>
-              <p className="font-semibold text-lg">Unknown</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Title Status:</p>
-              <p className="font-semibold text-lg">Clean</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Keys:</p>
-              <p className="font-semibold text-lg">Yes</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Status:</p>
-              <p className="font-semibold text-lg">Run & Drive</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Location:</p>
-              <p className="font-semibold text-lg">{vehicleData.location || 'FL - Miami South'}</p>
+              {/* Condition & Location Column */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Condition & Location</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Primary Damage:</span>
+                    <span className="font-semibold">{vehicleData.damage}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Secondary Damage:</span>
+                    <span className="font-semibold">Unknown</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Title Status:</span>
+                    <span className="font-semibold">Salvage</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Keys:</span>
+                    <span className="font-semibold">Yes</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span className="font-semibold">Run & Drive</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Location:</span>
+                    <span className="font-semibold">{vehicleData.location || 'PA - Philadelphia'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
