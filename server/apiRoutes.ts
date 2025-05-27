@@ -54,9 +54,9 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
-   * AI Vehicle Analysis Endpoint - Cross-Platform Intelligence
+   * AI Vehicle Analysis Endpoint - Cross-Platform Intelligence (DISABLED - using routes.ts version)
    */
-  app.post('/api/ai-analysis', async (req: Request, res: Response) => {
+  app.post('/api/ai-analysis-disabled', async (req: Request, res: Response) => {
     try {
       const { platform, lotId, vin, vehicleData } = req.body;
       
