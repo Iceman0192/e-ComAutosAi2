@@ -423,9 +423,8 @@ export default function LiveCopart() {
 
                 {/* Analysis Tabs */}
                 <Tabs defaultValue="timeline" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                    <TabsTrigger value="table">Table View</TabsTrigger>
                     <TabsTrigger value="ai-analysis" disabled={!hasPermission('PLATINUM')}>
                       AI Analysis {!hasPermission('PLATINUM') && '(Platinum)'}
                     </TabsTrigger>
@@ -436,12 +435,6 @@ export default function LiveCopart() {
                       lotData={lotData.lot}
                       platform="copart"
                     />
-                  </TabsContent>
-                  
-                  <TabsContent value="table" className="space-y-4">
-                    <div className="text-center py-8 text-gray-500">
-                      Table view implementation coming soon
-                    </div>
                   </TabsContent>
                   
                   <TabsContent value="ai-analysis" className="space-y-4">

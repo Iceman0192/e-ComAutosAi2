@@ -56,12 +56,23 @@ export default function AILotAnalysis({ lotData, platform }: AIAnalysisProps) {
 
   const analysisMutation = useMutation({
     mutationFn: async (): Promise<AIAnalysisResult> => {
-      const response = await apiRequest('POST', '/api/ai-lot-analysis', {
-        lotData,
-        platform,
-        analysisType: 'cross-platform-intelligence'
+      const response = await fetch('/api/ai-lot-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lotData,
+          platform,
+          analysisType: 'cross-platform-intelligence'
+        }),
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error('Failed to analyze lot');
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       setAnalysisResult(data);
@@ -204,7 +215,7 @@ export default function AILotAnalysis({ lotData, platform }: AIAnalysisProps) {
             )}
 
             {/* Market Comparison */}
-            {analysisResult.marketComparison.length > 0 && (
+            {analysisResult.marketComparison && analysisResult.marketComparison.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -237,7 +248,7 @@ export default function AILotAnalysis({ lotData, platform }: AIAnalysisProps) {
 
             {/* Risk Factors & Opportunities */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {analysisResult.riskFactors.length > 0 && (
+              {analysisResult.riskFactors && analysisResult.riskFactors.length > 0 && (
                 <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2 text-red-700 dark:text-red-300">
@@ -258,7 +269,7 @@ export default function AILotAnalysis({ lotData, platform }: AIAnalysisProps) {
                 </Card>
               )}
 
-              {analysisResult.opportunities.length > 0 && (
+              {analysisResult.opportunities && analysisResult.opportunities.length > 0 && (
                 <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2 text-green-700 dark:text-green-300">
@@ -281,7 +292,7 @@ export default function AILotAnalysis({ lotData, platform }: AIAnalysisProps) {
             </div>
 
             {/* Similar Active Listings */}
-            {analysisResult.similarListings.length > 0 && (
+            {analysisResult.similarListings && analysisResult.similarListings.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
