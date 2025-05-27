@@ -84,6 +84,8 @@ export default function AIAnalysis() {
   // Extract vehicle data from URL parameters or reference ID
   const urlParams = new URLSearchParams(window.location.search);
   const referenceId = urlParams.get('ref');
+  console.log('URL params:', Object.fromEntries(urlParams.entries()));
+  console.log('Reference ID:', referenceId);
   
   const [vehicleData, setVehicleData] = useState<VehicleData>({
     platform: urlParams.get('platform') || '',
