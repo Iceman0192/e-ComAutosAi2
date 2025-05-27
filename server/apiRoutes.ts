@@ -54,6 +54,180 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
+   * AI Vehicle Analysis Endpoint - Cross-Platform Intelligence
+   */
+  app.post('/api/ai-analysis', async (req: Request, res: Response) => {
+    try {
+      const { platform, lotId, vin, vehicleData } = req.body;
+      
+      if (!platform || !lotId || !vin || !vehicleData) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required analysis parameters'
+        });
+      }
+
+      // Initialize OpenAI client
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      console.log(`🤖 AI Analysis Request: ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}, VIN: ${vin}`);
+
+      // Step 1: Search our database for cross-platform matches
+      const crossPlatformQuery = `
+        SELECT 
+          site, make, model, year, purchase_price, sale_date, damage_pr, 
+          odometer, sale_status, location, base_site
+        FROM sales_history 
+        WHERE vin = $1 
+           OR (make ILIKE $2 AND model ILIKE $3 AND year BETWEEN $4 AND $5)
+        ORDER BY sale_date DESC
+        LIMIT 50
+      `;
+
+      const crossPlatformResults = await pool.query(crossPlatformQuery, [
+        vin,
+        `%${vehicleData.make}%`,
+        `%${vehicleData.model}%`, 
+        vehicleData.year - 2,
+        vehicleData.year + 2
+      ]);
+
+      // Separate Copart and IAAI data
+      const copartData = crossPlatformResults.rows.filter(row => row.site === 1);
+      const iaaiData = crossPlatformResults.rows.filter(row => row.site === 2);
+
+      // Calculate price comparisons
+      const copartPrices = copartData
+        .filter(row => row.purchase_price && parseFloat(row.purchase_price) > 0)
+        .map(row => parseFloat(row.purchase_price));
+      
+      const iaaiPrices = iaaiData
+        .filter(row => row.purchase_price && parseFloat(row.purchase_price) > 0)
+        .map(row => parseFloat(row.purchase_price));
+
+      const copartAverage = copartPrices.length > 0 
+        ? copartPrices.reduce((a, b) => a + b, 0) / copartPrices.length 
+        : 0;
+      
+      const iaaiAverage = iaaiPrices.length > 0 
+        ? iaaiPrices.reduce((a, b) => a + b, 0) / iaaiPrices.length 
+        : 0;
+
+      const priceDifference = iaaiAverage - copartAverage;
+      const pricePercentage = copartAverage > 0 ? (priceDifference / copartAverage) * 100 : 0;
+
+      // Step 2: AI Analysis with comprehensive prompt
+      const aiPrompt = `You are an expert vehicle auction analyst specializing in Central America export markets. Analyze this vehicle data and provide comprehensive insights:
+
+VEHICLE DETAILS:
+- ${vehicleData.year} ${vehicleData.make} ${vehicleData.model}
+- VIN: ${vin}
+- Mileage: ${vehicleData.mileage?.toLocaleString()} miles
+- Primary Damage: ${vehicleData.damage}
+- Platform: ${platform.toUpperCase()}
+- Lot ID: ${lotId}
+
+CROSS-PLATFORM DATA:
+- Found ${copartData.length} similar vehicles on Copart (avg: $${copartAverage.toLocaleString()})
+- Found ${iaaiData.length} similar vehicles on IAAI (avg: $${iaaiAverage.toLocaleString()})
+- Price difference: ${priceDifference > 0 ? 'IAAI higher' : 'Copart higher'} by $${Math.abs(priceDifference).toLocaleString()} (${Math.abs(pricePercentage).toFixed(1)}%)
+
+Provide analysis in JSON format with these exact fields:
+{
+  "vehicleAssessment": {
+    "damageAnalysis": "Detailed damage assessment and impact on value",
+    "repairEstimate": "Repair cost range and complexity",
+    "exportSuitability": "Suitability for Central America markets",
+    "riskFactors": ["list", "of", "risk", "factors"]
+  },
+  "recommendation": {
+    "decision": "BUY|PASS|CAUTION",
+    "confidence": 85,
+    "reasoning": "Clear explanation of recommendation",
+    "estimatedProfit": 3500,
+    "profitMargin": 25
+  },
+  "marketIntelligence": {
+    "trends": "Current market trends for this vehicle type",
+    "seasonality": "Seasonal factors affecting price/demand",
+    "exportInsights": "Specific insights for Central America export"
+  }
+}
+
+Focus on actionable insights for vehicle export business. Be specific about repair costs, market conditions, and profit potential.`;
+
+      const aiResponse = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [{ role: "user", content: aiPrompt }],
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+      });
+
+      let aiAnalysis;
+      try {
+        aiAnalysis = JSON.parse(aiResponse.choices[0].message.content || '{}');
+      } catch (parseError) {
+        console.error('AI response parse error:', parseError);
+        aiAnalysis = {
+          vehicleAssessment: {
+            damageAnalysis: "AI analysis temporarily unavailable",
+            repairEstimate: "Manual assessment required",
+            exportSuitability: "Standard export evaluation needed",
+            riskFactors: ["AI service unavailable"]
+          },
+          recommendation: {
+            decision: "CAUTION",
+            confidence: 50,
+            reasoning: "AI analysis service temporarily unavailable. Manual review recommended.",
+            estimatedProfit: 0,
+            profitMargin: 0
+          },
+          marketIntelligence: {
+            trends: "Market data available through manual analysis",
+            seasonality: "Seasonal patterns require manual evaluation",
+            exportInsights: "Export assessment needs manual review"
+          }
+        };
+      }
+
+      // Combine AI analysis with cross-platform data
+      const fullAnalysis = {
+        ...aiAnalysis,
+        crossPlatformIntelligence: {
+          copartData: copartData.slice(0, 10), // Limit for response size
+          iaaiData: iaaiData.slice(0, 10),
+          priceComparison: {
+            copartAverage: Math.round(copartAverage),
+            iaaiAverage: Math.round(iaaiAverage),
+            difference: Math.round(priceDifference),
+            percentage: Math.round(pricePercentage * 10) / 10
+          },
+          volumeAnalysis: {
+            copartCount: copartData.length,
+            iaaiCount: iaaiData.length
+          }
+        }
+      };
+
+      console.log(`✅ AI Analysis Complete: ${aiAnalysis.recommendation?.decision} with ${aiAnalysis.recommendation?.confidence}% confidence`);
+
+      return res.json({
+        success: true,
+        data: fullAnalysis
+      });
+
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      return res.status(500).json({
+        success: false,
+        message: `AI analysis failed: ${error.message}`
+      });
+    }
+  });
+
+  /**
    * Copart Sales History Endpoint - Clean Cache System
    */
   app.get('/api/sales-history', async (req: Request, res: Response) => {
