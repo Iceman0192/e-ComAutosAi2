@@ -206,7 +206,7 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
           </Card>
 
           {/* Image Analysis */}
-          {aiAnalysis.data.imageAnalysis.hasImages && (
+          {aiAnalysis?.data?.imageAnalysis?.hasImages && (
             <Card className="border-orange-200 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50">
                 <CardTitle className="flex items-center gap-2">
@@ -220,11 +220,11 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
                     <div className="flex items-center gap-2 mb-2">
                       <span className="font-semibold">Confidence Score:</span>
                       <Badge variant="outline" className="bg-orange-100 text-orange-800">
-                        {Math.round(aiAnalysis.data.imageAnalysis.confidenceScore * 100)}%
+                        {Math.round((aiAnalysis?.data?.imageAnalysis?.confidenceScore || 0) * 100)}%
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {aiAnalysis.data.imageAnalysis.analysis}
+                      {aiAnalysis?.data?.imageAnalysis?.analysis || 'Image analysis pending...'}
                     </p>
                   </div>
                 </div>
