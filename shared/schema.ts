@@ -136,7 +136,7 @@ export const SaleHistoryResponseSchema = z.object({
       buyer_state: z.string().optional().nullable(),
       buyer_country: z.string().optional().nullable(),
       color: z.string().nullable(),
-      damage_pr: z.string().nullable(),
+      vehicle_damage: z.string().nullable(),
       damage_sec: z.string().nullable(),
       keys: z.string().nullable(),
       title: z.string().nullable(),
