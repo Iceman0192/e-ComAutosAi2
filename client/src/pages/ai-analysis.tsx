@@ -158,26 +158,36 @@ export default function AIAnalysis() {
     queryKey: ['ai-analysis', vehicleData, customPrompt, useCustomPrompt],
     queryFn: async () => {
       setAnalysisStage('analyzing');
-      const response = await apiRequest('POST', '/api/ai-analysis', {
-        platform: vehicleData.platform,
-        lotId: vehicleData.lotId,
-        vin: vehicleData.vin,
-        currentBid: vehicleData.currentBid,
-        customPrompt: useCustomPrompt ? customPrompt : undefined,
-        vehicleData: {
-          year: parseInt(vehicleData.year),
-          make: vehicleData.make,
-          model: vehicleData.model,
-          series: vehicleData.series,
-          mileage: parseInt(vehicleData.mileage || '0'),
-          damage: vehicleData.damage,
-          color: vehicleData.color,
-          location: vehicleData.location,
-          images: vehicleData.images
-        }
+      const response = await fetch('/api/ai-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform: vehicleData.platform,
+          lotId: vehicleData.lotId,
+          vin: vehicleData.vin,
+          currentBid: vehicleData.currentBid,
+          customPrompt: useCustomPrompt ? customPrompt : undefined,
+          vehicleData: {
+            year: parseInt(vehicleData.year),
+            make: vehicleData.make,
+            model: vehicleData.model,
+            series: vehicleData.series,
+            mileage: parseInt(vehicleData.mileage || '0'),
+            damage: vehicleData.damage,
+            color: vehicleData.color,
+            location: vehicleData.location,
+            images: vehicleData.images
+          }
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error(`Analysis failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
       setAnalysisStage('complete');
-      return response.data;
+      return data;
     },
     enabled: false, // Manual trigger only
   });
