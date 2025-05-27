@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '@/components/ComparableSearchForm';
-import AIAnalysisWidget from '@/components/AIAnalysisWidget';
+import AnalysisTabsWidget from '@/components/AnalysisTabsWidget';
 import { 
   Car, 
   Search, 
@@ -626,9 +626,9 @@ export default function LiveIAAI() {
         </div>
       )}
 
-      {/* AI Analysis Widget - Integrated Analysis */}
+      {/* Analysis & Research Tools - Tabbed Interface */}
       {lotData?.lot && (
-        <AIAnalysisWidget 
+        <AnalysisTabsWidget 
           vehicleData={{
             platform: 'iaai',
             lotId: lotData.lot.lot_id.toString(),
@@ -644,28 +644,8 @@ export default function LiveIAAI() {
             currentBid: lotData.lot.current_bid,
             images: lotData.lot.link_img_hd || []
           }}
+          lotData={lotData.lot}
         />
-      )}
-
-      {/* Find Comparables Section - Gold Tier Manual Filtering */}
-      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
-        <Card className="border-red-200 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50">
-            <CardTitle className="flex items-center gap-2 text-red-900 dark:text-red-100">
-              <Filter className="h-5 w-5" />
-              Find Comparable Vehicles
-            </CardTitle>
-            <CardDescription className="text-red-700 dark:text-red-300">
-              Search for similar vehicles in your database to compare prices across platforms
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <ComparableSearchForm 
-              lotData={lotData.lot}
-              platform="iaai"
-            />
-          </CardContent>
-        </Card>
       )}
       </div>
     </div>
