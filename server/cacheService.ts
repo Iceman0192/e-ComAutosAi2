@@ -167,7 +167,7 @@ export class VehicleCacheService {
             buyer_type: item.buyer_type || null,
             auction_location: item.auction_location || item.location || null,
             vehicle_mileage: item.odometer || item.vehicle_mileage || null,
-            vehicle_damage: item.damage_pr || item.vehicle_damage || null,
+            vehicle_damage: item.vehicle_damage || null,
             vehicle_title: item.title || item.vehicle_title || null,
             vehicle_has_keys: item.keys === 'Yes' || item.vehicle_has_keys || false,
             year: item.year || null,

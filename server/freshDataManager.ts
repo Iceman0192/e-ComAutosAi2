@@ -114,7 +114,7 @@ export class FreshDataManager {
         buyer_type: item.buyer_type,
         auction_location: item.auction_location || item.location,
         vehicle_mileage: item.vehicle_mileage || item.odometer,
-        vehicle_damage: item.vehicle_damage || item.damage_pr,
+        vehicle_damage: item.vehicle_damage,
         vehicle_title: item.vehicle_title || item.document,
         vehicle_has_keys: item.vehicle_has_keys || (item.keys === 'Yes'),
         year: item.year,
