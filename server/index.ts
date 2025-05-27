@@ -43,11 +43,10 @@ app.use((req, res, next) => {
   // Create HTTP server
   const server = createServer(app);
   
-  // Set up clean cache routes (now the primary system)
-  setupApiRoutes(app);
-  
-  // Set up clean AI analysis routes
+  // Set up clean AI analysis routes only
   setupCleanApiRoutes(app);
+  
+  // Skip broken apiRoutes.ts for now - only use clean system
   
   // Start 3-day migration scheduler
   setInterval(async () => {
