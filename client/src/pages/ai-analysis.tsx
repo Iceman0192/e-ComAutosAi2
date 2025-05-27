@@ -149,7 +149,7 @@ export default function AIAnalysis() {
     }));
   };
 
-  const analysisResult = analysisMutation.data?.data as AIAnalysisResponse;
+  const analysisResult = analysisMutation.data as AIAnalysisResponse;
 
   return (
     <div className="space-y-6">
@@ -165,7 +165,7 @@ export default function AIAnalysis() {
           </p>
         </div>
         <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-          {hasPermission('PREMIUM_AI') ? 'Premium AI' : 'Standard AI'}
+          {hasPermission('CROSS_PLATFORM_SEARCH') ? 'Premium AI' : 'Standard AI'}
         </Badge>
       </div>
 
@@ -312,7 +312,7 @@ export default function AIAnalysis() {
           </Card>
 
           {/* Custom Prompt (Premium feature) */}
-          {hasPermission('PREMIUM_AI') && (
+          {hasPermission('CROSS_PLATFORM_SEARCH') && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
