@@ -296,59 +296,28 @@ export default function LiveIAAI() {
                     <Button 
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                       size="sm"
-                      onClick={async () => {
-                        try {
-                          // Store complete vehicle data for IAAI (handles long image URLs)
-                          const vehicleData = {
-                            platform: 'iaai',
-                            lotId: lotData.lot.lot_id,
-                            vin: lotData.lot.vin,
-                            year: lotData.lot.year.toString(),
-                            make: lotData.lot.make,
-                            model: lotData.lot.model,
-                            series: lotData.lot.series || '',
-                            mileage: lotData.lot.odometer.toString(),
-                            damage: lotData.lot.damage_pr || '',
-                            color: lotData.lot.color || '',
-                            location: lotData.lot.location || '',
-                            currentBid: (lotData.lot.current_bid || 0).toString(),
-                            auctionDate: '',
-                            images: lotData.lot.link_img_hd || []
-                          };
+                      onClick={() => {
+                        // Store complete vehicle data in session storage (instant & reliable)
+                        const vehicleData = {
+                          platform: 'iaai',
+                          lotId: lotData.lot.lot_id,
+                          vin: lotData.lot.vin,
+                          year: lotData.lot.year.toString(),
+                          make: lotData.lot.make,
+                          model: lotData.lot.model,
+                          series: lotData.lot.series || '',
+                          mileage: lotData.lot.odometer.toString(),
+                          damage: lotData.lot.damage_pr || '',
+                          color: lotData.lot.color || '',
+                          location: lotData.lot.location || '',
+                          currentBid: (lotData.lot.current_bid || 0).toString(),
+                          auctionDate: '',
+                          images: lotData.lot.link_img_hd || []
+                        };
 
-                          console.log('Storing vehicle data:', vehicleData);
-
-                          const response = await fetch('/api/store-vehicle-data', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(vehicleData)
-                          });
-
-                          console.log('Response status:', response.status);
-                          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-                          if (!response.ok) {
-                            const errorText = await response.text();
-                            console.error('Error response:', errorText);
-                            throw new Error(`Storage failed: ${response.status}`);
-                          }
-
-                          const responseText = await response.text();
-                          console.log('Raw response text:', responseText);
-                          const data = JSON.parse(responseText);
-                          console.log('Parsed storage response:', data);
-
-                          if (!data.success || !data.referenceId) {
-                            throw new Error('Invalid storage response');
-                          }
-                          
-                          setLocation(`/ai-analysis?ref=${data.referenceId}`);
-                        } catch (error) {
-                          console.error('Failed to store vehicle data:', error);
-                          // Fallback to basic URL transfer (without images due to length limits)
-                          const analysisUrl = `/ai-analysis?platform=iaai&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}&series=${encodeURIComponent(lotData.lot.series || '')}&mileage=${lotData.lot.odometer}&damage=${encodeURIComponent(lotData.lot.damage_pr || '')}&color=${encodeURIComponent(lotData.lot.color || '')}&location=${encodeURIComponent(lotData.lot.location || '')}&currentBid=${lotData.lot.current_bid || 0}`;
-                          setLocation(analysisUrl);
-                        }
+                        // Store in session storage and navigate
+                        sessionStorage.setItem('aiAnalysisData', JSON.stringify(vehicleData));
+                        setLocation('/ai-analysis');
                       }}
                     >
                       <Brain className="h-4 w-4 mr-1" />

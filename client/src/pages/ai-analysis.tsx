@@ -81,51 +81,36 @@ export default function AIAnalysis() {
   const { user, hasPermission } = useAuth();
   const [, setLocation] = useLocation();
   
-  // Extract vehicle data from URL parameters or reference ID
-  const urlParams = new URLSearchParams(window.location.search);
-  const referenceId = urlParams.get('ref');
-  console.log('URL params:', Object.fromEntries(urlParams.entries()));
-  console.log('Reference ID:', referenceId);
-  
-  const [vehicleData, setVehicleData] = useState<VehicleData>({
-    platform: urlParams.get('platform') || '',
-    lotId: urlParams.get('lotId') || '',
-    vin: urlParams.get('vin') || '',
-    year: urlParams.get('year') || '',
-    make: urlParams.get('make') || '',
-    model: urlParams.get('model') || '',
-    series: urlParams.get('series') || '',
-    mileage: urlParams.get('mileage') || '',
-    damage: urlParams.get('damage') || '',
-    color: urlParams.get('color') || '',
-    location: urlParams.get('location') || '',
-    currentBid: urlParams.get('currentBid') || '',
-    auctionDate: urlParams.get('auctionDate') || '',
-    images: urlParams.get('images')?.split(',').filter(img => img.length > 0) || []
-  });
-
-  // Fetch vehicle data from reference ID if available (for IAAI)
-  const { data: storedVehicleData } = useQuery({
-    queryKey: ['stored-vehicle-data', referenceId],
-    queryFn: async () => {
-      if (!referenceId) return null;
-      console.log('Fetching vehicle data for reference:', referenceId);
-      const response = await fetch(`/api/vehicle-data/${referenceId}`);
-      const data = await response.json();
-      console.log('Retrieved vehicle data:', data);
-      return data.data;
-    },
-    enabled: !!referenceId,
-  });
-
-  // Update vehicle data when stored data is loaded
-  useEffect(() => {
-    console.log('storedVehicleData update:', storedVehicleData);
-    if (storedVehicleData) {
-      console.log('Setting vehicle data from storage:', storedVehicleData);
-      setVehicleData(storedVehicleData);
+  // Extract vehicle data from session storage or URL parameters
+  const [vehicleData, setVehicleData] = useState<VehicleData>(() => {
+    // Try session storage first (for IAAI with all images)
+    const storedData = sessionStorage.getItem('aiAnalysisData');
+    if (storedData) {
+      sessionStorage.removeItem('aiAnalysisData'); // Clean up immediately
+      return JSON.parse(storedData);
     }
-  }, [storedVehicleData]);
+
+    // Fallback to URL parameters (for Copart or fallback cases)
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      platform: urlParams.get('platform') || '',
+      lotId: urlParams.get('lotId') || '',
+      vin: urlParams.get('vin') || '',
+      year: urlParams.get('year') || '',
+      make: urlParams.get('make') || '',
+      model: urlParams.get('model') || '',
+      series: urlParams.get('series') || '',
+      mileage: urlParams.get('mileage') || '',
+      damage: urlParams.get('damage') || '',
+      color: urlParams.get('color') || '',
+      location: urlParams.get('location') || '',
+      currentBid: urlParams.get('currentBid') || '',
+      auctionDate: urlParams.get('auctionDate') || '',
+      images: urlParams.get('images')?.split(',').filter(img => img.length > 0) || []
+    };
+  });
+
+
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageViewer, setShowImageViewer] = useState(false);
