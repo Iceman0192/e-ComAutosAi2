@@ -81,37 +81,28 @@ export default function AIAnalysis() {
   const { user, hasPermission } = useAuth();
   const [, setLocation] = useLocation();
   
-  // Extract vehicle data from URL-encoded data or individual parameters
-  const urlParams = new URLSearchParams(window.location.search);
-  
+  // Extract vehicle data from URL hash (unified system for both platforms)
   const [vehicleData, setVehicleData] = useState<VehicleData>(() => {
-    // Try encoded data first (for IAAI with all images - survives refresh)
-    const encodedData = urlParams.get('data');
-    if (encodedData) {
-      try {
-        return JSON.parse(atob(encodedData));
-      } catch (error) {
-        console.error('Failed to decode vehicle data:', error);
+    try {
+      const hash = window.location.hash.slice(1); // Remove # prefix
+      if (!hash) {
+        return {
+          platform: '', lotId: '', vin: '', year: '', make: '', model: '',
+          series: '', mileage: '', damage: '', color: '', location: '',
+          currentBid: '', auctionDate: '', images: []
+        };
       }
+      
+      const decodedData = JSON.parse(atob(hash));
+      return decodedData;
+    } catch (error) {
+      console.error('Failed to decode vehicle data:', error);
+      return {
+        platform: '', lotId: '', vin: '', year: '', make: '', model: '',
+        series: '', mileage: '', damage: '', color: '', location: '',
+        currentBid: '', auctionDate: '', images: []
+      };
     }
-
-    // Fallback to individual URL parameters (for Copart)
-    return {
-      platform: urlParams.get('platform') || '',
-      lotId: urlParams.get('lotId') || '',
-      vin: urlParams.get('vin') || '',
-      year: urlParams.get('year') || '',
-      make: urlParams.get('make') || '',
-      model: urlParams.get('model') || '',
-      series: urlParams.get('series') || '',
-      mileage: urlParams.get('mileage') || '',
-      damage: urlParams.get('damage') || '',
-      color: urlParams.get('color') || '',
-      location: urlParams.get('location') || '',
-      currentBid: urlParams.get('currentBid') || '',
-      auctionDate: urlParams.get('auctionDate') || '',
-      images: urlParams.get('images')?.split(',').filter(img => img.length > 0) || []
-    };
   });
 
 
