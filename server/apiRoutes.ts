@@ -77,8 +77,8 @@ export function setupApiRoutes(app: Express) {
       // Step 1: Search our database for cross-platform matches
       const crossPlatformQuery = `
         SELECT 
-          site, make, model, year, purchase_price, sale_date, damage_pr, 
-          odometer, sale_status, location, base_site
+          site, make, model, year, purchase_price, sale_date, vehicle_damage, 
+          vehicle_mileage, sale_status, auction_location, base_site
         FROM sales_history 
         WHERE vin = $1 
            OR (make ILIKE $2 AND model ILIKE $3 AND year BETWEEN $4 AND $5)
