@@ -27,8 +27,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  X,
-  Brain
+  X
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -317,37 +316,6 @@ export default function LiveCopart() {
                       View on Copart
                     </a>
                   </Button>
-                  {hasPermission('AI_ANALYSIS') && (
-                    <Button 
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                      size="sm"
-                      onClick={() => {
-                        const vehicleData = {
-                          platform: 'copart',
-                          lotId: lotData.lot.lot_id.toString(),
-                          vin: lotData.lot.vin,
-                          year: lotData.lot.year.toString(),
-                          make: lotData.lot.make,
-                          model: lotData.lot.model,
-                          series: lotData.lot.series || '',
-                          mileage: lotData.lot.odometer.toString(),
-                          damage: lotData.lot.damage_pr || '',
-                          color: lotData.lot.color || '',
-                          location: lotData.lot.location || '',
-                          currentBid: (lotData.lot.current_bid || 0).toString(),
-                          auctionDate: '',
-                          images: lotData.lot.link_img_hd || []
-                        };
-
-                        // Use unified data transfer system
-                        const hash = btoa(JSON.stringify(vehicleData));
-                        setLocation(`/ai-analysis#${hash}`);
-                      }}
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      AI Analysis
-                    </Button>
-                  )}
                   {lotData.lot.current_bid > 0 && (
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Current Bid</p>
