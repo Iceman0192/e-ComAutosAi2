@@ -316,19 +316,30 @@ export default function LiveIAAI() {
                             images: lotData.lot.link_img_hd || []
                           };
 
+                          console.log('Storing vehicle data:', vehicleData);
+
                           const response = await fetch('/api/store-vehicle-data', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(vehicleData)
                           });
+
+                          if (!response.ok) {
+                            throw new Error(`Storage failed: ${response.status}`);
+                          }
+
                           const data = await response.json();
-                          const { referenceId } = data;
+                          console.log('Storage response:', data);
+
+                          if (!data.success || !data.referenceId) {
+                            throw new Error('Invalid storage response');
+                          }
                           
-                          setLocation(`/ai-analysis?ref=${referenceId}`);
+                          setLocation(`/ai-analysis?ref=${data.referenceId}`);
                         } catch (error) {
                           console.error('Failed to store vehicle data:', error);
-                          // Fallback to basic URL transfer
-                          const analysisUrl = `/ai-analysis?platform=iaai&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}`;
+                          // Fallback to basic URL transfer (without images due to length limits)
+                          const analysisUrl = `/ai-analysis?platform=iaai&lotId=${lotData.lot.lot_id}&vin=${lotData.lot.vin}&year=${lotData.lot.year}&make=${encodeURIComponent(lotData.lot.make)}&model=${encodeURIComponent(lotData.lot.model)}&series=${encodeURIComponent(lotData.lot.series || '')}&mileage=${lotData.lot.odometer}&damage=${encodeURIComponent(lotData.lot.damage_pr || '')}&color=${encodeURIComponent(lotData.lot.color || '')}&location=${encodeURIComponent(lotData.lot.location || '')}&currentBid=${lotData.lot.current_bid || 0}`;
                           setLocation(analysisUrl);
                         }
                       }}
