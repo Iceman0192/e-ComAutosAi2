@@ -80,25 +80,14 @@ export function setupApiRoutes(app: Express) {
 
       res.json(result);
 
-      // Step 1: Search our database for cross-platform matches
-      const crossPlatformQuery = `
-        SELECT 
-          site, make, model, year, purchase_price, sale_date, vehicle_damage, 
-          vehicle_mileage, sale_status, auction_location, base_site
-        FROM sales_history 
-        WHERE vin = $1 
-           OR (make ILIKE $2 AND model ILIKE $3 AND year BETWEEN $4 AND $5)
-        ORDER BY sale_date DESC
-        LIMIT 50
-      `;
-
-      const crossPlatformResults = await pool.query(crossPlatformQuery, [
-        vin,
-        `%${vehicleData.make}%`,
-        `%${vehicleData.model}%`, 
-        vehicleData.year - 2,
-        vehicleData.year + 2
-      ]);
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      res.status(500).json({
+        success: false,
+        message: `AI analysis failed: ${error.message}`
+      });
+    }
+  });
 
       // Separate Copart and IAAI data
       const copartData = crossPlatformResults.rows.filter(row => row.site === 1);
