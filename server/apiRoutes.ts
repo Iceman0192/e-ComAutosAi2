@@ -124,10 +124,16 @@ export function setupApiRoutes(app: Express) {
       }
       
       const data = await response.json();
-      res.json(data);
+      res.json({
+        success: true,
+        data: data
+      });
     } catch (error) {
       console.error('Live Copart lookup error:', error);
-      res.status(500).json({ error: 'Failed to fetch live Copart data' });
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch live Copart data' 
+      });
     }
   });
 
@@ -150,10 +156,16 @@ export function setupApiRoutes(app: Express) {
       }
       
       const data = await response.json();
-      res.json(data);
+      res.json({
+        success: true,
+        data: data
+      });
     } catch (error) {
       console.error('Live IAAI lookup error:', error);
-      res.status(500).json({ error: 'Failed to fetch live IAAI data' });
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to fetch live IAAI data' 
+      });
     }
   });
 
