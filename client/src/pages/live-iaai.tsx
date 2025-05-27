@@ -10,7 +10,6 @@ import { Separator } from '@/components/ui/separator';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '@/components/ComparableSearchForm';
-import AnalysisTabsWidget from '@/components/AnalysisTabsWidget';
 import { 
   Car, 
   Search, 
@@ -28,8 +27,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  X,
-  Brain
+  X
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -293,37 +291,6 @@ export default function LiveIAAI() {
                       View on IAAI
                     </a>
                   </Button>
-                  {hasPermission('AI_ANALYSIS') && (
-                    <Button 
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                      size="sm"
-                      onClick={() => {
-                        const vehicleData = {
-                          platform: 'iaai',
-                          lotId: lotData.lot.lot_id.toString(),
-                          vin: lotData.lot.vin,
-                          year: lotData.lot.year.toString(),
-                          make: lotData.lot.make,
-                          model: lotData.lot.model,
-                          series: lotData.lot.series || '',
-                          mileage: lotData.lot.odometer.toString(),
-                          damage: lotData.lot.damage_pr || '',
-                          color: lotData.lot.color || '',
-                          location: lotData.lot.location || '',
-                          currentBid: (lotData.lot.current_bid || 0).toString(),
-                          auctionDate: '',
-                          images: lotData.lot.link_img_hd || []
-                        };
-
-                        // Use unified data transfer system
-                        const hash = btoa(JSON.stringify(vehicleData));
-                        setLocation(`/ai-analysis#${hash}`);
-                      }}
-                    >
-                      <Brain className="h-4 w-4 mr-1" />
-                      AI Analysis
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardHeader>
@@ -626,26 +593,25 @@ export default function LiveIAAI() {
         </div>
       )}
 
-      {/* Analysis & Research Tools - Tabbed Interface */}
-      {lotData?.lot && (
-        <AnalysisTabsWidget 
-          vehicleData={{
-            platform: 'iaai',
-            lotId: lotData.lot.lot_id.toString(),
-            vin: lotData.lot.vin,
-            year: lotData.lot.year.toString(),
-            make: lotData.lot.make,
-            model: lotData.lot.model,
-            series: lotData.lot.series || '',
-            mileage: lotData.lot.odometer.toString(),
-            damage: lotData.lot.damage_pr || '',
-            color: lotData.lot.color || '',
-            location: lotData.lot.location || '',
-            currentBid: lotData.lot.current_bid,
-            images: lotData.lot.link_img_hd || []
-          }}
-          lotData={lotData.lot}
-        />
+      {/* Find Comparables Section - Gold Tier Manual Filtering */}
+      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
+        <Card className="border-red-200 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-950/50 dark:to-rose-950/50">
+            <CardTitle className="flex items-center gap-2 text-red-900 dark:text-red-100">
+              <Filter className="h-5 w-5" />
+              Find Comparable Vehicles
+            </CardTitle>
+            <CardDescription className="text-red-700 dark:text-red-300">
+              Search for similar vehicles in your database to compare prices across platforms
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <ComparableSearchForm 
+              lotData={lotData.lot}
+              platform="iaai"
+            />
+          </CardContent>
+        </Card>
       )}
       </div>
     </div>

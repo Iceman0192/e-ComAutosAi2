@@ -18,7 +18,6 @@ import CrossPlatform from "./pages/cross-platform";
 import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
-import AIAnalysis from "./pages/ai-analysis";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -31,7 +30,6 @@ function Router() {
         <Route path="/iaai" component={IAAI} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
-        <Route path="/ai-analysis" component={AIAnalysis} />
         <Route path="/cross-platform" component={CrossPlatform} />
         <Route path="/datasets" component={Datasets} />
         <Route path="/account" component={Account} />
