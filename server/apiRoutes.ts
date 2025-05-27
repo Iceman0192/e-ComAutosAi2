@@ -55,39 +55,9 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
-   * AI Vehicle Analysis Endpoint - Cross-Platform Intelligence
+   * AI Vehicle Analysis Endpoint - DISABLED (handled by cleanApiRoutes.ts)
    */
-  app.post('/api/ai-analysis', async (req: Request, res: Response) => {
-    try {
-      const { platform, lotId, vin, vehicleData, currentBid, customPrompt } = req.body;
-      
-      if (!platform || !lotId || !vin || !vehicleData) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required analysis parameters'
-        });
-      }
-
-      // Use our new clean AI analysis service
-      const result = await performAIAnalysis({
-        platform,
-        lotId,
-        vin,
-        currentBid,
-        customPrompt,
-        vehicleData
-      });
-
-      res.json(result);
-
-    } catch (error: any) {
-      console.error('AI Analysis error:', error);
-      res.status(500).json({
-        success: false,
-        message: `AI analysis failed: ${error.message}`
-      });
-    }
-  });
+  // AI Analysis endpoint moved to cleanApiRoutes.ts
 
       // Separate Copart and IAAI data
       const copartData = crossPlatformResults.rows.filter(row => row.site === 1);
