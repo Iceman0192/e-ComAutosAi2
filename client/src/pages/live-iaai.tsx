@@ -330,6 +330,8 @@ export default function LiveIAAI() {
 
                           const data = await response.json();
                           console.log('Storage response:', data);
+                          console.log('Storage response type:', typeof data);
+                          console.log('Storage response keys:', Object.keys(data || {}));
 
                           if (!data.success || !data.referenceId) {
                             throw new Error('Invalid storage response');
