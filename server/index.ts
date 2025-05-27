@@ -42,16 +42,12 @@ app.use((req, res, next) => {
   // Create HTTP server
   const server = createServer(app);
   
-  // Set up clean AI Analysis system
-  const { setupAIAnalysis } = await import('./aiAnalysis.js');
-  setupAIAnalysis(app);
+  // Set up clean cache routes (now the primary system)
+  setupApiRoutes(app);
   
-  // Register working routes for sales history and other features
+  // Register legacy routes for backward compatibility
   const { registerRoutes } = await import('./routes.js');
   await registerRoutes(app);
-  
-  // Set up cache routes (sales history, live lots, etc.)
-  setupApiRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {

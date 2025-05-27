@@ -46,7 +46,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Car,
       permission: 'FULL_ANALYTICS'
     },
-
+    {
+      title: 'AI Analysis',
+      href: '/ai-analysis',
+      icon: Brain,
+      permission: 'AI_ANALYSIS'
+    },
     {
       title: 'Cross-Platform',
       href: '/cross-platform',
