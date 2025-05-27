@@ -47,16 +47,10 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'FULL_ANALYTICS'
     },
     {
-      title: 'Cross-Platform',
-      href: '/cross-platform',
-      icon: BarChart3,
-      permission: 'CROSS_PLATFORM_SEARCH'
-    },
-    {
       title: 'AI Analysis',
       href: '/ai-analysis',
       icon: Brain,
-      permission: 'FULL_ANALYTICS'
+      permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
       title: 'Datasets',
