@@ -81,17 +81,19 @@ export default function AIAnalysis() {
   const { user, hasPermission } = useAuth();
   const [, setLocation] = useLocation();
   
-  // Extract vehicle data from session storage or URL parameters
+  // Extract vehicle data from session storage, server backup, or URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const referenceId = urlParams.get('ref');
+  
   const [vehicleData, setVehicleData] = useState<VehicleData>(() => {
-    // Try session storage first (for IAAI with all images)
+    // Try session storage first (instant access)
     const storedData = sessionStorage.getItem('aiAnalysisData');
     if (storedData) {
       sessionStorage.removeItem('aiAnalysisData'); // Clean up immediately
       return JSON.parse(storedData);
     }
 
-    // Fallback to URL parameters (for Copart or fallback cases)
-    const urlParams = new URLSearchParams(window.location.search);
+    // Fallback to URL parameters (for Copart or when server backup fails)
     return {
       platform: urlParams.get('platform') || '',
       lotId: urlParams.get('lotId') || '',
@@ -109,6 +111,26 @@ export default function AIAnalysis() {
       images: urlParams.get('images')?.split(',').filter(img => img.length > 0) || []
     };
   });
+
+  // Fetch from server backup if we have a reference ID but no images (page refresh/new tab scenario)
+  const { data: serverBackupData } = useQuery({
+    queryKey: ['vehicle-backup', referenceId],
+    queryFn: async () => {
+      if (!referenceId) return null;
+      const response = await fetch(`/api/vehicle-data/${referenceId}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.data;
+    },
+    enabled: !!referenceId && vehicleData.images.length === 0,
+  });
+
+  // Update vehicle data when server backup is loaded
+  useEffect(() => {
+    if (serverBackupData) {
+      setVehicleData(serverBackupData);
+    }
+  }, [serverBackupData]);
 
 
 
