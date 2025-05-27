@@ -4,9 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { 
   Brain, 
@@ -18,17 +15,11 @@ import {
   FileText,
   AlertCircle,
   DollarSign,
-  Calendar,
-  MapPin,
   Car,
   Loader2,
   CheckCircle,
   XCircle,
-  ExternalLink,
-  Image,
-  Key,
-  Gauge,
-  Wrench
+  ExternalLink
 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -44,11 +35,8 @@ interface AIAnalysisRequest {
   };
   marketData?: {
     platform?: 'copart' | 'iaai' | 'both';
-    priceRange?: {
-      min: number;
-      max: number;
-    };
-    location?: string;
+    comparables?: any;
+    crossPlatformAnalysis?: boolean;
   };
   analysisType: 'market_valuation' | 'damage_assessment' | 'investment_potential' | 'comprehensive';
   prompt?: string;
@@ -63,18 +51,6 @@ interface AIAnalysisResponse {
       high: number;
     };
     marketTrend: 'rising' | 'stable' | 'declining';
-  };
-  damageAssessment?: {
-    severity: 'minor' | 'moderate' | 'severe' | 'total_loss';
-    repairCost: number;
-    impactOnValue: number;
-    recommendations: string[];
-  };
-  investmentAnalysis?: {
-    profitPotential: number;
-    riskLevel: 'low' | 'medium' | 'high';
-    timeToSell: number;
-    marketDemand: number;
   };
   insights: string[];
   recommendations: string[];
@@ -127,9 +103,10 @@ export default function AIAnalysis() {
     enabled: !!iaaiLotId && iaaiSearchTriggered,
   });
 
-  // Automatically fetch comparables when lot data is loaded
+  // Extract lot data from API response
   const lotData = copartLotData?.lot || iaaiLotData?.lot;
   
+  // Automatically fetch cross-platform comparables when lot data is loaded
   const { data: comparableData, isLoading: comparableLoading } = useQuery({
     queryKey: ['/api/find-comparables', lotData?.make, lotData?.model, lotData?.year],
     enabled: !!lotData,
@@ -173,7 +150,7 @@ export default function AIAnalysis() {
       return;
     }
 
-    // Prepare comprehensive analysis request with lot data and comparables
+    // Prepare comprehensive analysis request with lot data and cross-platform comparables
     const requestData = {
       ...analysisRequest,
       vehicleData: {
@@ -221,7 +198,7 @@ export default function AIAnalysis() {
             AI Vehicle Analysis
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Advanced AI-powered insights with live lot analysis for both Copart & IAAI platforms
+            Advanced AI-powered insights with automatic cross-platform comparable search for both Copart & IAAI
           </p>
         </div>
         <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
@@ -238,10 +215,10 @@ export default function AIAnalysis() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="h-5 w-5" />
-                Live Lot Analysis
+                Live Lot Analysis with Cross-Platform Search
               </CardTitle>
               <CardDescription>
-                Search for live lots from Copart or IAAI and analyze with AI
+                Search for live lots from Copart or IAAI - automatically finds comparables from both platforms
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -299,19 +276,38 @@ export default function AIAnalysis() {
                 </div>
               </div>
 
-              {/* Display Loaded Vehicle Data */}
-              {currentLotData && (
+              {/* Display Loaded Vehicle Data with Cross-Platform Status */}
+              {lotData && (
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50 dark:bg-green-950/20">
                   <h4 className="font-medium text-green-900 dark:text-green-100 mb-3 flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
                     Vehicle Loaded for Analysis
                   </h4>
                   <div className="text-sm space-y-1">
-                    <p><strong>Vehicle:</strong> {currentLotData.year} {currentLotData.make} {currentLotData.model}</p>
-                    <p><strong>Mileage:</strong> {(currentLotData.odometer || currentLotData.vehicle_mileage)?.toLocaleString()} miles</p>
-                    <p><strong>Damage:</strong> {currentLotData.damage_pr || currentLotData.vehicle_damage}</p>
-                    <p><strong>Location:</strong> {currentLotData.location || currentLotData.auction_location}</p>
+                    <p><strong>Vehicle:</strong> {lotData.year} {lotData.make} {lotData.model}</p>
+                    <p><strong>Mileage:</strong> {(lotData.odometer || lotData.vehicle_mileage)?.toLocaleString()} miles</p>
+                    <p><strong>Damage:</strong> {lotData.damage_pr || lotData.vehicle_damage}</p>
+                    <p><strong>Location:</strong> {lotData.location || lotData.auction_location}</p>
                   </div>
+                  
+                  {/* Cross-Platform Comparable Search Status */}
+                  {comparableLoading && (
+                    <div className="mt-3 p-2 bg-purple-50 dark:bg-purple-950/20 rounded border border-purple-200">
+                      <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span className="text-xs">Automatically searching cross-platform comparables on both Copart & IAAI...</span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {comparableData && !comparableLoading && (
+                    <div className="mt-3 p-2 bg-purple-50 dark:bg-purple-950/20 rounded border border-purple-200">
+                      <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                        <CheckCircle className="h-3 w-3" />
+                        <span className="text-xs">Found {comparableData.total || 0} comparable vehicles across both platforms ready for AI analysis</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -331,7 +327,7 @@ export default function AIAnalysis() {
                   {
                     id: 'market_valuation',
                     title: 'Market Valuation',
-                    description: 'Get current market value and pricing trends',
+                    description: 'Get current market value using cross-platform data',
                     icon: DollarSign
                   },
                   {
@@ -343,13 +339,13 @@ export default function AIAnalysis() {
                   {
                     id: 'investment_potential',
                     title: 'Investment Analysis',
-                    description: 'Evaluate profit potential and risks',
+                    description: 'Evaluate profit potential using comparable sales',
                     icon: TrendingUp
                   },
                   {
                     id: 'comprehensive',
                     title: 'Comprehensive Analysis',
-                    description: 'Complete analysis with all insights',
+                    description: 'Complete cross-platform analysis with all insights',
                     icon: Brain
                   }
                 ].map((type) => {
@@ -380,7 +376,7 @@ export default function AIAnalysis() {
             </CardContent>
           </Card>
 
-          {/* Custom Prompt (Premium feature) */}
+          {/* Custom Prompt */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -391,7 +387,7 @@ export default function AIAnalysis() {
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="Ask specific questions about this vehicle or request custom analysis..."
+                placeholder="Ask specific questions about this vehicle or request custom analysis with cross-platform comparison..."
                 value={analysisRequest.prompt || ''}
                 onChange={(e) => setAnalysisRequest(prev => ({ ...prev, prompt: e.target.value }))}
                 rows={3}
@@ -402,14 +398,19 @@ export default function AIAnalysis() {
           {/* Analyze Button */}
           <Button 
             onClick={handleAnalyze}
-            disabled={!currentLotData || analysisMutation.isPending}
+            disabled={!lotData || analysisMutation.isPending || comparableLoading}
             className="w-full bg-purple-600 hover:bg-purple-700"
             size="lg"
           >
             {analysisMutation.isPending ? (
               <>
                 <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Analyzing Vehicle...
+                Analyzing Vehicle with Cross-Platform Data...
+              </>
+            ) : comparableLoading ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Loading Cross-Platform Comparables...
               </>
             ) : (
               <>
@@ -434,7 +435,7 @@ export default function AIAnalysis() {
                 {analysisMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
-                    <span className="text-sm text-yellow-600">Processing...</span>
+                    <span className="text-sm text-yellow-600">Processing with cross-platform data...</span>
                   </>
                 ) : analysisMutation.isSuccess ? (
                   <>
@@ -465,7 +466,7 @@ export default function AIAnalysis() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-green-600">
                       <DollarSign className="h-4 w-4" />
-                      Market Valuation
+                      Cross-Platform Market Valuation
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
@@ -475,7 +476,6 @@ export default function AIAnalysis() {
                       </p>
                       <p className="text-sm text-gray-500">Estimated Value</p>
                     </div>
-                    <Separator />
                     <div className="grid grid-cols-2 gap-4 text-center">
                       <div>
                         <p className="font-medium">${analysisResult.marketValuation.priceRange.low.toLocaleString()}</p>
@@ -490,7 +490,7 @@ export default function AIAnalysis() {
                 </Card>
               )}
 
-              {/* Key Insights */}
+              {/* AI Insights */}
               {analysisResult.insights && analysisResult.insights.length > 0 && (
                 <Card>
                   <CardHeader>
@@ -529,7 +529,7 @@ export default function AIAnalysis() {
           )}
 
           {/* Getting Started */}
-          {!hasAnalyzed && !analysisMutation.isPending && !currentLotData && (
+          {!hasAnalyzed && !analysisMutation.isPending && !lotData && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Getting Started</CardTitle>
@@ -541,11 +541,11 @@ export default function AIAnalysis() {
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="bg-purple-100 text-purple-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium">2</span>
-                  <span>Choose analysis type</span>
+                  <span>System automatically finds cross-platform comparables</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="bg-purple-100 text-purple-800 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium">3</span>
-                  <span>Get AI-powered insights</span>
+                  <span>Choose analysis type and get AI-powered insights</span>
                 </div>
               </CardContent>
             </Card>
