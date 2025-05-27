@@ -421,38 +421,24 @@ export default function LiveCopart() {
                   </div>
                 </div>
 
-                {/* Analysis Tabs */}
-                <Tabs defaultValue="timeline" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                    <TabsTrigger value="ai-analysis" disabled={!hasPermission('PLATINUM')}>
-                      AI Analysis {!hasPermission('PLATINUM') && '(Platinum)'}
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="timeline" className="space-y-4">
+                {/* Timeline Analysis */}
+                <Card className="border-blue-200 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+                    <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+                      <Filter className="h-5 w-5" />
+                      Find Comparable Vehicles
+                    </CardTitle>
+                    <CardDescription className="text-blue-700 dark:text-blue-300">
+                      Search for similar vehicles in your database to compare prices across platforms
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
                     <ComparableSearchForm 
                       lotData={lotData.lot}
                       platform="copart"
                     />
-                  </TabsContent>
-                  
-                  <TabsContent value="ai-analysis" className="space-y-4">
-                    {hasPermission('PLATINUM') ? (
-                      <AILotAnalysis 
-                        lotData={lotData.lot}
-                        platform="copart"
-                      />
-                    ) : (
-                      <div className="text-center py-8">
-                        <Badge className="bg-purple-600 text-white mb-4">Platinum Feature</Badge>
-                        <p className="text-gray-600 dark:text-gray-400">
-                          Upgrade to Platinum to access AI-powered cross-platform analysis
-                        </p>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </>
