@@ -324,14 +324,19 @@ export default function LiveIAAI() {
                             body: JSON.stringify(vehicleData)
                           });
 
+                          console.log('Response status:', response.status);
+                          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
                           if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('Error response:', errorText);
                             throw new Error(`Storage failed: ${response.status}`);
                           }
 
-                          const data = await response.json();
-                          console.log('Storage response:', data);
-                          console.log('Storage response type:', typeof data);
-                          console.log('Storage response keys:', Object.keys(data || {}));
+                          const responseText = await response.text();
+                          console.log('Raw response text:', responseText);
+                          const data = JSON.parse(responseText);
+                          console.log('Parsed storage response:', data);
 
                           if (!data.success || !data.referenceId) {
                             throw new Error('Invalid storage response');
