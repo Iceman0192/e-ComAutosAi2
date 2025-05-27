@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Brain, 
   Search, 
@@ -23,7 +24,12 @@ import {
   Car,
   Loader2,
   CheckCircle,
-  XCircle
+  XCircle,
+  ExternalLink,
+  Image,
+  Key,
+  Gauge,
+  Wrench
 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -84,8 +90,8 @@ export default function AIAnalysis() {
   });
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
-  // Check if user has AI Analysis permissions
-  if (!hasPermission('FULL_ANALYTICS')) {
+  // Check if user has AI Analysis permissions (Platinum exclusive)
+  if (!hasPermission('CROSS_PLATFORM_SEARCH')) {
     return (
       <div className="flex items-center justify-center h-64">
         <Card className="max-w-md">
@@ -97,9 +103,9 @@ export default function AIAnalysis() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              AI-powered vehicle analysis is available for Gold members and above.
+              AI-powered vehicle analysis with live lot lookup is exclusively available for Platinum members.
             </p>
-            <Badge variant="outline">Upgrade to Gold</Badge>
+            <Badge variant="outline">Upgrade to Platinum</Badge>
           </CardContent>
         </Card>
       </div>
