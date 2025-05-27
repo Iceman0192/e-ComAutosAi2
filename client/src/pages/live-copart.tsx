@@ -152,15 +152,15 @@ export default function LiveCopart() {
   };
 
   const handleFilterSearch = () => {
-    if (lotData?.lot) {
+    if (lotData?.data) {
       setFilters({
         ...filters,
-        make: lotData.lot.make,
-        model: lotData.lot.model,
-        yearFrom: lotData.lot.year - 2,
-        yearTo: lotData.lot.year + 2,
-        mileageMin: Math.max(0, lotData.lot.odometer - 30000),
-        mileageMax: lotData.lot.odometer + 30000,
+        make: lotData.data.make,
+        model: lotData.data.model,
+        yearFrom: lotData.data.year - 2,
+        yearTo: lotData.data.year + 2,
+        mileageMin: Math.max(0, lotData.data.odometer - 30000),
+        mileageMax: lotData.data.odometer + 30000,
       });
       setShowFilters(true);
     }
@@ -288,7 +288,7 @@ export default function LiveCopart() {
       )}
 
       {/* Enhanced Live Lot Display */}
-      {lotData?.lot && (
+      {lotData?.data && (
         <>
           <Card className="border-green-200 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
@@ -296,23 +296,23 @@ export default function LiveCopart() {
                 <div className="flex-1">
                   <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100 text-xl lg:text-2xl">
                     <Car className="h-6 w-6" />
-                    {lotData.lot.title}
+                    {lotData.data.year} {lotData.data.make} {lotData.data.model} {lotData.data.series}
                   </CardTitle>
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      Lot #{lotData.lot.lot_id}
+                      Lot #{lotData.data.id}
                     </Badge>
                     <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      VIN: {lotData.lot.vin}
+                      VIN: {lotData.data.vin}
                     </Badge>
                     <Badge variant="outline" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                      {lotData.lot.year} {lotData.lot.make} {lotData.lot.model}
+                      {lotData.data.year} {lotData.data.make} {lotData.data.model}
                     </Badge>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Button variant="outline" size="sm" asChild className="bg-white hover:bg-gray-50">
-                    <a href={lotData.lot.link} target="_blank" rel="noopener noreferrer">
+                    <a href={lotData.data.link} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       View on Copart
                     </a>
@@ -325,19 +325,19 @@ export default function LiveCopart() {
                         // Encode complete vehicle data for comprehensive AI analysis
                         const vehicleData = {
                           platform: 'copart',
-                          lotId: lotData.lot.lot_id,
-                          vin: lotData.lot.vin,
-                          year: lotData.lot.year,
-                          make: lotData.lot.make,
-                          model: lotData.lot.model,
-                          series: lotData.lot.series || '',
-                          mileage: lotData.lot.odometer,
-                          damage_primary: lotData.lot.damage_pr || '',
-                          damage_secondary: lotData.lot.damage_sec || '',
-                          color: lotData.lot.color || '',
-                          location: lotData.lot.location || '',
-                          title: lotData.lot.title || '',
-                          document: lotData.lot.document || '',
+                          lotId: lotData.data.id,
+                          vin: lotData.data.vin,
+                          year: lotData.data.year,
+                          make: lotData.data.make,
+                          model: lotData.data.model,
+                          series: lotData.data.series || '',
+                          mileage: lotData.data.odometer,
+                          damage_primary: lotData.data.damage_primary || '',
+                          damage_secondary: lotData.data.damage_secondary || '',
+                          color: lotData.data.color || '',
+                          location: lotData.data.location || '',
+                          title: lotData.data.title || '',
+                          document: lotData.data.document || '',
                           keys: lotData.lot.keys || '',
                           engine: lotData.lot.engine || '',
                           fuel: lotData.lot.fuel || '',
