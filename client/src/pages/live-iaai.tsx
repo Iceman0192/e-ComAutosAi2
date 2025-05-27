@@ -296,7 +296,7 @@ export default function LiveIAAI() {
                     <Button 
                       className="bg-purple-600 hover:bg-purple-700 text-white"
                       size="sm"
-                      onClick={async () => {
+                      onClick={() => {
                         const vehicleData = {
                           platform: 'iaai',
                           lotId: lotData.lot.lot_id,
@@ -314,30 +314,9 @@ export default function LiveIAAI() {
                           images: lotData.lot.link_img_hd || []
                         };
 
-                        // Hybrid approach: Session storage for speed + server backup for reliability
-                        sessionStorage.setItem('aiAnalysisData', JSON.stringify(vehicleData));
-                        
-                        try {
-                          // Also store on server as backup (survives refresh/new tabs)
-                          const response = await fetch('/api/store-vehicle-data', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(vehicleData)
-                          });
-                          
-                          if (response.ok) {
-                            const data = await response.json();
-                            if (data.success && data.referenceId) {
-                              setLocation(`/ai-analysis?ref=${data.referenceId}`);
-                              return;
-                            }
-                          }
-                        } catch (error) {
-                          console.log('Server backup failed, using session storage only');
-                        }
-                        
-                        // Fallback to session storage only
-                        setLocation('/ai-analysis');
+                        // Encode vehicle data for URL (survives refresh and works across tabs)
+                        const encodedData = btoa(JSON.stringify(vehicleData));
+                        setLocation(`/ai-analysis?data=${encodedData}`);
                       }}
                     >
                       <Brain className="h-4 w-4 mr-1" />
