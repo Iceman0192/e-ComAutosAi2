@@ -56,6 +56,11 @@ export async function findComparableVehicles(searchParams: any) {
     paramIndex++;
   }
   
+  // Add filter for only SOLD vehicles (exclude "ON APPROVAL" and "Not sold")
+  whereConditions.push(`sale_status = $${paramIndex}`);
+  params.push('Sold');
+  paramIndex++;
+  
   const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
   
   console.log('Final query conditions:', whereConditions);
