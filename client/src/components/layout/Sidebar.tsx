@@ -5,7 +5,7 @@ import {
   Home,
   Car, 
   Search,
-  BarChart3, 
+  Brain, 
   Database, 
   Users, 
   Settings,
@@ -46,9 +46,9 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'FULL_ANALYTICS'
     },
     {
-      title: 'Cross-Platform',
-      href: '/cross-platform',
-      icon: BarChart3,
+      title: 'AuctionMind',
+      href: '/auction-mind',
+      icon: Brain,
       permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
