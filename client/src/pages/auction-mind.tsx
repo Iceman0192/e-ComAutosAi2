@@ -23,6 +23,8 @@ import {
   Globe
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { VehicleAIChat } from '@/components/VehicleAIChat';
+import { ImportDutyCalculator } from '@/components/ImportDutyCalculator';
 
 export default function AuctionMind() {
   const { hasPermission } = useAuth();
@@ -289,6 +291,15 @@ export default function AuctionMind() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Interactive AI Chat System */}
+            <VehicleAIChat 
+              vehicleData={vinData?.vehicleInfo} 
+              className="col-span-1 md:col-span-2" 
+            />
+
+            {/* Import Duty Calculator */}
+            <ImportDutyCalculator className="col-span-1 md:col-span-2" />
           </div>
         )}
 
