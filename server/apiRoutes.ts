@@ -728,6 +728,7 @@ export function setupApiRoutes(app: Express) {
       console.log('=== SEARCH DEBUG ===');
       console.log('Search params received:', JSON.stringify(req.body, null, 2));
       console.log('saleStatus extracted:', saleStatus);
+      console.log('DEBUG: About to build WHERE conditions');
       
       // Build clean WHERE clause using only existing database columns
       let whereConditions = [];
