@@ -78,207 +78,286 @@ export default function AuctionMind() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-        <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      {/* Clean Header */}
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-                <Brain className="h-8 w-8" />
-                AuctionMind
-              </h1>
-              <p className="text-purple-100 mt-2">
-                Advanced AI-powered vehicle auction intelligence using multiple AI models
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Brain className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white">AuctionMind</h1>
+                <p className="text-sm text-slate-600 dark:text-slate-400">AI Vehicle Intelligence</p>
+              </div>
             </div>
-            <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
-              Platinum Feature
+            <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+              Platinum
             </Badge>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* VIN Search Interface */}
-        <Card className="border-purple-200 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50">
-            <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
-              <Search className="h-6 w-6" />
-              Vehicle Intelligence Search
-            </CardTitle>
-            <CardDescription className="text-purple-700 dark:text-purple-300">
-              Enter a VIN to unlock comprehensive AI analysis using OpenAI, Perplexity, and advanced market intelligence
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* VIN Search - Clean and Centered */}
+        <div className="text-center space-y-6">
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
+              Vehicle Intelligence Analysis
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Get instant AI-powered insights for any vehicle with comprehensive damage assessment, 
+              export market analysis, and bidding strategies.
+            </p>
+          </div>
+          
+          <div className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 p-8 shadow-xl">
+            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
               <div className="flex-1">
-                <Label htmlFor="vin" className="text-sm font-medium">Vehicle VIN</Label>
                 <Input
-                  id="vin"
                   type="text"
-                  placeholder="Enter 17-character VIN (e.g., 1N6AD0ER4DN751317)"
+                  placeholder="Enter 17-character VIN..."
                   value={vinInput}
                   onChange={(e) => setVinInput(e.target.value.toUpperCase())}
-                  className="mt-1"
+                  className="h-14 text-lg border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   maxLength={17}
                 />
               </div>
               <Button 
                 onClick={handleAnalyze}
                 disabled={!vinInput.trim() || vinInput.length !== 17 || isLoading}
-                className="bg-purple-600 hover:bg-purple-700 text-white self-end"
+                className="h-14 px-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg"
                 size="lg"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
                     Analyzing...
                   </>
                 ) : (
                   <>
-                    <Zap className="h-4 w-4 mr-2" />
+                    <Zap className="h-5 w-5 mr-3" />
                     Analyze Vehicle
                   </>
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+            {vinInput.length > 0 && vinInput.length < 17 && (
+              <p className="text-sm text-orange-600 dark:text-orange-400 mt-3 text-center">
+                VIN must be exactly 17 characters ({vinInput.length}/17)
+              </p>
+            )}
+          </div>
+        </div>
 
-        {/* AI Analysis Results */}
+        {/* AI Analysis Results - Modern Layout */}
         {vinData && (
-          <div className="space-y-6">
-            {/* Multi-AI Analysis Summary */}
-            <Card className="border-green-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
-                <CardTitle className="flex items-center gap-2 text-green-900 dark:text-green-100">
-                  <Brain className="h-6 w-6" />
-                  Multi-AI Intelligence Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* OpenAI Analysis */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-5 w-5 text-blue-600" />
-                      <span className="font-semibold text-blue-800">OpenAI Vision</span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {vinData.openai?.summary || 'Analyzing vehicle images and specifications...'}
-                    </p>
+          <div className="space-y-8">
+            {/* Vehicle Summary Card */}
+            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {vinData.vehicleInfo?.year} {vinData.vehicleInfo?.make} {vinData.vehicleInfo?.model} {vinData.vehicleInfo?.series}
+                  </h3>
+                  <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
+                    <span>VIN: {vinData.vin}</span>
+                    <span>Engine: {vinData.vehicleInfo?.engine}</span>
+                    <span>Mileage: {vinData.vehicleInfo?.mileage?.toLocaleString()}</span>
                   </div>
-
-                  {/* Perplexity Market Research */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-purple-600" />
-                      <span className="font-semibold text-purple-800">Perplexity Research</span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {vinData.perplexity?.marketInsight || 'Researching current market trends...'}
-                    </p>
-                  </div>
-
-                  {/* AI Consensus */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Target className="h-5 w-5 text-green-600" />
-                      <span className="font-semibold text-green-800">AI Consensus</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {vinData.consensus?.recommendation === 'BUY' ? (
-                        <Badge className="bg-green-500 text-white">
-                          <CheckCircle className="h-3 w-3 mr-1" />BUY
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-red-500 text-white">
-                          <AlertTriangle className="h-3 w-3 mr-1" />PASS
-                        </Badge>
-                      )}
-                      <span className="text-sm font-medium">
-                        {vinData.consensus?.confidence || 0}% Confidence
-                      </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {vinData.consensus?.recommendation === 'BUY' ? (
+                    <Badge className="px-4 py-2 bg-emerald-500 text-white text-lg font-semibold rounded-xl">
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      BUY RECOMMENDED
+                    </Badge>
+                  ) : (
+                    <Badge className="px-4 py-2 bg-red-500 text-white text-lg font-semibold rounded-xl">
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      PROCEED WITH CAUTION
+                    </Badge>
+                  )}
+                  <div className="text-right">
+                    <div className="text-sm text-slate-600 dark:text-slate-400">AI Confidence</div>
+                    <div className="text-xl font-bold text-slate-900 dark:text-white">
+                      {vinData.consensus?.confidence || 0}%
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            {/* Vehicle History Timeline */}
-            <Card className="border-blue-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/50 dark:to-cyan-950/50">
-                <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-                  <Clock className="h-6 w-6" />
-                  Cross-Platform Auction History
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
+            {/* AI Analysis Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* OpenAI Analysis */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Eye className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">OpenAI Vision</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Image Analysis</p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {vinData.openai?.summary || 'Analyzing vehicle images and specifications...'}
+                </p>
+              </div>
+
+              {/* Perplexity Market Research */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <Globe className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">Market Research</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Real-time Insights</p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {vinData.perplexity?.marketInsight || 'Researching current market trends...'}
+                </p>
+              </div>
+
+              {/* AI Consensus */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    <Target className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">AI Consensus</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Final Recommendation</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {vinData.consensus?.reasoning || 'Generating comprehensive analysis...'}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${vinData.consensus?.confidence || 0}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-medium text-slate-900 dark:text-white">
+                      {vinData.consensus?.confidence || 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Tools Section */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              {/* AI Chat Assistant */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg">
+                <VehicleAIChat vehicleData={vinData?.vehicleInfo} />
+              </div>
+
+              {/* Import Duty Calculator */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg">
+                <ImportDutyCalculator />
+              </div>
+            </div>
+
+            {/* Auction History & Pricing */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Vehicle History */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Clock className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">Auction History</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Cross-platform sales data</p>
+                  </div>
+                </div>
                 {vinData.history?.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {vinData.history.map((auction: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div>
-                          <div className="font-semibold">{auction.platform} - Lot #{auction.lotId}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                        <div className="space-y-1">
+                          <div className="font-medium text-slate-900 dark:text-white">
+                            {auction.platform} - Lot #{auction.lotId}
+                          </div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">
                             {new Date(auction.date).toLocaleDateString()} • {auction.damage}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-lg">${auction.price?.toLocaleString()}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">{auction.status}</div>
+                          <div className="font-bold text-lg text-slate-900 dark:text-white">
+                            ${auction.price?.toLocaleString()}
+                          </div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">{auction.status}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-600 dark:text-gray-400">Loading auction history...</p>
+                  <div className="text-center py-8 text-slate-600 dark:text-slate-400">
+                    <Clock className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>Loading auction history...</p>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Price Intelligence */}
-            <Card className="border-orange-200 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50">
-                <CardTitle className="flex items-center gap-2 text-orange-900 dark:text-orange-100">
-                  <TrendingUp className="h-6 w-6" />
-                  AI Price Intelligence
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-3">Value Trends</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Current Market Value:</span>
-                        <span className="font-bold">${vinData.pricing?.currentValue?.toLocaleString() || 'Calculating...'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Predicted Next Sale:</span>
-                        <span className="font-bold text-green-600">${vinData.pricing?.prediction?.toLocaleString() || 'Analyzing...'}</span>
-                      </div>
-                    </div>
+              {/* Price Intelligence */}
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold mb-3">AI Recommendations</h4>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <h4 className="font-semibold text-slate-900 dark:text-white">Price Intelligence</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">AI-powered valuation</p>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400">Current Market Value</span>
+                      <span className="text-xl font-bold text-slate-900 dark:text-white">
+                        ${vinData.pricing?.currentValue?.toLocaleString() || 'Calculating...'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600 dark:text-slate-400">Predicted Next Sale</span>
+                      <span className="text-xl font-bold text-emerald-600">
+                        ${vinData.pricing?.prediction?.toLocaleString() || 'Analyzing...'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-slate-200 dark:border-slate-600">
+                    <h5 className="font-medium text-slate-900 dark:text-white mb-3">AI Strategy</h5>
+                    <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                       {vinData.openai?.recommendation ? (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                           {typeof vinData.openai.recommendation === 'string' ? (
                             <p>{vinData.openai.recommendation}</p>
                           ) : (
                             <>
                               {vinData.openai.recommendation.investmentStrategy && (
-                                <p><strong>Strategy:</strong> {vinData.openai.recommendation.investmentStrategy}</p>
+                                <div>
+                                  <span className="font-medium text-emerald-600">Strategy:</span> {vinData.openai.recommendation.investmentStrategy}
+                                </div>
                               )}
                               {vinData.openai.recommendation.dueDiligence && (
-                                <p><strong>Due Diligence:</strong> {vinData.openai.recommendation.dueDiligence}</p>
+                                <div>
+                                  <span className="font-medium text-blue-600">Due Diligence:</span> {vinData.openai.recommendation.dueDiligence}
+                                </div>
                               )}
                               {vinData.openai.recommendation.auctionLimitations && (
-                                <p><strong>Limitations:</strong> {vinData.openai.recommendation.auctionLimitations}</p>
+                                <div>
+                                  <span className="font-medium text-orange-600">Considerations:</span> {vinData.openai.recommendation.auctionLimitations}
+                                </div>
                               )}
                             </>
                           )}
@@ -289,17 +368,8 @@ export default function AuctionMind() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Interactive AI Chat System */}
-            <VehicleAIChat 
-              vehicleData={vinData?.vehicleInfo} 
-              className="col-span-1 md:col-span-2" 
-            />
-
-            {/* Import Duty Calculator */}
-            <ImportDutyCalculator className="col-span-1 md:col-span-2" />
+              </div>
+            </div>
           </div>
         )}
 
