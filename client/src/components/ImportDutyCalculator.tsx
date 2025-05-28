@@ -93,6 +93,9 @@ const countryTaxRates = {
 
 export function ImportDutyCalculator({ className }: { className?: string }) {
   const [vehicleValue, setVehicleValue] = useState('');
+  const [freightCost, setFreightCost] = useState('');
+  const [insuranceCost, setInsuranceCost] = useState('');
+  const [engineSize, setEngineSize] = useState('');
   const [vehicleAge, setVehicleAge] = useState('');
   const [vehicleType, setVehicleType] = useState('standard');
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -102,7 +105,11 @@ export function ImportDutyCalculator({ className }: { className?: string }) {
     if (!vehicleValue || !selectedCountry) return;
 
     const value = parseFloat(vehicleValue);
+    const freight = parseFloat(freightCost) || 0;
+    const insurance = parseFloat(insuranceCost) || 0;
+    const cifValue = value + freight + insurance;
     const age = parseInt(vehicleAge) || 0;
+    const engine = parseFloat(engineSize) || 0;
     const countryData = countryTaxRates[selectedCountry as keyof typeof countryTaxRates];
     
     let calc: DutyCalculation = {
