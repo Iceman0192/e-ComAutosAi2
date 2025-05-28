@@ -802,46 +802,41 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add fuel type filter (using 'fuel' column)
-      console.log('Checking engineType filter:', engineType);
+      // Add fuel type filter
       if (engineType && engineType !== 'any') {
-        console.log('APPLYING FUEL FILTER');
+        console.log('APPLYING FUEL FILTER:', engineType);
         whereConditions.push(`fuel = $${paramIndex}`);
         params.push(engineType);
         paramIndex++;
       }
       
-      // Add document type filter (using 'vehicle_title' column)
-      console.log('Checking documentType filter:', documentType);
+      // Add document type filter  
       if (documentType && documentType !== 'any') {
-        console.log('APPLYING DOCUMENT FILTER');
-        whereConditions.push(`vehicle_title = $${paramIndex}`);
-        params.push(documentType);
+        console.log('APPLYING DOCUMENT FILTER:', documentType);
+        whereConditions.push(`vehicle_title ILIKE $${paramIndex}`);
+        params.push(`%${documentType}%`);
         paramIndex++;
       }
       
       // Add drive type filter
-      console.log('Checking driveType filter:', driveType);
       if (driveType && driveType !== 'any') {
-        console.log('APPLYING DRIVE FILTER');
+        console.log('APPLYING DRIVE FILTER:', driveType);
         whereConditions.push(`drive = $${paramIndex}`);
         params.push(driveType);
         paramIndex++;
       }
       
-      // Add transmission filter (keeping vehicleStatus as transmission for now)
-      console.log('Checking vehicleStatus filter:', vehicleStatus);
-      if (vehicleStatus && vehicleStatus !== 'any') {
-        console.log('APPLYING TRANSMISSION FILTER');
-        whereConditions.push(`transmission = $${paramIndex}`);
-        params.push(vehicleStatus);
-        paramIndex++;
-      }
+      // Skip vehicle status filter for now (no matching column found)
+      // if (vehicleStatus && vehicleStatus !== 'any') {
+      //   console.log('APPLYING STATUS FILTER:', vehicleStatus);
+      //   whereConditions.push(`transmission = $${paramIndex}`);
+      //   params.push(vehicleStatus);
+      //   paramIndex++;
+      // }
       
-      // Add location state filter (using buyer_state column)
-      console.log('Checking locationState filter:', locationState);
+      // Add location state filter
       if (locationState && locationState !== 'any') {
-        console.log('APPLYING LOCATION FILTER');
+        console.log('APPLYING LOCATION FILTER:', locationState);
         whereConditions.push(`buyer_state = $${paramIndex}`);
         params.push(locationState);
         paramIndex++;
