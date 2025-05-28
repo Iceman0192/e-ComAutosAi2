@@ -178,6 +178,7 @@ export class VehicleCacheService {
             transmission: item.transmission || null,
             drive: item.drive || null,
             fuel: item.fuel || null,
+            engine: item.engine || null,
             color: item.color || null,
             created_at: new Date(),
             images: item.link_img_hd ? JSON.stringify(item.link_img_hd) : null,

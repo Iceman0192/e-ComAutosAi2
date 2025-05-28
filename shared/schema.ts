@@ -43,6 +43,7 @@ export const salesHistory = pgTable("sales_history", {
   transmission: text("transmission"),
   drive: text("drive"),
   fuel: text("fuel"),
+  engine: text("engine"),
   color: text("color"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   // Store image URLs as JSON
@@ -98,6 +99,7 @@ export const freshSalesHistory = pgTable("fresh_sales_history", {
   transmission: text("transmission"),
   drive: text("drive"),
   fuel: text("fuel"),
+  engine: text("engine"),
   color: text("color"),
   images: text("images"),
   link: text("link"),
