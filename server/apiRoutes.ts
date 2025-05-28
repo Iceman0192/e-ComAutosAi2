@@ -809,6 +809,7 @@ export function setupApiRoutes(app: Express) {
         ORDER BY sale_date DESC
       `;
       console.log('Copart query:', copartQuery);
+      console.log('Copart params:', [...params, 1]);
       const copartResult = await pool.query(copartQuery, [...params, 1]);
       
       // Query IAAI data (site = 2) 
@@ -817,6 +818,7 @@ export function setupApiRoutes(app: Express) {
         WHERE ${whereClause} AND site = $${paramIndex}
         ORDER BY sale_date DESC
       `;
+      console.log('IAAI params:', [...params, 2]);
       const iaaiResult = await pool.query(iaaiQuery, [...params, 2]);
 
       const copartData = copartResult.rows;
