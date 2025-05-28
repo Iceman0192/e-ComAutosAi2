@@ -214,11 +214,11 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any Engine Type</SelectItem>
-              <SelectItem value="3.5l 6">3.5L V6</SelectItem>
-              <SelectItem value="3.5l v-6 di, dohc, vvt, 278hp">3.5L V6 DI DOHC VVT 278HP</SelectItem>
-              <SelectItem value="2.7l 4">2.7L I4</SelectItem>
-              <SelectItem value="4.0l 6">4.0L V6</SelectItem>
-              <SelectItem value="2.4l 4">2.4L I4</SelectItem>
+              <SelectItem value="3.5l 6">3.5l 6</SelectItem>
+              <SelectItem value="3.5l v-6 di, dohc, vvt, 278hp">3.5l v-6 di, dohc, vvt, 278hp</SelectItem>
+              <SelectItem value="2.7l 4">2.7l 4</SelectItem>
+              <SelectItem value="4.0l 6">4.0l 6</SelectItem>
+              <SelectItem value="2.4l 4">2.4l 4</SelectItem>
             </SelectContent>
           </Select>
         </div>
