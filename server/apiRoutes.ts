@@ -802,20 +802,20 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add engine type filter
+      // Add fuel type filter (using 'fuel' column)
       console.log('Checking engineType filter:', engineType);
       if (engineType && engineType !== 'any') {
-        console.log('APPLYING ENGINE FILTER');
-        whereConditions.push(`engine = $${paramIndex}`);
+        console.log('APPLYING FUEL FILTER');
+        whereConditions.push(`fuel = $${paramIndex}`);
         params.push(engineType);
         paramIndex++;
       }
       
-      // Add document type filter
+      // Add document type filter (using 'vehicle_title' column)
       console.log('Checking documentType filter:', documentType);
       if (documentType && documentType !== 'any') {
         console.log('APPLYING DOCUMENT FILTER');
-        whereConditions.push(`document = $${paramIndex}`);
+        whereConditions.push(`vehicle_title = $${paramIndex}`);
         params.push(documentType);
         paramIndex++;
       }
@@ -829,20 +829,20 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add vehicle status filter
+      // Add transmission filter (keeping vehicleStatus as transmission for now)
       console.log('Checking vehicleStatus filter:', vehicleStatus);
       if (vehicleStatus && vehicleStatus !== 'any') {
-        console.log('APPLYING STATUS FILTER');
-        whereConditions.push(`status = $${paramIndex}`);
+        console.log('APPLYING TRANSMISSION FILTER');
+        whereConditions.push(`transmission = $${paramIndex}`);
         params.push(vehicleStatus);
         paramIndex++;
       }
       
-      // Add location state filter
+      // Add location state filter (using buyer_state column)
       console.log('Checking locationState filter:', locationState);
       if (locationState && locationState !== 'any') {
         console.log('APPLYING LOCATION FILTER');
-        whereConditions.push(`state = $${paramIndex}`);
+        whereConditions.push(`buyer_state = $${paramIndex}`);
         params.push(locationState);
         paramIndex++;
       }
