@@ -723,7 +723,7 @@ export function setupApiRoutes(app: Express) {
    */
   app.post('/api/find-comparables', async (req: Request, res: Response) => {
     try {
-      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, sites } = req.body;
+      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, saleStatus, sites } = req.body;
       
       console.log('=== SEARCH DEBUG ===');
       console.log('Search params received:', JSON.stringify(req.body, null, 2));
@@ -775,10 +775,22 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add filter for only SOLD vehicles (exclude "ON APPROVAL" and "Not sold")
-      whereConditions.push(`sale_status = $${paramIndex}`);
-      params.push('Sold');
-      paramIndex++;
+      // Add sale status filter based on user selection
+      if (saleStatus && saleStatus !== 'all') {
+        if (saleStatus === 'sold') {
+          whereConditions.push(`sale_status = $${paramIndex}`);
+          params.push('Sold');
+          paramIndex++;
+        } else if (saleStatus === 'on_approval') {
+          whereConditions.push(`sale_status = $${paramIndex}`);
+          params.push('ON APPROVAL');
+          paramIndex++;
+        } else if (saleStatus === 'not_sold') {
+          whereConditions.push(`sale_status = $${paramIndex}`);
+          params.push('Not sold');
+          paramIndex++;
+        }
+      }
       
       const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
       
