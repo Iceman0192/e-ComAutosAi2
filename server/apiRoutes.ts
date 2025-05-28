@@ -834,11 +834,11 @@ export function setupApiRoutes(app: Express) {
       //   paramIndex++;
       // }
       
-      // Add location state filter
+      // Add location filter (using auction_location)
       if (locationState && locationState !== 'any') {
         console.log('APPLYING LOCATION FILTER:', locationState);
-        whereConditions.push(`buyer_state = $${paramIndex}`);
-        params.push(locationState);
+        whereConditions.push(`auction_location ILIKE $${paramIndex}`);
+        params.push(`%${locationState}%`);
         paramIndex++;
       }
       
