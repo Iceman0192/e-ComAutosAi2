@@ -45,6 +45,7 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     saleStatus: 'sold',
     fuelType: '',
     transmission: '',
+    driveType: '',
     vehicleStatus: '',
     sites: allowedSites
   });
@@ -233,6 +234,25 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
               <SelectItem value="any">Any Transmission</SelectItem>
               <SelectItem value="Automatic">Automatic</SelectItem>
               <SelectItem value="Manual">Manual</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="driveType" className="text-sm font-medium">Drive Type</Label>
+          <Select 
+            value={searchParams.driveType} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, driveType: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Any drive type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any Drive Type</SelectItem>
+              <SelectItem value="Front-wheel drive">Front-wheel Drive (FWD)</SelectItem>
+              <SelectItem value="All-wheel drive">All-wheel Drive (AWD)</SelectItem>
+              <SelectItem value="Four-wheel drive">Four-wheel Drive (4WD)</SelectItem>
+              <SelectItem value="Rear-wheel drive">Rear-wheel Drive (RWD)</SelectItem>
             </SelectContent>
           </Select>
         </div>
