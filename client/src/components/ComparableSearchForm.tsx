@@ -43,11 +43,11 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     damageType: lotData.damage_pr || lotData.damage_primary || lotData.vehicle_damage || '',
     maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
     saleStatus: 'sold',
-    engineType: '',
-    documentType: '',
-    driveType: '',
-    vehicleStatus: '',
-    locationState: '',
+    engineType: lotData.engine || '',
+    documentType: lotData.document || '',
+    driveType: lotData.drive || '',
+    vehicleStatus: lotData.status || '',
+    locationState: lotData.state || '',
     sites: allowedSites
   });
 
