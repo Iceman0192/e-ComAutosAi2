@@ -28,8 +28,13 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
   const { data: aiAnalysis, error, refetch, isLoading } = useQuery({
     queryKey: ['ai-analysis', vehicleData.vin],
     queryFn: async () => {
-      const response = await apiRequest('POST', '/api/ai-lot-analysis', { vehicleData });
-      return response;
+      const response = await fetch('/api/ai-lot-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleData })
+      });
+      if (!response.ok) throw new Error('AI Analysis failed');
+      return response.json();
     },
     enabled: false, // Manual trigger
   });
