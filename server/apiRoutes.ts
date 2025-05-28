@@ -824,25 +824,31 @@ export function setupApiRoutes(app: Express) {
       console.log(`Found ${copartData.length} Copart records, ${iaaiData.length} IAAI records`);
       
       // Calculate statistics
-      const calculateStats = (data: any[]) => {
+      const calculateStats = (data: any[], platform: string) => {
         if (data.length === 0) return { count: 0, avgPrice: 0, minPrice: 0, maxPrice: 0 };
         
         const prices = data
           .filter(item => item.purchase_price && item.purchase_price > 0)
           .map(item => parseFloat(item.purchase_price));
         
+        console.log(`${platform} Stats: ${data.length} total records, ${prices.length} with valid prices`);
+        console.log(`${platform} Prices:`, prices.slice(0, 5)); // Show first 5 prices
+        
         if (prices.length === 0) return { count: data.length, avgPrice: 0, minPrice: 0, maxPrice: 0 };
+        
+        const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+        console.log(`${platform} Average calculated: ${avgPrice}`);
         
         return {
           count: data.length,
-          avgPrice: prices.reduce((sum, price) => sum + price, 0) / prices.length,
+          avgPrice: avgPrice,
           minPrice: Math.min(...prices),
           maxPrice: Math.max(...prices)
         };
       };
 
-      const copartStats = calculateStats(copartData);
-      const iaaiStats = calculateStats(iaaiData);
+      const copartStats = calculateStats(copartData, 'Copart');
+      const iaaiStats = calculateStats(iaaiData, 'IAAI');
 
       res.json({
         success: true,
