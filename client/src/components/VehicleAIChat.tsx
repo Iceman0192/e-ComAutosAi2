@@ -21,18 +21,24 @@ export function VehicleAIChat({ vehicleData, className }: VehicleAIChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: `Hello! I'm your AI assistant specialized in vehicle auction analysis and export markets. I can help you understand:
+      content: `Hello! I'm your dedicated AI assistant for this specific vehicle analysis. ${vehicleData ? `I have complete data for this ${vehicleData.year || ''} ${vehicleData.make || ''} ${vehicleData.model || ''} ${vehicleData.series || ''} and can answer detailed questions about:
 
-• Vehicle damage assessment and repair costs
-• Export market suitability for different countries  
-• Bidding strategies based on comparable sales
-• Import duties and taxes for target markets
-• Photo analysis insights and hidden damage indicators
-• Market trends and demand patterns
+🔍 **This Vehicle's Specifics:**
+• Damage assessment and severity analysis
+• Export market suitability for your target countries
+• Bidding strategy based on comparable sales
+• Repair cost estimates and profit calculations
+• Photo analysis and hidden damage indicators
 
-${vehicleData ? `I have data for this ${vehicleData.year || ''} ${vehicleData.make || ''} ${vehicleData.model || ''} ${vehicleData.series || ''} - feel free to ask me anything about it!` : 'Share a VIN or vehicle details and I can provide specific insights!'}
+💡 **Ask me things like:**
+"What's the maximum I should bid on this vehicle?"
+"Is this suitable for Honduras market?"
+"What damage red flags should I watch for?"
+"How does this compare to similar vehicles?"
 
-What would you like to know?`,
+I'm focused exclusively on helping you make the best decision for THIS vehicle.` : 'Please analyze a VIN first to get vehicle-specific insights and recommendations.'}
+
+What would you like to know about this vehicle?`,
       timestamp: new Date()
     }
   ]);
@@ -175,13 +181,13 @@ What would you like to know?`,
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me anything about this vehicle, damage analysis, export markets..."
+              placeholder={vehicleData ? "Ask me anything about this specific vehicle..." : "Analyze a VIN first to chat about the vehicle"}
               className="flex-1"
-              disabled={isLoading}
+              disabled={isLoading || !vehicleData}
             />
             <Button
               onClick={sendMessage}
-              disabled={!currentMessage.trim() || isLoading}
+              disabled={!currentMessage.trim() || isLoading || !vehicleData}
               size="sm"
               className="bg-blue-600 hover:bg-blue-700"
             >
@@ -193,7 +199,11 @@ What would you like to know?`,
             </Button>
           </div>
           <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            Try asking: "What damage should I look for?" or "Is this suitable for Nigeria market?"
+            {vehicleData ? (
+              <>Try asking: "What's my max bid?" or "Is this good for Honduras?"</>
+            ) : (
+              <>Run a VIN analysis first to get vehicle-specific insights</>
+            )}
           </div>
         </div>
       </CardContent>
