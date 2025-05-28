@@ -727,12 +727,15 @@ export function setupApiRoutes(app: Express) {
       
       console.log('=== SEARCH DEBUG ===');
       console.log('Search params received:', JSON.stringify(req.body, null, 2));
+      console.log('CHECKPOINT 1: After destructuring');
       console.log('saleStatus extracted:', saleStatus);
+      console.log('CHECKPOINT 2: About to log additional filters');
       console.log('engineType extracted:', engineType);
       console.log('documentType extracted:', documentType);
       console.log('driveType extracted:', driveType);
       console.log('vehicleStatus extracted:', vehicleStatus);
       console.log('locationState extracted:', locationState);
+      console.log('CHECKPOINT 3: After logging all extractions');
       console.log('DEBUG: About to build WHERE conditions');
       
       // Build clean WHERE clause using only existing database columns
