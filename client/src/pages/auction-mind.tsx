@@ -262,9 +262,29 @@ export default function AuctionMind() {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-3">AI Recommendations</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {vinData.recommendation?.strategy || 'Generating strategic recommendations...'}
-                    </p>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {vinData.openai?.recommendation ? (
+                        <div className="space-y-1">
+                          {typeof vinData.openai.recommendation === 'string' ? (
+                            <p>{vinData.openai.recommendation}</p>
+                          ) : (
+                            <>
+                              {vinData.openai.recommendation.investmentStrategy && (
+                                <p><strong>Strategy:</strong> {vinData.openai.recommendation.investmentStrategy}</p>
+                              )}
+                              {vinData.openai.recommendation.dueDiligence && (
+                                <p><strong>Due Diligence:</strong> {vinData.openai.recommendation.dueDiligence}</p>
+                              )}
+                              {vinData.openai.recommendation.auctionLimitations && (
+                                <p><strong>Limitations:</strong> {vinData.openai.recommendation.auctionLimitations}</p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      ) : (
+                        'Generating strategic recommendations...'
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
