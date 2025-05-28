@@ -719,6 +719,75 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
+   * AI Chat Assistant Endpoint - Interactive Vehicle Analysis
+   */
+  app.post('/api/ai-chat', async (req: Request, res: Response) => {
+    try {
+      const { message, vehicleData, context } = req.body;
+
+      if (!message) {
+        return res.status(400).json({
+          success: false,
+          message: 'Message is required'
+        });
+      }
+
+      // Build context for the AI
+      const systemPrompt = `You are an expert vehicle auction analyst specializing in export markets, particularly Central America. Your expertise includes:
+
+1. Vehicle damage assessment and repair cost estimation
+2. Export market suitability analysis for Honduras, Guatemala, El Salvador, Nicaragua, Costa Rica
+3. Import duty and tax calculations for different countries
+4. Bidding strategies based on comparable sales data
+5. Photo analysis for hidden damage detection
+6. Market trends and demand patterns
+
+Key export considerations:
+- Age restrictions vary by country (8-15 years typically)
+- Salvage titles are generally acceptable if repairable
+- Left-hand drive only for Central America
+- High import taxes (40-79% depending on country and age)
+- Frame damage significantly reduces export value
+- Flood damage is particularly problematic for export
+
+${vehicleData ? `Current vehicle context: ${vehicleData.year || ''} ${vehicleData.make || ''} ${vehicleData.model || ''} ${vehicleData.series || ''}, VIN: ${vehicleData.vin || 'N/A'}, Engine: ${vehicleData.engine || 'N/A'}` : ''}
+
+Provide specific, actionable advice tailored to export business needs. Be direct and practical.`;
+
+      const conversationHistory = context?.map((msg: any) => ({
+        role: msg.role,
+        content: msg.content
+      })) || [];
+
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...conversationHistory.slice(-8), // Keep last 8 messages for context
+          { role: 'user', content: message }
+        ],
+        max_tokens: 500,
+        temperature: 0.7
+      });
+
+      res.json({
+        success: true,
+        response: response.choices[0].message.content
+      });
+
+    } catch (error: any) {
+      console.error('AI Chat error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'AI chat temporarily unavailable',
+        error: error.message
+      });
+    }
+  });
+
+  /**
    * Find Comparable Vehicles Endpoint - Direct Implementation
    */
   app.post('/api/find-comparables', async (req: Request, res: Response) => {
