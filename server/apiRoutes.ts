@@ -802,10 +802,10 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add fuel type filter
+      // Add engine type filter
       if (engineType && engineType !== 'any') {
-        console.log('APPLYING FUEL FILTER:', engineType);
-        whereConditions.push(`fuel = $${paramIndex}`);
+        console.log('APPLYING ENGINE FILTER:', engineType);
+        whereConditions.push(`engine = $${paramIndex}`);
         params.push(engineType);
         paramIndex++;
       }
