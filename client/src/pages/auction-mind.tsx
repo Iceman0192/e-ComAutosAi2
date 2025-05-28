@@ -39,7 +39,8 @@ export default function AuctionMind() {
         body: JSON.stringify({ vin: analysisVin })
       });
       if (!response.ok) throw new Error('VIN analysis failed');
-      return response.json();
+      const result = await response.json();
+      return result.data;
     },
     enabled: !!analysisVin
   });
