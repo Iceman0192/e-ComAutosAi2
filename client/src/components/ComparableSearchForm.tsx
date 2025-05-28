@@ -43,8 +43,8 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     damageType: lotData.damage_pr || lotData.damage_primary || lotData.vehicle_damage || '',
     maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
     saleStatus: 'sold',
-    fuelType: '',
-    transmission: '',
+    engineType: '',
+    documentType: '',
     driveType: '',
     vehicleStatus: '',
     sites: allowedSites
@@ -203,37 +203,41 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
         </div>
 
         <div>
-          <Label htmlFor="fuelType" className="text-sm font-medium">Engine Type</Label>
+          <Label htmlFor="engineType" className="text-sm font-medium">Engine Type</Label>
           <Select 
-            value={searchParams.fuelType} 
-            onValueChange={(value) => setSearchParams({ ...searchParams, fuelType: value })}
+            value={searchParams.engineType} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, engineType: value })}
           >
             <SelectTrigger className="mt-1">
               <SelectValue placeholder="Any engine type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any Engine Type</SelectItem>
-              <SelectItem value="Gasoline">Gasoline</SelectItem>
-              <SelectItem value="Hybrid">Hybrid</SelectItem>
-              <SelectItem value="Flexible Fuel">Flexible Fuel</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="3.5l 6">3.5L V6</SelectItem>
+              <SelectItem value="3.5l v-6 di, dohc, vvt, 278hp">3.5L V6 DI DOHC VVT 278HP</SelectItem>
+              <SelectItem value="2.7l 4">2.7L I4</SelectItem>
+              <SelectItem value="4.0l 6">4.0L V6</SelectItem>
+              <SelectItem value="2.4l 4">2.4L I4</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div>
-          <Label htmlFor="transmission" className="text-sm font-medium">Transmission</Label>
+          <Label htmlFor="documentType" className="text-sm font-medium">Document Type</Label>
           <Select 
-            value={searchParams.transmission} 
-            onValueChange={(value) => setSearchParams({ ...searchParams, transmission: value })}
+            value={searchParams.documentType} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, documentType: value })}
           >
             <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Any transmission" />
+              <SelectValue placeholder="Any document type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="any">Any Transmission</SelectItem>
-              <SelectItem value="Automatic">Automatic</SelectItem>
-              <SelectItem value="Manual">Manual</SelectItem>
+              <SelectItem value="any">Any Document Type</SelectItem>
+              <SelectItem value="Salvage">Salvage</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="Clear">Clear</SelectItem>
+              <SelectItem value="Lemon">Lemon</SelectItem>
+              <SelectItem value="Flood">Flood</SelectItem>
             </SelectContent>
           </Select>
         </div>
