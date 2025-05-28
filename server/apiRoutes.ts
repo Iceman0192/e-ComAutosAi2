@@ -776,11 +776,14 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Add sale status filter based on user selection
+      console.log('Sale status received:', saleStatus, typeof saleStatus);
       if (saleStatus && saleStatus !== 'all') {
+        console.log('Adding sale status filter for:', saleStatus);
         if (saleStatus === 'sold') {
           whereConditions.push(`sale_status = $${paramIndex}`);
           params.push('Sold');
           paramIndex++;
+          console.log('Added SOLD filter, paramIndex now:', paramIndex);
         } else if (saleStatus === 'on_approval') {
           whereConditions.push(`sale_status = $${paramIndex}`);
           params.push('ON APPROVAL');
@@ -790,6 +793,8 @@ export function setupApiRoutes(app: Express) {
           params.push('Not sold');
           paramIndex++;
         }
+      } else {
+        console.log('No sale status filter applied - saleStatus:', saleStatus);
       }
       
       const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
