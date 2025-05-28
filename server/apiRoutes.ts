@@ -723,7 +723,7 @@ export function setupApiRoutes(app: Express) {
    */
   app.post('/api/find-comparables', async (req: Request, res: Response) => {
     try {
-      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, saleStatus, sites } = req.body;
+      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, saleStatus, fuelType, transmission, vehicleStatus, sites } = req.body;
       
       console.log('=== SEARCH DEBUG ===');
       console.log('Search params received:', JSON.stringify(req.body, null, 2));
@@ -791,6 +791,20 @@ export function setupApiRoutes(app: Express) {
       } else if (saleStatus === 'not_sold') {
         whereConditions.push(`sale_status = $${paramIndex}`);
         params.push('Not sold');
+        paramIndex++;
+      }
+      
+      // Add fuel type filter
+      if (fuelType && fuelType !== 'any') {
+        whereConditions.push(`fuel = $${paramIndex}`);
+        params.push(fuelType);
+        paramIndex++;
+      }
+      
+      // Add transmission filter
+      if (transmission && transmission !== 'any') {
+        whereConditions.push(`transmission = $${paramIndex}`);
+        params.push(transmission);
         paramIndex++;
       }
       

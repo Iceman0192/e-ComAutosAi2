@@ -43,6 +43,9 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     damageType: lotData.damage_pr || lotData.damage_primary || lotData.vehicle_damage || '',
     maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
     saleStatus: 'sold',
+    fuelType: '',
+    transmission: '',
+    vehicleStatus: '',
     sites: allowedSites
   });
 
@@ -194,6 +197,42 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="on_approval">On Approval</SelectItem>
               <SelectItem value="not_sold">Not Sold</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="fuelType" className="text-sm font-medium">Engine Type</Label>
+          <Select 
+            value={searchParams.fuelType} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, fuelType: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Any engine type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any Engine Type</SelectItem>
+              <SelectItem value="Gasoline">Gasoline</SelectItem>
+              <SelectItem value="Hybrid">Hybrid</SelectItem>
+              <SelectItem value="Flexible Fuel">Flexible Fuel</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="transmission" className="text-sm font-medium">Transmission</Label>
+          <Select 
+            value={searchParams.transmission} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, transmission: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Any transmission" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any Transmission</SelectItem>
+              <SelectItem value="Automatic">Automatic</SelectItem>
+              <SelectItem value="Manual">Manual</SelectItem>
             </SelectContent>
           </Select>
         </div>
