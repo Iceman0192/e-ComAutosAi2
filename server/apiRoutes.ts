@@ -723,7 +723,7 @@ export function setupApiRoutes(app: Express) {
    */
   app.post('/api/find-comparables', async (req: Request, res: Response) => {
     try {
-      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, saleStatus, fuelType, transmission, driveType, vehicleStatus, sites } = req.body;
+      const { make, model, series, yearFrom, yearTo, damageType, maxMileage, saleStatus, engineType, documentType, driveType, vehicleStatus, sites } = req.body;
       
       console.log('=== SEARCH DEBUG ===');
       console.log('Search params received:', JSON.stringify(req.body, null, 2));
@@ -794,17 +794,17 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add fuel type filter
-      if (fuelType && fuelType !== 'any') {
-        whereConditions.push(`fuel = $${paramIndex}`);
-        params.push(fuelType);
+      // Add engine type filter
+      if (engineType && engineType !== 'any') {
+        whereConditions.push(`engine = $${paramIndex}`);
+        params.push(engineType);
         paramIndex++;
       }
       
-      // Add transmission filter
-      if (transmission && transmission !== 'any') {
-        whereConditions.push(`transmission = $${paramIndex}`);
-        params.push(transmission);
+      // Add document type filter
+      if (documentType && documentType !== 'any') {
+        whereConditions.push(`document = $${paramIndex}`);
+        params.push(documentType);
         paramIndex++;
       }
       
