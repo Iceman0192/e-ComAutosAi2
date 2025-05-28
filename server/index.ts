@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
+import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
@@ -44,6 +45,9 @@ app.use((req, res, next) => {
   
   // Set up clean cache routes (now the primary system)
   setupApiRoutes(app);
+  
+  // Set up AuctionMind AI analysis routes
+  setupAuctionMindRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
