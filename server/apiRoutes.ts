@@ -795,35 +795,45 @@ export function setupApiRoutes(app: Express) {
       }
       
       // Add engine type filter
+      console.log('Checking engineType filter:', engineType);
       if (engineType && engineType !== 'any') {
+        console.log('APPLYING ENGINE FILTER');
         whereConditions.push(`engine = $${paramIndex}`);
         params.push(engineType);
         paramIndex++;
       }
       
       // Add document type filter
+      console.log('Checking documentType filter:', documentType);
       if (documentType && documentType !== 'any') {
+        console.log('APPLYING DOCUMENT FILTER');
         whereConditions.push(`document = $${paramIndex}`);
         params.push(documentType);
         paramIndex++;
       }
       
       // Add drive type filter
+      console.log('Checking driveType filter:', driveType);
       if (driveType && driveType !== 'any') {
+        console.log('APPLYING DRIVE FILTER');
         whereConditions.push(`drive = $${paramIndex}`);
         params.push(driveType);
         paramIndex++;
       }
       
       // Add vehicle status filter
+      console.log('Checking vehicleStatus filter:', vehicleStatus);
       if (vehicleStatus && vehicleStatus !== 'any') {
+        console.log('APPLYING STATUS FILTER');
         whereConditions.push(`status = $${paramIndex}`);
         params.push(vehicleStatus);
         paramIndex++;
       }
       
       // Add location state filter
+      console.log('Checking locationState filter:', locationState);
       if (locationState && locationState !== 'any') {
+        console.log('APPLYING LOCATION FILTER');
         whereConditions.push(`state = $${paramIndex}`);
         params.push(locationState);
         paramIndex++;
