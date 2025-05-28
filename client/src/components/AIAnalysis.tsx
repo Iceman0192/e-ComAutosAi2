@@ -25,22 +25,17 @@ interface AIAnalysisProps {
 export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const { data: aiAnalysis, error, refetch } = useQuery({
-    queryKey: ['ai-analysis', vehicleData],
+  const { data: aiAnalysis, error, refetch, isLoading } = useQuery({
+    queryKey: ['ai-analysis', vehicleData.vin],
     queryFn: async () => {
-      setIsAnalyzing(true);
-      try {
-        const response = await apiRequest('POST', '/api/ai-lot-analysis', { vehicleData });
-        return response;
-      } finally {
-        setIsAnalyzing(false);
-      }
+      const response = await apiRequest('POST', '/api/ai-lot-analysis', { vehicleData });
+      return response;
     },
     enabled: false, // Manual trigger
   });
 
-  const handleAnalyze = () => {
-    refetch();
+  const handleAnalyze = async () => {
+    await refetch();
   };
 
   const getActionBadge = (action: string) => {
@@ -85,10 +80,10 @@ export function AIAnalysis({ vehicleData }: AIAnalysisProps) {
             </div>
             <Button 
               onClick={handleAnalyze}
-              disabled={isAnalyzing}
+              disabled={isLoading}
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
-              {isAnalyzing ? (
+              {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Analyzing...
