@@ -239,7 +239,7 @@ export function setupAuctionMindRoutes(app: Express) {
           engine: vinData[0].engine,
           mileage: vinData[0].odometer
         },
-        history: vinData.map(entry => ({
+        history: vinData.map((entry: any) => ({
           lotId: entry.lot_id,
           platform: entry.base_site.toUpperCase(),
           date: entry.sale_date,
