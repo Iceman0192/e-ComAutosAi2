@@ -727,6 +727,7 @@ export function setupApiRoutes(app: Express) {
       
       console.log('=== SEARCH DEBUG ===');
       console.log('Search params received:', JSON.stringify(req.body, null, 2));
+      console.log('saleStatus extracted:', saleStatus);
       
       // Build clean WHERE clause using only existing database columns
       let whereConditions = [];
@@ -775,26 +776,21 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
-      // Add sale status filter based on user selection
-      console.log('Sale status received:', saleStatus, typeof saleStatus);
-      if (saleStatus && saleStatus !== 'all') {
-        console.log('Adding sale status filter for:', saleStatus);
-        if (saleStatus === 'sold') {
-          whereConditions.push(`sale_status = $${paramIndex}`);
-          params.push('Sold');
-          paramIndex++;
-          console.log('Added SOLD filter, paramIndex now:', paramIndex);
-        } else if (saleStatus === 'on_approval') {
-          whereConditions.push(`sale_status = $${paramIndex}`);
-          params.push('ON APPROVAL');
-          paramIndex++;
-        } else if (saleStatus === 'not_sold') {
-          whereConditions.push(`sale_status = $${paramIndex}`);
-          params.push('Not sold');
-          paramIndex++;
-        }
-      } else {
-        console.log('No sale status filter applied - saleStatus:', saleStatus);
+      // Add sale status filter - ALWAYS filter for SOLD when saleStatus is 'sold'
+      console.log('About to check sale status filter:', saleStatus);
+      if (saleStatus === 'sold') {
+        console.log('APPLYING SOLD FILTER');
+        whereConditions.push(`sale_status = $${paramIndex}`);
+        params.push('Sold');
+        paramIndex++;
+      } else if (saleStatus === 'on_approval') {
+        whereConditions.push(`sale_status = $${paramIndex}`);
+        params.push('ON APPROVAL');
+        paramIndex++;
+      } else if (saleStatus === 'not_sold') {
+        whereConditions.push(`sale_status = $${paramIndex}`);
+        params.push('Not sold');
+        paramIndex++;
       }
       
       const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
