@@ -42,6 +42,7 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     yearTo: lotData.year ? lotData.year + 1 : 2025,
     damageType: lotData.damage_pr || lotData.damage_primary || lotData.vehicle_damage || '',
     maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
+    saleStatus: 'sold',
     sites: allowedSites
   });
 
@@ -177,6 +178,24 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
             className="mt-1"
             placeholder="Maximum odometer reading"
           />
+        </div>
+
+        <div>
+          <Label htmlFor="saleStatus" className="text-sm font-medium">Sale Status</Label>
+          <Select 
+            value={searchParams.saleStatus} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, saleStatus: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select sale status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sold">Sold Only</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="on_approval">On Approval</SelectItem>
+              <SelectItem value="not_sold">Not Sold</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-end">
