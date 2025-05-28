@@ -47,6 +47,7 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     documentType: '',
     driveType: '',
     vehicleStatus: '',
+    locationState: '',
     sites: allowedSites
   });
 
@@ -278,6 +279,31 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
               <SelectItem value="Enhanced Vehicle">Enhanced Vehicle</SelectItem>
               <SelectItem value="Stationary/Cranks">Stationary/Cranks</SelectItem>
               <SelectItem value="Unknown">Unknown</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="locationState" className="text-sm font-medium">Location (State)</Label>
+          <Select 
+            value={searchParams.locationState} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, locationState: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Any state" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any State</SelectItem>
+              <SelectItem value="TX">Texas (TX)</SelectItem>
+              <SelectItem value="FL">Florida (FL)</SelectItem>
+              <SelectItem value="CA">California (CA)</SelectItem>
+              <SelectItem value="AZ">Arizona (AZ)</SelectItem>
+              <SelectItem value="GA">Georgia (GA)</SelectItem>
+              <SelectItem value="NC">North Carolina (NC)</SelectItem>
+              <SelectItem value="IL">Illinois (IL)</SelectItem>
+              <SelectItem value="PA">Pennsylvania (PA)</SelectItem>
+              <SelectItem value="OH">Ohio (OH)</SelectItem>
+              <SelectItem value="VA">Virginia (VA)</SelectItem>
             </SelectContent>
           </Select>
         </div>
