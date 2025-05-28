@@ -732,27 +732,35 @@ export function setupApiRoutes(app: Express) {
         });
       }
 
-      // Build context for the AI
-      const systemPrompt = `You are an expert vehicle auction analyst specializing in export markets, particularly Central America. Your expertise includes:
+      // Build context for the AI with specific vehicle data
+      const systemPrompt = `You are an expert vehicle auction analyst providing insights EXCLUSIVELY for this specific vehicle analysis. Focus only on this VIN and provide targeted advice.
 
-1. Vehicle damage assessment and repair cost estimation
-2. Export market suitability analysis for Honduras, Guatemala, El Salvador, Nicaragua, Costa Rica
-3. Import duty and tax calculations for different countries
-4. Bidding strategies based on comparable sales data
-5. Photo analysis for hidden damage detection
-6. Market trends and demand patterns
+${vehicleData ? `VEHICLE BEING ANALYZED:
+- Year: ${vehicleData.year || 'Unknown'}
+- Make: ${vehicleData.make || 'Unknown'}  
+- Model: ${vehicleData.model || 'Unknown'}
+- Series: ${vehicleData.series || 'Unknown'}
+- VIN: ${vehicleData.vin || 'N/A'}
+- Engine: ${vehicleData.engine || 'Unknown'}
+- Mileage: ${vehicleData.mileage || 'Unknown'}
 
-Key export considerations:
-- Age restrictions vary by country (8-15 years typically)
-- Salvage titles are generally acceptable if repairable
-- Left-hand drive only for Central America
-- High import taxes (40-79% depending on country and age)
-- Frame damage significantly reduces export value
-- Flood damage is particularly problematic for export
+EXPERT ANALYSIS AREAS for THIS vehicle:
+1. Damage assessment specific to this vehicle's condition
+2. Export suitability for Central America (considering age, make, model demand)
+3. Bidding strategy based on this vehicle's comparables
+4. Repair cost estimates for this specific damage/condition
+5. Market demand for this exact make/model/year in target countries
+6. Profit potential analysis for this vehicle
 
-${vehicleData ? `Current vehicle context: ${vehicleData.year || ''} ${vehicleData.make || ''} ${vehicleData.model || ''} ${vehicleData.series || ''}, VIN: ${vehicleData.vin || 'N/A'}, Engine: ${vehicleData.engine || 'N/A'}` : ''}
+EXPORT MARKET CONTEXT:
+- Age limits: Honduras (10y), Guatemala (15y), El Salvador (8y), Nicaragua (10y), Costa Rica (no limit but high taxes)
+- This vehicle's age makes it ${vehicleData.year ? `${2025 - parseInt(vehicleData.year)} years old` : 'age unknown'}
+- Import taxes range 40-79% depending on country and vehicle age
+- ${vehicleData.make === 'Toyota' ? 'Toyota has excellent demand in Central America' : `${vehicleData.make || 'This brand'} market demand varies by country`}
 
-Provide specific, actionable advice tailored to export business needs. Be direct and practical.`;
+Answer questions ONLY about this specific vehicle. Provide concrete, actionable advice with specific dollar amounts and recommendations when possible.` : 'No vehicle data available. Please analyze a VIN first to get specific insights.'}
+
+Be direct, specific, and focus exclusively on this vehicle.`;
 
       const conversationHistory = context?.map((msg: any) => ({
         role: msg.role,
