@@ -815,6 +815,13 @@ export function setupApiRoutes(app: Express) {
         paramIndex++;
       }
       
+      // Add vehicle status filter
+      if (vehicleStatus && vehicleStatus !== 'any') {
+        whereConditions.push(`status = $${paramIndex}`);
+        params.push(vehicleStatus);
+        paramIndex++;
+      }
+      
       const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
       
       console.log('Final query conditions:', whereConditions);

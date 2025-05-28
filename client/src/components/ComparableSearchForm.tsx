@@ -249,10 +249,31 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any Drive Type</SelectItem>
-              <SelectItem value="Front-wheel drive">Front-wheel Drive (FWD)</SelectItem>
-              <SelectItem value="All-wheel drive">All-wheel Drive (AWD)</SelectItem>
-              <SelectItem value="Four-wheel drive">Four-wheel Drive (4WD)</SelectItem>
-              <SelectItem value="Rear-wheel drive">Rear-wheel Drive (RWD)</SelectItem>
+              <SelectItem value="Front Wheel Drive">Front Wheel Drive (FWD)</SelectItem>
+              <SelectItem value="All Wheel Drive">All Wheel Drive (AWD)</SelectItem>
+              <SelectItem value="Four Wheel Drive">Four Wheel Drive (4WD)</SelectItem>
+              <SelectItem value="Rear Wheel Drive">Rear Wheel Drive (RWD)</SelectItem>
+              <SelectItem value="Unknown">Unknown</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="vehicleStatus" className="text-sm font-medium">Vehicle Status</Label>
+          <Select 
+            value={searchParams.vehicleStatus} 
+            onValueChange={(value) => setSearchParams({ ...searchParams, vehicleStatus: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Any vehicle status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any Status</SelectItem>
+              <SelectItem value="Run & Drive">Run & Drive</SelectItem>
+              <SelectItem value="Starts">Starts</SelectItem>
+              <SelectItem value="Enhanced Vehicle">Enhanced Vehicle</SelectItem>
+              <SelectItem value="Stationary/Cranks">Stationary/Cranks</SelectItem>
+              <SelectItem value="Unknown">Unknown</SelectItem>
             </SelectContent>
           </Select>
         </div>
