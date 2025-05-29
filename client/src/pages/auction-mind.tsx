@@ -151,6 +151,16 @@ export default function AuctionMind() {
           </div>
         </div>
 
+        {/* Debug Data Display */}
+        {vinData && (
+          <div className="bg-yellow-50 dark:bg-yellow-950/20 rounded-xl border border-yellow-200 dark:border-yellow-800 p-4 mb-6">
+            <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">Debug: Received Data</h4>
+            <pre className="text-xs text-yellow-800 dark:text-yellow-200 overflow-auto">
+              {JSON.stringify(vinData, null, 2)}
+            </pre>
+          </div>
+        )}
+
         {/* AI Analysis Results - Modern Layout */}
         {vinData && (
           <div className="space-y-8">
@@ -159,12 +169,12 @@ export default function AuctionMind() {
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2">
                   <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {vinData.vehicleInfo?.year} {vinData.vehicleInfo?.make} {vinData.vehicleInfo?.model} {vinData.vehicleInfo?.series}
+                    {vinData.vehicleInfo?.year || 'Unknown'} {vinData.vehicleInfo?.make || 'Unknown'} {vinData.vehicleInfo?.model || 'Unknown'} {vinData.vehicleInfo?.series || ''}
                   </h3>
                   <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-400">
-                    <span>VIN: {vinData.vin}</span>
-                    <span>Engine: {vinData.vehicleInfo?.engine}</span>
-                    <span>Mileage: {vinData.vehicleInfo?.mileage?.toLocaleString()}</span>
+                    <span>VIN: {vinData.vin || 'Unknown'}</span>
+                    <span>Engine: {vinData.vehicleInfo?.engine || 'Unknown'}</span>
+                    <span>Mileage: {vinData.vehicleInfo?.mileage?.toLocaleString() || 'Unknown'}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
