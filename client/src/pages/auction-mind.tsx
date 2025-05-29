@@ -266,6 +266,133 @@ export default function AuctionMind() {
               </div>
             </div>
 
+            {/* Vehicle Images & Damage Analysis */}
+            {vinData.vehicleHistory && vinData.vehicleHistory.length > 0 && vinData.vehicleHistory[0].link_img_hd && (
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
+                    <Eye className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">Vehicle Images & AI Damage Analysis</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">OpenAI Vision assessment of vehicle condition</p>
+                  </div>
+                </div>
+                
+                {/* Vehicle Images Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                  {vinData.vehicleHistory[0].link_img_hd.slice(0, 6).map((imageUrl: string, index: number) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={imageUrl} 
+                        alt={`Vehicle image ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-slate-200 dark:border-slate-600 hover:scale-105 transition-transform cursor-pointer"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">View Full Size</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* AI Damage Analysis */}
+                <div className="space-y-4">
+                  <h5 className="font-medium text-slate-900 dark:text-white">AI Damage Assessment</h5>
+                  <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4">
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {vinData.openai?.damageAnalysis || vinData.openai?.summary || 'Analyzing vehicle images for damage assessment...'}
+                    </p>
+                  </div>
+                  
+                  {vinData.openai?.repairEstimate && (
+                    <div className="bg-orange-50 dark:bg-orange-950/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                      <h6 className="font-medium text-orange-900 dark:text-orange-100 mb-2">Estimated Repair Costs</h6>
+                      <p className="text-sm text-orange-800 dark:text-orange-200">
+                        {vinData.openai.repairEstimate}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Comparable Market Analysis */}
+            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 dark:text-white">Comparable Market Analysis</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Similar vehicles from database cross-check</p>
+                </div>
+              </div>
+              
+              {vinData.comparables && vinData.comparables.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3">
+                      <div className="text-lg font-bold text-slate-900 dark:text-white">
+                        {vinData.comparables.length}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Comparables Found</div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3">
+                      <div className="text-lg font-bold text-emerald-600">
+                        ${vinData.marketAnalysis?.averagePrice?.toLocaleString() || 'Calculating...'}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Average Price</div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3">
+                      <div className="text-lg font-bold text-blue-600">
+                        ${vinData.marketAnalysis?.priceRange?.min?.toLocaleString() || 'N/A'} - ${vinData.marketAnalysis?.priceRange?.max?.toLocaleString() || 'N/A'}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Price Range</div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-3">
+                      <div className="text-lg font-bold text-orange-600">
+                        {vinData.marketAnalysis?.daysSinceLastSale || 'N/A'}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Days Since Last Sale</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h5 className="font-medium text-slate-900 dark:text-white">Recent Similar Sales</h5>
+                    {vinData.comparables.slice(0, 5).map((comp: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                        <div className="space-y-1">
+                          <div className="font-medium text-slate-900 dark:text-white text-sm">
+                            {comp.year} {comp.make} {comp.model} {comp.series}
+                          </div>
+                          <div className="text-xs text-slate-600 dark:text-slate-400">
+                            {comp.vehicle_mileage?.toLocaleString()} mi • {comp.vehicle_damage} • {comp.auction_location}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-bold text-slate-900 dark:text-white">
+                            ${comp.purchase_price?.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-slate-600 dark:text-slate-400">
+                            {new Date(comp.sale_date).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-slate-600 dark:text-slate-400">
+                  <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Finding comparable vehicles in database...</p>
+                </div>
+              )}
+            </div>
+
             {/* Auction History & Pricing */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Vehicle History */}
@@ -275,27 +402,30 @@ export default function AuctionMind() {
                     <Clock className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-900 dark:text-white">Auction History</h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Cross-platform sales data</p>
+                    <h4 className="font-semibold text-slate-900 dark:text-white">This Vehicle's Auction History</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Previous sales for this specific VIN</p>
                   </div>
                 </div>
-                {vinData.history?.length > 0 ? (
+                {vinData.vehicleHistory?.length > 0 ? (
                   <div className="space-y-3">
-                    {vinData.history.map((auction: any, index: number) => (
+                    {vinData.vehicleHistory.map((auction: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
                         <div className="space-y-1">
                           <div className="font-medium text-slate-900 dark:text-white">
-                            {auction.platform} - Lot #{auction.lotId}
+                            {auction.site === 1 ? 'Copart' : 'IAAI'} - Lot #{auction.lot_id}
                           </div>
                           <div className="text-sm text-slate-600 dark:text-slate-400">
-                            {new Date(auction.date).toLocaleDateString()} • {auction.damage}
+                            {new Date(auction.sale_date).toLocaleDateString()} • {auction.vehicle_damage}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-500">
+                            {auction.vehicle_mileage?.toLocaleString()} miles • {auction.auction_location}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-lg text-slate-900 dark:text-white">
-                            ${auction.price?.toLocaleString()}
+                            ${auction.purchase_price?.toLocaleString()}
                           </div>
-                          <div className="text-sm text-slate-600 dark:text-slate-400">{auction.status}</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">{auction.sale_status}</div>
                         </div>
                       </div>
                     ))}
