@@ -28,10 +28,11 @@ interface DutyCalculation {
   };
 }
 
+// Updated 2025 Central American Import Duty Rates (CAFTA-DR Treaty)
 const countryTaxRates = {
   honduras: {
     name: 'Honduras',
-    importDuty: 15,
+    importDuty: 15, // Standard rate (0% for CAFTA vehicles)
     selectiveTax: [
       { min: 0, max: 30000, rate: 1 },
       { min: 30000, max: 50000, rate: 5 },
@@ -45,11 +46,11 @@ const countryTaxRates = {
     ],
     fixedFees: 1200,
     ageLimit: 10,
-    restrictions: 'Vehicles must be less than 10 years old. Left-hand drive only.'
+    restrictions: 'Vehicles must be less than 10 years old. Left-hand drive only. CAFTA vehicles receive duty exemption.'
   },
   guatemala: {
     name: 'Guatemala',
-    importDuty: 10,
+    importDuty: 10, // Standard rate (0% for CAFTA vehicles)
     vat: 12,
     iprima: [
       { min: 0, max: 20000, rate: 0 },
@@ -58,11 +59,11 @@ const countryTaxRates = {
     ],
     fixedFees: 800,
     ageLimit: 8,
-    restrictions: 'Must pass environmental inspection. Vehicles over 8 years face additional restrictions.'
+    restrictions: 'Must pass environmental inspection. CAFTA vehicles exempt from import duties. SAT inspection required.'
   },
   elsalvador: {
     name: 'El Salvador',
-    importDuty: 5,
+    importDuty: 5, // Standard rate (0% for CAFTA vehicles)
     selectiveTax: [
       { min: 0, max: 25000, rate: 2 },
       { min: 25000, max: 45000, rate: 7 },
@@ -76,11 +77,11 @@ const countryTaxRates = {
     ],
     fixedFees: 600,
     ageLimit: 12,
-    restrictions: 'Environmental inspection required. Must meet US emission standards.'
+    restrictions: 'Environmental inspection required. CAFTA vehicles receive duty exemption. Must meet US emission standards.'
   },
   nicaragua: {
     name: 'Nicaragua',
-    importDuty: 15,
+    importDuty: 15, // Standard rate (0% for CAFTA vehicles)
     selectiveTax: [
       { min: 0, max: 15000, rate: 3 },
       { min: 15000, max: 35000, rate: 8 },
@@ -94,11 +95,11 @@ const countryTaxRates = {
     ],
     fixedFees: 900,
     ageLimit: 15,
-    restrictions: 'Must be registered within 30 days. Annual circulation permit required.'
+    restrictions: 'Must be registered within 30 days. CAFTA vehicles exempt from import duties. Annual circulation permit required.'
   },
   costarica: {
     name: 'Costa Rica',
-    importDuty: 14,
+    importDuty: 14, // Costa Rica has NOT eliminated duties under CAFTA for vehicles
     vat: 13,
     totalTaxByAge: [
       { min: 0, max: 3, rate: 53.69 },
@@ -108,7 +109,7 @@ const countryTaxRates = {
     registrationFee: 3,
     fixedFees: 1500,
     ageLimit: 6,
-    restrictions: 'Must pass RITEVE inspection. Very high taxes on older vehicles (79% for 6+ years old).'
+    restrictions: 'Costa Rica did NOT eliminate vehicle import duties under CAFTA. Must pass RITEVE inspection. Very high taxes on older vehicles.'
   }
 };
 
@@ -121,6 +122,34 @@ export default function ImportCalculator() {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [calculation, setCalculation] = useState<DutyCalculation | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [vinNumber, setVinNumber] = useState('');
+  const [isCaftaEligible, setIsCaftaEligible] = useState<boolean | null>(null);
+
+  // Check CAFTA eligibility based on VIN
+  const checkCaftaEligibility = (vin: string): boolean => {
+    if (!vin || vin.length < 1) return false;
+    
+    // CAFTA-DR eligibility based on VIN first character (manufacturing location)
+    const firstChar = vin.charAt(0).toUpperCase();
+    
+    // North American manufacturing (CAFTA eligible)
+    // 1, 4, 5 = United States
+    // 2 = Canada  
+    // 3 = Mexico
+    const caftaEligibleChars = ['1', '2', '3', '4', '5'];
+    
+    return caftaEligibleChars.includes(firstChar);
+  };
+
+  const handleVinChange = (vin: string) => {
+    setVinNumber(vin.toUpperCase());
+    if (vin.length >= 1) {
+      const eligible = checkCaftaEligibility(vin);
+      setIsCaftaEligible(eligible);
+    } else {
+      setIsCaftaEligible(null);
+    }
+  };
 
   const calculateDuties = () => {
     if (!vehicleValue || !selectedCountry) return;
@@ -209,17 +238,25 @@ export default function ImportCalculator() {
     const taxableAmount = cifValue + calc.importDuty + calc.selectiveTax;
     calc.vat = (taxableAmount * (countryData.vat / 100));
 
-    // CAFTA eligibility check
-    const isCaftaOrigin = true; // Assume US origin for calculation
-    if (isCaftaOrigin && selectedCountry !== 'costarica') {
+    // CAFTA eligibility check based on actual VIN
+    const vehicleIsCaftaEligible = isCaftaEligible === true;
+    if (vehicleIsCaftaEligible && selectedCountry !== 'costarica') {
       calc.cafta.eligible = true;
       calc.cafta.savings = calc.importDuty;
       calc.cafta.requirements = [
-        'Vehicle must be of North American origin',
-        'Must have certificate of origin',
-        'VIN must start with 1, 4, or 5'
+        'Vehicle is of North American origin (VIN starts with 1,2,3,4,5)',
+        'Must have certificate of origin from manufacturer',
+        'Must meet CAFTA-DR treaty requirements'
       ];
-      calc.importDuty = 0; // CAFTA eliminates import duties
+      calc.importDuty = 0; // CAFTA eliminates import duties for eligible vehicles
+    } else if (isCaftaEligible === false) {
+      calc.cafta.eligible = false;
+      calc.cafta.savings = 0;
+      calc.cafta.requirements = [
+        'Vehicle is NOT of North American origin',
+        'Standard import duties apply',
+        'No CAFTA-DR benefits available'
+      ];
     }
 
     // Calculate totals
@@ -263,21 +300,66 @@ export default function ImportCalculator() {
           {/* Input Parameters */}
           <div className="space-y-6">
             <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
-                  CAFTA Eligible - North American Origin
-                </Badge>
-                <div className="flex items-center gap-1 text-sm text-emerald-600">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>Estimated duty savings: $0 (compared to non-CAFTA origin)</span>
+              {/* CAFTA Status Display */}
+              {isCaftaEligible !== null && (
+                <div className="flex items-center gap-3 mb-6">
+                  <Badge className={`${
+                    isCaftaEligible 
+                      ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+                      : 'bg-orange-100 text-orange-800 border-orange-200'
+                  }`}>
+                    {isCaftaEligible ? 'CAFTA Eligible - North American Origin' : 'Non-CAFTA - Foreign Origin'}
+                  </Badge>
+                  <div className={`flex items-center gap-1 text-sm ${
+                    isCaftaEligible ? 'text-emerald-600' : 'text-orange-600'
+                  }`}>
+                    {isCaftaEligible ? (
+                      <>
+                        <CheckCircle className="h-4 w-4" />
+                        <span>Import duties eliminated under CAFTA-DR</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>Standard import duties apply</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
                 Input Parameters
               </h2>
 
               <div className="space-y-4">
+                {/* VIN Number for CAFTA Eligibility */}
+                <div>
+                  <Label htmlFor="vin" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Vehicle VIN (Optional - for CAFTA eligibility check)
+                  </Label>
+                  <Input
+                    id="vin"
+                    type="text"
+                    placeholder="1N6AD0ER4DN751317"
+                    value={vinNumber}
+                    onChange={(e) => handleVinChange(e.target.value)}
+                    className="mt-1 font-mono"
+                    maxLength={17}
+                  />
+                  {vinNumber.length > 0 && vinNumber.length < 17 && (
+                    <p className="text-sm text-orange-600 mt-1">VIN should be 17 characters ({vinNumber.length}/17)</p>
+                  )}
+                  {isCaftaEligible !== null && (
+                    <p className={`text-sm mt-1 ${isCaftaEligible ? 'text-emerald-600' : 'text-orange-600'}`}>
+                      {isCaftaEligible 
+                        ? '✓ CAFTA eligible - North American origin' 
+                        : '⚠ Non-CAFTA - Foreign origin (standard duties apply)'
+                      }
+                    </p>
+                  )}
+                </div>
+
                 {/* Destination Country */}
                 <div>
                   <Label htmlFor="country" className="text-sm font-medium text-slate-700 dark:text-slate-300">
