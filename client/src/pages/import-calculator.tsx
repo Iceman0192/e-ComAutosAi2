@@ -204,7 +204,7 @@ const TAX_RULES = {
   }
 };
 
-export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps) {
+export default function ImportCalculator() {
   const [selectedCountry, setSelectedCountry] = useState<string>("honduras");
   const [vehiclePrice, setVehiclePrice] = useState<number>(0);
   const [freight, setFreight] = useState<number>(1500);
@@ -343,7 +343,7 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
       accumulatedValue += dutyTax;
     }
     
-    // Selective consumption tax with brackets (Honduras)
+    // Selective consumption tax with brackets (Honduras) - applied to accumulated value
     if (rules.selectiveTaxBrackets) {
       const applyBracketTax = (value: number, brackets: Record<number, number>): number => {
         const thresholds = Object.keys(brackets).map(Number).sort((a, b) => b - a);
@@ -355,8 +355,8 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
         return 0;
       };
       
-      const applicableRate = applyBracketTax(cifValue, rules.selectiveTaxBrackets);
-      selectiveTax = cifValue * applicableRate;
+      const applicableRate = applyBracketTax(accumulatedValue, rules.selectiveTaxBrackets);
+      selectiveTax = accumulatedValue * applicableRate;
       accumulatedValue += selectiveTax;
     }
     
@@ -378,9 +378,9 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
       accumulatedValue += environmentalTax;
     }
     
-    // Simple selective tax (Nicaragua)
+    // Simple selective tax (Nicaragua) - applied to accumulated value
     if (rules.selectiveTax) {
-      selectiveTax = cifValue * rules.selectiveTax;
+      selectiveTax = accumulatedValue * rules.selectiveTax;
       accumulatedValue += selectiveTax;
     }
     
@@ -504,17 +504,7 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
                   <DollarSign className="h-5 w-5" />
                   Vehicle Information
                 </CardTitle>
-                {vehicle && !dataAutoPopulated && (
-                  <Button 
-                    onClick={autoPopulateFromVehicle}
-                    variant="outline" 
-                    size="sm"
-                    className="w-full"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Auto-populate from Vehicle Data
-                  </Button>
-                )}
+
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* VIN Number for CAFTA Eligibility */}
