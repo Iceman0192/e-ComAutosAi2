@@ -132,13 +132,14 @@ export default function ImportCalculator() {
     // CAFTA-DR eligibility based on VIN first character (manufacturing location)
     const firstChar = vin.charAt(0).toUpperCase();
     
-    // North American manufacturing (CAFTA eligible)
+    // North American manufacturing (CAFTA eligible under CAFTA-DR treaty)
     // 1, 4, 5 = United States
     // 2 = Canada  
     // 3 = Mexico
-    const caftaEligibleChars = ['1', '2', '3', '4', '5'];
+    // All North American origins qualify for CAFTA-DR benefits
+    const northAmericanOrigins = ['1', '2', '3', '4', '5'];
     
-    return caftaEligibleChars.includes(firstChar);
+    return northAmericanOrigins.includes(firstChar);
   };
 
   const handleVinChange = (vin: string) => {
