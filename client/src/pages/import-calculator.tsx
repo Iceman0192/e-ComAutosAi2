@@ -132,14 +132,14 @@ export default function ImportCalculator() {
     // CAFTA-DR eligibility based on VIN first character (manufacturing location)
     const firstChar = vin.charAt(0).toUpperCase();
     
-    // North American manufacturing (CAFTA eligible under CAFTA-DR treaty)
-    // 1, 4, 5 = United States
-    // 2 = Canada  
-    // 3 = Mexico
-    // All North American origins qualify for CAFTA-DR benefits
-    const northAmericanOrigins = ['1', '2', '3', '4', '5'];
+    // CAFTA-DR participating countries for vehicle origin:
+    // 1, 4, 5 = United States (CAFTA-DR member)
+    // 2 = Canada (NOT CAFTA-DR member - NAFTA/USMCA only)
+    // 3 = Mexico (NOT CAFTA-DR member - NAFTA/USMCA only)
+    // Only US-manufactured vehicles qualify for CAFTA-DR benefits
+    const caftaDrEligibleOrigins = ['1', '4', '5'];
     
-    return northAmericanOrigins.includes(firstChar);
+    return caftaDrEligibleOrigins.includes(firstChar);
   };
 
   const handleVinChange = (vin: string) => {
@@ -245,8 +245,8 @@ export default function ImportCalculator() {
       calc.cafta.eligible = true;
       calc.cafta.savings = calc.importDuty;
       calc.cafta.requirements = [
-        'Vehicle is of North American origin (VIN starts with 1,2,3,4,5)',
-        'Must have certificate of origin from manufacturer',
+        'Vehicle must be US manufactured (VIN starts with 1, 4, or 5)',
+        'Must have certificate of origin from US manufacturer',
         'Must meet CAFTA-DR treaty requirements'
       ];
       calc.importDuty = 0; // CAFTA eliminates import duties for eligible vehicles
@@ -354,8 +354,8 @@ export default function ImportCalculator() {
                   {isCaftaEligible !== null && (
                     <p className={`text-sm mt-1 ${isCaftaEligible ? 'text-emerald-600' : 'text-orange-600'}`}>
                       {isCaftaEligible 
-                        ? '✓ CAFTA eligible - North American origin' 
-                        : '⚠ Non-CAFTA - Foreign origin (standard duties apply)'
+                        ? '✓ CAFTA-DR eligible - US manufactured vehicle' 
+                        : '⚠ Non-CAFTA-DR origin (Mexico, Canada, or foreign - standard duties apply)'
                       }
                     </p>
                   )}
