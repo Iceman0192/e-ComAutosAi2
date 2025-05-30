@@ -1,0 +1,69 @@
+const calculateTaxes = () => {
+  if (!vehiclePrice) return null;
+  
+  const isNorthAmerican = vehicle?.vin ? isNorthAmericanOrigin(vehicle.vin) : isCaftaEligible;
+  const originType = isNorthAmerican ? 'north_american_origin' : 'other_origin';
+  
+  // Get country tax rules
+  const countryRules = TAX_RULES[selectedCountry];
+  const rules = countryRules[originType];
+  
+  // Calculate CIF (Cost, Insurance, Freight)
+  const cifValue = vehiclePrice + freight + insurance;
+  
+  let accumulatedValue = cifValue;
+  let dutyTax = 0;
+  
+  // Calculate duty tax based on country rules
+  if ('duty' in rules && typeof rules.duty === 'number') {
+    dutyTax = cifValue * rules.duty;
+    accumulatedValue += dutyTax;
+  }
+  
+  // Engine size-based duty (El Salvador, Panama, Belize)
+  if ('dutyByEngineSize' in rules) {
+    let dutyRate = 0;
+    if (engineSize <= 2000) {
+      dutyRate = rules.dutyByEngineSize.under2000cc;
+    } else if (engineSize > 2000) {
+      dutyRate = rules.dutyByEngineSize.over2000cc;
+    }
+    dutyTax = cifValue * dutyRate;
+    accumulatedValue += dutyTax;
+  }
+  
+  // Selective consumption tax with brackets (Honduras)
+  if (rules.selectiveTaxBrackets) {
+    const thresholds = Object.keys(rules.selectiveTaxBrackets).map(Number).sort((a, b) => b - a);
+    let applicableRate = 0;
+    
+    for (const threshold of thresholds) {
+      if (cifValue >= threshold) {
+        applicableRate = rules.selectiveTaxBrackets[threshold];
+        break;
+      }
+    }
+    
+    const selectiveTax = cifValue * applicableRate;
+    accumulatedValue += selectiveTax;
+  }
+  
+  // Sales tax (applied to accumulated value)
+  if ('salesTax' in rules) {
+    const salesTax = accumulatedValue * rules.salesTax;
+    accumulatedValue += salesTax;
+  }
+  
+  // Other fees
+  if ('otherFees' in rules) {
+    const otherFees = cifValue * rules.otherFees;
+    accumulatedValue += otherFees;
+  }
+  
+  return {
+    cifValue,
+    totalTaxAmount: accumulatedValue - cifValue,
+    totalImportCost: accumulatedValue,
+    taxPercentage: ((accumulatedValue - cifValue) / cifValue * 100).toFixed(1)
+  };
+};

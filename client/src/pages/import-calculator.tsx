@@ -28,88 +28,90 @@ interface DutyCalculation {
   };
 }
 
-// Updated 2025 Central American Import Duty Rates (CAFTA-DR Treaty)
-const countryTaxRates = {
+// Accurate 2025 Central American Tax Rules (CAFTA-DR Treaty)
+const TAX_RULES = {
   honduras: {
-    name: 'Honduras',
-    importDuty: 15, // Standard rate (0% for CAFTA vehicles)
-    selectiveTax: [
-      { min: 0, max: 30000, rate: 1 },
-      { min: 30000, max: 50000, rate: 5 },
-      { min: 50000, max: Infinity, rate: 10 }
-    ],
-    vat: 15,
-    environmentalTax: [
-      { min: 0, max: 30000, fee: 500 },
-      { min: 30000, max: 50000, fee: 1000 },
-      { min: 50000, max: Infinity, fee: 2000 }
-    ],
-    fixedFees: 1200,
-    ageLimit: 10,
-    restrictions: 'Vehicles must be less than 10 years old. Left-hand drive only. CAFTA vehicles receive duty exemption.'
-  },
-  guatemala: {
-    name: 'Guatemala',
-    importDuty: 10, // Standard rate (0% for CAFTA vehicles)
-    vat: 12,
-    iprima: [
-      { min: 0, max: 20000, rate: 0 },
-      { min: 20000, max: 40000, rate: 5 },
-      { min: 40000, max: Infinity, rate: 10 }
-    ],
-    fixedFees: 800,
-    ageLimit: 8,
-    restrictions: 'Must pass environmental inspection. CAFTA vehicles exempt from import duties. SAT inspection required.'
+    north_american_origin: {
+      duty: 0.0, // 0% CAFTA duty
+      selectiveTaxBrackets: {
+        0: 0.10,     // 10% for vehicles up to $7,000
+        7000: 0.15,  // 15% for $7,000-10,000
+        10000: 0.20, // 20% for $10,000-20,000
+        20000: 0.30, // 30% for $20,000-50,000
+        50000: 0.45, // 45% for $50,000-100,000
+        100000: 0.60 // 60% for vehicles over $100,000
+      },
+      salesTax: 0.15,
+      otherFees: 0.10
+    },
+    other_origin: {
+      duty: 0.15,
+      selectiveTaxBrackets: {
+        0: 0.10,
+        7000: 0.15,
+        10000: 0.20,
+        20000: 0.30,
+        50000: 0.45,
+        100000: 0.60
+      },
+      salesTax: 0.15,
+      otherFees: 0.03
+    }
   },
   elsalvador: {
-    name: 'El Salvador',
-    importDuty: 5, // Standard rate (0% for CAFTA vehicles)
-    selectiveTax: [
-      { min: 0, max: 25000, rate: 2 },
-      { min: 25000, max: 45000, rate: 7 },
-      { min: 45000, max: Infinity, rate: 15 }
-    ],
-    vat: 13,
-    environmentalTax: [
-      { min: 0, max: 25000, fee: 300 },
-      { min: 25000, max: 45000, fee: 600 },
-      { min: 45000, max: Infinity, fee: 1200 }
-    ],
-    fixedFees: 600,
-    ageLimit: 12,
-    restrictions: 'Environmental inspection required. CAFTA vehicles receive duty exemption. Must meet US emission standards.'
+    north_american_origin: {
+      duty: 0.0,
+      salesTax: 0.13,
+      firstRegistrationFee: 71,
+      otherFees: 0.05
+    },
+    other_origin: {
+      dutyByEngineSize: {
+        under2000cc: 0.25, // 25% for engines under 2000cc
+        over2000cc: 0.30,  // 30% for engines over 2000cc
+        pickupTruck: 0.25,
+        heavyTruck: 0.15
+      },
+      salesTax: 0.13,
+      firstRegistrationFee: 350,
+      otherFees: 0.025
+    }
+  },
+  guatemala: {
+    north_american_origin: {
+      duty: 0.0,
+      salesTax: 0.12,
+      otherFees: 0.04
+    },
+    other_origin: {
+      duty: 0.10,
+      salesTax: 0.12,
+      otherFees: 0.025
+    }
   },
   nicaragua: {
-    name: 'Nicaragua',
-    importDuty: 15, // Standard rate (0% for CAFTA vehicles)
-    selectiveTax: [
-      { min: 0, max: 15000, rate: 3 },
-      { min: 15000, max: 35000, rate: 8 },
-      { min: 35000, max: Infinity, rate: 12 }
-    ],
-    vat: 15,
-    environmentalTax: [
-      { min: 0, max: 20000, fee: 400 },
-      { min: 20000, max: 40000, fee: 800 },
-      { min: 40000, max: Infinity, fee: 1500 }
-    ],
-    fixedFees: 900,
-    ageLimit: 15,
-    restrictions: 'Must be registered within 30 days. CAFTA vehicles exempt from import duties. Annual circulation permit required.'
+    north_american_origin: {
+      duty: 0.0,
+      salesTax: 0.15,
+      otherFees: 0.05
+    },
+    other_origin: {
+      duty: 0.15,
+      salesTax: 0.15,
+      otherFees: 0.03
+    }
   },
   costarica: {
-    name: 'Costa Rica',
-    importDuty: 14, // Costa Rica has NOT eliminated duties under CAFTA for vehicles
-    vat: 13,
-    totalTaxByAge: [
-      { min: 0, max: 3, rate: 53.69 },
-      { min: 3, max: 6, rate: 63.91 },
-      { min: 6, max: Infinity, rate: 79.03 }
-    ],
-    registrationFee: 3,
-    fixedFees: 1500,
-    ageLimit: 6,
-    restrictions: 'Costa Rica did NOT eliminate vehicle import duties under CAFTA. Must pass RITEVE inspection. Very high taxes on older vehicles.'
+    north_american_origin: {
+      duty: 0.14, // Costa Rica did NOT eliminate duties under CAFTA for vehicles
+      salesTax: 0.13,
+      otherFees: 0.08
+    },
+    other_origin: {
+      duty: 0.14,
+      salesTax: 0.13,
+      otherFees: 0.05
+    }
   }
 };
 
