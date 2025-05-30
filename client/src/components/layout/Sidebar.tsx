@@ -12,7 +12,8 @@ import {
   CreditCard,
   LogOut,
   Menu,
-  X
+  X,
+  Calculator
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
@@ -50,6 +51,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       href: '/auction-mind',
       icon: Brain,
       permission: 'CROSS_PLATFORM_SEARCH'
+    },
+    {
+      title: 'Import Calculator',
+      href: '/import-calculator',
+      icon: Calculator,
+      permission: 'BASIC_SEARCH'
     },
     {
       title: 'Datasets',

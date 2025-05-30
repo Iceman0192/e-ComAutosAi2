@@ -15,6 +15,7 @@ import IAAI from "./pages/iaai";
 import LiveCopart from "./pages/live-copart";
 import LiveIAAI from "./pages/live-iaai";
 import AuctionMind from "./pages/auction-mind";
+import ImportCalculator from "./pages/import-calculator";
 import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/auction-mind" component={AuctionMind} />
+        <Route path="/import-calculator" component={ImportCalculator} />
         <Route path="/datasets" component={Datasets} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
