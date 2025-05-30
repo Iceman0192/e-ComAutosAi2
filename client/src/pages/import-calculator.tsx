@@ -96,20 +96,20 @@ export default function ImportCalculator() {
     const selectiveTax = accumulatedValue * selectiveTaxRate;
     accumulatedValue += selectiveTax;
 
-    // Step 4: Calculate sales tax on accumulated value (15%)
-    const salesTax = accumulatedValue * rules.salesTax;
-    accumulatedValue += salesTax;
-
-    // Step 5: Calculate environmental tax (after sales tax)
+    // Step 4: Calculate environmental tax
+    const ecoTaxThresholds = Object.keys(rules.ecoTaxBrackets).map(Number).sort((a, b) => b - a);
     let environmentalTax = 0;
-    if (cifValue >= 25000) {
-      environmentalTax = rules.ecoTaxBrackets[25000];
-    } else if (cifValue >= 15000) {
-      environmentalTax = rules.ecoTaxBrackets[15000];
-    } else {
-      environmentalTax = rules.ecoTaxBrackets[0];
+    for (const threshold of ecoTaxThresholds) {
+      if (cifValue >= threshold) {
+        environmentalTax = rules.ecoTaxBrackets[threshold];
+        break;
+      }
     }
     accumulatedValue += environmentalTax;
+
+    // Step 5: Calculate sales tax on accumulated value
+    const salesTax = accumulatedValue * rules.salesTax;
+    accumulatedValue += salesTax;
 
     // Step 6: Calculate other fees
     const otherFees = cifValue * rules.otherFees;
@@ -132,9 +132,9 @@ export default function ImportCalculator() {
         { step: "CIF Value", value: cifValue, accumulated: cifValue },
         { step: "Import Duty", value: dutyTax, accumulated: cifValue + dutyTax },
         { step: "Selective Tax", value: selectiveTax, accumulated: cifValue + dutyTax + selectiveTax },
-        { step: "Sales Tax (15%)", value: salesTax, accumulated: cifValue + dutyTax + selectiveTax + salesTax },
-        { step: "Environmental Tax", value: environmentalTax, accumulated: cifValue + dutyTax + selectiveTax + salesTax + environmentalTax },
-        { step: "Other Fees (Port/Customs/Registration)", value: otherFees, accumulated: accumulatedValue }
+        { step: "Environmental Tax", value: environmentalTax, accumulated: cifValue + dutyTax + selectiveTax + environmentalTax },
+        { step: "Sales Tax (15%)", value: salesTax, accumulated: accumulatedValue - otherFees },
+        { step: "Other Fees", value: otherFees, accumulated: accumulatedValue }
       ]
     };
   };
