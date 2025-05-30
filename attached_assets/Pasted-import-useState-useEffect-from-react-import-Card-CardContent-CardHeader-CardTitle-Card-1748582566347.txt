@@ -1,0 +1,1226 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Calculator, ArrowRight, DollarSign, AlertTriangle, Info, Clipboard, 
+  RefreshCw, Share2, Download, BarChart4, FileText, Truck, Ship 
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+
+interface DutyTaxCalculatorTabProps {
+  vehicle: any;
+}
+
+// Central American countries supported in our system
+const CENTRAL_AMERICAN_COUNTRIES = [
+  { id: "honduras", name: "Honduras", flag: "🇭🇳" },
+  { id: "guatemala", name: "Guatemala", flag: "🇬🇹" },
+  { id: "el_salvador", name: "El Salvador", flag: "🇸🇻" },
+  { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮" },
+  { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷" },
+  { id: "panama", name: "Panama", flag: "🇵🇦" },
+  { id: "belize", name: "Belize", flag: "🇧🇿" },
+  { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴" }
+];
+
+// Tax calculation rules per country - based on official 2025 rates per CAFTA Treaty
+const TAX_RULES = {
+  honduras: {
+    north_american_origin: {
+      duty: 0.0, // 0% duty for CAFTA North American vehicles (often waived under CAFTA-DR)
+      selectiveTaxBrackets: { // Selective Consumption Tax (ISC) with brackets
+        0: 0.10, // 10% for vehicles up to $7,000
+        7000: 0.15, // 15% for vehicles $7,000-10,000
+        10000: 0.20, // 20% for vehicles $10,000-20,000
+        20000: 0.30, // 30% for vehicles $20,000-50,000
+        50000: 0.45, // 45% for vehicles $50,000-100,000
+        100000: 0.60, // 60% for vehicles over $100,000
+      },
+      ecoTaxBrackets: { // One-time "Ecotasa" environmental tax in local currency (converted to USD)
+        0: 200, // L.5,000 (~$200) for vehicles up to $15,000
+        15000: 280, // L.7,000 (~$280) for vehicles $15,001-25,000
+        25000: 400, // L.10,000 (~$400) for vehicles over $25,000
+      },
+      salesTax: 0.15, // 15% Sales Tax - applied on (CIF + ISC)
+      otherFees: 0.10 // ~10% for storage, customs broker, registration (~$530 total)
+    },
+    other_origin: {
+      duty: 0.15, // 5-15% duty for non-CAFTA vehicles (using max rate)
+      selectiveTaxBrackets: { // Selective Consumption Tax (ISC) with brackets
+        0: 0.10, // 10% for vehicles up to $7,000
+        7000: 0.15, // 15% for vehicles $7,000-10,000
+        10000: 0.20, // 20% for vehicles $10,000-20,000
+        20000: 0.30, // 30% for vehicles $20,000-50,000
+        50000: 0.45, // 45% for vehicles $50,000-100,000
+        100000: 0.60, // 60% for vehicles over $100,000
+      },
+      ecoTaxBrackets: { // One-time "Ecotasa" environmental tax in local currency (converted to USD)
+        0: 205, // L.5,000 (~$205) for vehicles up to $15,000
+        15000: 280, // L.7,000 (~$280) for vehicles $15,001-25,000
+        25000: 410, // L.10,000 (~$410) for vehicles over $25,000
+      },
+      salesTax: 0.15, // 15% Sales Tax - applied on (CIF + ISC)
+      otherFees: 0.03 // ~3% for customs processing, registration fees
+    }
+  },
+  guatemala: {
+    north_american_origin: {
+      duty: 0.0, // 0% duty for CAFTA North American vehicles
+      salesTax: 0.12, // 12% IVA (VAT)
+      firstRegistrationTaxBrackets: { // IPRIMA tax with brackets
+        0: 0.05, // 5% minimum
+        standard: 0.10, // 10% for standard vehicles
+        luxury: 0.20 // 20% for luxury/high-end models
+      },
+      otherFees: 0.07 // ~7% for handling, inspections, registration (~$400)
+    },
+    other_origin: {
+      duty: 0.15, // 0-15% duty for non-CAFTA vehicles (using max rate from CET)
+      salesTax: 0.12, // 12% IVA (VAT)
+      firstRegistrationTaxBrackets: { // IPRIMA tax with brackets
+        0: 0.05, // 5% minimum for low-value vehicles
+        standard: 0.10, // 10% for standard vehicles
+        luxury: 0.20 // 20% for luxury vehicles (>$40,000)
+      },
+      otherFees: 0.035 // ~3.5% for customs processing, registration fees
+    }
+  },
+  el_salvador: {
+    north_american_origin: {
+      duty: 0.0, // 0% duty for CAFTA North American vehicles
+      salesTax: 0.13, // 13% IVA applied on (CIF + duties)
+      firstRegistrationFee: 71, // Fixed fee of $70.91
+      otherFees: 0.05 // ~5% for port fees, broker, registration, etc. (~$300-400)
+    },
+    other_origin: {
+      dutyByEngineSize: {
+        under2000cc: 0.25, // 25% for cars with engines under 2000cc
+        over2000cc: 0.30, // 30% for cars with engines over 2000cc
+        pickupTruck: 0.25, // 25% for pickup trucks
+        heavyTruck: 0.15 // 15% for heavy trucks/commercial vehicles
+      },
+      salesTax: 0.13, // 13% IVA applied on (CIF + duties)
+      firstRegistrationFee: 350, // Fixed registration fee
+      otherFees: 0.025 // ~2.5% for customs processing, registration fees
+    }
+  },
+  nicaragua: {
+    north_american_origin: {
+      duty: 0.0, // 0% duty for CAFTA vehicles
+      selectiveTax: 0.10, // 10% Selective Consumption Tax (ISC)
+      salesTax: 0.15, // 15% IVA (applied on CIF + Duty + ISC)
+      otherFees: 0.05 // ~5% for port, broker, registration (~$350 total)
+    },
+    other_origin: {
+      duty: 0.10, // 10% duty for non-CAFTA vehicles
+      selectiveTax: 0.15, // 15% Selective Consumption Tax (ISC)
+      salesTax: 0.15, // 15% IVA (applied on CIF + Duty + ISC)
+      otherFees: 0.03 // ~3% for customs processing, registration fees
+    }
+  },
+  costa_rica: {
+    north_american_origin: {
+      duty: 0.0, // 0% for CAFTA
+      salesTax: 0.13, // 13% VAT (IVA)
+      ageBrackets: { // Total tax brackets based on vehicle age (includes all compounded taxes)
+        new: 0.53, // 53% total effective tax for cars 0-3 years old
+        recent: 0.64, // 64% total effective tax for cars 4-5 years old
+        older: 0.79, // 79% total effective tax for cars over 6 years old
+      },
+      electricVehicle: 0.01, // 1% low tax for electric vehicles (plus 13% VAT)
+      otherFees: 0.05 // ~5% for registration, inspection, ports (~$350)
+    },
+    other_origin: {
+      duty: 0.30, // 30% base import duty for non-CAFTA vehicles
+      salesTax: 0.13, // 13% VAT (IVA)
+      selectiveTax: 0.48, // 48% selective consumption tax
+      ageBrackets: { // Additional age-based tax brackets
+        new: 0.0, // No additional age tax for new vehicles
+        recent: 0.10, // +10% for vehicles 4-5 years old
+        older: 0.20, // +20% for vehicles 6+ years old
+      },
+      electricVehicle: 0.01, // 1% low tax for electric vehicles (plus 13% VAT)
+      otherFees: 0.03 // ~3% for registration, inspection fees
+    }
+  },
+  panama: {
+    north_american_origin: {
+      duty: 0.0, // 0% for CAFTA
+      salesTax: 0.07, // 7% ITBMS (sales tax)
+      flatTaxLowValue: 1500, // $1,500 flat import tax for vehicles up to $8,000
+      otherFees: 0.05 // ~5% for customs, registration, etc. (~$300)
+    },
+    other_origin: {
+      dutyByEngineSize: {
+        under3000cc: 0.18, // 18% for vehicles under 3000cc
+        over3000cc: 0.23, // 23% for vehicles over 3000cc
+      },
+      selectiveTax: 0.15, // 15% ISC (selective consumption tax)
+      salesTax: 0.07, // 7% ITBMS
+      flatTaxLowValue: 1500, // $1,500 flat tax for vehicles up to $8,000
+      otherFees: 0.03 // ~3% for customs processing, registration fees
+    }
+  },
+  belize: {
+    north_american_origin: {
+      duty: 0.0, // 0% for CAFTA
+      environmentalTax: 0.05, // 5% Environmental Tax
+      gst: 0.125, // 12.5% GST
+      otherFees: 0.04 // ~4% for customs, registration (~$150-200)
+    },
+    other_origin: {
+      dutyByEngineSize: {
+        under2000cc: 0.45, // 45% for vehicles under 2000cc
+        over2000cc: 0.60, // 60% for vehicles over 2000cc
+      },
+      environmentalTax: 0.05, // 5% Environmental Tax
+      gst: 0.125, // 12.5% GST
+      otherFees: 0.025 // ~2.5% for customs processing, registration fees
+    }
+  },
+  dominican_republic: {
+    north_american_origin: {
+      duty: 0.0, // 0% duty for CAFTA-DR vehicles (VIN starts with 1, 4, 5)
+      luxuryTax: 0.15, // 15% Selective Consumption Tax (Impuesto Selectivo al Consumo)
+      salesTax: 0.18, // 18% ITBIS (VAT)
+      otherFees: 0.03 // ~3% for customs processing, registration fees
+    },
+    other_origin: {
+      duty: 0.30, // 30% import tariff for non-CAFTA vehicles
+      luxuryTax: 0.25, // 25% Selective Consumption Tax (Impuesto Selectivo al Consumo)
+      salesTax: 0.18, // 18% ITBIS (VAT)
+      otherFees: 0.03 // ~3% for customs processing, registration fees
+    }
+  }
+};
+
+export default function DutyTaxCalculatorTab({ vehicle }: DutyTaxCalculatorTabProps) {
+  const [selectedCountry, setSelectedCountry] = useState<string>("honduras");
+  const [vehiclePrice, setVehiclePrice] = useState<number>(0);
+  const [freight, setFreight] = useState<number>(1500);
+  const [insurance, setInsurance] = useState<number>(300);
+  const [isUsed, setIsUsed] = useState<boolean>(true);
+  const [engineSize, setEngineSize] = useState<number>(2000);
+  const [calculationDetails, setCalculationDetails] = useState<any>(null);
+  const [isCaftaEligible, setIsCaftaEligible] = useState<boolean>(false);
+  const [dataAutoPopulated, setDataAutoPopulated] = useState<boolean>(false);
+  const [useAdvancedOptions, setUseAdvancedOptions] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<string>("basic");
+  const [calculatorMode, setCalculatorMode] = useState<string>("new");
+  
+  // Advanced shipping cost breakdowns
+  const [portFees, setPortFees] = useState<number>(200);
+  const [customsHandling, setCustomsHandling] = useState<number>(150);
+  const [inlandTransport, setInlandTransport] = useState<number>(300);
+  const [storageAndDemurrage, setStorageAndDemurrage] = useState<number>(100);
+  const [inspectionFees, setInspectionFees] = useState<number>(75);
+  const [bodyDamage, setBodyDamage] = useState<string>("none");
+  const [mechanicalCondition, setMechanicalCondition] = useState<string>("good");
+  const [bodyStyle, setBodyStyle] = useState<string>("sedan");
+  const [fuelType, setFuelType] = useState<string>("gasoline");
+  const [includeCompetitiveAnalysis, setIncludeCompetitiveAnalysis] = useState<boolean>(false);
+  const [includeBreakevenAnalysis, setIncludeBreakevenAnalysis] = useState<boolean>(false);
+  const [includeProfitScenarios, setIncludeProfitScenarios] = useState<boolean>(false);
+  
+  const { toast } = useToast();
+
+  // Auto-populate values from vehicle data
+  const autoPopulateFromVehicle = () => {
+    if (!vehicle) return;
+    
+    // Use vehicle's current bid, starting bid, or retail value as base
+    const baseValue = vehicle.currentBid || vehicle.startingBid || vehicle.retailValue || 5000;
+    setVehiclePrice(baseValue);
+    
+    // Set engine size if available, with fallback to reasonable defaults based on vehicle type
+    if (vehicle.engineSize) {
+      setEngineSize(vehicle.engineSize);
+    } else if (vehicle.vehicleType === 'SUV' || vehicle.vehicleType === 'Truck') {
+      setEngineSize(3500); // Default for larger vehicles
+    } else if (vehicle.vehicleType === 'Van' || vehicle.vehicleType === 'Crossover') {
+      setEngineSize(2500); // Default for medium vehicles
+    } else {
+      setEngineSize(2000); // Default for cars
+    }
+    
+    // Set vehicle age
+    if (vehicle.year) {
+      const currentYear = new Date().getFullYear();
+      setIsUsed(currentYear > vehicle.year);
+    }
+    
+    // Check CAFTA eligibility
+    if (vehicle.vin) {
+      const eligible = isNorthAmericanOrigin(vehicle.vin);
+      setIsCaftaEligible(eligible);
+    }
+    
+    // Set freight based on vehicle type
+    if (vehicle.vehicleType === 'SUV' || vehicle.vehicleType === 'Truck') {
+      setFreight(1800);
+      // Also adjust advanced shipping options
+      setPortFees(250);
+      setCustomsHandling(175);
+      setInlandTransport(350);
+    } else if (vehicle.vehicleType === 'Van') {
+      setFreight(1700);
+      setPortFees(225);
+      setCustomsHandling(160);
+      setInlandTransport(325);
+    } else {
+      setFreight(1500);
+      setPortFees(200);
+      setCustomsHandling(150);
+      setInlandTransport(300);
+    }
+    
+    // Set body style if available
+    if (vehicle.vehicleType) {
+      if (vehicle.vehicleType.toLowerCase().includes('suv')) {
+        setBodyStyle('suv');
+      } else if (vehicle.vehicleType.toLowerCase().includes('truck')) {
+        setBodyStyle('pickup');
+      } else if (vehicle.vehicleType.toLowerCase().includes('van')) {
+        setBodyStyle('van');
+      } else if (vehicle.vehicleType.toLowerCase().includes('convertible')) {
+        setBodyStyle('convertible');
+      } else {
+        setBodyStyle('sedan');
+      }
+    }
+    
+    // Set fuel type if available
+    if (vehicle.fuelType) {
+      setFuelType(vehicle.fuelType.toLowerCase());
+    } else if (vehicle.hybrid === true) {
+      setFuelType('hybrid');
+    } else if (vehicle.electric === true) {
+      setFuelType('electric');
+    }
+    
+    // Set vehicle condition if available
+    if (vehicle.damageDescription) {
+      if (vehicle.damageDescription.toLowerCase().includes('severe')) {
+        setBodyDamage('severe');
+      } else if (vehicle.damageDescription.toLowerCase().includes('moderate')) {
+        setBodyDamage('moderate');
+      } else if (vehicle.damageDescription.toLowerCase().includes('minor')) {
+        setBodyDamage('minor');
+      } else {
+        setBodyDamage('none');
+      }
+    }
+    
+    // Set mechanical condition based on vehicle age
+    if (vehicle.year) {
+      const age = new Date().getFullYear() - vehicle.year;
+      if (age < 3) {
+        setMechanicalCondition('excellent');
+      } else if (age < 6) {
+        setMechanicalCondition('good');
+      } else if (age < 10) {
+        setMechanicalCondition('fair');
+      } else {
+        setMechanicalCondition('poor');
+      }
+    }
+    
+    setDataAutoPopulated(true);
+    
+    toast({
+      title: "Data Auto-Populated",
+      description: "The calculator has been populated with vehicle data.",
+      variant: "default",
+      duration: 3000, // Auto-dismiss after 3 seconds
+    });
+  };
+
+  // Initialize data from vehicle when component mounts
+  useEffect(() => {
+    if (vehicle) {
+      // Just populate the data without showing toast on initial mount    
+      // Use vehicle's current bid, starting bid, or retail value as base
+      const baseValue = vehicle.currentBid || vehicle.startingBid || vehicle.retailValue || 5000;
+      setVehiclePrice(baseValue);
+      
+      // Set engine size if available, with fallback to reasonable defaults based on vehicle type
+      if (vehicle.engineSize) {
+        setEngineSize(vehicle.engineSize);
+      } else if (vehicle.vehicleType === 'SUV' || vehicle.vehicleType === 'Truck') {
+        setEngineSize(3500); // Default for larger vehicles
+      } else if (vehicle.vehicleType === 'Van' || vehicle.vehicleType === 'Crossover') {
+        setEngineSize(2500); // Default for medium vehicles
+      } else {
+        setEngineSize(2000); // Default for cars
+      }
+      
+      // Set vehicle age
+      if (vehicle.year) {
+        const currentYear = new Date().getFullYear();
+        setIsUsed(currentYear > vehicle.year);
+      }
+      
+      // Check CAFTA eligibility
+      if (vehicle.vin) {
+        const eligible = isNorthAmericanOrigin(vehicle.vin);
+        setIsCaftaEligible(eligible);
+      }
+      
+      // Set freight based on vehicle type
+      if (vehicle.vehicleType === 'SUV' || vehicle.vehicleType === 'Truck') {
+        setFreight(1800);
+      } else if (vehicle.vehicleType === 'Van') {
+        setFreight(1700);
+      } else {
+        setFreight(1500);
+      }
+      
+      setDataAutoPopulated(true);
+    }
+  }, [vehicle]);
+
+  // Determine if vehicle is of North American origin by VIN
+  const isNorthAmericanOrigin = (vin: string): boolean => {
+    if (!vin || vin.length < 1) return false;
+    
+    // North American VINs start with 1, 4, or 5 as per CAFTA rules
+    const firstChar = vin.charAt(0);
+    return ['1', '4', '5'].includes(firstChar);
+  };
+
+  // Calculate taxes with detailed breakdown of each step
+  const calculateTaxes = () => {
+    if (!vehiclePrice) return null;
+    
+    const isNorthAmerican = vehicle?.vin ? isNorthAmericanOrigin(vehicle.vin) : isCaftaEligible;
+    const originType = isNorthAmerican ? 'north_american_origin' : 'other_origin';
+    
+    // Get country tax rules
+    const countryRules = TAX_RULES[selectedCountry as keyof typeof TAX_RULES];
+    if (!countryRules) return null;
+    
+    const rules = countryRules[originType as keyof typeof countryRules];
+    if (!rules) return null;
+
+    // Calculate CIF (Cost, Insurance, Freight)
+    const cifValue = vehiclePrice + freight + insurance;
+    
+    // Initialize calculation result with detailed step-by-step breakdown
+    const result: any = {
+      country: CENTRAL_AMERICAN_COUNTRIES.find(c => c.id === selectedCountry)?.name || selectedCountry,
+      cifValue,
+      calculationSteps: [],
+      breakdown: []
+    };
+    
+    // Add CIF calculation as first step
+    result.calculationSteps.push({
+      description: "CIF Value Calculation",
+      formula: "Vehicle Price + Freight + Insurance",
+      calculation: `$${vehiclePrice.toFixed(2)} + $${freight.toFixed(2)} + $${insurance.toFixed(2)} = $${cifValue.toFixed(2)}`
+    });
+    
+    // Calculate taxes based on country-specific rules
+    let accumulatedValue = cifValue;
+    
+    // Calculate duty tax based on the country and rules
+    let dutyTax = 0;
+    
+    // Most countries have a fixed duty percentage
+    if ('duty' in rules && typeof rules.duty === 'number') {
+      dutyTax = cifValue * rules.duty;
+      accumulatedValue += dutyTax;
+      
+      result.calculationSteps.push({
+        description: "Import Duty",
+        formula: `CIF Value × ${(rules.duty * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(rules.duty * 100).toFixed(1)}% = $${dutyTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "Import Duty",
+        percent: `${(rules.duty * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: dutyTax
+      });
+    }
+    
+    // For countries that have duty rates based on engine size (e.g., El Salvador)
+    if ('dutyByEngineSize' in rules) {
+      let dutyRate = 0;
+      
+      // Determine rate based on engine size
+      if (engineSize <= 2000 && 'under2000cc' in rules.dutyByEngineSize) {
+        dutyRate = rules.dutyByEngineSize.under2000cc;
+      } else if (engineSize > 2000 && 'over2000cc' in rules.dutyByEngineSize) {
+        dutyRate = rules.dutyByEngineSize.over2000cc;
+      } else if (vehicle?.vehicleType?.toLowerCase().includes('pickup') && 'pickupTruck' in rules.dutyByEngineSize) {
+        dutyRate = rules.dutyByEngineSize.pickupTruck;
+      } else if (vehicle?.vehicleType?.toLowerCase().includes('truck') && 'heavyTruck' in rules.dutyByEngineSize) {
+        dutyRate = rules.dutyByEngineSize.heavyTruck;
+      } else {
+        // Default to under 2000cc rate if available
+        dutyRate = rules.dutyByEngineSize.under2000cc || 0.25; // 25% is typical
+      }
+      
+      dutyTax = cifValue * dutyRate;
+      accumulatedValue += dutyTax;
+      
+      result.calculationSteps.push({
+        description: `Import Duty (${engineSize}cc)`,
+        formula: `CIF Value × ${(dutyRate * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(dutyRate * 100).toFixed(1)}% = $${dutyTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: `Import Duty (${engineSize}cc)`,
+        percent: `${(dutyRate * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: dutyTax,
+        note: `Based on engine size ${engineSize}cc`
+      });
+    }
+    
+    // Selective consumption tax with brackets (Honduras, etc.)
+    if (rules.selectiveTaxBrackets) {
+      let applicableBracket = 0;
+      let applicableRate = 0;
+      
+      // Get all thresholds and sort them in descending order
+      const thresholds = Object.keys(rules.selectiveTaxBrackets)
+        .map(Number)
+        .sort((a, b) => b - a);
+      
+      // Find the first bracket where vehicle price is greater than or equal to threshold
+      for (const threshold of thresholds) {
+        if (cifValue >= threshold) {
+          applicableBracket = threshold;
+          applicableRate = rules.selectiveTaxBrackets[threshold];
+          break;
+        }
+      }
+      
+      const selectiveTax = cifValue * applicableRate;
+      accumulatedValue += selectiveTax;
+      
+      result.calculationSteps.push({
+        description: `Selective Consumption Tax - ${applicableBracket === 0 ? 'Base' : '$' + applicableBracket.toLocaleString() + '+'} bracket`,
+        formula: `CIF Value × ${(applicableRate * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(applicableRate * 100).toFixed(1)}% = $${selectiveTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: `Selective Consumption Tax`,
+        percent: `${(applicableRate * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: selectiveTax,
+        note: `For vehicles ${applicableBracket === 0 ? 'up to $7,000' : 'from $' + applicableBracket.toLocaleString() + (thresholds.indexOf(applicableBracket) > 0 ? ' to $' + thresholds[thresholds.indexOf(applicableBracket) - 1].toLocaleString() : '+')}`
+      });
+    }
+    
+    // Environmental tax with brackets (Honduras)
+    if (rules.ecoTaxBrackets) {
+      let applicableBracket = 0;
+      let applicableFee = 0;
+      
+      // Get all thresholds and sort them in descending order
+      const thresholds = Object.keys(rules.ecoTaxBrackets)
+        .map(Number)
+        .sort((a, b) => b - a);
+      
+      // Find the first bracket where vehicle price is greater than or equal to threshold
+      for (const threshold of thresholds) {
+        if (cifValue >= threshold) {
+          applicableBracket = threshold;
+          applicableFee = rules.ecoTaxBrackets[threshold];
+          break;
+        }
+      }
+      
+      accumulatedValue += applicableFee;
+      
+      result.calculationSteps.push({
+        description: `Environmental Tax (Ecotasa) - ${applicableBracket === 0 ? 'Base' : '$' + applicableBracket.toLocaleString() + '+'} bracket`,
+        formula: `Fixed Amount`,
+        calculation: `$${applicableFee.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: `Environmental Tax (Ecotasa)`,
+        percent: `Fixed`,
+        baseValue: 0,
+        amount: applicableFee,
+        note: `For vehicles ${applicableBracket === 0 ? 'up to $15,000' : 'from $' + applicableBracket.toLocaleString() + (thresholds.indexOf(applicableBracket) > 0 ? ' to $' + thresholds[thresholds.indexOf(applicableBracket) - 1].toLocaleString() : '+')}`
+      });
+    }
+    
+    // Guatemala's First Registration Tax (IPRIMA) with brackets
+    if ('firstRegistrationTaxBrackets' in rules) {
+      // Determine vehicle value bracket (luxury vs standard)
+      let applicableRate = rules.firstRegistrationTaxBrackets.standard;
+      let bracketName = "standard";
+      
+      if (cifValue > 40000) {
+        // Luxury vehicle (high-end)
+        applicableRate = rules.firstRegistrationTaxBrackets.luxury;
+        bracketName = "luxury";
+      } else if (cifValue < 5000) {
+        // Base minimum rate
+        applicableRate = rules.firstRegistrationTaxBrackets[0];
+        bracketName = "minimum";
+      }
+      
+      const registrationTax = cifValue * applicableRate;
+      accumulatedValue += registrationTax;
+      
+      result.calculationSteps.push({
+        description: `First Registration Tax (IPRIMA) - ${bracketName} rate`,
+        formula: `CIF Value × ${(applicableRate * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(applicableRate * 100).toFixed(1)}% = $${registrationTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "First Registration Tax (IPRIMA)",
+        percent: `${(applicableRate * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: registrationTax,
+        note: `${bracketName} vehicle rate`
+      });
+    }
+    
+    // Fixed first registration fee (El Salvador)
+    if ('firstRegistrationFee' in rules && typeof rules.firstRegistrationFee === 'number') {
+      accumulatedValue += rules.firstRegistrationFee;
+      
+      result.calculationSteps.push({
+        description: "First Registration Fee",
+        formula: "Fixed Fee",
+        calculation: `$${rules.firstRegistrationFee.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "First Registration Fee",
+        percent: "Fixed",
+        baseValue: 0,
+        amount: rules.firstRegistrationFee
+      });
+    }
+    
+    // Flat tax for low-value vehicles (Panama)
+    if ('flatTaxLowValue' in rules && typeof rules.flatTaxLowValue === 'number' && cifValue <= 8000) {
+      accumulatedValue += rules.flatTaxLowValue;
+      
+      result.calculationSteps.push({
+        description: "Flat Import Tax (Low-Value Vehicle)",
+        formula: "Fixed Amount",
+        calculation: `$${rules.flatTaxLowValue.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "Flat Import Tax",
+        percent: "Fixed",
+        baseValue: 0,
+        amount: rules.flatTaxLowValue,
+        note: "For vehicles up to $8,000"
+      });
+    }
+    
+    // Costa Rica's age-based tax brackets
+    if ('ageBrackets' in rules) {
+      const vehicleAge = vehicle?.year ? new Date().getFullYear() - vehicle.year : 0;
+      let applicableRate = 0;
+      let bracketName = "";
+      
+      if (vehicleAge < 3) {
+        applicableRate = rules.ageBrackets.new;
+        bracketName = "new (0-3 years)";
+      } else if (vehicleAge < 6) {
+        applicableRate = rules.ageBrackets.recent;
+        bracketName = "recent (4-5 years)";
+      } else {
+        applicableRate = rules.ageBrackets.older;
+        bracketName = "older (6+ years)";
+      }
+      
+      // In Costa Rica, this is often a complete tax rather than an addition
+      if (selectedCountry === 'costa_rica' && 'selectiveTax' in rules) {
+        // For Costa Rica, this is actually the total effective tax rate
+        const totalTax = cifValue * applicableRate;
+        accumulatedValue = cifValue + totalTax;
+        
+        result.calculationSteps.push({
+          description: `Total Import Taxes (${bracketName})`,
+          formula: `CIF Value × ${(applicableRate * 100).toFixed(1)}%`,
+          calculation: `$${cifValue.toFixed(2)} × ${(applicableRate * 100).toFixed(1)}% = $${totalTax.toFixed(2)}`
+        });
+        
+        result.breakdown.push({
+          name: `Total Import Taxes`,
+          percent: `${(applicableRate * 100).toFixed(1)}%`,
+          baseValue: cifValue,
+          amount: totalTax,
+          note: `Effective tax rate for ${bracketName} vehicles in Costa Rica`
+        });
+      }
+    }
+    
+    // Simple flat selective tax
+    if ('selectiveTax' in rules && typeof rules.selectiveTax === 'number') {
+      const selectiveTax = cifValue * rules.selectiveTax;
+      accumulatedValue += selectiveTax;
+      
+      result.calculationSteps.push({
+        description: "Selective Consumption Tax",
+        formula: `CIF Value × ${(rules.selectiveTax * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(rules.selectiveTax * 100).toFixed(1)}% = $${selectiveTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "Selective Consumption Tax",
+        percent: `${(rules.selectiveTax * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: selectiveTax
+      });
+    }
+    
+    // Luxury Tax (Dominican Republic)
+    if ('luxuryTax' in rules) {
+      const luxuryTax = cifValue * rules.luxuryTax;
+      accumulatedValue += luxuryTax;
+      
+      result.calculationSteps.push({
+        description: "Luxury/Selective Consumption Tax",
+        formula: `CIF Value × ${(rules.luxuryTax * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(rules.luxuryTax * 100).toFixed(1)}% = $${luxuryTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "Luxury/Selective Consumption Tax",
+        percent: `${(rules.luxuryTax * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: luxuryTax
+      });
+    }
+    
+    // Environmental Tax (Belize)
+    if ('environmentalTax' in rules) {
+      const environmentalTax = cifValue * rules.environmentalTax;
+      accumulatedValue += environmentalTax;
+      
+      result.calculationSteps.push({
+        description: "Environmental Tax",
+        formula: `CIF Value × ${(rules.environmentalTax * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(rules.environmentalTax * 100).toFixed(1)}% = $${environmentalTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "Environmental Tax",
+        percent: `${(rules.environmentalTax * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: environmentalTax
+      });
+    }
+    
+    // GST (Belize) or Sales Tax (most countries)
+    let taxBase = cifValue;
+    let taxName = "";
+    let taxRate = 0;
+    
+    if ('gst' in rules) {
+      taxName = "General Sales Tax (GST)";
+      taxRate = rules.gst;
+    } else if ('salesTax' in rules) {
+      taxName = "Sales Tax (IVA/VAT)";
+      taxRate = rules.salesTax;
+    }
+    
+    if (taxRate > 0) {
+      // Some countries apply sales tax to accumulated value (CIF + previous taxes)
+      const prevAccumulated = accumulatedValue;
+      const salesTax = prevAccumulated * taxRate;
+      accumulatedValue += salesTax;
+      
+      result.calculationSteps.push({
+        description: taxName,
+        formula: `Accumulated Value × ${(taxRate * 100).toFixed(1)}%`,
+        calculation: `$${prevAccumulated.toFixed(2)} × ${(taxRate * 100).toFixed(1)}% = $${salesTax.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: taxName,
+        percent: `${(taxRate * 100).toFixed(1)}%`,
+        baseValue: prevAccumulated,
+        amount: salesTax,
+        note: "Applied to accumulated value"
+      });
+    }
+    
+    // Add other fees (storage, customs agent, registration)
+    if ('otherFees' in rules) {
+      const otherFees = cifValue * rules.otherFees;
+      accumulatedValue += otherFees;
+      
+      result.calculationSteps.push({
+        description: "Other Fees (Storage, Customs, Registration)",
+        formula: `CIF Value × ${(rules.otherFees * 100).toFixed(1)}%`,
+        calculation: `$${cifValue.toFixed(2)} × ${(rules.otherFees * 100).toFixed(1)}% = $${otherFees.toFixed(2)}`
+      });
+      
+      result.breakdown.push({
+        name: "Other Fees (Storage, Customs, Registration)",
+        percent: `${(rules.otherFees * 100).toFixed(1)}%`,
+        baseValue: cifValue,
+        amount: otherFees
+      });
+    }
+    
+    // Calculate total tax amount and final import cost
+    result.totalTaxAmount = accumulatedValue - cifValue;
+    result.totalImportCost = accumulatedValue;
+    result.taxPercentage = ((result.totalTaxAmount / cifValue) * 100).toFixed(1);
+    
+    // Final step for total calculation
+    result.calculationSteps.push({
+      description: "Total Import Cost",
+      formula: "CIF Value + All Taxes and Fees",
+      calculation: `$${cifValue.toFixed(2)} + $${result.totalTaxAmount.toFixed(2)} = $${result.totalImportCost.toFixed(2)}`,
+      isFinal: true
+    });
+    
+    return result;
+  };
+
+  // Handle calculation
+  const handleCalculate = () => {
+    const results = calculateTaxes();
+    setCalculationDetails(results);
+  };
+
+  // Copy calculation to clipboard
+  const copyCalculation = () => {
+    if (!calculationDetails) return;
+    
+    const details = `
+DUTY TAX CALCULATION FOR ${vehicle?.year} ${vehicle?.make} ${vehicle?.model}
+
+DESTINATION: ${calculationDetails.country}
+VIN: ${vehicle?.vin} (${isNorthAmericanOrigin(vehicle?.vin) ? "CAFTA Eligible" : "Non-CAFTA"})
+
+VEHICLE PRICE: $${vehiclePrice}
+FREIGHT: $${freight}
+INSURANCE: $${insurance}
+CIF VALUE: $${calculationDetails.cifValue}
+
+TAX BREAKDOWN:
+${calculationDetails.breakdown.map((item: any) => 
+  `- ${item.name}: ${item.percent} = $${item.amount.toFixed(2)}${item.note ? ` (${item.note})` : ''}`
+).join('\n')}
+
+TOTAL DUTIES & TAXES: $${calculationDetails.totalTaxAmount.toFixed(2)} (${calculationDetails.taxPercentage}% of CIF)
+TOTAL IMPORT COST: $${calculationDetails.totalImportCost.toFixed(2)}
+
+Generated by EcomAutos Duty Tax Calculator
+    `.trim();
+    
+    navigator.clipboard.writeText(details);
+    
+    toast({
+      title: "Calculation copied",
+      description: "The complete tax calculation has been copied to your clipboard.",
+      variant: "default",
+      duration: 3000,
+    });
+  };
+
+  // Format currency values
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-primary" />
+            CAFTA Import Duty Tax Calculator
+          </CardTitle>
+          <CardDescription>
+            Calculate exact import duties, taxes, and fees for exporting vehicles to Central American countries under the CAFTA-DR Treaty. Includes 2025 tax rates for all countries with special considerations for VIN origin, engine size, and vehicle value.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* North American Origin Indicator */}
+            {vehicle && vehicle.vin && (
+              <div className="flex items-start space-x-2 mb-4">
+                <Badge className={
+                  isNorthAmericanOrigin(vehicle.vin) 
+                    ? "bg-green-100 text-green-800" 
+                    : "bg-yellow-100 text-yellow-800"
+                }>
+                  {isNorthAmericanOrigin(vehicle.vin) 
+                    ? "CAFTA Eligible - North American Origin" 
+                    : "Non-CAFTA Origin"}
+                </Badge>
+                <Info className="h-4 w-4 text-gray-400 cursor-help mt-0.5" />
+                <div className="text-xs text-gray-500">
+                  <p>
+                    VIN: {vehicle.vin} {isNorthAmericanOrigin(vehicle.vin) && "(starts with 1, 4, or 5)"}
+                  </p>
+                  {isNorthAmericanOrigin(vehicle.vin) && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <ArrowRight className="h-4 w-4 text-green-600" />
+                      <span className="font-medium">
+                        Estimated duty savings: {formatCurrency(calculationDetails?.cifValue * 0.15 || 0)} 
+                        <span className="text-sm text-gray-600 ml-1">(compared to non-CAFTA origin)</span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Left Column - Input Parameters */}
+              <div className="space-y-6 md:col-span-1">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Input Parameters</h3>
+                  
+                  {/* Country Selection */}
+                  <div className="space-y-2">
+                    <label htmlFor="country-select" className="text-sm font-medium">
+                      Destination Country
+                    </label>
+                    <Select 
+                      value={selectedCountry} 
+                      onValueChange={(value) => setSelectedCountry(value)}
+                    >
+                      <SelectTrigger id="country-select">
+                        <SelectValue placeholder="Select a country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CENTRAL_AMERICAN_COUNTRIES.map((country) => (
+                          <SelectItem key={country.id} value={country.id}>
+                            <span className="flex items-center">
+                              <span className="mr-2">{country.flag}</span>
+                              {country.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Vehicle Value Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Vehicle Value (USD)
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-500" />
+                      <Input
+                        type="number"
+                        value={vehiclePrice}
+                        onChange={(e) => setVehiclePrice(Number(e.target.value))}
+                        className="pl-10"
+                        placeholder="Vehicle purchase price"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Freight Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Freight Cost (USD)
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-500" />
+                      <Input
+                        type="number"
+                        value={freight}
+                        onChange={(e) => setFreight(Number(e.target.value))}
+                        className="pl-10"
+                        placeholder="Shipping cost"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Insurance Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Insurance Cost (USD)
+                    </label>
+                    <div className="relative">
+                      <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-500" />
+                      <Input
+                        type="number"
+                        value={insurance}
+                        onChange={(e) => setInsurance(Number(e.target.value))}
+                        className="pl-10"
+                        placeholder="Insurance cost"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Engine Size Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Engine Size (cc)
+                    </label>
+                    <Input
+                      type="number"
+                      value={engineSize}
+                      onChange={(e) => setEngineSize(Number(e.target.value))}
+                      placeholder="Engine displacement"
+                    />
+                  </div>
+
+                  {/* Advanced Options Toggle */}
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Switch 
+                      id="advanced-options" 
+                      checked={useAdvancedOptions}
+                      onCheckedChange={setUseAdvancedOptions}
+                    />
+                    <label htmlFor="advanced-options" className="text-sm">
+                      Show Advanced Options
+                    </label>
+                  </div>
+
+                  {/* Advanced Options Section */}
+                  {useAdvancedOptions && (
+                    <div className="space-y-3 p-3 bg-gray-50 rounded-md">
+                      <h4 className="text-sm font-medium">Advanced Options</h4>
+                      
+                      {/* Port Fees Input */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">
+                          Port Fees (USD)
+                        </label>
+                        <Input
+                          type="number"
+                          value={portFees}
+                          onChange={(e) => setPortFees(Number(e.target.value))}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      
+                      {/* Customs Handling Input */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">
+                          Customs Handling (USD)
+                        </label>
+                        <Input
+                          type="number"
+                          value={customsHandling}
+                          onChange={(e) => setCustomsHandling(Number(e.target.value))}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      
+                      {/* Inland Transport Input */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">
+                          Inland Transport (USD)
+                        </label>
+                        <Input
+                          type="number"
+                          value={inlandTransport}
+                          onChange={(e) => setInlandTransport(Number(e.target.value))}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                      
+                      {/* Body Damage Selection */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium">
+                          Body Damage
+                        </label>
+                        <Select 
+                          value={bodyDamage} 
+                          onValueChange={setBodyDamage}
+                        >
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue placeholder="Select damage level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="minor">Minor</SelectItem>
+                            <SelectItem value="moderate">Moderate</SelectItem>
+                            <SelectItem value="severe">Severe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* North American Origin */}
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Badge variant={isCaftaEligible ? "default" : "outline"} className={isCaftaEligible ? "bg-green-600" : ""}>
+                      {isCaftaEligible ? "CAFTA Eligible" : "Non-CAFTA"}
+                    </Badge>
+                    <span className="text-sm text-gray-500">
+                      {vehicle?.vin && `VIN: ${vehicle.vin.substring(0, 3)}...`}
+                    </span>
+                  </div>
+
+                  {/* Calculate Button */}
+                  <Button 
+                    onClick={handleCalculate} 
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Calculator className="mr-2 h-5 w-5" />
+                    Calculate Import Cost
+                  </Button>
+
+                  {/* Auto-Populate button (if vehicle data exists) */}
+                  {vehicle && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={autoPopulateFromVehicle}
+                    >
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Auto-Populate from VIN
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Right Column - Results */}
+              <div className="md:col-span-2">
+                {calculationDetails ? (
+                  <div className="space-y-6">
+                    {/* Summary Result */}
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-purple-100">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500">Total Duties & Taxes</p>
+                          <p className="text-xl font-bold">${calculationDetails.totalTaxAmount.toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">{calculationDetails.taxPercentage}% of CIF</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">CIF Value</p>
+                          <p className="text-xl font-bold">${calculationDetails.cifValue.toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">Cost + Insurance + Freight</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Total Import Cost</p>
+                          <p className="text-xl font-bold text-purple-700">${calculationDetails.totalImportCost.toFixed(2)}</p>
+                          <p className="text-sm text-gray-500">CIF + All Taxes & Fees</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Calculation Steps */}
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Step-by-Step Calculation</h3>
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                        {calculationDetails.calculationSteps.map((step: any, index: number) => (
+                          <div 
+                            key={index} 
+                            className={`p-3 rounded-md ${step.isFinal ? 'bg-gradient-to-r from-blue-50 to-purple-50 border border-purple-100' : 'bg-gray-50'}`}
+                          >
+                            <p className="text-sm font-medium">{step.description}</p>
+                            <p className="text-xs text-gray-500">{step.formula}</p>
+                            <p className={`text-sm ${step.isFinal ? 'font-bold' : ''}`}>{step.calculation}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Copy Button */}
+                    <Button variant="outline" onClick={copyCalculation} className="w-full">
+                      <Clipboard className="mr-2 h-4 w-4" />
+                      Copy Detailed Calculation
+                    </Button>
+                    
+                    {/* Tax Breakdown Table */}
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">Tax Breakdown</h3>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Item</TableHead>
+                            <TableHead>Rate/Fee</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="font-medium">Vehicle Value</TableCell>
+                            <TableCell>Base</TableCell>
+                            <TableCell className="text-right">${vehiclePrice.toFixed(2)}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">Freight</TableCell>
+                            <TableCell>-</TableCell>
+                            <TableCell className="text-right">${freight.toFixed(2)}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">Insurance</TableCell>
+                            <TableCell>-</TableCell>
+                            <TableCell className="text-right">${insurance.toFixed(2)}</TableCell>
+                          </TableRow>
+                          {calculationDetails.breakdown.map((item: any, index: number) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{item.name}</TableCell>
+                              <TableCell>{item.percent}</TableCell>
+                              <TableCell className="text-right">${item.amount.toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-gray-50 font-medium">
+                            <TableCell>Total Import Cost</TableCell>
+                            <TableCell></TableCell>
+                            <TableCell className="text-right">${calculationDetails.totalImportCost.toFixed(2)}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                    <Calculator className="h-16 w-16 text-gray-200 mb-4" />
+                    <h3 className="text-xl font-medium">No Calculation Yet</h3>
+                    <p className="text-sm text-gray-500 max-w-md mt-2 mb-6">
+                      Enter the vehicle details and destination country, then click the Calculate button to see a detailed breakdown of import duties, taxes, and fees.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg">
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <p className="font-medium text-blue-700 text-sm">CAFTA-DR Benefits</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Vehicles with VINs starting with 1, 4, or 5 are considered North American origin under CAFTA-DR and qualify for reduced import duties.
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-50 rounded-lg">
+                        <p className="font-medium text-green-700 text-sm">2025 Updated Rates</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          All calculations use the latest 2025 tax schedules including selective consumption tax, environmental fees, and registration taxes.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
