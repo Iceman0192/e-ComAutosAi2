@@ -42,6 +42,7 @@ const TAX_RULES = {
         100000: 0.60 // 60% for vehicles over $100,000
       },
       salesTax: 0.15,
+      environmentalTax: 200, // Base environmental fee
       otherFees: 0.10
     },
     other_origin: {
@@ -55,6 +56,7 @@ const TAX_RULES = {
         100000: 0.60
       },
       salesTax: 0.15,
+      environmentalTax: 205,
       otherFees: 0.03
     }
   },
@@ -66,12 +68,7 @@ const TAX_RULES = {
       otherFees: 0.05
     },
     other_origin: {
-      dutyByEngineSize: {
-        under2000cc: 0.25, // 25% for engines under 2000cc
-        over2000cc: 0.30,  // 30% for engines over 2000cc
-        pickupTruck: 0.25,
-        heavyTruck: 0.15
-      },
+      duty: 0.25, // Engine-based duty (simplified to 25% average)
       salesTax: 0.13,
       firstRegistrationFee: 350,
       otherFees: 0.025
@@ -81,22 +78,26 @@ const TAX_RULES = {
     north_american_origin: {
       duty: 0.0,
       salesTax: 0.12,
+      registrationTax: 0.10, // IPRIMA tax
       otherFees: 0.04
     },
     other_origin: {
       duty: 0.10,
       salesTax: 0.12,
+      registrationTax: 0.10,
       otherFees: 0.025
     }
   },
   nicaragua: {
     north_american_origin: {
       duty: 0.0,
+      selectiveTax: 0.10,
       salesTax: 0.15,
       otherFees: 0.05
     },
     other_origin: {
       duty: 0.15,
+      selectiveTax: 0.15,
       salesTax: 0.15,
       otherFees: 0.03
     }
@@ -105,11 +106,14 @@ const TAX_RULES = {
     north_american_origin: {
       duty: 0.14, // Costa Rica did NOT eliminate duties under CAFTA for vehicles
       salesTax: 0.13,
+      ageTax: 0.53, // Age-based tax (simplified)
       otherFees: 0.08
     },
     other_origin: {
-      duty: 0.14,
+      duty: 0.30,
       salesTax: 0.13,
+      selectiveTax: 0.48,
+      ageTax: 0.20,
       otherFees: 0.05
     }
   }
@@ -196,48 +200,64 @@ export default function ImportCalculator() {
     let dutyTax = 0;
     let selectiveTax = 0;
     let salesTax = 0;
-    let otherFees = 0;
+    let environmentalTax = 0;
     let registrationFee = 0;
+    let otherFees = 0;
 
     // Calculate duty tax based on country rules
-    if ('duty' in rules && typeof rules.duty === 'number') {
+    if (rules.duty !== undefined) {
       dutyTax = cifValue * rules.duty;
       accumulatedValue += dutyTax;
     }
 
-    // Engine size-based duty (El Salvador)
-    if ('dutyByEngineSize' in rules) {
-      let dutyRate = 0;
-      if (engine <= 2000) {
-        dutyRate = rules.dutyByEngineSize.under2000cc;
-      } else if (engine > 2000) {
-        dutyRate = rules.dutyByEngineSize.over2000cc;
-      }
-      dutyTax = cifValue * dutyRate;
-      accumulatedValue += dutyTax;
-    }
+    // Handle different tax types based on country
+    const rulesAny = rules as any;
 
     // Selective consumption tax with brackets (Honduras)
-    if ('selectiveTaxBrackets' in rules) {
-      const applicableRate = applyBracketTax(cifValue, rules.selectiveTaxBrackets);
+    if (rulesAny.selectiveTaxBrackets) {
+      const applicableRate = applyBracketTax(cifValue, rulesAny.selectiveTaxBrackets);
       selectiveTax = cifValue * applicableRate;
       accumulatedValue += selectiveTax;
     }
 
+    // Simple selective tax (Nicaragua)
+    if (rulesAny.selectiveTax) {
+      selectiveTax = cifValue * rulesAny.selectiveTax;
+      accumulatedValue += selectiveTax;
+    }
+
+    // Environmental tax
+    if (rulesAny.environmentalTax) {
+      environmentalTax = typeof rulesAny.environmentalTax === 'number' ? rulesAny.environmentalTax : cifValue * 0.05;
+      accumulatedValue += environmentalTax;
+    }
+
+    // Registration tax (Guatemala IPRIMA)
+    if (rulesAny.registrationTax) {
+      registrationFee = cifValue * rulesAny.registrationTax;
+      accumulatedValue += registrationFee;
+    }
+
+    // Fixed registration fee
+    if (rulesAny.firstRegistrationFee) {
+      registrationFee = rulesAny.firstRegistrationFee;
+      accumulatedValue += registrationFee;
+    }
+
+    // Age-based tax (Costa Rica)
+    if (rulesAny.ageTax) {
+      selectiveTax += cifValue * rulesAny.ageTax;
+      accumulatedValue += cifValue * rulesAny.ageTax;
+    }
+
     // Sales tax (applied to accumulated value)
-    if ('salesTax' in rules) {
+    if (rules.salesTax) {
       salesTax = accumulatedValue * rules.salesTax;
       accumulatedValue += salesTax;
     }
 
-    // Registration fees
-    if ('firstRegistrationFee' in rules) {
-      registrationFee = rules.firstRegistrationFee;
-      accumulatedValue += registrationFee;
-    }
-
     // Other fees
-    if ('otherFees' in rules) {
+    if (rules.otherFees) {
       otherFees = cifValue * rules.otherFees;
       accumulatedValue += otherFees;
     }
@@ -251,7 +271,7 @@ export default function ImportCalculator() {
       importDuty: dutyTax,
       selectiveTax,
       vat: salesTax,
-      environmentalTax: otherFees,
+      environmentalTax,
       registrationFees: registrationFee,
       totalTaxes: accumulatedValue - cifValue,
       totalCost: accumulatedValue,
