@@ -313,7 +313,6 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
     // Calculate CIF (Cost, Insurance, Freight)
     const cifValue = vehiclePrice + freight + insurance;
     
-    let accumulatedValue = cifValue;
     let dutyTax = 0;
     let selectiveTax = 0;
     let salesTax = 0;
@@ -321,151 +320,184 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
     let registrationFee = 0;
     let otherFees = 0;
     
-    // Calculate duty tax based on country rules
-    if (rules.duty !== undefined) {
-      dutyTax = cifValue * rules.duty;
-      accumulatedValue += dutyTax;
-    }
-    
-    // Engine size-based duty (El Salvador, Panama, Belize)
-    if (rules.dutyByEngineSize) {
-      let dutyRate = 0;
-      if (engineSize <= 2000 && rules.dutyByEngineSize.under2000cc) {
-        dutyRate = rules.dutyByEngineSize.under2000cc;
-      } else if (engineSize > 2000 && engineSize <= 3000) {
-        dutyRate = rules.dutyByEngineSize.over2000cc || rules.dutyByEngineSize.under3000cc;
-      } else if (engineSize > 3000 && rules.dutyByEngineSize.over3000cc) {
-        dutyRate = rules.dutyByEngineSize.over3000cc;
-      } else if (rules.dutyByEngineSize.over2000cc) {
-        dutyRate = rules.dutyByEngineSize.over2000cc;
+    // Honduras uses accumulative tax calculation
+    if (selectedCountry === 'honduras') {
+      let accumulatedValue = cifValue;
+      
+      // Calculate duty tax
+      if (rules.duty !== undefined) {
+        dutyTax = cifValue * rules.duty;
+        accumulatedValue += dutyTax;
       }
-      dutyTax = cifValue * dutyRate;
-      accumulatedValue += dutyTax;
-    }
-    
-    // Selective consumption tax with brackets (Honduras)
-    if (rules.selectiveTaxBrackets) {
-      const applyBracketTax = (value: number, brackets: Record<number, number>): number => {
-        const thresholds = Object.keys(brackets).map(Number).sort((a, b) => b - a);
+      
+      // Selective consumption tax with brackets (applied to CIF)
+      if (rules.selectiveTaxBrackets) {
+        const applyBracketTax = (value: number, brackets: Record<number, number>): number => {
+          const thresholds = Object.keys(brackets).map(Number).sort((a, b) => b - a);
+          for (const threshold of thresholds) {
+            if (value >= threshold) {
+              return brackets[threshold];
+            }
+          }
+          return 0;
+        };
+        
+        const applicableRate = applyBracketTax(cifValue, rules.selectiveTaxBrackets);
+        selectiveTax = cifValue * applicableRate;
+        accumulatedValue += selectiveTax;
+      }
+      
+      // Environmental/eco tax brackets
+      if (rules.ecoTaxBrackets) {
+        const thresholds = Object.keys(rules.ecoTaxBrackets).map(Number).sort((a, b) => b - a);
         for (const threshold of thresholds) {
-          if (value >= threshold) {
-            return brackets[threshold];
+          if (cifValue >= threshold) {
+            environmentalTax = rules.ecoTaxBrackets[threshold];
+            break;
           }
         }
-        return 0;
+        accumulatedValue += environmentalTax;
+      }
+      
+      // Sales tax (applied to accumulated value including CIF + duty + selective tax)
+      if (rules.salesTax) {
+        salesTax = accumulatedValue * rules.salesTax;
+        accumulatedValue += salesTax;
+      }
+      
+      // Other fees
+      if (rules.otherFees) {
+        otherFees = cifValue * rules.otherFees;
+        accumulatedValue += otherFees;
+      }
+      
+      return {
+        cifValue,
+        dutyTax,
+        selectiveTax,
+        salesTax,
+        environmentalTax,
+        registrationFee,
+        otherFees,
+        totalTaxAmount: accumulatedValue - cifValue,
+        totalImportCost: accumulatedValue,
+        taxPercentage: ((accumulatedValue - cifValue) / cifValue * 100).toFixed(1),
+        caftaEligible: isNorthAmerican,
+        caftaSavings: isNorthAmerican ? (cifValue * (countryRules.other_origin.duty || 0.15)) : 0
       };
-      
-      const applicableRate = applyBracketTax(cifValue, rules.selectiveTaxBrackets);
-      selectiveTax = cifValue * applicableRate;
-      accumulatedValue += selectiveTax;
     }
     
-    // Environmental/eco tax brackets
-    if (rules.ecoTaxBrackets) {
-      const thresholds = Object.keys(rules.ecoTaxBrackets).map(Number).sort((a, b) => b - a);
-      for (const threshold of thresholds) {
-        if (cifValue >= threshold) {
-          environmentalTax = rules.ecoTaxBrackets[threshold];
-          break;
+    // All other countries use standard tax calculation (taxes applied to base CIF value)
+    else {
+      // Calculate duty tax based on country rules
+      if (rules.duty !== undefined) {
+        dutyTax = cifValue * rules.duty;
+      }
+      
+      // Engine size-based duty (El Salvador, Panama, Belize)
+      if (rules.dutyByEngineSize) {
+        let dutyRate = 0;
+        if (engineSize <= 2000 && rules.dutyByEngineSize.under2000cc) {
+          dutyRate = rules.dutyByEngineSize.under2000cc;
+        } else if (engineSize > 2000 && engineSize <= 3000) {
+          dutyRate = rules.dutyByEngineSize.over2000cc || rules.dutyByEngineSize.under3000cc;
+        } else if (engineSize > 3000 && rules.dutyByEngineSize.over3000cc) {
+          dutyRate = rules.dutyByEngineSize.over3000cc;
+        } else if (rules.dutyByEngineSize.over2000cc) {
+          dutyRate = rules.dutyByEngineSize.over2000cc;
         }
-      }
-      accumulatedValue += environmentalTax;
-    }
-    
-    // Fixed environmental tax
-    if (rules.environmentalTax) {
-      environmentalTax = cifValue * rules.environmentalTax;
-      accumulatedValue += environmentalTax;
-    }
-    
-    // Simple selective tax (Nicaragua)
-    if (rules.selectiveTax) {
-      selectiveTax = cifValue * rules.selectiveTax;
-      accumulatedValue += selectiveTax;
-    }
-    
-    // Registration tax brackets (Guatemala IPRIMA)
-    if (rules.firstRegistrationTaxBrackets) {
-      let rate = rules.firstRegistrationTaxBrackets.standard || 0.10;
-      if (cifValue > 40000) {
-        rate = rules.firstRegistrationTaxBrackets.luxury || 0.20;
-      } else if (cifValue < 15000) {
-        rate = rules.firstRegistrationTaxBrackets[0] || 0.05;
-      }
-      registrationFee = cifValue * rate;
-      accumulatedValue += registrationFee;
-    }
-    
-    // Fixed registration fee
-    if (rules.firstRegistrationFee) {
-      registrationFee = rules.firstRegistrationFee;
-      accumulatedValue += registrationFee;
-    }
-    
-    // Age-based tax (Costa Rica)
-    if (rules.ageBrackets) {
-      const currentYear = new Date().getFullYear();
-      const vehicleYear = currentYear - 5; // Default to 5 years old
-      const age = currentYear - vehicleYear;
-      
-      let ageRate = rules.ageBrackets.older || 0.79;
-      if (age <= 3) {
-        ageRate = rules.ageBrackets.new || 0.53;
-      } else if (age <= 5) {
-        ageRate = rules.ageBrackets.recent || 0.64;
+        dutyTax = cifValue * dutyRate;
       }
       
-      const ageTax = cifValue * ageRate;
-      selectiveTax += ageTax;
-      accumulatedValue += ageTax;
+      // Fixed environmental tax
+      if (rules.environmentalTax) {
+        environmentalTax = cifValue * rules.environmentalTax;
+      }
+      
+      // Simple selective tax (Nicaragua)
+      if (rules.selectiveTax) {
+        selectiveTax = cifValue * rules.selectiveTax;
+      }
+      
+      // Registration tax brackets (Guatemala IPRIMA)
+      if (rules.firstRegistrationTaxBrackets) {
+        let rate = rules.firstRegistrationTaxBrackets.standard || 0.10;
+        if (cifValue > 40000) {
+          rate = rules.firstRegistrationTaxBrackets.luxury || 0.20;
+        } else if (cifValue < 15000) {
+          rate = rules.firstRegistrationTaxBrackets[0] || 0.05;
+        }
+        registrationFee = cifValue * rate;
+      }
+      
+      // Fixed registration fee
+      if (rules.firstRegistrationFee) {
+        registrationFee = rules.firstRegistrationFee;
+      }
+      
+      // Age-based tax (Costa Rica)
+      if (rules.ageBrackets) {
+        const currentYear = new Date().getFullYear();
+        const vehicleYear = currentYear - 5; // Default to 5 years old
+        const age = currentYear - vehicleYear;
+        
+        let ageRate = rules.ageBrackets.older || 0.79;
+        if (age <= 3) {
+          ageRate = rules.ageBrackets.new || 0.53;
+        } else if (age <= 5) {
+          ageRate = rules.ageBrackets.recent || 0.64;
+        }
+        
+        const ageTax = cifValue * ageRate;
+        selectiveTax += ageTax;
+      }
+      
+      // Luxury tax (Dominican Republic)
+      if (rules.luxuryTax) {
+        const luxuryTax = cifValue * rules.luxuryTax;
+        selectiveTax += luxuryTax;
+      }
+      
+      // Sales tax (applied to CIF + duties for standard calculation)
+      if (rules.salesTax) {
+        const taxableBase = cifValue + dutyTax + selectiveTax;
+        salesTax = taxableBase * rules.salesTax;
+      }
+      
+      // GST (for Belize)
+      if (rules.gst) {
+        const taxableBase = cifValue + dutyTax + selectiveTax + environmentalTax;
+        salesTax = taxableBase * rules.gst;
+      }
+      
+      // Flat tax for low value vehicles (Panama)
+      if (rules.flatTaxLowValue && cifValue <= 8000) {
+        const flatTax = rules.flatTaxLowValue;
+        selectiveTax += flatTax;
+      }
+      
+      // Other fees
+      if (rules.otherFees) {
+        otherFees = cifValue * rules.otherFees;
+      }
+      
+      const totalTaxes = dutyTax + selectiveTax + salesTax + environmentalTax + registrationFee + otherFees;
+      
+      return {
+        cifValue,
+        dutyTax,
+        selectiveTax,
+        salesTax,
+        environmentalTax,
+        registrationFee,
+        otherFees,
+        totalTaxAmount: totalTaxes,
+        totalImportCost: cifValue + totalTaxes,
+        taxPercentage: ((totalTaxes) / cifValue * 100).toFixed(1),
+        caftaEligible: isNorthAmerican,
+        caftaSavings: isNorthAmerican ? (cifValue * (countryRules.other_origin.duty || 0.15)) : 0
+      };
     }
-    
-    // Luxury tax (Dominican Republic)
-    if (rules.luxuryTax) {
-      const luxuryTax = cifValue * rules.luxuryTax;
-      selectiveTax += luxuryTax;
-      accumulatedValue += luxuryTax;
-    }
-    
-    // Sales tax (applied to accumulated value)
-    if (rules.salesTax) {
-      salesTax = accumulatedValue * rules.salesTax;
-      accumulatedValue += salesTax;
-    }
-    
-    // GST (for Belize)
-    if (rules.gst) {
-      salesTax = accumulatedValue * rules.gst;
-      accumulatedValue += salesTax;
-    }
-    
-    // Flat tax for low value vehicles (Panama)
-    if (rules.flatTaxLowValue && cifValue <= 8000) {
-      const flatTax = rules.flatTaxLowValue;
-      selectiveTax += flatTax;
-      accumulatedValue += flatTax;
-    }
-    
-    // Other fees
-    if (rules.otherFees) {
-      otherFees = cifValue * rules.otherFees;
-      accumulatedValue += otherFees;
-    }
-    
-    return {
-      cifValue,
-      dutyTax,
-      selectiveTax,
-      salesTax,
-      environmentalTax,
-      registrationFee,
-      otherFees,
-      totalTaxAmount: accumulatedValue - cifValue,
-      totalImportCost: accumulatedValue,
-      taxPercentage: ((accumulatedValue - cifValue) / cifValue * 100).toFixed(1),
-      caftaEligible: isNorthAmerican,
-      caftaSavings: isNorthAmerican ? (cifValue * (countryRules.other_origin.duty || 0.15)) : 0
-    };
   };
 
   useEffect(() => {
