@@ -16,6 +16,7 @@ import LiveCopart from "./pages/live-copart";
 import LiveIAAI from "./pages/live-iaai";
 import AuctionMind from "./pages/auction-mind";
 import ImportCalculator from "./pages/import-calculator";
+import ComprehensiveImportCalculator from "./pages/comprehensive-import-calculator";
 import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
