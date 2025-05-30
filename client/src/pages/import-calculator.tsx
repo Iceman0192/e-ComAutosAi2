@@ -163,118 +163,129 @@ export default function ImportCalculator() {
     const cifValue = value + freight + insurance;
     const age = parseInt(vehicleAge) || 0;
     const engine = parseFloat(engineSize) || 0;
-    const countryData = countryTaxRates[selectedCountry as keyof typeof countryTaxRates];
+    // Helper functions for tax calculations
+    const isNorthAmericanOrigin = (vin: string): boolean => {
+      if (!vin || vin.length !== 17) return false;
+      const firstChar = vin.charAt(0).toUpperCase();
+      return ['1', '4', '5'].includes(firstChar); // US manufactured VINs only
+    };
+
+    const applyBracketTax = (value: number, brackets: Record<number, number>): number => {
+      const thresholds = Object.keys(brackets).map(Number).sort((a, b) => b - a);
+      for (const threshold of thresholds) {
+        if (value >= threshold) {
+          return brackets[threshold];
+        }
+      }
+      return 0;
+    };
+
+    // Determine vehicle origin
+    const isNorthAmerican = vinNumber ? isNorthAmericanOrigin(vinNumber) : (isCaftaEligible === true);
+    const originType = isNorthAmerican ? 'north_american_origin' : 'other_origin';
+
+    // Get country tax rules
+    const countryRules = TAX_RULES[selectedCountry as keyof typeof TAX_RULES];
+    if (!countryRules) return;
+
+    const rules = countryRules[originType as keyof typeof countryRules];
+    if (!rules) return;
     
-    let calc: DutyCalculation = {
-      country: countryData.name,
+    // Calculate using accurate tax system
+    let accumulatedValue = cifValue;
+    let dutyTax = 0;
+    let selectiveTax = 0;
+    let salesTax = 0;
+    let otherFees = 0;
+    let registrationFee = 0;
+
+    // Calculate duty tax based on country rules
+    if ('duty' in rules && typeof rules.duty === 'number') {
+      dutyTax = cifValue * rules.duty;
+      accumulatedValue += dutyTax;
+    }
+
+    // Engine size-based duty (El Salvador)
+    if ('dutyByEngineSize' in rules) {
+      let dutyRate = 0;
+      if (engine <= 2000) {
+        dutyRate = rules.dutyByEngineSize.under2000cc;
+      } else if (engine > 2000) {
+        dutyRate = rules.dutyByEngineSize.over2000cc;
+      }
+      dutyTax = cifValue * dutyRate;
+      accumulatedValue += dutyTax;
+    }
+
+    // Selective consumption tax with brackets (Honduras)
+    if ('selectiveTaxBrackets' in rules) {
+      const applicableRate = applyBracketTax(cifValue, rules.selectiveTaxBrackets);
+      selectiveTax = cifValue * applicableRate;
+      accumulatedValue += selectiveTax;
+    }
+
+    // Sales tax (applied to accumulated value)
+    if ('salesTax' in rules) {
+      salesTax = accumulatedValue * rules.salesTax;
+      accumulatedValue += salesTax;
+    }
+
+    // Registration fees
+    if ('firstRegistrationFee' in rules) {
+      registrationFee = rules.firstRegistrationFee;
+      accumulatedValue += registrationFee;
+    }
+
+    // Other fees
+    if ('otherFees' in rules) {
+      otherFees = cifValue * rules.otherFees;
+      accumulatedValue += otherFees;
+    }
+
+    const calc: DutyCalculation = {
+      country: selectedCountry.charAt(0).toUpperCase() + selectedCountry.slice(1),
       vehicleValue: value,
       freightCost: freight,
       insuranceCost: insurance,
-      cifValue: cifValue,
-      importDuty: 0,
-      selectiveTax: 0,
-      vat: 0,
-      environmentalTax: 0,
-      registrationFees: countryData.fixedFees,
-      totalTaxes: 0,
-      totalCost: 0,
-      taxPercentage: 0,
+      cifValue,
+      importDuty: dutyTax,
+      selectiveTax,
+      vat: salesTax,
+      environmentalTax: otherFees,
+      registrationFees: registrationFee,
+      totalTaxes: accumulatedValue - cifValue,
+      totalCost: accumulatedValue,
+      taxPercentage: ((accumulatedValue - cifValue) / cifValue) * 100,
       cafta: {
-        eligible: false,
-        savings: 0,
-        requirements: []
+        eligible: isNorthAmerican && selectedCountry !== 'costarica',
+        savings: isNorthAmerican && selectedCountry !== 'costarica' ? dutyTax : 0,
+        requirements: isNorthAmerican ? [
+          'Vehicle is US manufactured (VIN starts with 1, 4, or 5)',
+          'Certificate of origin from US manufacturer required',
+          'CAFTA-DR treaty benefits applied'
+        ] : [
+          'Vehicle is NOT of US origin',
+          'Standard import duties apply',
+          'No CAFTA-DR benefits available'
+        ]
       }
     };
-
-    // Calculate import duty
-    calc.importDuty = (cifValue * (countryData.importDuty / 100));
-
-    // Calculate selective tax (if applicable)
-    if ('selectiveTax' in countryData) {
-      const selectiveTaxBracket = countryData.selectiveTax.find((bracket: any) => 
-        cifValue >= bracket.min && cifValue < bracket.max
-      );
-      if (selectiveTaxBracket) {
-        calc.selectiveTax = (cifValue * (selectiveTaxBracket.rate / 100));
-      }
-    }
-
-    // Calculate environmental tax (if applicable)
-    if ('environmentalTax' in countryData) {
-      const envTaxBracket = countryData.environmentalTax.find((bracket: any) => 
-        cifValue >= bracket.min && cifValue < bracket.max
-      );
-      if (envTaxBracket) {
-        calc.environmentalTax = envTaxBracket.fee;
-      }
-    }
-
-    // Calculate IPRIMA for Guatemala (if applicable)
-    if ('iprima' in countryData) {
-      const iprimaBracket = countryData.iprima.find((bracket: any) => 
-        cifValue >= bracket.min && cifValue < bracket.max
-      );
-      if (iprimaBracket) {
-        calc.selectiveTax = (cifValue * (iprimaBracket.rate / 100));
-      }
-    }
-
-    // Calculate Costa Rica's age-based tax
-    if ('totalTaxByAge' in countryData) {
-      if ('registrationFee' in countryData) {
-        calc.registrationFees = (cifValue * (countryData.registrationFee / 100));
-      }
-      
-      calc.importDuty = (cifValue * (countryData.importDuty / 100));
-      calc.selectiveTax = 0; // Costa Rica uses age-based total tax instead
-      
-      const ageBracket = countryData.totalTaxByAge.find((bracket: any) => 
-        age >= bracket.min && age < bracket.max
-      );
-      if (ageBracket) {
-        const totalTaxBase = cifValue + calc.importDuty;
-        calc.selectiveTax = (totalTaxBase * (ageBracket.rate / 100));
-      }
-    }
-
-    // Calculate VAT
-    const taxableAmount = cifValue + calc.importDuty + calc.selectiveTax;
-    calc.vat = (taxableAmount * (countryData.vat / 100));
-
-    // CAFTA eligibility check based on actual VIN
-    const vehicleIsCaftaEligible = isCaftaEligible === true;
-    if (vehicleIsCaftaEligible && selectedCountry !== 'costarica') {
-      calc.cafta.eligible = true;
-      calc.cafta.savings = calc.importDuty;
-      calc.cafta.requirements = [
-        'Vehicle must be US manufactured (VIN starts with 1, 4, or 5)',
-        'Must have certificate of origin from US manufacturer',
-        'Must meet CAFTA-DR treaty requirements'
-      ];
-      calc.importDuty = 0; // CAFTA eliminates import duties for eligible vehicles
-    } else if (isCaftaEligible === false) {
-      calc.cafta.eligible = false;
-      calc.cafta.savings = 0;
-      calc.cafta.requirements = [
-        'Vehicle is NOT of North American origin',
-        'Standard import duties apply',
-        'No CAFTA-DR benefits available'
-      ];
-    }
-
-    // Calculate totals
-    calc.totalTaxes = calc.importDuty + calc.selectiveTax + calc.vat + calc.environmentalTax + calc.registrationFees;
-    calc.totalCost = cifValue + calc.totalTaxes;
-    calc.taxPercentage = ((calc.totalTaxes / cifValue) * 100);
 
     setCalculation(calc);
   };
 
   const isEligibleForCountry = (countryKey: string) => {
+    // Simplified eligibility check - all countries accept vehicles under reasonable age limits
     if (!vehicleAge) return true;
     const age = parseInt(vehicleAge);
-    const country = countryTaxRates[countryKey as keyof typeof countryTaxRates];
-    return age <= country.ageLimit;
+    const ageLimits: Record<string, number> = {
+      honduras: 10,
+      guatemala: 8, 
+      elsalvador: 12,
+      nicaragua: 15,
+      costarica: 6
+    };
+    return age <= (ageLimits[countryKey] || 15);
   };
 
   return (
@@ -584,10 +595,10 @@ export default function ImportCalculator() {
                 {/* Country-specific Information */}
                 <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-800 p-6">
                   <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">
-                    {calculation.country} Import Requirements
+                    {selectedCountry.charAt(0).toUpperCase() + selectedCountry.slice(1)} Import Requirements
                   </h3>
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    {countryTaxRates[selectedCountry as keyof typeof countryTaxRates].restrictions}
+                    Import calculations based on 2025 CAFTA-DR treaty regulations and country-specific tax schedules.
                   </p>
                 </div>
               </>
