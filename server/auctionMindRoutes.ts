@@ -109,9 +109,55 @@ async function fetchVINData(vin: string): Promise<any> {
 }
 
 /**
+ * Fetch live lot data with images from APICAR
+ */
+async function fetchLiveLotData(lotId: string, site: number): Promise<any> {
+  try {
+    console.log(`Fetching live lot data for Lot ID: ${lotId}, Site: ${site}`);
+    
+    const response = await axios.get(`https://api.apicar.store/api/cars`, {
+      headers: {
+        'api-key': process.env.APICAR_API_KEY,
+        'accept': '*/*'
+      },
+      params: {
+        site: site,
+        lot_id: lotId,
+        size: 1
+      }
+    });
+
+    console.log('Live Lot API Response status:', response.status);
+    console.log('Live Lot API Response data count:', response.data?.data?.length || 0);
+    
+    // Find the matching lot in the response
+    if (response.data.data && response.data.data.length > 0) {
+      const matchingLot = response.data.data.find((lot: any) => 
+        lot.lot_id.toString() === lotId.toString()
+      );
+      
+      if (matchingLot) {
+        console.log('Found matching lot with images:', {
+          lot_id: matchingLot.lot_id,
+          has_hd_images: matchingLot.link_img_hd ? matchingLot.link_img_hd.length : 0,
+          has_small_images: matchingLot.link_img_small ? matchingLot.link_img_small.length : 0
+        });
+      }
+      
+      return matchingLot || null;
+    }
+    
+    return null;
+  } catch (error: any) {
+    console.error('Error fetching live lot data from APICAR:', error.response?.data || error.message);
+    throw new Error(`Failed to fetch live lot data: ${error.message}`);
+  }
+}
+
+/**
  * OpenAI Vision Analysis using GPT-4o for real vehicle image assessment
  */
-async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
+async function performOpenAIAnalysis(vinData: any[], liveLotData?: any): Promise<any> {
   try {
     if (!vinData || vinData.length === 0) {
       return { summary: 'No vehicle data available for analysis' };
@@ -126,20 +172,27 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
       condition: entry.status
     }));
 
-    // Get vehicle images for visual analysis
-    console.log('Vehicle info keys:', Object.keys(vehicleInfo));
-    
-    // Extract images from the correct fields - handle both API response and database records
+    // Prioritize live lot images over VIN data images
     let images = [];
-    if (vehicleInfo.link_img_hd && Array.isArray(vehicleInfo.link_img_hd)) {
+    let imageSource = 'none';
+    
+    if (liveLotData && liveLotData.link_img_hd && Array.isArray(liveLotData.link_img_hd)) {
+      images = liveLotData.link_img_hd;
+      imageSource = 'live_lot';
+      console.log('Using live lot images:', images.length);
+    } else if (vehicleInfo.link_img_hd && Array.isArray(vehicleInfo.link_img_hd)) {
       images = vehicleInfo.link_img_hd;
+      imageSource = 'vin_data';
+      console.log('Using VIN data images:', images.length);
     } else if (vehicleInfo.images) {
-      // Handle both array format and JSON string format from database
+      // Handle database records format
       if (Array.isArray(vehicleInfo.images)) {
         images = vehicleInfo.images;
+        imageSource = 'database';
       } else if (typeof vehicleInfo.images === 'string') {
         try {
           images = JSON.parse(vehicleInfo.images);
+          imageSource = 'database';
         } catch (e) {
           console.log('Failed to parse images JSON:', vehicleInfo.images);
           images = [];
@@ -147,7 +200,7 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
       }
     }
     
-    console.log('Images found:', images.length);
+    console.log(`Images found: ${images.length} (source: ${imageSource})`);
     if (images.length > 0) {
       console.log('Sample image URL:', images[0]);
     }
@@ -445,11 +498,11 @@ export function setupAuctionMindRoutes(app: Express) {
   });
 
   /**
-   * AuctionMind VIN Analysis Endpoint
+   * AuctionMind VIN + Lot Analysis Endpoint
    */
   app.post('/api/auction-mind/analyze', async (req: Request, res: Response) => {
     try {
-      const { vin } = req.body;
+      const { vin, lotId } = req.body;
 
       if (!vin || typeof vin !== 'string' || vin.length !== 17) {
         return res.status(400).json({
@@ -458,9 +511,16 @@ export function setupAuctionMindRoutes(app: Express) {
         });
       }
 
-      console.log(`AuctionMind analysis requested for VIN: ${vin}`);
+      if (!lotId || typeof lotId !== 'string') {
+        return res.status(400).json({
+          success: false,
+          message: 'Lot ID required for current auction images'
+        });
+      }
 
-      // Fetch comprehensive VIN data from APICAR
+      console.log(`AuctionMind analysis requested for VIN: ${vin}, Lot ID: ${lotId}`);
+
+      // Step 1: Fetch comprehensive VIN data from APICAR
       const vinData = await fetchVINData(vin);
 
       if (!vinData || vinData.length === 0) {
@@ -469,6 +529,7 @@ export function setupAuctionMindRoutes(app: Express) {
           data: {
             message: 'No auction history found for this VIN',
             vin,
+            lotId,
             history: [],
             openai: { summary: 'No data available for analysis' },
             perplexity: { marketInsight: 'No market data available' },
@@ -477,17 +538,32 @@ export function setupAuctionMindRoutes(app: Express) {
         });
       }
 
-      // Search for comparable vehicles in database
+      // Step 2: Determine auction site from VIN data
       const vehicleInfo = vinData[0];
+      const auctionSite = vehicleInfo.base_site === 'copart' ? 1 : 2; // 1=Copart, 2=IAAI
+      console.log(`Auto-detected auction site: ${vehicleInfo.base_site} (site=${auctionSite})`);
+
+      // Step 3: Fetch live lot data with current images
+      let liveLotData = null;
+      try {
+        liveLotData = await fetchLiveLotData(lotId, auctionSite);
+        if (!liveLotData) {
+          console.log(`No live lot found for Lot ID ${lotId} on site ${auctionSite}`);
+        }
+      } catch (error) {
+        console.log('Live lot fetch failed, proceeding with VIN data only:', error);
+      }
+
+      // Step 4: Search for comparable vehicles in database
       const comparableVehicles = await findComparableVehiclesInDB(vehicleInfo);
       
-      // Perform multi-AI analysis with comparables
+      // Step 5: Perform multi-AI analysis with live lot images
       const [openaiAnalysis, perplexityInsights] = await Promise.all([
-        performOpenAIAnalysis(vinData),
+        performOpenAIAnalysis(vinData, liveLotData),
         performPerplexityAnalysis(vinData[0])
       ]);
 
-      // Generate consensus with comparable data
+      // Step 6: Generate consensus with all available data
       const consensus = generateConsensus(openaiAnalysis, perplexityInsights, vinData, comparableVehicles);
 
       // Format response data

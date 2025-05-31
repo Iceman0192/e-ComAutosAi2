@@ -22,6 +22,7 @@ import { VehicleAIChat } from '@/components/VehicleAIChat';
 export default function AuctionMind() {
   const { user } = useAuth();
   const [vinInput, setVinInput] = useState('');
+  const [lotIdInput, setLotIdInput] = useState('');
   const [vinData, setVinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,15 @@ export default function AuctionMind() {
   }, []);
 
   const handleAnalyze = async () => {
-    if (!vinInput.trim() || vinInput.length !== 17) return;
+    if (!vinInput.trim() || vinInput.length !== 17) {
+      setError('Please enter a valid 17-character VIN');
+      return;
+    }
+
+    if (!lotIdInput.trim()) {
+      setError('Please enter a Lot ID for current auction images');
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -66,7 +75,10 @@ export default function AuctionMind() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ vin: vinInput }),
+        body: JSON.stringify({ 
+          vin: vinInput.toUpperCase(),
+          lotId: lotIdInput.trim()
+        }),
       });
 
       const result = await response.json();
@@ -74,7 +86,7 @@ export default function AuctionMind() {
       if (result.success) {
         setVinData(result.data);
       } else {
-        setError(result.error || 'Analysis failed');
+        setError(result.message || result.error || 'Analysis failed');
       }
     } catch (err) {
       setError('Network error occurred');
