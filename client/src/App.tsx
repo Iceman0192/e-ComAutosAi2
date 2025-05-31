@@ -15,6 +15,7 @@ import IAAI from "./pages/iaai";
 import LiveCopart from "./pages/live-copart";
 import LiveIAAI from "./pages/live-iaai";
 import AuctionMind from "./pages/auction-mind";
+import AuctionMindV2 from "./pages/auction-mind-v2";
 import ImportCalculator from "./pages/import-calculator";
 import ComprehensiveImportCalculator from "./pages/comprehensive-import-calculator";
 import Datasets from "./pages/datasets";
