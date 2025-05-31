@@ -276,9 +276,40 @@ export default function AuctionMind() {
                           <p className="text-sm text-slate-600 dark:text-slate-400">Image Analysis</p>
                         </div>
                       </div>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {vinData.openai?.summary || 'Analyzing vehicle images and specifications...'}
-                      </p>
+                      <div className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                        {vinData.openai?.summary ? (
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              {vinData.openai.currentValue && (
+                                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
+                                  <div className="text-blue-600 dark:text-blue-400 font-medium">Current Value</div>
+                                  <div className="font-semibold">{vinData.openai.currentValue}</div>
+                                </div>
+                              )}
+                              {vinData.openai.trend && (
+                                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
+                                  <div className="text-blue-600 dark:text-blue-400 font-medium">Trend</div>
+                                  <div className="font-semibold capitalize">{vinData.openai.trend}</div>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm">
+                              {vinData.openai.summary.length > 120 
+                                ? `${vinData.openai.summary.substring(0, 120)}...`
+                                : vinData.openai.summary
+                              }
+                            </p>
+                            {vinData.openai.recommendation && (
+                              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 mt-2">
+                                <div className="text-blue-600 dark:text-blue-400 font-medium text-xs">Recommendation</div>
+                                <div className="text-sm mt-1">{vinData.openai.recommendation}</div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          'Analyzing vehicle images and specifications...'
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -295,9 +326,38 @@ export default function AuctionMind() {
                           <p className="text-sm text-slate-600 dark:text-slate-400">Real-time Insights</p>
                         </div>
                       </div>
-                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {vinData.perplexity?.marketInsight || 'Researching current market trends...'}
-                      </p>
+                      <div className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                        {vinData.perplexity?.marketInsight ? (
+                          <div className="space-y-3">
+                            <p className="text-sm">
+                              {vinData.perplexity.marketInsight.length > 150 
+                                ? `${vinData.perplexity.marketInsight.substring(0, 150)}...`
+                                : vinData.perplexity.marketInsight
+                              }
+                            </p>
+                            {vinData.perplexity.marketInsight.length > 150 && (
+                              <button 
+                                className="text-purple-600 hover:text-purple-700 text-xs font-medium"
+                                onClick={() => {
+                                  const fullText = document.getElementById('market-full-text');
+                                  const summary = document.getElementById('market-summary');
+                                  if (fullText && summary) {
+                                    fullText.classList.toggle('hidden');
+                                    summary.classList.toggle('hidden');
+                                  }
+                                }}
+                              >
+                                Show full analysis
+                              </button>
+                            )}
+                            <div id="market-full-text" className="hidden">
+                              <p className="text-sm">{vinData.perplexity.marketInsight}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          'Researching current market trends...'
+                        )}
+                      </div>
                     </div>
                   </div>
 
