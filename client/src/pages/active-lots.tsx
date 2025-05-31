@@ -64,7 +64,14 @@ interface SearchFilters {
   yearTo: string;
   location: string;
   damage: string;
-  status: string;
+  priceMin: string;
+  priceMax: string;
+  mileageMin: string;
+  mileageMax: string;
+  transmission: string;
+  fuel: string;
+  color: string;
+  titleType: string;
 }
 
 export default function ActiveLotsPage() {
@@ -78,7 +85,14 @@ export default function ActiveLotsPage() {
     yearTo: '',
     location: '',
     damage: '',
-    status: ''
+    priceMin: '',
+    priceMax: '',
+    mileageMin: '',
+    mileageMax: '',
+    transmission: '',
+    fuel: '',
+    color: '',
+    titleType: ''
   });
   const [lots, setLots] = useState<AuctionLot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +125,11 @@ export default function ActiveLotsPage() {
         if (value) {
           if (key === 'yearFrom') params.append('year_from', value);
           else if (key === 'yearTo') params.append('year_to', value);
+          else if (key === 'priceMin') params.append('price_min', value);
+          else if (key === 'priceMax') params.append('price_max', value);
+          else if (key === 'mileageMin') params.append('mileage_min', value);
+          else if (key === 'mileageMax') params.append('mileage_max', value);
+          else if (key === 'titleType') params.append('title_type', value);
           else params.append(key, value);
         }
       });
@@ -393,40 +412,154 @@ export default function ActiveLotsPage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Make</label>
-              <Input
-                placeholder="Toyota, Ford..."
-                value={filters.make}
-                onChange={(e) => setFilters({...filters, make: e.target.value})}
-              />
+          <div className="space-y-4">
+            {/* Basic Filters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Make</label>
+                <Input
+                  placeholder="Toyota, Ford..."
+                  value={filters.make}
+                  onChange={(e) => setFilters({...filters, make: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Model</label>
+                <Input
+                  placeholder="Camry, F-150..."
+                  value={filters.model}
+                  onChange={(e) => setFilters({...filters, model: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Year From</label>
+                <Input
+                  type="number"
+                  placeholder="2020"
+                  value={filters.yearFrom}
+                  onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Year To</label>
+                <Input
+                  type="number"
+                  placeholder="2024"
+                  value={filters.yearTo}
+                  onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Model</label>
-              <Input
-                placeholder="Camry, F-150..."
-                value={filters.model}
-                onChange={(e) => setFilters({...filters, model: e.target.value})}
-              />
+
+            {/* Price and Mileage Filters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Min Price ($)</label>
+                <Input
+                  type="number"
+                  placeholder="1000"
+                  value={filters.priceMin}
+                  onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Max Price ($)</label>
+                <Input
+                  type="number"
+                  placeholder="50000"
+                  value={filters.priceMax}
+                  onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Min Mileage</label>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={filters.mileageMin}
+                  onChange={(e) => setFilters({...filters, mileageMin: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Max Mileage</label>
+                <Input
+                  type="number"
+                  placeholder="100000"
+                  value={filters.mileageMax}
+                  onChange={(e) => setFilters({...filters, mileageMax: e.target.value})}
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Year From</label>
-              <Input
-                type="number"
-                placeholder="2020"
-                value={filters.yearFrom}
-                onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
-              />
+
+            {/* Vehicle Details */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Location</label>
+                <Input
+                  placeholder="TX, CA, NY..."
+                  value={filters.location}
+                  onChange={(e) => setFilters({...filters, location: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Damage</label>
+                <Input
+                  placeholder="Front End, Rear..."
+                  value={filters.damage}
+                  onChange={(e) => setFilters({...filters, damage: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Transmission</label>
+                <Input
+                  placeholder="Automatic, Manual"
+                  value={filters.transmission}
+                  onChange={(e) => setFilters({...filters, transmission: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Fuel Type</label>
+                <Input
+                  placeholder="Gas, Hybrid, Electric"
+                  value={filters.fuel}
+                  onChange={(e) => setFilters({...filters, fuel: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">Color</label>
+                <Input
+                  placeholder="Black, White, Silver"
+                  value={filters.color}
+                  onChange={(e) => setFilters({...filters, color: e.target.value})}
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Year To</label>
-              <Input
-                type="number"
-                placeholder="2024"
-                value={filters.yearTo}
-                onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
-              />
+
+            {/* Clear Filters Button */}
+            <div className="flex justify-end">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setFilters({
+                  make: '',
+                  model: '',
+                  yearFrom: '',
+                  yearTo: '',
+                  location: '',
+                  damage: '',
+                  priceMin: '',
+                  priceMax: '',
+                  mileageMin: '',
+                  mileageMax: '',
+                  transmission: '',
+                  fuel: '',
+                  color: '',
+                  titleType: ''
+                })}
+              >
+                <RefreshCw className="h-4 w-4 mr-1" />
+                Clear Filters
+              </Button>
             </div>
           </div>
 
