@@ -420,6 +420,126 @@ function generateConsensus(openaiAnalysis: any, perplexityInsights: any, vinData
   }
 }
 
+/**
+ * Search VIN history in both internal database and external APIs
+ */
+async function searchVinHistory(vin: string): Promise<any> {
+  try {
+    console.log(`Searching VIN history for: ${vin}`);
+    
+    // Search internal database first
+    const internalResults = await db
+      .select()
+      .from(salesHistory)
+      .where(sql`${salesHistory.vin} = ${vin}`)
+      .orderBy(sql`${salesHistory.sale_date} DESC`);
+    
+    console.log(`Found ${internalResults.length} records in internal database`);
+    
+    // Search external API using /cars/vin/all endpoint
+    let externalResults = [];
+    try {
+      const response = await axios.get(`https://api.apicar.store/api/cars/vin/all`, {
+        headers: {
+          'api-key': process.env.APICAR_API_KEY,
+          'accept': '*/*'
+        },
+        params: { vin }
+      });
+      
+      if (response.data?.data) {
+        externalResults = response.data.data;
+        console.log(`Found ${externalResults.length} records from APICAR`);
+      }
+    } catch (error) {
+      console.log('External API search failed, using internal data only');
+    }
+    
+    // Combine and deduplicate results
+    const allResults = [...internalResults];
+    
+    // Add external results that aren't already in internal database
+    for (const extResult of externalResults) {
+      const exists = internalResults.some(internal => 
+        internal.lot_id === extResult.lot_id && internal.site === extResult.site
+      );
+      
+      if (!exists) {
+        // Transform external result to match internal format
+        allResults.push({
+          id: `${extResult.lot_id}-${extResult.site}-ext`,
+          lot_id: extResult.lot_id,
+          site: extResult.site,
+          base_site: extResult.site === 1 ? 'copart' : 'iaai',
+          vin: extResult.vin,
+          sale_status: extResult.sale_status || 'Unknown',
+          sale_date: extResult.sale_date || new Date(),
+          purchase_price: extResult.purchase_price || extResult.price || 0,
+          auction_location: extResult.location || 'Unknown',
+          vehicle_damage: extResult.damage_pr || extResult.vehicle_damage || 'Unknown',
+          vehicle_title: extResult.title || extResult.vehicle_title || 'Unknown',
+          year: extResult.year,
+          make: extResult.make,
+          model: extResult.model,
+          series: extResult.series,
+          trim: extResult.trim,
+          transmission: extResult.transmission,
+          drive: extResult.drive,
+          fuel: extResult.fuel,
+          color: extResult.color,
+          vehicle_mileage: extResult.odometer || extResult.vehicle_mileage,
+          images: extResult.link_img_hd || [],
+          link: extResult.link,
+          created_at: new Date(),
+          vehicle_has_keys: null,
+          buyer_state: null,
+          buyer_country: null,
+          buyer_type: null,
+          engine: extResult.engine
+        });
+      }
+    }
+    
+    // Calculate price statistics
+    const soldRecords = allResults.filter(r => 
+      r.purchase_price && parseFloat(r.purchase_price.toString()) > 0
+    );
+    
+    const prices = soldRecords.map(r => parseFloat(r.purchase_price.toString()));
+    const priceHistory = {
+      averagePrice: prices.length > 0 ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0,
+      highestPrice: prices.length > 0 ? Math.max(...prices) : 0,
+      lowestPrice: prices.length > 0 ? Math.min(...prices) : 0,
+      lastSalePrice: soldRecords.length > 0 ? parseFloat(soldRecords[0].purchase_price.toString()) : 0
+    };
+    
+    // Get unique platforms
+    const platforms = [...new Set(allResults.map(r => r.site === 1 ? 'Copart' : 'IAAI'))];
+    
+    // Sort by sale date (newest first)
+    allResults.sort((a, b) => new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime());
+    
+    return {
+      vin,
+      totalRecords: allResults.length,
+      vehicles: allResults.map(vehicle => ({
+        ...vehicle,
+        images: typeof vehicle.images === 'string' ? JSON.parse(vehicle.images || '[]') : vehicle.images || []
+      })),
+      priceHistory,
+      platforms,
+      timespan: {
+        firstSale: allResults.length > 0 ? allResults[allResults.length - 1].sale_date : null,
+        lastSale: allResults.length > 0 ? allResults[0].sale_date : null
+      }
+    };
+    
+  } catch (error: any) {
+    console.error('VIN search error:', error);
+    throw new Error('Failed to search VIN history');
+  }
+}
+
 export function setupAuctionMindRoutes(app: Express) {
   /**
    * Database Record Count Endpoint
@@ -493,6 +613,52 @@ export function setupAuctionMindRoutes(app: Express) {
       res.status(500).json({ 
         success: false, 
         error: 'Failed to fetch dashboard statistics' 
+      });
+    }
+  });
+
+  /**
+   * VIN History Search Endpoint
+   */
+  app.post('/api/auction-mind/vin-history', async (req: Request, res: Response) => {
+    try {
+      const { vin } = req.body;
+      
+      if (!vin) {
+        return res.status(400).json({
+          success: false,
+          message: 'VIN is required'
+        });
+      }
+      
+      if (vin.length !== 17) {
+        return res.status(400).json({
+          success: false,
+          message: 'VIN must be exactly 17 characters'
+        });
+      }
+      
+      console.log(`VIN History Search for: ${vin}`);
+      
+      const vinHistoryData = await searchVinHistory(vin);
+      
+      if (vinHistoryData.totalRecords === 0) {
+        return res.json({
+          success: false,
+          message: 'No auction records found for this VIN'
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: vinHistoryData
+      });
+      
+    } catch (error: any) {
+      console.error('VIN history search error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to search VIN history'
       });
     }
   });
