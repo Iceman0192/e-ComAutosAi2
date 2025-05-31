@@ -514,7 +514,7 @@ export default function AuctionMindV2() {
                         
                         {result.aiAnalysis.damageAreas && result.aiAnalysis.damageAreas.length > 0 && (
                           <div className="mb-4">
-                            <h5 className="font-medium mb-2">Identified Issues:</h5>
+                            <h5 className="font-medium mb-2">Damaged Areas:</h5>
                             <div className="flex flex-wrap gap-2">
                               {result.aiAnalysis.damageAreas.map((area: string, index: number) => (
                                 <Badge key={index} variant="destructive" className="text-xs">
@@ -522,6 +522,20 @@ export default function AuctionMindV2() {
                                 </Badge>
                               ))}
                             </div>
+                          </div>
+                        )}
+
+                        {result.aiAnalysis.keyFindings && result.aiAnalysis.keyFindings.length > 0 && (
+                          <div className="mb-4">
+                            <h5 className="font-medium mb-2">Key Findings:</h5>
+                            <ul className="text-sm space-y-1">
+                              {result.aiAnalysis.keyFindings.map((finding: string, index: number) => (
+                                <li key={index} className="flex items-start gap-2">
+                                  <span className="text-red-500 mt-1">•</span>
+                                  <span>{finding}</span>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         )}
                       </div>
