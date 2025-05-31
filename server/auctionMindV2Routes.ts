@@ -15,58 +15,70 @@ const openai = new OpenAI({
 });
 
 /**
- * Search live lots using APICAR /cars endpoint
+ * Get specific lot and search for similar lots
  */
 async function searchLiveLots(lotId: string, site: number): Promise<any> {
   try {
-    console.log(`Searching live lots for Lot ID: ${lotId}, Site: ${site}`);
+    console.log(`Fetching specific lot: ${lotId}, Site: ${site}`);
     
-    const response = await axios.get(`https://api.apicar.store/api/cars`, {
+    // Step 1: Get the specific lot using direct lot lookup
+    const lotResponse = await axios.get(`https://api.apicar.store/api/cars/${lotId}`, {
       headers: {
         'api-key': process.env.APICAR_API_KEY,
         'accept': '*/*'
       },
       params: {
-        site: site,
-        lot_id: lotId,
-        size: 30 // Get more results for better analysis
+        site: site
       }
     });
 
-    console.log(`Live lots API response: ${response.status}, found ${response.data?.data?.length || 0} lots`);
+    console.log(`Specific lot API response: ${lotResponse.status}`);
     
-    if (response.data?.data && response.data.data.length > 0) {
-      // Log first few lot IDs for debugging
-      const lotIds = response.data.data.slice(0, 5).map((lot: any) => lot.lot_id);
-      console.log(`Sample lot IDs from response: ${lotIds.join(', ')}`);
-      console.log(`Looking for specific lot ID: ${lotId}`);
-      
-      // Find the exact lot match
-      const targetLot = response.data.data.find((lot: any) => 
-        lot.lot_id.toString() === lotId.toString()
-      );
-      
-      console.log(`Target lot found: ${targetLot ? 'YES' : 'NO'}`);
-      if (targetLot) {
-        console.log(`Target lot details: ${targetLot.year} ${targetLot.make} ${targetLot.model}, Images: ${targetLot.link_img_hd?.length || 0}`);
-      }
-      
-      // Get similar lots (same make/model)
-      const similarLots = response.data.data.filter((lot: any) => 
-        lot.lot_id.toString() !== lotId.toString()
-      );
-      
-      return {
-        targetLot,
-        similarLots,
-        totalFound: response.data.data.length
-      };
+    if (!lotResponse.data) {
+      return null;
     }
     
-    return null;
+    const targetLot = lotResponse.data;
+    console.log(`Target lot found: ${targetLot.year} ${targetLot.make} ${targetLot.model}`);
+    console.log(`Images available: ${targetLot.link_img_hd?.length || 0} HD, ${targetLot.link_img_small?.length || 0} small`);
+    
+    // Step 2: Search for similar lots using the vehicle info
+    let similarLots = [];
+    try {
+      const similarResponse = await axios.get(`https://api.apicar.store/api/cars`, {
+        headers: {
+          'api-key': process.env.APICAR_API_KEY,
+          'accept': '*/*'
+        },
+        params: {
+          site: site,
+          make: targetLot.make,
+          model: targetLot.model,
+          year_from: targetLot.year - 2,
+          year_to: targetLot.year + 2,
+          size: 20
+        }
+      });
+      
+      if (similarResponse.data?.data) {
+        similarLots = similarResponse.data.data.filter((lot: any) => 
+          lot.lot_id.toString() !== lotId.toString()
+        );
+        console.log(`Found ${similarLots.length} similar lots`);
+      }
+    } catch (similarError) {
+      console.log('Similar lots search failed, continuing with target lot only');
+    }
+    
+    return {
+      targetLot,
+      similarLots,
+      totalFound: similarLots.length + 1
+    };
+    
   } catch (error: any) {
-    console.error('Live lots search error:', error.response?.data || error.message);
-    throw new Error(`Live lots search failed: ${error.message}`);
+    console.error('Lot lookup error:', error.response?.data || error.message);
+    throw new Error(`Lot lookup failed: ${error.message}`);
   }
 }
 
