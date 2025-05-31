@@ -53,6 +53,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
+      title: 'AuctionMind V2',
+      href: '/auction-mind-v2',
+      icon: Brain,
+      permission: 'CROSS_PLATFORM_SEARCH'
+    },
+    {
       title: 'Import Calculator',
       href: '/import-calculator',
       icon: Calculator,
