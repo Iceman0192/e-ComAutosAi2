@@ -24,10 +24,10 @@ import {
 
 interface AnalysisResult {
   lotInfo: any;
-  aiVision: any;
+  vinHistory: any[];
+  aiAnalysis: any;
+  similarActiveLots: any[];
   marketIntelligence: any;
-  similarLots: any[];
-  historicalData: any[];
 }
 
 export default function AuctionMindV2() {

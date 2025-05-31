@@ -281,7 +281,7 @@ export function setupAuctionMindV2Routes(app: Express) {
 
       console.log(`AuctionMind V2 analysis for Lot ID: ${lotId}, Site: ${site}`);
 
-      // Step 1: Search live lots
+      // Step 1: Lot Lookup - Get specific lot data
       const liveLotsData = await searchLiveLots(lotId, site);
       
       if (!liveLotsData || !liveLotsData.targetLot) {
@@ -291,21 +291,71 @@ export function setupAuctionMindV2Routes(app: Express) {
         });
       }
 
-      const { targetLot, similarLots } = liveLotsData;
+      const targetLot = liveLotsData.targetLot;
+      console.log(`Step 1: Found lot ${targetLot.year} ${targetLot.make} ${targetLot.model}, VIN: ${targetLot.vin || 'N/A'}`);
 
-      // Step 2: AI Vision Analysis
-      const visionAnalysis = await performAIVisionAnalysis(targetLot);
+      // Step 2: VIN Lookup - Get historical context
+      let vinHistory = [];
+      if (targetLot.vin) {
+        console.log(`Step 2: VIN lookup for historical data`);
+        try {
+          vinHistory = await searchAuctionHistory(targetLot.vin);
+          console.log(`Found ${vinHistory.length} historical records`);
+        } catch (error) {
+          console.log('VIN lookup failed, continuing without historical data');
+        }
+      } else {
+        console.log('Step 2: No VIN available for historical lookup');
+      }
 
-      // Step 3: Historical data search
-      const historicalData = await searchAuctionHistory(targetLot.vin);
-      const comparables = await findComparableVehicles(targetLot);
+      // Step 3: AI Analysis - Analyze current condition
+      let aiAnalysis = null;
+      if (targetLot.link_img_hd && targetLot.link_img_hd.length > 0) {
+        console.log(`Step 3: AI analysis of ${targetLot.link_img_hd.length} images`);
+        try {
+          aiAnalysis = await performAIVisionAnalysis(targetLot);
+        } catch (error) {
+          console.log('AI analysis failed:', error);
+        }
+      } else {
+        console.log('Step 3: No images available for AI analysis');
+      }
 
-      // Step 4: Market intelligence
+      // Step 4: Similar Active Lots - Search based on vehicle specifications
+      console.log(`Step 4: Searching for similar active lots`);
+      let similarActiveLots = [];
+      try {
+        const response = await axios.get(`https://api.apicar.store/api/cars`, {
+          headers: {
+            'api-key': process.env.APICAR_API_KEY,
+            'accept': '*/*'
+          },
+          params: {
+            site: site,
+            make: targetLot.make,
+            model: targetLot.model,
+            year_from: targetLot.year - 2,
+            year_to: targetLot.year + 2,
+            size: 20
+          }
+        });
+        
+        if (response.data?.data) {
+          similarActiveLots = response.data.data.filter((lot: any) => 
+            lot.lot_id.toString() !== lotId.toString()
+          );
+          console.log(`Found ${similarActiveLots.length} similar active lots`);
+        }
+      } catch (error) {
+        console.log('Similar lots search failed');
+      }
+
+      // Step 5: Market intelligence
       const marketIntelligence = generateMarketIntelligence(
         targetLot, 
-        similarLots, 
-        historicalData, 
-        comparables
+        similarActiveLots, 
+        vinHistory, 
+        []
       );
 
       // Format comprehensive response
@@ -322,21 +372,24 @@ export function setupAuctionMindV2Routes(app: Express) {
           location: targetLot.location,
           site: site === 1 ? 'Copart' : 'IAAI'
         },
-        aiVision: visionAnalysis,
-        marketIntelligence,
-        similarLots: similarLots.slice(0, 5).map((lot: any) => ({
+        vinHistory: vinHistory.slice(0, 10).map((record: any) => ({
+          saleDate: record.sale_date,
+          price: record.purchase_price,
+          damage: record.vehicle_damage,
+          platform: record.base_site,
+          lotId: record.lot_id
+        })),
+        aiAnalysis,
+        similarActiveLots: similarActiveLots.slice(0, 8).map((lot: any) => ({
           lotId: lot.lot_id,
           vehicle: `${lot.year} ${lot.make} ${lot.model}`,
           damage: lot.damage_pr,
           currentBid: lot.current_bid,
+          auctionDate: lot.auction_date,
+          location: lot.location,
           hasImages: lot.link_img_hd && lot.link_img_hd.length > 0
         })),
-        historicalData: historicalData.slice(0, 10).map((record: any) => ({
-          saleDate: record.sale_date,
-          price: record.purchase_price,
-          damage: record.vehicle_damage,
-          platform: record.base_site
-        }))
+        marketIntelligence
       };
 
       console.log('AuctionMind V2 analysis completed successfully');
