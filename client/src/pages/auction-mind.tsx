@@ -25,6 +25,7 @@ export default function AuctionMind() {
   const [vinData, setVinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dbRecordCount, setDbRecordCount] = useState<number>(11712);
 
   const handleAnalyze = async () => {
     if (!vinInput.trim() || vinInput.length !== 17) return;
@@ -33,6 +34,13 @@ export default function AuctionMind() {
     setError(null);
 
     try {
+      // Get current database count
+      const dbCountResponse = await fetch('/api/database/count');
+      if (dbCountResponse.ok) {
+        const countData = await dbCountResponse.json();
+        setDbRecordCount(countData.count);
+      }
+
       const response = await fetch('/api/auction-mind/analyze', {
         method: 'POST',
         headers: {
@@ -101,7 +109,7 @@ export default function AuctionMind() {
               </Badge>
               <div className="text-right">
                 <div className="text-white/80 text-sm">Database Records</div>
-                <div className="text-2xl font-bold">11,712</div>
+                <div className="text-2xl font-bold">{dbRecordCount.toLocaleString()}</div>
               </div>
             </div>
           </div>
