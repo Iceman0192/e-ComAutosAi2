@@ -18,7 +18,6 @@ import {
   Car
 } from 'lucide-react';
 import { VehicleAIChat } from '@/components/VehicleAIChat';
-import { ImportDutyCalculator } from '@/components/ImportDutyCalculator';
 
 export default function AuctionMind() {
   const { user } = useAuth();
@@ -302,7 +301,12 @@ export default function AuctionMind() {
                             {vinData.openai.recommendation && (
                               <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 mt-2">
                                 <div className="text-blue-600 dark:text-blue-400 font-medium text-xs">Recommendation</div>
-                                <div className="text-sm mt-1">{vinData.openai.recommendation}</div>
+                                <div className="text-sm mt-1">
+                                  {typeof vinData.openai.recommendation === 'string' 
+                                    ? vinData.openai.recommendation 
+                                    : JSON.stringify(vinData.openai.recommendation)
+                                  }
+                                </div>
                               </div>
                             )}
                           </div>
@@ -400,12 +404,9 @@ export default function AuctionMind() {
             </div>
 
             {/* Interactive Tools */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-8">
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg">
                 <VehicleAIChat vehicleData={vinData?.vehicleInfo} />
-              </div>
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg">
-                <ImportDutyCalculator />
               </div>
             </div>
           </div>
