@@ -36,10 +36,20 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
     console.log(`Live lots API response: ${response.status}, found ${response.data?.data?.length || 0} lots`);
     
     if (response.data?.data && response.data.data.length > 0) {
+      // Log first few lot IDs for debugging
+      const lotIds = response.data.data.slice(0, 5).map((lot: any) => lot.lot_id);
+      console.log(`Sample lot IDs from response: ${lotIds.join(', ')}`);
+      console.log(`Looking for specific lot ID: ${lotId}`);
+      
       // Find the exact lot match
       const targetLot = response.data.data.find((lot: any) => 
         lot.lot_id.toString() === lotId.toString()
       );
+      
+      console.log(`Target lot found: ${targetLot ? 'YES' : 'NO'}`);
+      if (targetLot) {
+        console.log(`Target lot details: ${targetLot.year} ${targetLot.make} ${targetLot.model}, Images: ${targetLot.link_img_hd?.length || 0}`);
+      }
       
       // Get similar lots (same make/model)
       const similarLots = response.data.data.filter((lot: any) => 
