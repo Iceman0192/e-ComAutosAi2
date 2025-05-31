@@ -158,29 +158,41 @@ export default function AuctionMind() {
                   Start Your Analysis
                 </h2>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Enter any 17-character VIN to unlock comprehensive AI intelligence
+                  Enter VIN and Lot ID for comprehensive AI analysis with current auction images
                 </p>
               </div>
               
-              <div className="max-w-2xl mx-auto">
+              <div className="max-w-3xl mx-auto">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-20"></div>
                   <div className="relative bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-6">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1 relative">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                      <div className="relative">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                         <Input
                           type="text"
-                          placeholder="1N6AD0ER4DN751317"
+                          placeholder="VIN: 1N6AD0ER4DN751317"
                           value={vinInput}
                           onChange={(e) => setVinInput(e.target.value.toUpperCase())}
                           className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
                           maxLength={17}
                         />
                       </div>
+                      <div className="relative">
+                        <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                        <Input
+                          type="text"
+                          placeholder="Lot ID: 42055952"
+                          value={lotIdInput}
+                          onChange={(e) => setLotIdInput(e.target.value)}
+                          className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
                       <Button 
                         onClick={handleAnalyze}
-                        disabled={!vinInput.trim() || vinInput.length !== 17 || isLoading}
+                        disabled={!vinInput.trim() || vinInput.length !== 17 || !lotIdInput.trim() || isLoading}
                         className="h-14 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transform transition-all hover:scale-105 disabled:transform-none"
                         size="lg"
                       >
@@ -198,23 +210,43 @@ export default function AuctionMind() {
                       </Button>
                     </div>
                     
-                    {vinInput.length > 0 && (
-                      <div className="mt-4 flex items-center justify-center gap-2">
-                        <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-300 ${
-                              vinInput.length === 17 
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-                                : 'bg-gradient-to-r from-indigo-500 to-purple-500'
-                            }`}
-                            style={{ width: `${(vinInput.length / 17) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className={`text-sm font-medium ${
-                          vinInput.length === 17 ? 'text-green-600' : 'text-slate-500'
-                        }`}>
-                          {vinInput.length}/17
-                        </span>
+                    {(vinInput.length > 0 || lotIdInput.length > 0) && (
+                      <div className="mt-4 space-y-3">
+                        {vinInput.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-16">VIN:</span>
+                            <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                              <div 
+                                className={`h-full transition-all duration-300 ${
+                                  vinInput.length === 17 
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                                    : 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                                }`}
+                                style={{ width: `${(vinInput.length / 17) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className={`text-sm font-medium ${
+                              vinInput.length === 17 ? 'text-green-600' : 'text-slate-500'
+                            }`}>
+                              {vinInput.length}/17
+                            </span>
+                          </div>
+                        )}
+                        
+                        {lotIdInput.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-16">Lot ID:</span>
+                            <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                              <div 
+                                className="h-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-cyan-500"
+                                style={{ width: '100%' }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium text-blue-600">
+                              ✓ Ready
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
