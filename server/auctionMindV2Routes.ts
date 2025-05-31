@@ -29,20 +29,11 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
       params: {
         site: site,
         lot_id: lotId,
-        size: 25 // APICAR API limit
+        size: 30 // Get more results for better analysis
       }
     });
 
     console.log(`Live lots API response: ${response.status}, found ${response.data?.data?.length || 0} lots`);
-    
-    if (response.data?.data && response.data.data.length > 0) {
-      console.log('Sample lots found:', response.data.data.slice(0, 3).map((lot: any) => ({
-        lot_id: lot.lot_id,
-        make: lot.make,
-        model: lot.model,
-        year: lot.year
-      })));
-    }
     
     if (response.data?.data && response.data.data.length > 0) {
       // Find the exact lot match
@@ -50,19 +41,10 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
         lot.lot_id.toString() === lotId.toString()
       );
       
-      // Get similar lots (same make/model or year range)
-      const similarLots = response.data.data.filter((lot: any) => {
-        if (lot.lot_id.toString() === lotId.toString()) return false;
-        
-        if (targetLot) {
-          // Same make and model
-          if (lot.make === targetLot.make && lot.model === targetLot.model) return true;
-          // Same make, similar year (within 3 years)
-          if (lot.make === targetLot.make && Math.abs(lot.year - targetLot.year) <= 3) return true;
-        }
-        
-        return false;
-      });
+      // Get similar lots (same make/model)
+      const similarLots = response.data.data.filter((lot: any) => 
+        lot.lot_id.toString() !== lotId.toString()
+      );
       
       return {
         targetLot,
@@ -255,55 +237,6 @@ function generateMarketIntelligence(targetLot: any, similarLots: any[], historic
 
 export function setupAuctionMindV2Routes(app: Express) {
   /**
-   * Get available lots for testing
-   */
-  app.get('/api/auction-mind-v2/available-lots', async (req: Request, res: Response) => {
-    try {
-      const site = parseInt(req.query.site as string) || 1;
-      
-      const response = await axios.get(`https://api.apicar.store/api/cars`, {
-        headers: {
-          'api-key': process.env.APICAR_API_KEY,
-          'accept': '*/*'
-        },
-        params: {
-          site: site,
-          size: 25
-        }
-      });
-
-      if (response.data?.data) {
-        const lots = response.data.data.map((lot: any) => ({
-          lotId: lot.lot_id,
-          vehicle: `${lot.year} ${lot.make} ${lot.model}`,
-          damage: lot.damage_pr,
-          currentBid: lot.current_bid,
-          hasImages: lot.link_img_hd && lot.link_img_hd.length > 0,
-          auctionDate: lot.auction_date
-        }));
-
-        return res.json({
-          success: true,
-          site: site === 1 ? 'Copart' : 'IAAI',
-          lots: lots.slice(0, 10)
-        });
-      }
-
-      return res.json({
-        success: false,
-        message: 'No lots found'
-      });
-
-    } catch (error: any) {
-      console.error('Available lots error:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to fetch available lots'
-      });
-    }
-  });
-
-  /**
    * AuctionMind V2 - Comprehensive Lot Analysis
    */
   app.post('/api/auction-mind-v2/analyze', async (req: Request, res: Response) => {
@@ -329,18 +262,10 @@ export function setupAuctionMindV2Routes(app: Express) {
       // Step 1: Search live lots
       const liveLotsData = await searchLiveLots(lotId, site);
       
-      if (!liveLotsData) {
+      if (!liveLotsData || !liveLotsData.targetLot) {
         return res.json({
           success: false,
-          message: `No auction data found for search on ${site === 1 ? 'Copart' : 'IAAI'}`
-        });
-      }
-      
-      if (!liveLotsData.targetLot) {
-        console.log(`Target lot ${lotId} not found in results. Found lots:`, liveLotsData.similarLots?.slice(0, 3).map((lot: any) => ({ lot_id: lot.lot_id, make: lot.make, model: lot.model })));
-        return res.json({
-          success: false,
-          message: `Lot ${lotId} not found on ${site === 1 ? 'Copart' : 'IAAI'}. Found ${liveLotsData.totalFound} other lots.`
+          message: `Lot ${lotId} not found on ${site === 1 ? 'Copart' : 'IAAI'}`
         });
       }
 

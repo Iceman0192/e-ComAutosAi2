@@ -48,7 +48,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'AuctionMind',
-      href: '/auction-mind-v2',
+      href: '/auction-mind',
       icon: Brain,
       permission: 'CROSS_PLATFORM_SEARCH'
     },
