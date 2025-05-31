@@ -25,14 +25,18 @@ interface VINAnalysisData {
  */
 async function fetchVINData(vin: string): Promise<any> {
   try {
+    console.log(`Fetching VIN data for: ${vin}`);
     const response = await axios.get(`https://api.apicar.store/api/cars/vin/all?vin=${vin}`, {
       headers: {
         'api-key': process.env.APICAR_API_KEY,
         'accept': '*/*'
       }
     });
+    console.log(`VIN API response status: ${response.status}`);
+    console.log(`VIN API response data:`, response.data);
     return response.data;
   } catch (error: any) {
+    console.log(`VIN data fetch error:`, error.response?.data || error.message);
     throw new Error(`VIN data fetch failed: ${error.message}`);
   }
 }
