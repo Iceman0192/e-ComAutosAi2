@@ -116,7 +116,9 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
     }));
 
     // Get vehicle images for visual analysis
+    console.log('Vehicle info keys:', Object.keys(vehicleInfo));
     const images = vehicleInfo.images || [];
+    console.log('Images found:', images.length);
     const imageMessages = [];
 
     // Include up to 4 key images for analysis
@@ -326,6 +328,20 @@ function generateConsensus(openaiAnalysis: any, perplexityInsights: any, vinData
 }
 
 export function setupAuctionMindRoutes(app: Express) {
+  /**
+   * Database Record Count Endpoint
+   */
+  app.get('/api/database/count', async (req: Request, res: Response) => {
+    try {
+      const result = await db.execute('SELECT COUNT(*) as count FROM sales_history');
+      const count = result.rows[0]?.count || 0;
+      res.json({ count: parseInt(count as string) });
+    } catch (error: any) {
+      console.error('Database count error:', error);
+      res.json({ count: 0 });
+    }
+  });
+
   /**
    * AuctionMind VIN Analysis Endpoint
    */
