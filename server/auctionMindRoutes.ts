@@ -98,7 +98,7 @@ async function fetchVINData(vin: string): Promise<any> {
 }
 
 /**
- * OpenAI Analysis using GPT-4o for vehicle assessment
+ * OpenAI Vision Analysis using GPT-4o for real vehicle image assessment
  */
 async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
   try {
@@ -115,7 +115,68 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
       condition: entry.status
     }));
 
-    const prompt = `Brief analysis for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} (${vehicleInfo.odometer} miles):
+    // Get vehicle images for visual analysis
+    const images = vehicleInfo.images || [];
+    const imageMessages = [];
+
+    // Include up to 4 key images for analysis
+    const keyImages = images.slice(0, 4);
+    
+    if (keyImages.length > 0) {
+      console.log(`Analyzing ${keyImages.length} vehicle images with OpenAI Vision`);
+      
+      for (const imageUrl of keyImages) {
+        imageMessages.push({
+          type: "image_url" as const,
+          image_url: {
+            url: imageUrl,
+            detail: "high" as const
+          }
+        });
+      }
+
+      const prompt = `Analyze this ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} with ${vehicleInfo.odometer} miles.
+
+Vehicle Details:
+- Recent Sales: ${saleHistory.slice(0, 3).map(sale => `$${sale.price} (${sale.damage})`).join(', ')}
+- Listed Damage: ${vehicleInfo.damage_pr}
+
+Provide detailed JSON analysis:
+- summary: 2-3 sentence overview of vehicle condition
+- damageAssessment: specific damage observed in images
+- repairEstimate: estimated repair cost range
+- currentValue: market value considering condition
+- trend: price trend analysis
+- recommendation: buy/hold/pass with detailed reasoning
+- confidenceScore: 0-1 based on image quality and data
+
+Analyze the actual images for damage, wear, interior condition, and overall vehicle state.`;
+
+      const userContent: any[] = [
+        { type: "text", text: prompt },
+        ...imageMessages
+      ];
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert automotive appraiser and damage assessor. Analyze vehicle images thoroughly for damage, condition, and market value."
+          },
+          {
+            role: "user",
+            content: userContent
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 800
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } else {
+      // Fallback to text-only analysis if no images
+      const prompt = `Brief analysis for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} (${vehicleInfo.odometer} miles):
 
 Recent Sales: ${saleHistory.slice(0, 3).map(sale => `$${sale.price} (${sale.damage})`).join(', ')}
 
@@ -127,23 +188,24 @@ Provide concise JSON response:
 
 Keep total response under 150 words.`;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert vehicle auction analyst with deep knowledge of automotive markets, depreciation patterns, and auction dynamics."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      response_format: { type: "json_object" },
-      max_tokens: 400
-    });
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert vehicle auction analyst with deep knowledge of automotive markets, depreciation patterns, and auction dynamics."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 400
+      });
 
-    return JSON.parse(response.choices[0].message.content || '{}');
+      return JSON.parse(response.choices[0].message.content || '{}');
+    }
   } catch (error: any) {
     console.error('OpenAI analysis error:', error);
     return { 
@@ -205,30 +267,56 @@ function generateConsensus(openaiAnalysis: any, perplexityInsights: any, vinData
     let recommendation = 'ANALYZE';
     let confidence = 50;
     
-    if (priceHistory.length >= 2) {
+    // Factor in comparable vehicles from database
+    const comparableCount = comparableVehicles.length;
+    const avgComparablePrice = comparableVehicles.length > 0 
+      ? comparableVehicles.reduce((sum, vehicle) => sum + parseFloat(vehicle.purchase_price || 0), 0) / comparableCount
+      : 0;
+    
+    // Enhanced consensus logic with image analysis and comparable data
+    if (priceHistory.length >= 2 && comparableCount > 0) {
+      const currentPrice = latestEntry.purchase_price;
       const pricetrend = priceHistory[0] - priceHistory[priceHistory.length - 1];
       const avgPrice = priceHistory.reduce((a, b) => a + b, 0) / priceHistory.length;
       
-      // Simple consensus logic - can be enhanced with more sophisticated AI
-      if (pricetrend > 0 && latestEntry.purchase_price < avgPrice * 0.8) {
+      // Factor in OpenAI confidence score from image analysis
+      const imageConfidence = openaiAnalysis.confidenceScore || 0.5;
+      const damageLevel = openaiAnalysis.damageAssessment ? 
+        (openaiAnalysis.damageAssessment.toLowerCase().includes('severe') ? 0.3 : 
+         openaiAnalysis.damageAssessment.toLowerCase().includes('moderate') ? 0.6 : 0.8) : 0.5;
+      
+      // Compare against database comparables
+      const priceVsComparables = avgComparablePrice > 0 ? currentPrice / avgComparablePrice : 1;
+      
+      if (pricetrend > 0 && currentPrice < avgComparablePrice * 0.85 && damageLevel > 0.6) {
         recommendation = 'BUY';
-        confidence = 75;
-      } else if (pricetrend < 0 || latestEntry.purchase_price > avgPrice * 1.2) {
+        confidence = Math.min(85, 60 + (imageConfidence * 25));
+      } else if (pricetrend < 0 || currentPrice > avgComparablePrice * 1.15 || damageLevel < 0.4) {
         recommendation = 'PASS';
-        confidence = 70;
+        confidence = Math.min(80, 55 + (imageConfidence * 25));
+      } else {
+        recommendation = 'ANALYZE';
+        confidence = Math.min(75, 45 + (imageConfidence * 30));
       }
     }
 
     return {
       recommendation,
-      confidence,
-      reasoning: `Analysis based on ${vinData.length} auction records and multi-AI assessment`
+      confidence: Math.round(confidence),
+      reasoning: `Analysis based on ${vinData.length} auction records, ${comparableCount} comparable vehicles, and visual assessment`,
+      comparableData: {
+        count: comparableCount,
+        avgPrice: Math.round(avgComparablePrice),
+        priceComparison: avgComparablePrice > 0 ? 
+          (latestEntry.purchase_price / avgComparablePrice * 100).toFixed(1) + '% of average' : 'N/A'
+      }
     };
   } catch (error: any) {
     return {
       recommendation: 'ANALYZE',
       confidence: 50,
-      reasoning: 'Insufficient data for consensus'
+      reasoning: 'Insufficient data for consensus',
+      comparableData: { count: 0, avgPrice: 0, priceComparison: 'N/A' }
     };
   }
 }

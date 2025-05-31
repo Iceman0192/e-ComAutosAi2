@@ -278,7 +278,7 @@ export default function AuctionMind() {
                       <div className="text-slate-700 dark:text-slate-300 leading-relaxed">
                         {vinData.openai?.summary ? (
                           <div className="space-y-3">
-                            <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div className="grid grid-cols-2 gap-3 text-xs mb-3">
                               {vinData.openai.currentValue && (
                                 <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
                                   <div className="text-blue-600 dark:text-blue-400 font-medium">Current Value</div>
@@ -291,7 +291,25 @@ export default function AuctionMind() {
                                   <div className="font-semibold capitalize">{vinData.openai.trend}</div>
                                 </div>
                               )}
+                              {vinData.openai.repairEstimate && (
+                                <div className="bg-orange-50 dark:bg-orange-950/20 rounded-lg p-2">
+                                  <div className="text-orange-600 dark:text-orange-400 font-medium">Repair Cost</div>
+                                  <div className="font-semibold">{vinData.openai.repairEstimate}</div>
+                                </div>
+                              )}
+                              {vinData.openai.confidenceScore && (
+                                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-2">
+                                  <div className="text-green-600 dark:text-green-400 font-medium">AI Confidence</div>
+                                  <div className="font-semibold">{Math.round(vinData.openai.confidenceScore * 100)}%</div>
+                                </div>
+                              )}
                             </div>
+                            {vinData.openai.damageAssessment && (
+                              <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-3 mb-3">
+                                <div className="text-red-600 dark:text-red-400 font-medium text-xs">Damage Assessment</div>
+                                <div className="text-sm mt-1">{vinData.openai.damageAssessment}</div>
+                              </div>
+                            )}
                             <p className="text-sm">
                               {vinData.openai.summary.length > 120 
                                 ? `${vinData.openai.summary.substring(0, 120)}...`
