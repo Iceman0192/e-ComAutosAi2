@@ -201,17 +201,54 @@ export default function AuctionMind() {
         <div className="relative -mt-8">
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-8 mx-4">
             <div className="text-center space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {step === 'input' && 'Start Your Analysis'}
-                  {step === 'review' && 'Review Vehicle Information'}
-                  {step === 'analyze' && 'AI Analysis in Progress'}
-                </h2>
-                <p className="text-slate-600 dark:text-slate-400">
-                  {step === 'input' && 'Enter a 17-character VIN to automatically detect auction site and lot information'}
-                  {step === 'review' && 'Verify the auto-detected information before running the full AI analysis'}
-                  {step === 'analyze' && 'Running comprehensive AI analysis with current auction images...'}
-                </p>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {step === 'input' && 'Step 1: Vehicle History Discovery'}
+                    {step === 'review' && 'Step 2: Deep Image Analysis Setup'}
+                    {step === 'analyze' && 'Step 2: AI Vision Analysis in Progress'}
+                  </h2>
+                  <p className="text-slate-600 dark:text-slate-400">
+                    {step === 'input' && 'Enter VIN to unlock comprehensive auction history, comparable sales, and market intelligence'}
+                    {step === 'review' && 'Verify auction details before running advanced AI damage assessment on current photos'}
+                    {step === 'analyze' && 'Analyzing current auction images with AI vision for precise damage evaluation...'}
+                  </p>
+                </div>
+                
+                {/* Progress Steps Indicator */}
+                <div className="flex items-center justify-center space-x-4">
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                      step === 'input' ? 'bg-indigo-600 text-white' : 
+                      step === 'review' || step === 'analyze' ? 'bg-green-500 text-white' : 'bg-slate-300 text-slate-600'
+                    }`}>
+                      1
+                    </div>
+                    <span className={`ml-2 text-sm font-medium ${
+                      step === 'input' ? 'text-indigo-600' : 
+                      step === 'review' || step === 'analyze' ? 'text-green-600' : 'text-slate-500'
+                    }`}>
+                      History & Data
+                    </span>
+                  </div>
+                  <div className={`w-12 h-0.5 ${
+                    step === 'review' || step === 'analyze' ? 'bg-green-500' : 'bg-slate-300'
+                  }`}></div>
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                      step === 'analyze' ? 'bg-indigo-600 text-white' :
+                      step === 'review' ? 'bg-yellow-500 text-white' : 'bg-slate-300 text-slate-600'
+                    }`}>
+                      2
+                    </div>
+                    <span className={`ml-2 text-sm font-medium ${
+                      step === 'analyze' ? 'text-indigo-600' :
+                      step === 'review' ? 'text-yellow-600' : 'text-slate-500'
+                    }`}>
+                      AI Vision Analysis
+                    </span>
+                  </div>
+                </div>
               </div>
               
               <div className="max-w-3xl mx-auto">
@@ -259,36 +296,74 @@ export default function AuctionMind() {
 
                     {step === 'review' && (
                       <>
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div className="relative">
-                              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                              <Input
-                                type="text"
-                                value={vinInput}
-                                disabled
-                                className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-100 dark:bg-slate-600 rounded-xl"
-                              />
+                        <div className="space-y-6">
+                          {/* Step 1 Completed Summary */}
+                          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                              <h3 className="font-semibold text-green-800 dark:text-green-300">Step 1 Complete: Vehicle History Retrieved</h3>
                             </div>
-                            <div className="relative">
-                              <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                              <Input
-                                type="text"
-                                placeholder="Lot ID (auto-detected)"
-                                value={lotIdInput}
-                                onChange={(e) => setLotIdInput(e.target.value)}
-                                className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
-                              />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div className="text-center">
+                                <div className="font-semibold text-slate-900 dark:text-white">{dbRecordCount.toLocaleString()}</div>
+                                <div className="text-slate-600 dark:text-slate-400">Database Records</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="font-semibold text-slate-900 dark:text-white">✓</div>
+                                <div className="text-slate-600 dark:text-slate-400">Auction History</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="font-semibold text-slate-900 dark:text-white">✓</div>
+                                <div className="text-slate-600 dark:text-slate-400">Comparable Sales</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="font-semibold text-slate-900 dark:text-white">✓</div>
+                                <div className="text-slate-600 dark:text-slate-400">Market Intelligence</div>
+                              </div>
                             </div>
                           </div>
-                          
-                          {detectedSite && (
-                            <div className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-xl">
-                              <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Detected auction site: <span className="font-semibold text-slate-900 dark:text-white capitalize">{detectedSite}</span>
-                              </p>
+
+                          {/* Step 2 Setup */}
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <Eye className="h-5 w-5 text-yellow-600" />
+                              <h3 className="font-semibold text-yellow-800 dark:text-yellow-300">Step 2 Ready: AI Vision Analysis Setup</h3>
                             </div>
-                          )}
+                            <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-4">
+                              Advanced AI will analyze current auction photos for precise damage assessment, repair estimates, and visual condition evaluation.
+                            </p>
+                            
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              <div className="relative">
+                                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                <Input
+                                  type="text"
+                                  value={vinInput}
+                                  disabled
+                                  className="h-12 pl-12 text-base font-mono tracking-wider border-0 bg-slate-100 dark:bg-slate-600 rounded-xl"
+                                />
+                              </div>
+                              <div className="relative">
+                                <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                <Input
+                                  type="text"
+                                  placeholder="Lot ID (auto-detected)"
+                                  value={lotIdInput}
+                                  onChange={(e) => setLotIdInput(e.target.value)}
+                                  className="h-12 pl-12 text-base font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-yellow-500 rounded-xl"
+                                />
+                              </div>
+                            </div>
+                            
+                            {detectedSite && (
+                              <div className="mt-3 text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                  Auction Platform: <span className="font-semibold text-slate-900 dark:text-white capitalize">{detectedSite}</span>
+                                  <span className="ml-2 text-xs text-green-600">Auto-detected</span>
+                                </p>
+                              </div>
+                            )}
+                          </div>
                           
                           <div className="flex justify-center gap-4">
                             <Button 
@@ -296,12 +371,12 @@ export default function AuctionMind() {
                               variant="outline"
                               className="h-12 px-6"
                             >
-                              Back
+                              Back to Step 1
                             </Button>
                             <Button 
                               onClick={handleAnalyze}
                               disabled={!vinInput.trim() || vinInput.length !== 17 || !lotIdInput.trim() || isLoading}
-                              className="h-12 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transform transition-all hover:scale-105 disabled:transform-none"
+                              className="h-12 px-8 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white rounded-xl font-semibold shadow-lg transform transition-all hover:scale-105 disabled:transform-none"
                             >
                               {isLoading ? (
                                 <>
@@ -310,8 +385,8 @@ export default function AuctionMind() {
                                 </>
                               ) : (
                                 <>
-                                  <Zap className="h-5 w-5 mr-3" />
-                                  Run AI Analysis
+                                  <Eye className="h-5 w-5 mr-3" />
+                                  Begin AI Vision Analysis
                                 </>
                               )}
                             </Button>
@@ -321,10 +396,49 @@ export default function AuctionMind() {
                     )}
 
                     {step === 'analyze' && (
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
-                        <p className="text-lg font-medium text-slate-900 dark:text-white">Running comprehensive AI analysis...</p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">This may take up to 30 seconds</p>
+                      <div className="space-y-6">
+                        {/* Analysis Progress */}
+                        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-6">
+                          <div className="text-center mb-6">
+                            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+                            <h3 className="text-lg font-semibold text-indigo-800 dark:text-indigo-300 mb-2">
+                              AI Vision Analysis in Progress
+                            </h3>
+                            <p className="text-sm text-indigo-600 dark:text-indigo-400">
+                              Analyzing current auction images with advanced computer vision
+                            </p>
+                          </div>
+                          
+                          {/* Analysis Steps */}
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-sm text-slate-700 dark:text-slate-300">Fetching current auction images from live lot data</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-sm text-slate-700 dark:text-slate-300">Running OpenAI GPT-4 Vision analysis on vehicle photos</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg">
+                              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                              <span className="text-sm text-slate-700 dark:text-slate-300">Analyzing damage patterns and repair requirements</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg">
+                              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                              <span className="text-sm text-slate-700 dark:text-slate-300">Cross-referencing with market intelligence data</span>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg">
+                              <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
+                              <span className="text-sm text-slate-500 dark:text-slate-400">Generating comprehensive investment recommendation</span>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-6 text-center">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              This advanced analysis typically takes 20-45 seconds
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     )}
                     
