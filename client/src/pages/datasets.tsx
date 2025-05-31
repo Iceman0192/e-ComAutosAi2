@@ -7,7 +7,7 @@ import { Database, Plus, BarChart3, Download } from 'lucide-react';
 export default function Datasets() {
   const { user, hasPermission } = useAuth();
 
-  if (!hasPermission('FULL_ANALYTICS')) {
+  if (user?.role !== 'admin') {
     return (
       <div className="flex items-center justify-center h-64">
         <Card className="max-w-md">
@@ -19,9 +19,9 @@ export default function Datasets() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              This feature is available for Gold members and above.
+              This feature is restricted to admin users only.
             </p>
-            <Badge variant="outline">Upgrade to Gold</Badge>
+            <Badge variant="outline">Admin Access Required</Badge>
           </CardContent>
         </Card>
       </div>
@@ -40,8 +40,8 @@ export default function Datasets() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="default" className="bg-orange-600">
-            GOLD+ FEATURE
+          <Badge variant="default" className="bg-red-600">
+            ADMIN ONLY
           </Badge>
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
@@ -127,23 +127,7 @@ export default function Datasets() {
         </Card>
       </div>
 
-      {user?.role === 'gold' && (
-        <Card className="border-purple-200 bg-purple-50 dark:bg-purple-950/20">
-          <CardHeader>
-            <CardTitle className="text-purple-800 dark:text-purple-200">
-              Unlock AI-Powered Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-purple-700 dark:text-purple-300 mb-4">
-              Upgrade to Platinum for AI-powered dataset analysis and automated insights
-            </p>
-            <Button className="bg-purple-600 hover:bg-purple-700">
-              Upgrade to Platinum
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+
     </div>
   );
 }
