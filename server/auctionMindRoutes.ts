@@ -117,8 +117,19 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
 
     // Get vehicle images for visual analysis
     console.log('Vehicle info keys:', Object.keys(vehicleInfo));
-    const images = vehicleInfo.images || [];
+    
+    // Extract images from the correct fields in the API response
+    let images = [];
+    if (vehicleInfo.link_img_hd && Array.isArray(vehicleInfo.link_img_hd)) {
+      images = vehicleInfo.link_img_hd;
+    } else if (vehicleInfo.images && Array.isArray(vehicleInfo.images)) {
+      images = vehicleInfo.images;
+    }
+    
     console.log('Images found:', images.length);
+    if (images.length > 0) {
+      console.log('Sample image URL:', images[0]);
+    }
     const imageMessages = [];
 
     // Include up to 4 key images for analysis
