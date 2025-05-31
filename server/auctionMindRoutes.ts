@@ -118,12 +118,22 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
     // Get vehicle images for visual analysis
     console.log('Vehicle info keys:', Object.keys(vehicleInfo));
     
-    // Extract images from the correct fields in the API response
+    // Extract images from the correct fields - handle both API response and database records
     let images = [];
     if (vehicleInfo.link_img_hd && Array.isArray(vehicleInfo.link_img_hd)) {
       images = vehicleInfo.link_img_hd;
-    } else if (vehicleInfo.images && Array.isArray(vehicleInfo.images)) {
-      images = vehicleInfo.images;
+    } else if (vehicleInfo.images) {
+      // Handle both array format and JSON string format from database
+      if (Array.isArray(vehicleInfo.images)) {
+        images = vehicleInfo.images;
+      } else if (typeof vehicleInfo.images === 'string') {
+        try {
+          images = JSON.parse(vehicleInfo.images);
+        } catch (e) {
+          console.log('Failed to parse images JSON:', vehicleInfo.images);
+          images = [];
+        }
+      }
     }
     
     console.log('Images found:', images.length);
