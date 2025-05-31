@@ -23,9 +23,12 @@ export default function AuctionMind() {
   const { user } = useAuth();
   const [vinInput, setVinInput] = useState('');
   const [lotIdInput, setLotIdInput] = useState('');
+  const [detectedSite, setDetectedSite] = useState<string>('');
   const [vinData, setVinData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingVin, setIsLoadingVin] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<'input' | 'review' | 'analyze'>('input');
   const [dbRecordCount, setDbRecordCount] = useState<number>(11712);
 
   // Auto-update database count every 30 seconds
@@ -48,6 +51,55 @@ export default function AuctionMind() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleVinLookup = async () => {
+    if (!vinInput.trim() || vinInput.length !== 17) {
+      setError('Please enter a valid 17-character VIN');
+      return;
+    }
+
+    setIsLoadingVin(true);
+    setError(null);
+
+    try {
+      // Use our backend endpoint for VIN lookup
+      const vinResponse = await fetch('/api/auction-mind/vin-lookup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ vin: vinInput.toUpperCase() }),
+      });
+
+      if (!vinResponse.ok) {
+        throw new Error('Failed to fetch VIN data');
+      }
+
+      const vinResult = await vinResponse.json();
+      
+      if (vinResult.success && vinResult.data && vinResult.data.length > 0) {
+        const vehicleInfo = vinResult.data[0];
+        
+        // Auto-populate lot ID and site information
+        setLotIdInput(vehicleInfo.lot_id?.toString() || '');
+        setDetectedSite(vehicleInfo.base_site || '');
+        setStep('review');
+        
+        // Update database count
+        const dbCountResponse = await fetch('/api/database/count');
+        if (dbCountResponse.ok) {
+          const countData = await dbCountResponse.json();
+          setDbRecordCount(countData.count);
+        }
+      } else {
+        setError(vinResult.message || 'No data found for this VIN');
+      }
+    } catch (err) {
+      setError('Failed to lookup VIN data. Please check your API key configuration.');
+    } finally {
+      setIsLoadingVin(false);
+    }
+  };
+
   const handleAnalyze = async () => {
     if (!vinInput.trim() || vinInput.length !== 17) {
       setError('Please enter a valid 17-character VIN');
@@ -61,15 +113,9 @@ export default function AuctionMind() {
 
     setIsLoading(true);
     setError(null);
+    setStep('analyze');
 
     try {
-      // Get current database count
-      const dbCountResponse = await fetch('/api/database/count');
-      if (dbCountResponse.ok) {
-        const countData = await dbCountResponse.json();
-        setDbRecordCount(countData.count);
-      }
-
       const response = await fetch('/api/auction-mind/analyze', {
         method: 'POST',
         headers: {
@@ -87,9 +133,11 @@ export default function AuctionMind() {
         setVinData(result.data);
       } else {
         setError(result.message || result.error || 'Analysis failed');
+        setStep('review');
       }
     } catch (err) {
       setError('Network error occurred');
+      setStep('review');
     } finally {
       setIsLoading(false);
     }
@@ -155,10 +203,14 @@ export default function AuctionMind() {
             <div className="text-center space-y-6">
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  Start Your Analysis
+                  {step === 'input' && 'Start Your Analysis'}
+                  {step === 'review' && 'Review Vehicle Information'}
+                  {step === 'analyze' && 'AI Analysis in Progress'}
                 </h2>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Enter VIN and Lot ID for comprehensive AI analysis with current auction images
+                  {step === 'input' && 'Enter a 17-character VIN to automatically detect auction site and lot information'}
+                  {step === 'review' && 'Verify the auto-detected information before running the full AI analysis'}
+                  {step === 'analyze' && 'Running comprehensive AI analysis with current auction images...'}
                 </p>
               </div>
               
@@ -166,87 +218,136 @@ export default function AuctionMind() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-20"></div>
                   <div className="relative bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                      <div className="relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          type="text"
-                          placeholder="VIN: 1N6AD0ER4DN751317"
-                          value={vinInput}
-                          onChange={(e) => setVinInput(e.target.value.toUpperCase())}
-                          className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
-                          maxLength={17}
-                        />
-                      </div>
-                      <div className="relative">
-                        <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          type="text"
-                          placeholder="Lot ID: 42055952"
-                          value={lotIdInput}
-                          onChange={(e) => setLotIdInput(e.target.value)}
-                          className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-center">
-                      <Button 
-                        onClick={handleAnalyze}
-                        disabled={!vinInput.trim() || vinInput.length !== 17 || !lotIdInput.trim() || isLoading}
-                        className="h-14 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transform transition-all hover:scale-105 disabled:transform-none"
-                        size="lg"
-                      >
-                        {isLoading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Zap className="h-5 w-5 mr-3" />
-                            Analyze
-                          </>
-                        )}
-                      </Button>
-                    </div>
                     
-                    {(vinInput.length > 0 || lotIdInput.length > 0) && (
-                      <div className="mt-4 space-y-3">
-                        {vinInput.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-16">VIN:</span>
-                            <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
-                              <div 
-                                className={`h-full transition-all duration-300 ${
-                                  vinInput.length === 17 
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-                                    : 'bg-gradient-to-r from-indigo-500 to-purple-500'
-                                }`}
-                                style={{ width: `${(vinInput.length / 17) * 100}%` }}
-                              ></div>
-                            </div>
-                            <span className={`text-sm font-medium ${
-                              vinInput.length === 17 ? 'text-green-600' : 'text-slate-500'
-                            }`}>
-                              {vinInput.length}/17
-                            </span>
+                    {step === 'input' && (
+                      <>
+                        <div className="space-y-4">
+                          <div className="relative">
+                            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                            <Input
+                              type="text"
+                              placeholder="Enter VIN: 1N6AD0ER4DN751317"
+                              value={vinInput}
+                              onChange={(e) => setVinInput(e.target.value.toUpperCase())}
+                              className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
+                              maxLength={17}
+                            />
                           </div>
-                        )}
-                        
-                        {lotIdInput.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-16">Lot ID:</span>
-                            <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
-                              <div 
-                                className="h-full transition-all duration-300 bg-gradient-to-r from-blue-500 to-cyan-500"
-                                style={{ width: '100%' }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium text-blue-600">
-                              ✓ Ready
-                            </span>
+                          <div className="flex justify-center">
+                            <Button 
+                              onClick={handleVinLookup}
+                              disabled={!vinInput.trim() || vinInput.length !== 17 || isLoadingVin}
+                              className="h-14 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transform transition-all hover:scale-105 disabled:transform-none"
+                              size="lg"
+                            >
+                              {isLoadingVin ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                                  Looking up VIN...
+                                </>
+                              ) : (
+                                <>
+                                  <Search className="h-5 w-5 mr-3" />
+                                  Lookup VIN
+                                </>
+                              )}
+                            </Button>
                           </div>
-                        )}
+                        </div>
+                      </>
+                    )}
+
+                    {step === 'review' && (
+                      <>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="relative">
+                              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                              <Input
+                                type="text"
+                                value={vinInput}
+                                disabled
+                                className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-100 dark:bg-slate-600 rounded-xl"
+                              />
+                            </div>
+                            <div className="relative">
+                              <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                              <Input
+                                type="text"
+                                placeholder="Lot ID (auto-detected)"
+                                value={lotIdInput}
+                                onChange={(e) => setLotIdInput(e.target.value)}
+                                className="h-14 pl-12 text-lg font-mono tracking-wider border-0 bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 rounded-xl"
+                              />
+                            </div>
+                          </div>
+                          
+                          {detectedSite && (
+                            <div className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                              <p className="text-sm text-slate-600 dark:text-slate-400">
+                                Detected auction site: <span className="font-semibold text-slate-900 dark:text-white capitalize">{detectedSite}</span>
+                              </p>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-center gap-4">
+                            <Button 
+                              onClick={() => setStep('input')}
+                              variant="outline"
+                              className="h-12 px-6"
+                            >
+                              Back
+                            </Button>
+                            <Button 
+                              onClick={handleAnalyze}
+                              disabled={!vinInput.trim() || vinInput.length !== 17 || !lotIdInput.trim() || isLoading}
+                              className="h-12 px-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transform transition-all hover:scale-105 disabled:transform-none"
+                            >
+                              {isLoading ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                                  Analyzing...
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="h-5 w-5 mr-3" />
+                                  Run AI Analysis
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {step === 'analyze' && (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+                        <p className="text-lg font-medium text-slate-900 dark:text-white">Running comprehensive AI analysis...</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">This may take up to 30 seconds</p>
+                      </div>
+                    )}
+                    
+                    {step === 'input' && vinInput.length > 0 && (
+                      <div className="mt-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-16">VIN:</span>
+                          <div className="flex-1 h-2 rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-300 ${
+                                vinInput.length === 17 
+                                  ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+                                  : 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                              }`}
+                              style={{ width: `${(vinInput.length / 17) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className={`text-sm font-medium ${
+                            vinInput.length === 17 ? 'text-green-600' : 'text-slate-500'
+                          }`}>
+                            {vinInput.length}/17
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -498,6 +498,47 @@ export function setupAuctionMindRoutes(app: Express) {
   });
 
   /**
+   * VIN Lookup Endpoint - First step to get lot information
+   */
+  app.post('/api/auction-mind/vin-lookup', async (req: Request, res: Response) => {
+    try {
+      const { vin } = req.body;
+
+      if (!vin || typeof vin !== 'string' || vin.length !== 17) {
+        return res.status(400).json({
+          success: false,
+          message: 'Valid 17-character VIN required'
+        });
+      }
+
+      console.log(`VIN lookup requested for: ${vin}`);
+
+      // Fetch VIN data from APICAR
+      const vinData = await fetchVINData(vin);
+
+      if (!vinData || vinData.length === 0) {
+        return res.json({
+          success: false,
+          message: 'No auction history found for this VIN'
+        });
+      }
+
+      // Return VIN data for frontend to extract lot information
+      res.json({
+        success: true,
+        data: vinData
+      });
+
+    } catch (error: any) {
+      console.error('VIN lookup error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to lookup VIN data'
+      });
+    }
+  });
+
+  /**
    * AuctionMind VIN + Lot Analysis Endpoint
    */
   app.post('/api/auction-mind/analyze', async (req: Request, res: Response) => {
