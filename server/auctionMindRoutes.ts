@@ -123,7 +123,7 @@ async function fetchLiveLotData(lotId: string, site: number): Promise<any> {
       params: {
         site: site,
         lot_id: lotId,
-        size: 1
+        size: 10
       }
     });
 
