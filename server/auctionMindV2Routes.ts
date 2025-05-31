@@ -87,19 +87,39 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
  */
 async function searchAuctionHistory(vin: string): Promise<any[]> {
   try {
-    console.log(`Searching auction history for VIN: ${vin}`);
+    console.log(`Searching APICAR auction history for VIN: ${vin}`);
     
-    const result = await db
-      .select()
-      .from(salesHistory)
-      .where(ilike(salesHistory.vin, vin))
-      .orderBy(salesHistory.sale_date)
-      .limit(50);
+    const response = await axios.get(`https://api.apicar.store/api/cars`, {
+      headers: {
+        'api-key': process.env.APICAR_API_KEY,
+        'accept': '*/*'
+      },
+      params: {
+        vin: vin,
+        size: 50
+      }
+    });
+
+    console.log(`APICAR VIN search response: ${response.status}, found ${response.data?.data?.length || 0} records`);
     
-    console.log(`Found ${result.length} historical records for VIN`);
-    return result;
+    if (response.data?.data && response.data.data.length > 0) {
+      return response.data.data.map((record: any) => ({
+        saleDate: record.sale_date,
+        price: record.purchase_price,
+        damage: record.damage_pr,
+        platform: record.site === 1 ? 'Copart' : 'IAAI',
+        lotId: record.lot_id,
+        location: record.location,
+        year: record.year,
+        make: record.make,
+        model: record.model,
+        mileage: record.odometer
+      }));
+    }
+    
+    return [];
   } catch (error: any) {
-    console.error('Auction history search error:', error);
+    console.error('APICAR VIN search error:', error.response?.data || error.message);
     return [];
   }
 }

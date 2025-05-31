@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Search,
   Car,
@@ -19,7 +20,11 @@ import {
   MapPin,
   Zap,
   Clock,
-  Target
+  Target,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Info
 } from 'lucide-react';
 
 interface AnalysisResult {
@@ -37,6 +42,8 @@ export default function AuctionMindV2() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const lotsPerPage = 10;
 
   const handleAnalyze = async () => {
     if (!lotId.trim() || !site) {
@@ -78,7 +85,168 @@ export default function AuctionMindV2() {
     setError(null);
     setLotId('');
     setSite('');
+    setCurrentPage(1);
   };
+
+  // Vehicle Expansion Card Component
+  const VehicleExpansionCard = ({ lot }: { lot: any }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="flex items-center gap-1">
+          <Info className="h-3 w-3" />
+          Details
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Vehicle Details - Lot {lot.lotId}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Vehicle Photos */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 text-center">
+              {lot.hasImages ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Camera className="h-5 w-5 text-blue-500" />
+                  <span className="text-sm">Photos available on Copart</span>
+                </div>
+              ) : (
+                <span className="text-sm text-muted-foreground">No photos available</span>
+              )}
+            </div>
+          </div>
+
+          {/* Vehicle Specifications */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Vehicle Specifications</h3>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">VIN:</span>
+                <p className="font-mono">{lot.vin || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Year:</span>
+                <p>{lot.year || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Make:</span>
+                <p>{lot.make || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Model:</span>
+                <p>{lot.model || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Series:</span>
+                <p>{lot.series || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Trim:</span>
+                <p>{lot.trim || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Odometer:</span>
+                <p>{lot.mileage?.toLocaleString() || 'N/A'} mi</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Color:</span>
+                <p>{lot.color || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Transmission:</span>
+                <p>{lot.transmission || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Drive Type:</span>
+                <p>{lot.driveType || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Fuel Type:</span>
+                <p>{lot.fuelType || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Keys:</span>
+                <p>{lot.keys || 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Sale Details */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Sale Details</h3>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Sale Price:</span>
+                  <p className="text-lg font-bold text-blue-600">
+                    ${lot.currentBid?.toLocaleString() || 'No bid'}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Sale Date:</span>
+                  <p>{lot.auctionDate || 'N/A'}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge variant={lot.status === 'Sold' ? 'default' : 'secondary'}>
+                    {lot.status || 'Active'}
+                  </Badge>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Lot ID:</span>
+                  <p className="font-mono">{lot.lotId}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Condition & Title */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Condition & Title</h3>
+            <div className="space-y-3">
+              <div>
+                <span className="text-muted-foreground text-sm">Title Status:</span>
+                <Badge variant="outline" className="ml-2">
+                  {lot.titleStatus || 'Unknown'}
+                </Badge>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-sm">Primary Damage:</span>
+                <p className="text-sm">{lot.damage || 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-sm">Location:</span>
+                <p className="text-sm">{lot.location || 'N/A'}</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex gap-2">
+              <Button 
+                size="sm" 
+                onClick={() => window.open(`https://copart.com/lot/${lot.lotId}`, '_blank')}
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-3 w-3" />
+                View on Copart
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setLotId(lot.lotId.toString());
+                  setSite('1');
+                  setResult(null);
+                }}
+              >
+                Analyze This Lot
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   if (!user) {
     return (
@@ -363,9 +531,14 @@ export default function AuctionMindV2() {
           {result.similarActiveLots && result.similarActiveLots.length > 0 && (
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5" />
-                  Similar Active Lots ({result.similarActiveLots.length} found)
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Similar Active Lots ({result.similarActiveLots.length} found)
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    Showing {((currentPage - 1) * lotsPerPage) + 1}-{Math.min(currentPage * lotsPerPage, result.similarActiveLots.length)} of {result.similarActiveLots.length}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -384,7 +557,9 @@ export default function AuctionMindV2() {
                       </tr>
                     </thead>
                     <tbody>
-                      {result.similarActiveLots.map((lot: any, index: number) => (
+                      {result.similarActiveLots
+                        .slice((currentPage - 1) * lotsPerPage, currentPage * lotsPerPage)
+                        .map((lot: any, index: number) => (
                         <tr key={index} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
                           <td className="p-2">
                             <div>
@@ -417,12 +592,13 @@ export default function AuctionMindV2() {
                           </td>
                           <td className="p-2">
                             <div className="flex gap-1">
+                              <VehicleExpansionCard lot={lot} />
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => window.open(`https://copart.com/lot/${lot.lotId}`, '_blank')}
                               >
-                                View on Copart
+                                <ExternalLink className="h-3 w-3" />
                               </Button>
                               <Button
                                 size="sm"
@@ -442,6 +618,35 @@ export default function AuctionMindV2() {
                     </tbody>
                   </table>
                 </div>
+                
+                {/* Pagination */}
+                {result.similarActiveLots.length > lotsPerPage && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="text-sm text-muted-foreground">
+                      Page {currentPage} of {Math.ceil(result.similarActiveLots.length / lotsPerPage)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCurrentPage(prev => Math.min(Math.ceil(result.similarActiveLots.length / lotsPerPage), prev + 1))}
+                        disabled={currentPage === Math.ceil(result.similarActiveLots.length / lotsPerPage)}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
