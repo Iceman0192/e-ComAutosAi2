@@ -62,13 +62,13 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Datasets',
       href: '/datasets',
       icon: Database,
-      permission: 'FULL_ANALYTICS'
+      permission: 'ADMIN'
     },
     {
       title: 'Team Management',
       href: '/team',
       icon: Users,
-      permission: 'ADMIN_TOOLS'
+      permission: 'ADMIN'
     }
   ];
 
@@ -133,7 +133,10 @@ export function Sidebar({ className = '' }: SidebarProps) {
             Main Navigation
           </h3>
           {navigationItems.map((item) => {
-            if (!hasPermission(item.permission as any)) return null;
+            // Check for admin-only features
+            if (item.permission === 'ADMIN' && user?.role !== 'admin') return null;
+            // Check other permissions
+            if (item.permission !== 'ADMIN' && !hasPermission(item.permission as any)) return null;
             
             const Icon = item.icon;
             const isActive = isActiveRoute(item.href);
