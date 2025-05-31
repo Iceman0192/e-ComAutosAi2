@@ -50,10 +50,19 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
         lot.lot_id.toString() === lotId.toString()
       );
       
-      // Get similar lots (same make/model)
-      const similarLots = response.data.data.filter((lot: any) => 
-        lot.lot_id.toString() !== lotId.toString()
-      );
+      // Get similar lots (same make/model or year range)
+      const similarLots = response.data.data.filter((lot: any) => {
+        if (lot.lot_id.toString() === lotId.toString()) return false;
+        
+        if (targetLot) {
+          // Same make and model
+          if (lot.make === targetLot.make && lot.model === targetLot.model) return true;
+          // Same make, similar year (within 3 years)
+          if (lot.make === targetLot.make && Math.abs(lot.year - targetLot.year) <= 3) return true;
+        }
+        
+        return false;
+      });
       
       return {
         targetLot,
