@@ -26,7 +26,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-interface IAAILot {
+interface CopartLot {
   lot_id: number;
   site: number;
   base_site: string;
@@ -64,7 +64,7 @@ interface SearchFilters {
   status: string;
 }
 
-export default function IAAIPage() {
+export default function CopartPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({
@@ -76,21 +76,21 @@ export default function IAAIPage() {
     damage: '',
     status: ''
   });
-  const [lots, setLots] = useState<IAAILot[]>([]);
+  const [lots, setLots] = useState<CopartLot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [selectedLot, setSelectedLot] = useState<IAAILot | null>(null);
+  const [selectedLot, setSelectedLot] = useState<CopartLot | null>(null);
 
-  const searchIAAILots = async (resetPage = false) => {
+  const searchCopartLots = async (resetPage = false) => {
     setIsLoading(true);
     setError(null);
     const currentPage = resetPage ? 1 : page;
     
     try {
       const params = new URLSearchParams({
-        site: '2', // IAAI
+        site: '1', // Copart
         page: currentPage.toString(),
         size: '25'
       });
@@ -114,7 +114,7 @@ export default function IAAIPage() {
       const response = await fetch(`/api/cars?${params}`);
       
       if (!response.ok) {
-        throw new Error('Failed to search IAAI lots');
+        throw new Error('Failed to search Copart lots');
       }
 
       const data = await response.json();
@@ -136,7 +136,7 @@ export default function IAAIPage() {
   };
 
   useEffect(() => {
-    searchIAAILots(true);
+    searchCopartLots(true);
   }, []);
 
   const formatPrice = (price: number) => {
@@ -160,12 +160,12 @@ export default function IAAIPage() {
     } else if (statusLower.includes('not sold')) {
       return <Badge variant="destructive">Not Sold</Badge>;
     } else if (isUpcoming) {
-      return <Badge variant="secondary" className="bg-orange-600 text-white">Live Auction</Badge>;
+      return <Badge variant="secondary" className="bg-blue-600 text-white">Live Auction</Badge>;
     }
     return <Badge variant="outline">{status}</Badge>;
   };
 
-  const LotDetailDialog = ({ lot }: { lot: IAAILot }) => (
+  const LotDetailDialog = ({ lot }: { lot: CopartLot }) => (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
@@ -180,7 +180,7 @@ export default function IAAIPage() {
             {lot.link && (
               <Button variant="outline" size="sm" onClick={() => window.open(lot.link, '_blank')}>
                 <ExternalLink className="h-4 w-4 mr-1" />
-                View on IAAI
+                View on Copart
               </Button>
             )}
           </DialogTitle>
@@ -317,13 +317,13 @@ export default function IAAIPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center">
-            <span className="text-white font-bold text-sm">I</span>
+          <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
+            <span className="text-white font-bold text-sm">C</span>
           </div>
-          <h1 className="text-3xl font-bold">IAAI Auctions</h1>
+          <h1 className="text-3xl font-bold">Copart Auctions</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Search and explore vehicles from IAAI (Insurance Auto Auctions) platform. Find insurance total loss, salvage, and recovered theft vehicles.
+          Search and explore vehicles from Copart auction platform. Find salvage, clean title, and specialty vehicles.
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export default function IAAIPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
-            Search IAAI Lots
+            Search Copart Lots
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -343,7 +343,7 @@ export default function IAAIPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
             />
-            <Button onClick={() => searchIAAILots(true)} disabled={isLoading}>
+            <Button onClick={() => searchCopartLots(true)} disabled={isLoading}>
               {isLoading ? 'Searching...' : 'Search'}
             </Button>
           </div>
@@ -399,7 +399,7 @@ export default function IAAIPage() {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold">
-              Found {totalCount.toLocaleString()} IAAI lots
+              Found {totalCount.toLocaleString()} Copart lots
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Page {page}</span>
@@ -409,7 +409,7 @@ export default function IAAIPage() {
                 disabled={page === 1}
                 onClick={() => {
                   setPage(page - 1);
-                  searchIAAILots();
+                  searchCopartLots();
                 }}
               >
                 Previous
@@ -419,7 +419,7 @@ export default function IAAIPage() {
                 size="sm"
                 onClick={() => {
                   setPage(page + 1);
-                  searchIAAILots();
+                  searchCopartLots();
                 }}
               >
                 Next
