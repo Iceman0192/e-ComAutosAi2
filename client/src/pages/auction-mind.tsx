@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,26 @@ export default function AuctionMind() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dbRecordCount, setDbRecordCount] = useState<number>(11712);
+
+  // Auto-update database count every 30 seconds
+  useEffect(() => {
+    const updateDbCount = async () => {
+      try {
+        const response = await fetch('/api/database/count');
+        if (response.ok) {
+          const data = await response.json();
+          setDbRecordCount(data.count);
+        }
+      } catch (error) {
+        // Silently fail to avoid UI disruption
+      }
+    };
+
+    updateDbCount(); // Initial load
+    const interval = setInterval(updateDbCount, 30000); // Every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAnalyze = async () => {
     if (!vinInput.trim() || vinInput.length !== 17) return;
