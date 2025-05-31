@@ -55,24 +55,17 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
       condition: entry.status
     }));
 
-    const prompt = `Analyze this vehicle's auction history and provide insights:
+    const prompt = `Brief analysis for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} (${vehicleInfo.odometer} miles):
 
-Vehicle: ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}
-VIN: ${vehicleInfo.vin}
-Engine: ${vehicleInfo.engine}
-Mileage: ${vehicleInfo.odometer}
+Recent Sales: ${saleHistory.slice(0, 3).map(sale => `$${sale.price} (${sale.damage})`).join(', ')}
 
-Sale History:
-${saleHistory.map(sale => `${sale.date}: $${sale.price} on ${sale.platform} (${sale.damage})`).join('\n')}
+Provide concise JSON response:
+- summary: 2 sentences max
+- currentValue: estimated value range
+- trend: up/down/stable
+- recommendation: buy/hold/pass with 1-line reason
 
-Provide a comprehensive analysis focusing on:
-1. Value trends and depreciation patterns
-2. Damage progression between auctions
-3. Platform-specific pricing differences
-4. Investment potential and risks
-5. Strategic recommendations
-
-Format as JSON with keys: summary, valueAnalysis, riskFactors, recommendation`;
+Keep total response under 150 words.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -87,7 +80,7 @@ Format as JSON with keys: summary, valueAnalysis, riskFactors, recommendation`;
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1500
+      max_tokens: 400
     });
 
     return JSON.parse(response.choices[0].message.content || '{}');
@@ -105,12 +98,7 @@ Format as JSON with keys: summary, valueAnalysis, riskFactors, recommendation`;
  */
 async function performPerplexityAnalysis(vehicleInfo: any): Promise<any> {
   try {
-    const prompt = `Research current market trends and pricing for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}. Focus on:
-    1. Current market value and demand
-    2. Recent auction trends
-    3. Export market considerations
-    4. Seasonal pricing patterns
-    5. Comparable vehicle analysis`;
+    const prompt = `Quick market update for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}: Current market value, demand level, and key trends affecting pricing. Keep response under 100 words.`;
 
     const response = await axios.post('https://api.perplexity.ai/chat/completions', {
       model: 'llama-3.1-sonar-small-128k-online',
@@ -124,7 +112,7 @@ async function performPerplexityAnalysis(vehicleInfo: any): Promise<any> {
           content: prompt
         }
       ],
-      max_tokens: 1000,
+      max_tokens: 300,
       temperature: 0.2
     }, {
       headers: {
