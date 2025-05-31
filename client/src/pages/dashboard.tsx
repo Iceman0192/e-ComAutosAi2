@@ -262,8 +262,8 @@ export default function Dashboard() {
                     </div>
                     <Badge variant="outline">{formatNumber(stats.count)} sales</Badge>
                   </div>
-                  <div className="text-lg font-semibold">{formatCurrency(stats.avgPrice)}</div>
-                  <p className="text-xs text-muted-foreground">Average sale price</p>
+                  <div className="text-lg font-semibold">{formatNumber(stats.count)} records</div>
+                  <p className="text-xs text-muted-foreground">Total auction records</p>
                 </div>
               ))}
             </div>
