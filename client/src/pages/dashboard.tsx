@@ -77,16 +77,7 @@ export default function Dashboard() {
       }
     ];
 
-    if (hasPermission('CROSS_PLATFORM_SEARCH')) {
-      actions.push({
-        title: 'Cross-Platform Analysis',
-        description: 'Combined auction data analysis',
-        icon: BarChart3,
-        href: '/cross-platform',
-        permission: 'CROSS_PLATFORM_SEARCH',
-        color: 'bg-purple-500'
-      });
-    }
+
 
     // Admin-only features
     if (user?.role === 'admin') {
