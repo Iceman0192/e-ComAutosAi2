@@ -124,6 +124,7 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
     
     if (keyImages.length > 0) {
       console.log(`Analyzing ${keyImages.length} vehicle images with OpenAI Vision`);
+      console.log('Image URLs:', keyImages.slice(0, 2)); // Log first 2 image URLs
       
       for (const imageUrl of keyImages) {
         imageMessages.push({
@@ -173,8 +174,11 @@ Analyze the actual images for damage, wear, interior condition, and overall vehi
         max_tokens: 800
       });
 
-      return JSON.parse(response.choices[0].message.content || '{}');
+      const result = JSON.parse(response.choices[0].message.content || '{}');
+      console.log('OpenAI Vision analysis completed:', Object.keys(result));
+      return result;
     } else {
+      console.log('No images available for visual analysis, using text-only mode');
       // Fallback to text-only analysis if no images
       const prompt = `Brief analysis for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} (${vehicleInfo.odometer} miles):
 
