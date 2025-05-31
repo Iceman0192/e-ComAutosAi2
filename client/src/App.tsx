@@ -34,6 +34,7 @@ function Router() {
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/auction-mind" component={AuctionMind} />
+        <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={ImportCalculator} />
         <Route path="/datasets" component={Datasets} />
         <Route path="/account" component={Account} />
