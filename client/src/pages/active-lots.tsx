@@ -175,7 +175,7 @@ export default function ActiveLotsPage() {
   };
 
   const getStatusBadge = (status: string, saleDate: string) => {
-    const statusLower = status.toLowerCase();
+    const statusLower = (status || '').toLowerCase();
     const isUpcoming = new Date(saleDate) > new Date();
     
     if (statusLower.includes('sold')) {
