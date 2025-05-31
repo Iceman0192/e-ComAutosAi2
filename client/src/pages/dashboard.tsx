@@ -88,14 +88,24 @@ export default function Dashboard() {
       });
     }
 
-    if (hasPermission('FULL_ANALYTICS')) {
+    // Admin-only features
+    if (user?.role === 'admin') {
       actions.push({
         title: 'Datasets',
-        description: 'Manage your vehicle datasets',
+        description: 'Manage vehicle datasets',
         icon: Database,
         href: '/datasets',
-        permission: 'FULL_ANALYTICS',
+        permission: 'ADMIN',
         color: 'bg-orange-500'
+      });
+
+      actions.push({
+        title: 'Team Management',
+        description: 'Manage team members and permissions',
+        icon: Users,
+        href: '/team',
+        permission: 'ADMIN',
+        color: 'bg-gray-500'
       });
     }
 

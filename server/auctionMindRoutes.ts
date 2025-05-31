@@ -381,12 +381,13 @@ export function setupAuctionMindRoutes(app: Express) {
       const avgPricesResult = await db.execute(`
         SELECT 
           base_site,
-          ROUND(AVG(CAST(purchase_price AS DECIMAL)), 0) as avg_price,
+          ROUND(AVG(purchase_price::numeric), 0) as avg_price,
           COUNT(*) as count
         FROM sales_history 
         WHERE purchase_price IS NOT NULL 
           AND purchase_price != '' 
-          AND CAST(purchase_price AS DECIMAL) > 0
+          AND purchase_price ~ '^[0-9]+\.?[0-9]*$'
+          AND purchase_price::numeric > 0
         GROUP BY base_site
       `);
 
