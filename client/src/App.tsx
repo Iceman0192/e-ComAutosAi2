@@ -11,14 +11,12 @@ import { MainLayout } from "./components/layout/MainLayout";
 // Pages
 import Dashboard from "./pages/dashboard";
 import Home from "./pages/home";
-import Copart from "./pages/copart";
-import IAAI from "./pages/iaai";
+import ActiveLots from "./pages/active-lots";
 import LiveCopart from "./pages/live-copart";
 import LiveIAAI from "./pages/live-iaai";
 import AuctionMind from "./pages/auction-mind";
 import AuctionMindV2 from "./pages/auction-mind-v2";
 import ImportCalculator from "./pages/import-calculator";
-
 import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
@@ -30,8 +28,7 @@ function Router() {
       <Switch>
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/" component={Home} />
-        <Route path="/copart" component={Copart} />
-        <Route path="/iaai" component={IAAI} />
+        <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/auction-mind" component={AuctionMind} />

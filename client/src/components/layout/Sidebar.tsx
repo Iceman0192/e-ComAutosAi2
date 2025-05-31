@@ -41,15 +41,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Copart Auctions',
-      href: '/copart',
-      icon: Car,
-      permission: 'BASIC_SEARCH',
-      badge: 'NEW'
-    },
-    {
-      title: 'IAAI Auctions',
-      href: '/iaai',
+      title: 'Active Lot Finder',
+      href: '/active-lots',
       icon: Car,
       permission: 'BASIC_SEARCH',
       badge: 'NEW'
