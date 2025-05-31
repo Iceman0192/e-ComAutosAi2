@@ -183,28 +183,47 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
       messages: [
         {
           role: "system",
-          content: `You are a professional automotive damage assessor. Analyze these auction photos and provide a precise damage assessment. Be conservative and accurate - only report damage you can clearly see. Format your response as JSON with these exact fields:
-          {
-            "damageAssessment": "detailed description of visible damage",
-            "repairEstimate": "estimated repair cost range",
-            "overallCondition": "excellent/good/fair/poor",
-            "investmentRecommendation": "buy/analyze/avoid",
-            "confidenceLevel": "high/medium/low"
-          }`
+          content: `You are a certified automotive damage assessor with 20+ years of experience. Perform a comprehensive damage assessment using these guidelines:
+
+CRITICAL ANALYSIS REQUIREMENTS:
+- Examine EVERY angle: front, rear, driver side, passenger side, roof, undercarriage
+- Identify ALL visible damage: scratches, dents, missing parts, panel misalignment, paint damage
+- Look for structural damage, frame issues, flood damage indicators
+- Assess interior condition: seats, dashboard, electronics, wear patterns
+- Note any mechanical components visible (engine bay, suspension, wheels)
+
+DAMAGE SEVERITY LEVELS:
+- Minor: Light scratches, small dents (<2 inches)
+- Moderate: Large dents, panel damage, paint work needed
+- Major: Structural damage, missing parts, frame issues
+- Severe: Total loss indicators, flood damage, fire damage
+
+Be thorough and specific. If you see damage on passenger side, driver side, or any specific area, explicitly mention it with exact location and severity.
+
+Format response as JSON:
+{
+  "damageAssessment": "comprehensive description listing ALL visible damage by vehicle area",
+  "damageAreas": ["specific damaged areas/panels"],
+  "repairEstimate": "realistic cost range based on damage severity",
+  "overallCondition": "excellent/good/fair/poor",
+  "investmentRecommendation": "buy/analyze/avoid",
+  "confidenceLevel": "high/medium/low",
+  "keyFindings": ["most important damage findings"]
+}`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analyze this ${lotData.year} ${lotData.make} ${lotData.model} (${lotData.odometer} miles) for damage assessment:`
+              text: `Perform comprehensive damage assessment on this ${lotData.year} ${lotData.make} ${lotData.model} (${lotData.odometer || 'unknown'} miles). Examine all ${lotData.link_img_hd.length} images carefully and identify ALL visible damage, paying special attention to both driver and passenger sides:`
             },
             ...imageMessages
           ]
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 500
+      max_tokens: 800
     });
 
     const analysis = JSON.parse(response.choices[0].message.content || '{}');
