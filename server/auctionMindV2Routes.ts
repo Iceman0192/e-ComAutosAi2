@@ -28,7 +28,8 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
       },
       params: {
         site: site,
-        size: 30 // Get more results for better analysis
+        lot_id: lotId,
+        size: 25 // APICAR API limit
       }
     });
 
@@ -258,7 +259,7 @@ export function setupAuctionMindV2Routes(app: Express) {
         },
         params: {
           site: site,
-          size: 30
+          size: 25
         }
       });
 
