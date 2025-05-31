@@ -629,6 +629,79 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
+   * Live Active Lots Search Endpoint
+   */
+  app.get('/api/cars', async (req: Request, res: Response) => {
+    try {
+      const site = parseInt(req.query.site as string) || 1;
+      const page = parseInt(req.query.page as string) || 1;
+      const size = parseInt(req.query.size as string) || 25;
+      
+      // Build APICAR API request parameters
+      const params = new URLSearchParams({
+        site: site.toString(),
+        page: page.toString(),
+        size: size.toString()
+      });
+
+      // Add search parameters
+      if (req.query.query) params.append('query', req.query.query as string);
+      if (req.query.vin) params.append('vin', req.query.vin as string);
+      if (req.query.make) params.append('make', req.query.make as string);
+      if (req.query.model) params.append('model', req.query.model as string);
+      if (req.query.year_from) params.append('year_from', req.query.year_from as string);
+      if (req.query.year_to) params.append('year_to', req.query.year_to as string);
+      if (req.query.location) params.append('location', req.query.location as string);
+      if (req.query.damage) params.append('damage', req.query.damage as string);
+      if (req.query.price_min) params.append('price_min', req.query.price_min as string);
+      if (req.query.price_max) params.append('price_max', req.query.price_max as string);
+      if (req.query.mileage_min) params.append('mileage_min', req.query.mileage_min as string);
+      if (req.query.mileage_max) params.append('mileage_max', req.query.mileage_max as string);
+      if (req.query.transmission) params.append('transmission', req.query.transmission as string);
+      if (req.query.fuel) params.append('fuel', req.query.fuel as string);
+      if (req.query.color) params.append('color', req.query.color as string);
+      if (req.query.title_type) params.append('title_type', req.query.title_type as string);
+
+      console.log(`Active Lots Search: Site ${site}, Page ${page}, Query:`, req.query);
+
+      // Make request to APICAR API
+      const response = await axios.get(`https://api.apicar.store/api/cars?${params}`, {
+        headers: {
+          'api-key': process.env.APICAR_API_KEY,
+          'accept': '*/*'
+        }
+      });
+
+      if (response.data && response.data.data) {
+        return res.json({
+          success: true,
+          data: {
+            vehicles: response.data.data,
+            total: response.data.count || 0,
+            currentPage: page,
+            pageSize: size,
+            totalPages: Math.ceil((response.data.count || 0) / size)
+          }
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: 'No active lots found',
+          data: { vehicles: [], total: 0 }
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Active Lots Search Error:', error.response?.data || error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to search active lots: ' + (error.response?.data?.message || error.message),
+        data: { vehicles: [], total: 0 }
+      });
+    }
+  });
+
+  /**
    * Live Copart Lot Lookup Endpoint
    */
   app.get('/api/live-copart/:lotId', async (req: Request, res: Response) => {
