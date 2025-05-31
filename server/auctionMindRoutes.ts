@@ -6,6 +6,9 @@
 import type { Express, Request, Response } from "express";
 import OpenAI from "openai";
 import axios from 'axios';
+import { db } from './db';
+import { salesHistory } from '@shared/schema';
+import { and, between, ilike, isNotNull, gt, sql } from 'drizzle-orm';
 
 // OpenAI setup - using the newest model
 const openai = new OpenAI({
@@ -18,6 +21,55 @@ interface VINAnalysisData {
   openaiAnalysis: any;
   perplexityInsights: any;
   consensus: any;
+}
+
+/**
+ * Search for comparable vehicles in the database
+ */
+async function findComparableVehiclesInDB(vehicleInfo: any): Promise<any[]> {
+  try {
+    const yearRange = 2; // Search within 2 years
+    const mileageRange = Math.round(vehicleInfo.vehicle_mileage * 0.3); // 30% mileage tolerance
+    
+    const result = await db
+      .select({
+        lot_id: salesHistory.lot_id,
+        vin: salesHistory.vin,
+        make: salesHistory.make,
+        model: salesHistory.model,
+        year: salesHistory.year,
+        series: salesHistory.series,
+        vehicle_mileage: salesHistory.vehicle_mileage,
+        vehicle_damage: salesHistory.vehicle_damage,
+        purchase_price: salesHistory.purchase_price,
+        sale_date: salesHistory.sale_date,
+        auction_location: salesHistory.auction_location,
+        base_site: salesHistory.base_site
+      })
+      .from(salesHistory)
+      .where(
+        and(
+          ilike(salesHistory.make, `%${vehicleInfo.make}%`),
+          ilike(salesHistory.model, `%${vehicleInfo.model}%`),
+          between(salesHistory.year, vehicleInfo.year - yearRange, vehicleInfo.year + yearRange),
+          between(
+            salesHistory.vehicle_mileage, 
+            Math.max(0, vehicleInfo.vehicle_mileage - mileageRange),
+            vehicleInfo.vehicle_mileage + mileageRange
+          ),
+          isNotNull(salesHistory.vehicle_damage),
+          isNotNull(salesHistory.purchase_price),
+          gt(salesHistory.purchase_price, "0")
+        )
+      )
+      .limit(25);
+
+    console.log(`Found ${result.length} comparable vehicles for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`);
+    return result;
+  } catch (error: any) {
+    console.error('Database search error:', error);
+    return [];
+  }
 }
 
 /**
@@ -141,7 +193,7 @@ async function performPerplexityAnalysis(vehicleInfo: any): Promise<any> {
 /**
  * Generate AI consensus recommendation
  */
-function generateConsensus(openaiAnalysis: any, perplexityInsights: any, vinData: any[]): any {
+function generateConsensus(openaiAnalysis: any, perplexityInsights: any, vinData: any[], comparableVehicles: any[] = []): any {
   try {
     const latestEntry = vinData[0];
     const priceHistory = vinData.map(entry => entry.purchase_price).filter(p => p > 0);
@@ -211,14 +263,18 @@ export function setupAuctionMindRoutes(app: Express) {
         });
       }
 
-      // Perform multi-AI analysis
+      // Search for comparable vehicles in database
+      const vehicleInfo = vinData[0];
+      const comparableVehicles = await findComparableVehiclesInDB(vehicleInfo);
+      
+      // Perform multi-AI analysis with comparables
       const [openaiAnalysis, perplexityInsights] = await Promise.all([
         performOpenAIAnalysis(vinData),
         performPerplexityAnalysis(vinData[0])
       ]);
 
-      // Generate consensus
-      const consensus = generateConsensus(openaiAnalysis, perplexityInsights, vinData);
+      // Generate consensus with comparable data
+      const consensus = generateConsensus(openaiAnalysis, perplexityInsights, vinData, comparableVehicles);
 
       // Format response data
       const analysisResult = {
