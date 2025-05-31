@@ -21,15 +21,11 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
   try {
     console.log(`Searching live lots for Lot ID: ${lotId}, Site: ${site}`);
     
-    const response = await axios.get(`https://api.apicar.store/api/cars`, {
+    const response = await axios.get(`https://api.apicar.store/api/cars/${lotId}?site=${site}`, {
       headers: {
         'api-key': process.env.APICAR_API_KEY,
-        'accept': '*/*'
-      },
-      params: {
-        site: site,
-        lot_id: lotId,
-        size: 25 // APICAR API limit
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       }
     });
 
