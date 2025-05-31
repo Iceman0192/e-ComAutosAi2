@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  Info
+  Info,
+  Play,
+  Pause
 } from 'lucide-react';
 
 interface AnalysisResult {
@@ -43,6 +45,8 @@ export default function AuctionMindV2() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isCarouselPlaying, setIsCarouselPlaying] = useState(false);
   const lotsPerPage = 10;
 
   const handleAnalyze = async () => {
@@ -86,6 +90,97 @@ export default function AuctionMindV2() {
     setLotId('');
     setSite('');
     setCurrentPage(1);
+    setCurrentImageIndex(0);
+    setIsCarouselPlaying(false);
+  };
+
+  // Auto-advance carousel
+  useEffect(() => {
+    if (isCarouselPlaying && result?.lotInfo?.images && result.lotInfo.images.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex(prev => 
+          prev === result.lotInfo.images.length - 1 ? 0 : prev + 1
+        );
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isCarouselPlaying, result?.lotInfo?.images]);
+
+  // Hero Carousel Component
+  const HeroCarousel = ({ images }: { images: string[] }) => {
+    if (!images || images.length === 0) {
+      return (
+        <div className="w-full h-64 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+          <div className="text-center">
+            <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground">No images available</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative w-full h-64 bg-black rounded-lg overflow-hidden">
+        <img
+          src={images[currentImageIndex]}
+          alt={`Vehicle image ${currentImageIndex + 1}`}
+          className="w-full h-full object-contain"
+        />
+        
+        {/* Navigation Overlay */}
+        <div className="absolute inset-0 flex items-center justify-between p-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="opacity-75 hover:opacity-100"
+            onClick={() => setCurrentImageIndex(prev => 
+              prev === 0 ? images.length - 1 : prev - 1
+            )}
+            disabled={images.length <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="opacity-75 hover:opacity-100"
+            onClick={() => setCurrentImageIndex(prev => 
+              prev === images.length - 1 ? 0 : prev + 1
+            )}
+            disabled={images.length <= 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Bottom Controls */}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="opacity-75 hover:opacity-100"
+            onClick={() => setIsCarouselPlaying(!isCarouselPlaying)}
+            disabled={images.length <= 1}
+          >
+            {isCarouselPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+          </Button>
+          <div className="flex gap-1">
+            {images.map((_, index) => (
+              <button
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                }`}
+                onClick={() => setCurrentImageIndex(index)}
+              />
+            ))}
+          </div>
+          <span className="text-white text-xs opacity-75">
+            {currentImageIndex + 1} / {images.length}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   // Vehicle Expansion Card Component
@@ -287,6 +382,26 @@ export default function AuctionMindV2() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Vehicle Images Hero Carousel */}
+            <div className="lg:col-span-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Vehicle Images
+                    {result.lotInfo.images && (
+                      <Badge variant="secondary" className="ml-2">
+                        {result.lotInfo.images.length} Photos
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <HeroCarousel images={result.lotInfo.images || []} />
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Lot Information */}
             <div className="lg:col-span-2">
               <Card>

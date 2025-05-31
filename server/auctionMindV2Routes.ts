@@ -171,8 +171,8 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
 
     console.log(`Running AI vision analysis on ${lotData.link_img_hd.length} images`);
 
-    // Use first 4 images for analysis
-    const images = lotData.link_img_hd.slice(0, 4);
+    // Use all available images for comprehensive analysis (up to 10 for performance)
+    const images = lotData.link_img_hd.slice(0, 10);
     const imageMessages = images.map((url: string) => ({
       type: "image_url",
       image_url: { url }
@@ -390,7 +390,9 @@ export function setupAuctionMindV2Routes(app: Express) {
           currentBid: targetLot.current_bid,
           auctionDate: targetLot.auction_date,
           location: targetLot.location,
-          site: site === 1 ? 'Copart' : 'IAAI'
+          site: site === 1 ? 'Copart' : 'IAAI',
+          images: targetLot.link_img_hd || [],
+          imageCount: targetLot.link_img_hd ? targetLot.link_img_hd.length : 0
         },
         vinHistory: vinHistory.slice(0, 10).map((record: any) => ({
           saleDate: record.sale_date,
