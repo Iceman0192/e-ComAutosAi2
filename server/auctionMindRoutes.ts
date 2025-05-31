@@ -436,24 +436,35 @@ async function searchVinHistory(vin: string): Promise<any> {
     
     console.log(`Found ${internalResults.length} records in internal database`);
     
-    // Search external API using /cars/vin/all endpoint
+    // Search external API using the working /cars endpoint pattern
     let externalResults = [];
-    try {
-      const response = await axios.get(`https://api.apicar.store/api/cars/vin/all`, {
-        headers: {
-          'api-key': process.env.APICAR_API_KEY,
-          'accept': '*/*'
-        },
-        params: { vin }
-      });
-      
-      if (response.data?.data) {
-        externalResults = response.data.data;
-        console.log(`Found ${externalResults.length} records from APICAR`);
+    
+    // Search both Copart (site 1) and IAAI (site 2) separately
+    for (const site of [1, 2]) {
+      try {
+        const response = await axios.get(`https://api.apicar.store/api/cars`, {
+          headers: {
+            'api-key': process.env.APICAR_API_KEY,
+            'accept': '*/*'
+          },
+          params: { 
+            vin: vin,
+            site: site,
+            size: 50 // Get more results to ensure we find the VIN
+          }
+        });
+        
+        if (response.data?.data) {
+          const siteResults = response.data.data.filter((vehicle: any) => vehicle.vin === vin);
+          externalResults.push(...siteResults);
+          console.log(`Found ${siteResults.length} records from APICAR site ${site}`);
+        }
+      } catch (error) {
+        console.log(`External API search failed for site ${site}`);
       }
-    } catch (error) {
-      console.log('External API search failed, using internal data only');
     }
+    
+    console.log(`Total external results: ${externalResults.length}`);
     
     // Combine and deduplicate results
     const allResults = [...internalResults];
