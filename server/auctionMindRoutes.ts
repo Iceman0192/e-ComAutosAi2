@@ -28,8 +28,12 @@ interface VINAnalysisData {
  */
 async function findComparableVehiclesInDB(vehicleInfo: any): Promise<any[]> {
   try {
+    console.log('Vehicle info for search:', vehicleInfo);
+    
     const yearRange = 2; // Search within 2 years
-    const mileageRange = Math.round(vehicleInfo.vehicle_mileage * 0.3); // 30% mileage tolerance
+    // Use odometer field from API data, fallback to vehicle_mileage
+    const mileage = vehicleInfo.odometer || vehicleInfo.vehicle_mileage || 0;
+    const mileageRange = Math.round(mileage * 0.3); // 30% mileage tolerance
     
     const result = await db
       .select({
@@ -54,8 +58,8 @@ async function findComparableVehiclesInDB(vehicleInfo: any): Promise<any[]> {
           between(salesHistory.year, vehicleInfo.year - yearRange, vehicleInfo.year + yearRange),
           between(
             salesHistory.vehicle_mileage, 
-            Math.max(0, vehicleInfo.vehicle_mileage - mileageRange),
-            vehicleInfo.vehicle_mileage + mileageRange
+            Math.max(0, mileage - mileageRange),
+            mileage + mileageRange
           ),
           isNotNull(salesHistory.vehicle_damage),
           isNotNull(salesHistory.purchase_price),
@@ -64,7 +68,7 @@ async function findComparableVehiclesInDB(vehicleInfo: any): Promise<any[]> {
       )
       .limit(25);
 
-    console.log(`Found ${result.length} comparable vehicles for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`);
+    console.log(`Found ${result.length} comparable vehicles for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} with ${mileage} miles`);
     return result;
   } catch (error: any) {
     console.error('Database search error:', error);
@@ -287,6 +291,7 @@ export function setupAuctionMindRoutes(app: Express) {
           engine: vinData[0].engine,
           mileage: vinData[0].odometer
         },
+        vehicleHistory: comparableVehicles,
         history: vinData.map((entry: any) => ({
           lotId: entry.lot_id,
           platform: entry.base_site.toUpperCase(),
