@@ -183,32 +183,38 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
       messages: [
         {
           role: "system",
-          content: `You are a certified automotive damage assessor with 20+ years of experience. Perform a comprehensive damage assessment using these guidelines:
+          content: `You are a certified automotive damage assessor with 20+ years of experience. Perform a meticulous damage assessment following this systematic approach:
 
-CRITICAL ANALYSIS REQUIREMENTS:
-- Examine EVERY angle: front, rear, driver side, passenger side, roof, undercarriage
-- Identify ALL visible damage: scratches, dents, missing parts, panel misalignment, paint damage
-- Look for structural damage, frame issues, flood damage indicators
-- Assess interior condition: seats, dashboard, electronics, wear patterns
-- Note any mechanical components visible (engine bay, suspension, wheels)
+MANDATORY INSPECTION CHECKLIST - Examine each area separately:
+1. FRONT: bumper, hood, headlights, grille, windshield
+2. DRIVER SIDE: front door, rear door, front fender, rear quarter panel, side mirrors
+3. PASSENGER SIDE: front door, rear door, front fender, rear quarter panel, side mirrors  
+4. REAR: bumper, tailgate/trunk, taillights, rear window
+5. ROOF: sunroof, roof rails, antenna area
+6. INTERIOR: seats, dashboard, door panels, electronics
+7. WHEELS/TIRES: all four wheels, tire condition, suspension visible
 
-DAMAGE SEVERITY LEVELS:
-- Minor: Light scratches, small dents (<2 inches)
-- Moderate: Large dents, panel damage, paint work needed
-- Major: Structural damage, missing parts, frame issues
-- Severe: Total loss indicators, flood damage, fire damage
+CRITICAL INSTRUCTIONS:
+- Look at EACH image carefully - some may show different angles of the same damage
+- Do NOT assume undamaged areas - only state "appears undamaged" if you can clearly see that area in the images
+- Pay special attention to subtle damage: paint scratches, panel gaps, color mismatches
+- If you see any damage on passenger side in ANY image, report it specifically
+- Look for damage patterns that might indicate impact direction
 
-Be thorough and specific. If you see damage on passenger side, driver side, or any specific area, explicitly mention it with exact location and severity.
+DAMAGE DOCUMENTATION:
+- Document exact location (front passenger door, rear driver quarter panel, etc.)
+- Note damage type (dent, scratch, missing part, misalignment)
+- Estimate severity (minor, moderate, major, severe)
 
 Format response as JSON:
 {
-  "damageAssessment": "comprehensive description listing ALL visible damage by vehicle area",
-  "damageAreas": ["specific damaged areas/panels"],
-  "repairEstimate": "realistic cost range based on damage severity",
-  "overallCondition": "excellent/good/fair/poor",
+  "damageAssessment": "systematic description going through each vehicle side/area",
+  "damageAreas": ["specific damaged areas with side designation"],
+  "repairEstimate": "realistic cost range",
+  "overallCondition": "excellent/good/fair/poor", 
   "investmentRecommendation": "buy/analyze/avoid",
   "confidenceLevel": "high/medium/low",
-  "keyFindings": ["most important damage findings"]
+  "keyFindings": ["critical damage observations by area"]
 }`
         },
         {
@@ -216,14 +222,22 @@ Format response as JSON:
           content: [
             {
               type: "text",
-              text: `Perform comprehensive damage assessment on this ${lotData.year} ${lotData.make} ${lotData.model} (${lotData.odometer || 'unknown'} miles). Examine all ${lotData.link_img_hd.length} images carefully and identify ALL visible damage, paying special attention to both driver and passenger sides:`
+              text: `CRITICAL DAMAGE ASSESSMENT REQUIRED: This ${lotData.year} ${lotData.make} ${lotData.model} (${lotData.odometer || 'unknown'} miles) has ${lotData.link_img_hd.length} high-resolution images.
+
+IMPORTANT: Previous assessments may have missed passenger side damage. You MUST examine each image systematically:
+- Check every angle for damage visibility
+- Look specifically for passenger side damage in multiple images
+- Do not declare any area "undamaged" unless you can clearly see that area is intact
+- Report ALL damage found, regardless of severity
+
+Examine all images now and provide complete damage documentation:`
             },
             ...imageMessages
           ]
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 800
+      max_tokens: 1200
     });
 
     const analysis = JSON.parse(response.choices[0].message.content || '{}');
