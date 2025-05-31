@@ -41,19 +41,34 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
+      title: 'Copart Auctions',
+      href: '/copart',
+      icon: Car,
+      permission: 'BASIC_SEARCH',
+      badge: 'NEW'
+    },
+    {
+      title: 'IAAI Auctions',
+      href: '/iaai',
+      icon: Car,
+      permission: 'BASIC_SEARCH',
+      badge: 'NEW'
+    },
+    {
       title: 'Live Lot Analysis',
       href: '/live-copart',
       icon: Car,
       permission: 'FULL_ANALYTICS'
     },
     {
-      title: 'AuctionMind',
+      title: 'VIN History Search',
       href: '/auction-mind',
       icon: Brain,
-      permission: 'CROSS_PLATFORM_SEARCH'
+      permission: 'BASIC_SEARCH',
+      badge: 'UPDATED'
     },
     {
-      title: 'AuctionMind V2',
+      title: 'AuctionMind Pro',
       href: '/auction-mind-v2',
       icon: Brain,
       permission: 'CROSS_PLATFORM_SEARCH'
@@ -160,6 +175,11 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.title}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
             );
