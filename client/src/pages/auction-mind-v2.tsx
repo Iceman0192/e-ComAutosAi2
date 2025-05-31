@@ -200,16 +200,34 @@ export default function AuctionMindV2() {
           {/* Vehicle Photos */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 text-center">
-              {lot.hasImages ? (
+            {lot.images && lot.images.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2">
+                {lot.images.slice(0, 6).map((imageUrl: string, index: number) => (
+                  <div key={index} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded overflow-hidden">
+                    <img
+                      src={imageUrl}
+                      alt={`Vehicle photo ${index + 1}`}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                      onClick={() => window.open(imageUrl, '_blank')}
+                    />
+                  </div>
+                ))}
+                {lot.images.length > 6 && (
+                  <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+                    <span className="text-xs text-muted-foreground">
+                      +{lot.images.length - 6} more
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 text-center">
                 <div className="flex items-center justify-center gap-2">
-                  <Camera className="h-5 w-5 text-blue-500" />
-                  <span className="text-sm">Photos available on Copart</span>
+                  <Camera className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">No photos available</span>
                 </div>
-              ) : (
-                <span className="text-sm text-muted-foreground">No photos available</span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Vehicle Specifications */}
@@ -459,14 +477,44 @@ export default function AuctionMindV2() {
                   {result.aiAnalysis?.hasImages ? (
                     <div className="space-y-6">
                       <div>
-                        <h4 className="font-semibold mb-3">Damage Assessment</h4>
+                        <h4 className="font-semibold mb-3">Professional Damage Assessment</h4>
                         <p className="text-sm text-muted-foreground mb-4">
-                          {result.aiAnalysis.summary || 'Comprehensive AI analysis of vehicle condition based on auction photos'}
+                          {result.aiAnalysis.damageAssessment || result.aiAnalysis.summary || 'Comprehensive AI analysis completed'}
                         </p>
+                        
+                        {result.aiAnalysis.overallCondition && (
+                          <div className="mb-4">
+                            <h5 className="font-medium mb-2">Overall Condition:</h5>
+                            <Badge variant={
+                              result.aiAnalysis.overallCondition === 'excellent' ? 'default' :
+                              result.aiAnalysis.overallCondition === 'good' ? 'secondary' :
+                              result.aiAnalysis.overallCondition === 'fair' ? 'outline' : 'destructive'
+                            } className="text-sm capitalize">
+                              {result.aiAnalysis.overallCondition}
+                            </Badge>
+                          </div>
+                        )}
+
+                        {result.aiAnalysis.investmentRecommendation && (
+                          <div className="mb-4">
+                            <h5 className="font-medium mb-2">Investment Recommendation:</h5>
+                            <Badge variant={
+                              result.aiAnalysis.investmentRecommendation === 'buy' ? 'default' :
+                              result.aiAnalysis.investmentRecommendation === 'analyze' ? 'secondary' : 'destructive'
+                            } className="text-sm capitalize">
+                              {result.aiAnalysis.investmentRecommendation}
+                            </Badge>
+                            {result.aiAnalysis.confidenceLevel && (
+                              <span className="ml-2 text-sm text-muted-foreground">
+                                ({result.aiAnalysis.confidenceLevel} confidence)
+                              </span>
+                            )}
+                          </div>
+                        )}
                         
                         {result.aiAnalysis.damageAreas && result.aiAnalysis.damageAreas.length > 0 && (
                           <div className="mb-4">
-                            <h5 className="font-medium mb-2">Identified Damage Areas:</h5>
+                            <h5 className="font-medium mb-2">Identified Issues:</h5>
                             <div className="flex flex-wrap gap-2">
                               {result.aiAnalysis.damageAreas.map((area: string, index: number) => (
                                 <Badge key={index} variant="destructive" className="text-xs">
@@ -476,22 +524,13 @@ export default function AuctionMindV2() {
                             </div>
                           </div>
                         )}
-                        
-                        {result.aiAnalysis.condition && (
-                          <div className="mb-4">
-                            <h5 className="font-medium mb-2">Overall Condition:</h5>
-                            <p className="text-sm bg-slate-100 dark:bg-slate-800 p-3 rounded">
-                              {result.aiAnalysis.condition}
-                            </p>
-                          </div>
-                        )}
                       </div>
                       
-                      {result.aiAnalysis.estimatedRepairCost && (
+                      {result.aiAnalysis.repairEstimate && (
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                          <h4 className="font-semibold mb-2">Estimated Repair Cost</h4>
+                          <h4 className="font-semibold mb-2">Repair Cost Estimate</h4>
                           <p className="text-2xl font-bold text-blue-600">
-                            {result.aiAnalysis.estimatedRepairCost}
+                            {result.aiAnalysis.repairEstimate}
                           </p>
                           {result.aiAnalysis.repairNotes && (
                             <p className="text-sm text-muted-foreground mt-2">
@@ -501,14 +540,9 @@ export default function AuctionMindV2() {
                         </div>
                       )}
                       
-                      {result.aiAnalysis.marketability && (
-                        <div>
-                          <h4 className="font-semibold mb-2">Marketability Assessment</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {result.aiAnalysis.marketability}
-                          </p>
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground">
+                        Analysis based on {result.aiAnalysis.imageCount || result.aiAnalysis.totalImages || 'multiple'} high-resolution images
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">
@@ -543,6 +577,16 @@ export default function AuctionMindV2() {
                       </p>
                     </div>
                     
+                    {/* Actionable Bid Suggestion */}
+                    {result.marketIntelligence?.actionableBidSuggestion && (
+                      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg mb-4">
+                        <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Bid Strategy</h4>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                          {result.marketIntelligence.actionableBidSuggestion}
+                        </p>
+                      </div>
+                    )}
+
                     {result.marketIntelligence?.marketData && (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 gap-3">
@@ -553,11 +597,29 @@ export default function AuctionMindV2() {
                             </span>
                           </div>
                           
+                          {result.marketIntelligence.marketData.avgSimilarBid > 0 && (
+                            <div className="flex justify-between items-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
+                              <span className="text-sm font-medium">Avg Similar Bid</span>
+                              <span className="font-bold text-purple-600">
+                                ${result.marketIntelligence.marketData.avgSimilarBid?.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          
                           {result.marketIntelligence.marketData.estimatedValue > 0 && (
                             <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
-                              <span className="text-sm font-medium">Estimated Value</span>
+                              <span className="text-sm font-medium">Historical Avg</span>
                               <span className="font-bold text-blue-600">
                                 ${result.marketIntelligence.marketData.estimatedValue?.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {result.marketIntelligence.marketData.lowestSimilarBid > 0 && (
+                            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700 rounded">
+                              <span className="text-sm font-medium">Bid Range</span>
+                              <span className="font-bold">
+                                ${result.marketIntelligence.marketData.lowestSimilarBid?.toLocaleString()} - ${result.marketIntelligence.marketData.highestSimilarBid?.toLocaleString()}
                               </span>
                             </div>
                           )}
@@ -577,32 +639,20 @@ export default function AuctionMindV2() {
                               </span>
                             </div>
                           )}
-                          
-                          {result.marketIntelligence.marketData.historicalAvgPrice > 0 && (
-                            <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded">
-                              <span className="text-sm font-medium">Historical Avg Price</span>
-                              <span className="font-bold text-orange-600">
-                                ${result.marketIntelligence.marketData.historicalAvgPrice?.toLocaleString()}
-                              </span>
-                            </div>
-                          )}
                         </div>
                         
-                        {result.marketIntelligence.marketData.currentBid > 0 && result.marketIntelligence.marketData.estimatedValue > 0 && (
+                        {result.marketIntelligence.marketData.competitiveRange && (
                           <div className="pt-3 border-t">
-                            <div className="text-sm text-muted-foreground mb-2">Bid to Value Ratio</div>
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                                <div 
-                                  className="bg-blue-500 h-2 rounded-full transition-all"
-                                  style={{
-                                    width: `${Math.min(100, (result.marketIntelligence.marketData.currentBid / result.marketIntelligence.marketData.estimatedValue) * 100)}%`
-                                  }}
-                                />
+                            <div className="text-sm text-muted-foreground mb-2">Competitive Bidding Range</div>
+                            <div className="bg-gradient-to-r from-green-100 to-red-100 dark:from-green-900/20 dark:to-red-900/20 p-3 rounded">
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium text-green-700 dark:text-green-400">
+                                  Min: ${result.marketIntelligence.marketData.competitiveRange.min?.toLocaleString()}
+                                </span>
+                                <span className="font-medium text-red-700 dark:text-red-400">
+                                  Max: ${result.marketIntelligence.marketData.competitiveRange.max?.toLocaleString()}
+                                </span>
                               </div>
-                              <span className="text-sm font-medium">
-                                {Math.round((result.marketIntelligence.marketData.currentBid / result.marketIntelligence.marketData.estimatedValue) * 100)}%
-                              </span>
                             </div>
                           </div>
                         )}

@@ -171,8 +171,8 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
 
     console.log(`Running AI vision analysis on ${lotData.link_img_hd.length} images`);
 
-    // Use all available images for comprehensive analysis (up to 10 for performance)
-    const images = lotData.link_img_hd.slice(0, 10);
+    // Use ALL available images for maximum analysis quality
+    const images = lotData.link_img_hd;
     const imageMessages = images.map((url: string) => ({
       type: "image_url",
       image_url: { url }
@@ -226,18 +226,25 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
 function generateMarketIntelligence(targetLot: any, similarLots: any[], historicalData: any[], comparables: any[]): any {
   try {
     const avgHistoricalPrice = historicalData.length > 0 
-      ? historicalData.reduce((sum, record) => sum + (parseFloat(record.purchase_price) || 0), 0) / historicalData.length
-      : 0;
-
-    const avgComparablePrice = comparables.length > 0
-      ? comparables.reduce((sum, record) => sum + (parseFloat(record.purchase_price) || 0), 0) / comparables.length
+      ? historicalData.reduce((sum, record) => sum + (parseFloat(record.price) || 0), 0) / historicalData.length
       : 0;
 
     const currentBid = targetLot.current_bid || 0;
-    const estimatedValue = avgHistoricalPrice || avgComparablePrice || 0;
+    const estimatedValue = avgHistoricalPrice || 0;
+
+    // Calculate similar lots average bid
+    const similarBids = similarLots.filter(lot => lot.current_bid > 0).map(lot => lot.current_bid);
+    const avgSimilarBid = similarBids.length > 0 
+      ? similarBids.reduce((sum, bid) => sum + bid, 0) / similarBids.length
+      : 0;
+
+    // Find lowest and highest similar lot bids
+    const lowestSimilarBid = similarBids.length > 0 ? Math.min(...similarBids) : 0;
+    const highestSimilarBid = similarBids.length > 0 ? Math.max(...similarBids) : 0;
 
     let recommendation = 'ANALYZE';
     let confidence = 50;
+    let actionableBidSuggestion = '';
 
     if (estimatedValue > 0 && currentBid > 0) {
       const bidToValueRatio = currentBid / estimatedValue;
@@ -245,26 +252,38 @@ function generateMarketIntelligence(targetLot: any, similarLots: any[], historic
       if (bidToValueRatio < 0.7) {
         recommendation = 'BUY';
         confidence = 85;
+        actionableBidSuggestion = `Strong buy signal. Consider bidding up to $${Math.round(estimatedValue * 0.8).toLocaleString()}`;
       } else if (bidToValueRatio > 1.2) {
         recommendation = 'AVOID';
         confidence = 80;
+        actionableBidSuggestion = `Overpriced. Current bid exceeds historical value by ${Math.round((bidToValueRatio - 1) * 100)}%`;
       } else {
         recommendation = 'ANALYZE';
         confidence = 70;
+        actionableBidSuggestion = `Fair value range. Monitor closely, consider max bid of $${Math.round(estimatedValue * 0.9).toLocaleString()}`;
       }
+    } else if (avgSimilarBid > 0) {
+      actionableBidSuggestion = `Similar lots averaging $${Math.round(avgSimilarBid).toLocaleString()}. Consider competitive bidding.`;
     }
 
     return {
       recommendation,
       confidence,
+      actionableBidSuggestion,
       marketData: {
         historicalAvgPrice: Math.round(avgHistoricalPrice),
-        comparableAvgPrice: Math.round(avgComparablePrice),
         currentBid,
         estimatedValue: Math.round(estimatedValue),
+        avgSimilarBid: Math.round(avgSimilarBid),
+        lowestSimilarBid,
+        highestSimilarBid,
         similarLotsCount: similarLots.length,
         historicalRecords: historicalData.length,
-        comparableRecords: comparables.length
+        bidToValueRatio: estimatedValue > 0 ? Math.round((currentBid / estimatedValue) * 100) : 0,
+        competitiveRange: {
+          min: Math.round(avgSimilarBid * 0.9),
+          max: Math.round(avgSimilarBid * 1.1)
+        }
       }
     };
   } catch (error: any) {
@@ -272,6 +291,7 @@ function generateMarketIntelligence(targetLot: any, similarLots: any[], historic
     return {
       recommendation: 'ANALYZE',
       confidence: 0,
+      actionableBidSuggestion: 'Market analysis unavailable',
       marketData: {}
     };
   }
@@ -395,21 +415,41 @@ export function setupAuctionMindV2Routes(app: Express) {
           imageCount: targetLot.link_img_hd ? targetLot.link_img_hd.length : 0
         },
         vinHistory: vinHistory.slice(0, 10).map((record: any) => ({
-          saleDate: record.sale_date,
-          price: record.purchase_price,
-          damage: record.vehicle_damage,
-          platform: record.base_site,
-          lotId: record.lot_id
+          saleDate: record.saleDate,
+          price: record.price,
+          damage: record.damage,
+          platform: record.platform,
+          lotId: record.lotId,
+          location: record.location,
+          year: record.year,
+          make: record.make,
+          model: record.model,
+          mileage: record.mileage
         })),
         aiAnalysis,
         similarActiveLots: similarActiveLots.map((lot: any) => ({
           lotId: lot.lot_id,
+          vin: lot.vin,
           vehicle: `${lot.year} ${lot.make} ${lot.model}`,
+          year: lot.year,
+          make: lot.make,
+          model: lot.model,
+          series: lot.series,
+          trim: lot.trim,
+          mileage: lot.odometer,
+          color: lot.color,
+          transmission: lot.transmission,
+          driveType: lot.drive_type,
+          fuelType: lot.fuel_type,
+          keys: lot.keys,
           damage: lot.damage_pr,
           currentBid: lot.current_bid,
           auctionDate: lot.auction_date,
           location: lot.location,
-          hasImages: lot.link_img_hd && lot.link_img_hd.length > 0
+          status: lot.status,
+          titleStatus: lot.title_status,
+          hasImages: lot.link_img_hd && lot.link_img_hd.length > 0,
+          images: lot.link_img_hd || []
         })),
         marketIntelligence
       };
