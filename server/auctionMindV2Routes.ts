@@ -56,7 +56,8 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
           model: targetLot.model,
           year_from: targetLot.year - 2,
           year_to: targetLot.year + 2,
-          size: 20
+          size: 20,
+          sale_status: 'available' // Only active/available lots
         }
       });
       
@@ -87,16 +88,15 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
  */
 async function searchAuctionHistory(vin: string): Promise<any[]> {
   try {
-    console.log(`Searching APICAR auction history for VIN: ${vin}`);
+    console.log(`Searching APICAR VIN history for: ${vin}`);
     
-    const response = await axios.get(`https://api.apicar.store/api/cars`, {
+    const response = await axios.get(`https://api.apicar.store/api/cars/vin/all`, {
       headers: {
         'api-key': process.env.APICAR_API_KEY,
         'accept': '*/*'
       },
       params: {
-        vin: vin,
-        size: 50
+        vin: vin
       }
     });
 
@@ -223,16 +223,32 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
 /**
  * Generate market intelligence summary
  */
-function generateMarketIntelligence(targetLot: any, similarLots: any[], historicalData: any[], comparables: any[]): any {
+function generateMarketIntelligence(targetLot: any, similarLots: any[], historicalData: any[], internalComparables: any[]): any {
   try {
+    // VIN-specific historical data
     const avgHistoricalPrice = historicalData.length > 0 
       ? historicalData.reduce((sum, record) => sum + (parseFloat(record.price) || 0), 0) / historicalData.length
       : 0;
 
-    const currentBid = targetLot.current_bid || 0;
-    const estimatedValue = avgHistoricalPrice || 0;
+    // Internal database comparables (filtered for sold items with prices)
+    const soldComparables = internalComparables.filter(comp => 
+      comp.purchase_price && parseFloat(comp.purchase_price) > 0
+    );
+    const avgInternalPrice = soldComparables.length > 0
+      ? soldComparables.reduce((sum, comp) => sum + parseFloat(comp.purchase_price), 0) / soldComparables.length
+      : 0;
 
-    // Calculate similar lots average bid
+    const currentBid = targetLot.current_bid || 0;
+    
+    // Weighted estimated value (prioritize VIN history, then internal comparables)
+    let estimatedValue = 0;
+    if (avgHistoricalPrice > 0) {
+      estimatedValue = avgHistoricalPrice;
+    } else if (avgInternalPrice > 0) {
+      estimatedValue = avgInternalPrice;
+    }
+
+    // Calculate similar lots average bid (current active lots)
     const similarBids = similarLots.filter(lot => lot.current_bid > 0).map(lot => lot.current_bid);
     const avgSimilarBid = similarBids.length > 0 
       ? similarBids.reduce((sum, bid) => sum + bid, 0) / similarBids.length
@@ -246,20 +262,26 @@ function generateMarketIntelligence(targetLot: any, similarLots: any[], historic
     let confidence = 50;
     let actionableBidSuggestion = '';
 
+    // Enhanced recommendation logic with internal data
     if (estimatedValue > 0 && currentBid > 0) {
       const bidToValueRatio = currentBid / estimatedValue;
       
+      // Increase confidence based on data sources
+      let baseConfidence = 70;
+      if (avgHistoricalPrice > 0) baseConfidence += 10; // VIN history available
+      if (soldComparables.length >= 5) baseConfidence += 5; // Good comparable sample
+      
       if (bidToValueRatio < 0.7) {
         recommendation = 'BUY';
-        confidence = 85;
+        confidence = Math.min(baseConfidence + 15, 95);
         actionableBidSuggestion = `Strong buy signal. Consider bidding up to $${Math.round(estimatedValue * 0.8).toLocaleString()}`;
       } else if (bidToValueRatio > 1.2) {
         recommendation = 'AVOID';
-        confidence = 80;
+        confidence = Math.min(baseConfidence + 10, 90);
         actionableBidSuggestion = `Overpriced. Current bid exceeds historical value by ${Math.round((bidToValueRatio - 1) * 100)}%`;
       } else {
         recommendation = 'ANALYZE';
-        confidence = 70;
+        confidence = baseConfidence;
         actionableBidSuggestion = `Fair value range. Monitor closely, consider max bid of $${Math.round(estimatedValue * 0.9).toLocaleString()}`;
       }
     } else if (avgSimilarBid > 0) {
@@ -272,6 +294,7 @@ function generateMarketIntelligence(targetLot: any, similarLots: any[], historic
       actionableBidSuggestion,
       marketData: {
         historicalAvgPrice: Math.round(avgHistoricalPrice),
+        internalAvgPrice: Math.round(avgInternalPrice),
         currentBid,
         estimatedValue: Math.round(estimatedValue),
         avgSimilarBid: Math.round(avgSimilarBid),
@@ -279,10 +302,16 @@ function generateMarketIntelligence(targetLot: any, similarLots: any[], historic
         highestSimilarBid,
         similarLotsCount: similarLots.length,
         historicalRecords: historicalData.length,
+        internalComparables: soldComparables.length,
         bidToValueRatio: estimatedValue > 0 ? Math.round((currentBid / estimatedValue) * 100) : 0,
         competitiveRange: {
           min: Math.round(avgSimilarBid * 0.9),
           max: Math.round(avgSimilarBid * 1.1)
+        },
+        dataQuality: {
+          hasVinHistory: avgHistoricalPrice > 0,
+          hasInternalData: soldComparables.length > 0,
+          hasActiveLots: similarLots.length > 0
         }
       }
     };
@@ -376,7 +405,8 @@ export function setupAuctionMindV2Routes(app: Express) {
             model: targetLot.model,
             year_from: targetLot.year - 2,
             year_to: targetLot.year + 2,
-            size: 20
+            size: 20,
+            sale_status: 'available' // Only active lots
           }
         });
         
@@ -390,12 +420,22 @@ export function setupAuctionMindV2Routes(app: Express) {
         console.log('Similar lots search failed');
       }
 
-      // Step 5: Market intelligence
+      // Step 5: Internal Database Search - Historical comparables
+      console.log(`Step 5: Searching internal database for historical comparables`);
+      let internalComparables = [];
+      try {
+        internalComparables = await findComparableVehicles(targetLot);
+        console.log(`Found ${internalComparables.length} internal historical comparables`);
+      } catch (error) {
+        console.log('Internal database search failed');
+      }
+
+      // Step 6: Market intelligence
       const marketIntelligence = generateMarketIntelligence(
         targetLot, 
         similarActiveLots, 
         vinHistory, 
-        []
+        internalComparables
       );
 
       // Format comprehensive response
