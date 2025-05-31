@@ -3,23 +3,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Search, 
-  Eye, 
-  TrendingUp, 
-  DollarSign, 
-  Calendar,
-  MapPin,
-  Gauge,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
+  Search,
   Car,
   Brain,
+  Eye,
   BarChart3,
-  Camera
+  Camera,
+  ArrowLeft,
+  DollarSign,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  Zap,
+  Clock,
+  Target
 } from 'lucide-react';
 
 interface AnalysisResult {
@@ -88,365 +88,313 @@ export default function AuctionMindV2() {
             Authentication Required
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
-            Please log in to access AuctionMind.
+            Please log in to access AuctionMind V2.
           </p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      {/* Header */}
-      <div className="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-800">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Brain className="h-6 w-6 text-white" />
-            </div>
+  if (result) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                AuctionMind
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                AuctionMind V2 Analysis
               </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                AI-Powered Live Lot Analysis
+              <p className="text-slate-600 dark:text-slate-400 mt-1">
+                Lot → VIN → AI → Similar Active Lots
               </p>
             </div>
+            <Button 
+              onClick={resetAnalysis}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              New Analysis
+            </Button>
           </div>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
-        {!result ? (
-          /* Analysis Input */
-          <div className="max-w-2xl mx-auto">
-            <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-              <CardHeader className="text-center pb-6">
-                <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                  Start Live Lot Analysis
-                </CardTitle>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Get comprehensive AI insights with current auction images and market intelligence
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Lot ID
-                    </label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input
-                        type="text"
-                        placeholder="58323535"
-                        value={lotId}
-                        onChange={(e) => setLotId(e.target.value)}
-                        className="pl-10 h-12 border-slate-200 dark:border-slate-700"
-                      />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Lot Information */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Car className="h-5 w-5" />
+                    Lot Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Vehicle</p>
+                      <p className="font-semibold">{result.lotInfo.vehicle}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">VIN</p>
+                      <p className="font-mono text-sm">{result.lotInfo.vin || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Mileage</p>
+                      <p className="font-semibold">{result.lotInfo.mileage?.toLocaleString() || 'N/A'} miles</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Current Bid</p>
+                      <p className="font-semibold text-green-600">${result.lotInfo.currentBid?.toLocaleString() || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Damage</p>
+                      <p className="font-semibold">{result.lotInfo.damage || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Location</p>
+                      <p className="font-semibold">{result.lotInfo.location || 'N/A'}</p>
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      Auction Site
-                    </label>
-                    <Select value={site} onValueChange={setSite}>
-                      <SelectTrigger className="h-12 border-slate-200 dark:border-slate-700">
-                        <SelectValue placeholder="Select auction site" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Copart</SelectItem>
-                        <SelectItem value="2">IAAI</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                </CardContent>
+              </Card>
 
-                {error && (
-                  <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-600" />
-                      <span className="text-red-700 dark:text-red-400 text-sm">{error}</span>
+              {/* AI Analysis */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Eye className="h-5 w-5" />
+                    AI Analysis
+                    {result.aiAnalysis?.hasImages && (
+                      <Badge variant="secondary" className="ml-2">
+                        <Camera className="h-3 w-3 mr-1" />
+                        {result.aiAnalysis.imageCount} Images
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {result.aiAnalysis?.hasImages ? (
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Damage Assessment</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {result.aiAnalysis.summary || 'Analysis completed'}
+                        </p>
+                      </div>
+                      {result.aiAnalysis.estimatedRepairCost && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Estimated Repair Cost</h4>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {result.aiAnalysis.estimatedRepairCost}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={handleAnalyze}
-                  disabled={!lotId.trim() || !site || isAnalyzing}
-                  className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Analyzing...
-                    </>
                   ) : (
-                    <>
-                      <Brain className="h-4 w-4 mr-2" />
-                      Analyze Lot
-                    </>
+                    <p className="text-muted-foreground">
+                      {result.aiAnalysis?.error || 'No images available for analysis'}
+                    </p>
                   )}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          /* Analysis Results */
-          <div className="space-y-6">
-            {/* Header with Reset */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  Analysis Results
-                </h2>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Lot {result.lotInfo.lotId} • {result.lotInfo.site}
-                </p>
-              </div>
-              <Button onClick={resetAnalysis} variant="outline">
-                New Analysis
-              </Button>
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Vehicle Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Car className="h-5 w-5" />
-                  Vehicle Overview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.lotInfo.vehicle}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Vehicle</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.lotInfo.mileage?.toLocaleString() || 'N/A'}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Miles</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      ${result.lotInfo.currentBid?.toLocaleString() || '0'}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Current Bid</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.lotInfo.damage}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Damage</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* AI Vision Analysis */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
-                  AI Vision Analysis
-                  {result.aiVision.hasImages && (
-                    <Badge variant="secondary" className="ml-2">
-                      <Camera className="h-3 w-3 mr-1" />
-                      {result.aiVision.imageCount} Images
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {result.aiVision.hasImages ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Damage Assessment</h4>
-                        <p className="text-slate-700 dark:text-slate-300 text-sm">
-                          {result.aiVision.damageAssessment}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white mb-2">Repair Estimate</h4>
-                        <p className="text-slate-700 dark:text-slate-300 text-sm">
-                          {result.aiVision.repairEstimate}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                        <span className="text-sm font-medium">Overall Condition</span>
-                        <Badge variant={
-                          result.aiVision.overallCondition === 'excellent' ? 'default' :
-                          result.aiVision.overallCondition === 'good' ? 'secondary' :
-                          result.aiVision.overallCondition === 'fair' ? 'outline' : 'destructive'
-                        }>
-                          {result.aiVision.overallCondition}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                        <span className="text-sm font-medium">AI Confidence</span>
-                        <Badge variant="outline">{result.aiVision.confidenceLevel}</Badge>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-                    <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No images available for AI vision analysis</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Market Intelligence */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
-                  Market Intelligence
-                  <Badge 
-                    variant={
-                      result.marketIntelligence.recommendation === 'BUY' ? 'default' :
-                      result.marketIntelligence.recommendation === 'ANALYZE' ? 'secondary' : 'destructive'
-                    }
-                    className="ml-2"
-                  >
-                    {result.marketIntelligence.recommendation}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      ${result.marketIntelligence.marketData.historicalAvgPrice?.toLocaleString() || 'N/A'}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Historical Avg</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      ${result.marketIntelligence.marketData.comparableAvgPrice?.toLocaleString() || 'N/A'}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Comparable Avg</div>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.marketIntelligence.confidence}%
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">Confidence</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.marketIntelligence.marketData.similarLotsCount}
-                    </div>
-                    <div className="text-slate-600 dark:text-slate-400">Similar Live Lots</div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.marketIntelligence.marketData.historicalRecords}
-                    </div>
-                    <div className="text-slate-600 dark:text-slate-400">Historical Records</div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="font-semibold text-slate-900 dark:text-white">
-                      {result.marketIntelligence.marketData.comparableRecords}
-                    </div>
-                    <div className="text-slate-600 dark:text-slate-400">Comparable Sales</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Similar Lots & Historical Data */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Similar Lots */}
+            <div>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Similar Live Lots</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Market Intelligence
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {result.similarLots.length > 0 ? (
-                    <div className="space-y-3">
-                      {result.similarLots.map((lot, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                          <div>
-                            <div className="font-medium text-sm">{lot.vehicle}</div>
-                            <div className="text-xs text-slate-600 dark:text-slate-400">
-                              Lot {lot.lotId} • {lot.damage}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-sm">${lot.currentBid?.toLocaleString() || '0'}</div>
-                            {lot.hasImages && (
-                              <Badge variant="outline" className="text-xs">
-                                <Camera className="h-2 w-2 mr-1" />
-                                Images
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                  <div className="space-y-4">
+                    <div className="text-center p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                      <p className="text-sm text-muted-foreground">Recommendation</p>
+                      <p className="text-xl font-bold">
+                        {result.marketIntelligence?.recommendation || 'ANALYZE'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {result.marketIntelligence?.confidence || 0}% confidence
+                      </p>
                     </div>
-                  ) : (
-                    <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
-                      No similar lots found
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Historical Data */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Recent Sales History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {result.historicalData.length > 0 ? (
-                    <div className="space-y-3">
-                      {result.historicalData.map((record, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                          <div>
-                            <div className="font-medium text-sm">${record.price?.toLocaleString()}</div>
-                            <div className="text-xs text-slate-600 dark:text-slate-400">
-                              {record.saleDate} • {record.platform}
-                            </div>
-                          </div>
-                          <div className="text-xs text-slate-600 dark:text-slate-400">
-                            {record.damage}
-                          </div>
+                    
+                    {result.marketIntelligence?.marketData && (
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm">Current Bid</span>
+                          <span className="font-semibold">
+                            ${result.marketIntelligence.marketData.currentBid?.toLocaleString() || 'N/A'}
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-4">
-                      No historical data found
-                    </p>
-                  )}
+                        <div className="flex justify-between">
+                          <span className="text-sm">Estimated Value</span>
+                          <span className="font-semibold">
+                            ${result.marketIntelligence.marketData.estimatedValue?.toLocaleString() || 'N/A'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Similar Lots</span>
+                          <span className="font-semibold">
+                            {result.marketIntelligence.marketData.similarLotsCount || 0}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
           </div>
-        )}
+
+          {/* VIN History */}
+          {result.vinHistory && result.vinHistory.length > 0 && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  VIN History ({result.vinHistory.length} records)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {result.vinHistory.slice(0, 5).map((record: any, index: number) => (
+                    <div key={index} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded">
+                      <div>
+                        <p className="font-semibold">{record.platform}</p>
+                        <p className="text-sm text-muted-foreground">{record.damage}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">${record.price?.toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">{record.saleDate}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Similar Active Lots */}
+          {result.similarActiveLots && result.similarActiveLots.length > 0 && (
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Similar Active Lots ({result.similarActiveLots.length} found)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {result.similarActiveLots.slice(0, 6).map((lot: any, index: number) => (
+                    <div key={index} className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-semibold text-sm">{lot.vehicle}</p>
+                        {lot.hasImages && (
+                          <Camera className="h-4 w-4 text-blue-500" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{lot.damage}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-green-600">
+                          ${lot.currentBid?.toLocaleString() || 'No bid'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Lot {lot.lotId}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {lot.location} • {lot.auctionDate}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              AuctionMind V2
+            </h1>
+            <p className="text-lg text-slate-600 dark:text-slate-400 mb-2">
+              Advanced Lot Analysis with AI Vision
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-500">
+              Lot Lookup → VIN History → AI Analysis → Similar Active Lots
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                Start Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Lot ID
+                </label>
+                <Input
+                  value={lotId}
+                  onChange={(e) => setLotId(e.target.value)}
+                  placeholder="Enter lot ID (e.g., 58411805)"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Auction Site
+                </label>
+                <Select value={site} onValueChange={setSite}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select auction site" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Copart</SelectItem>
+                    <SelectItem value="2">IAAI</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                  <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+                </div>
+              )}
+
+              <Button 
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !lotId.trim() || !site}
+                className="w-full"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Zap className="h-4 w-4 mr-2 animate-spin" />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Analyze Lot
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
