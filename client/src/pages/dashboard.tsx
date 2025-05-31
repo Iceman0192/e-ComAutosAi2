@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,24 +12,50 @@ import {
   Settings,
   TrendingUp,
   Activity,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 import { Link } from 'wouter';
 
 export default function Dashboard() {
   const { user, hasPermission } = useAuth();
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getDashboardStats = () => {
-    // These will be real stats from the backend later
-    return {
-      recentSearches: 12,
-      savedDatasets: hasPermission('FULL_ANALYTICS') ? 5 : 0,
-      monthlyUsage: '127/500',
-      teamMembers: 1
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const result = await response.json();
+          setDashboardStats(result.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
+    fetchDashboardStats();
+    
+    // Refresh stats every 5 minutes
+    const interval = setInterval(fetchDashboardStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-US').format(num);
   };
 
-  const stats = getDashboardStats();
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   const getQuickActions = () => {
     const actions = [
@@ -104,51 +131,75 @@ export default function Dashboard() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Searches</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.recentSearches}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          // Loading skeleton
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16 mb-2"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Database Records</CardTitle>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {dashboardStats ? formatNumber(dashboardStats.totalRecords) : '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">Total auction records</p>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Usage</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyUsage}</div>
-            <p className="text-xs text-muted-foreground">API calls this month</p>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Recent Additions</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {dashboardStats ? formatNumber(dashboardStats.recentAdditions) : '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">Last 30 days</p>
+              </CardContent>
+            </Card>
 
-        {hasPermission('FULL_ANALYTICS') && (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Saved Datasets</CardTitle>
-              <Database className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.savedDatasets}</div>
-              <p className="text-xs text-muted-foreground">Ready for analysis</p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Vehicle Makes</CardTitle>
+                <Car className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {dashboardStats ? formatNumber(dashboardStats.totalMakes) : '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">Unique manufacturers</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Vehicle Models</CardTitle>
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {dashboardStats ? formatNumber(dashboardStats.totalModels) : '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">Unique models</p>
+              </CardContent>
+            </Card>
+          </>
         )}
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.teamMembers}</div>
-            <p className="text-xs text-muted-foreground">Active members</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Quick Actions */}
@@ -178,15 +229,52 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Activity Section */}
+      {/* Platform Statistics */}
+      {dashboardStats && dashboardStats.platformStats && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Platform Statistics
+            </CardTitle>
+            <CardDescription>
+              Average sale prices and transaction volume by auction platform
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {Object.entries(dashboardStats.platformStats).map(([platform, stats]: [string, any]) => (
+                <div key={platform} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${platform === 'copart' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                      <span className="font-medium text-sm uppercase">{platform}</span>
+                    </div>
+                    <Badge variant="outline">{formatNumber(stats.count)} sales</Badge>
+                  </div>
+                  <div className="text-lg font-semibold">{formatCurrency(stats.avgPrice)}</div>
+                  <p className="text-xs text-muted-foreground">Average sale price</p>
+                </div>
+              ))}
+            </div>
+            {dashboardStats.lastUpdated && (
+              <div className="mt-4 pt-4 border-t text-xs text-muted-foreground">
+                Last updated: {new Date(dashboardStats.lastUpdated).toLocaleString()}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* System Activity Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Recent Activity
+            <Activity className="h-5 w-5" />
+            System Activity
           </CardTitle>
           <CardDescription>
-            Your latest searches and saved data
+            Real-time database and system insights
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,24 +282,24 @@ export default function Dashboard() {
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm">Searched 2023 Honda Civic on Copart</span>
+                <span className="text-sm">Database records: {dashboardStats ? formatNumber(dashboardStats.totalRecords) : 'Loading...'}</span>
               </div>
-              <span className="text-xs text-muted-foreground">2 hours ago</span>
+              <span className="text-xs text-muted-foreground">Live count</span>
             </div>
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Searched Toyota Camry on IAAI</span>
+                <span className="text-sm">New records added: {dashboardStats ? formatNumber(dashboardStats.recentAdditions) : 'Loading...'}</span>
               </div>
-              <span className="text-xs text-muted-foreground">5 hours ago</span>
+              <span className="text-xs text-muted-foreground">Last 30 days</span>
             </div>
-            {hasPermission('FULL_ANALYTICS') && (
+            {hasPermission('FULL_ANALYTICS') && dashboardStats && (
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm">Created dataset "Q4 Luxury Vehicles"</span>
+                  <span className="text-sm">Vehicle manufacturers: {formatNumber(dashboardStats.totalMakes)}</span>
                 </div>
-                <span className="text-xs text-muted-foreground">1 day ago</span>
+                <span className="text-xs text-muted-foreground">Available</span>
               </div>
             )}
           </div>

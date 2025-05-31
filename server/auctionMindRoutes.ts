@@ -354,6 +354,71 @@ export function setupAuctionMindRoutes(app: Express) {
   });
 
   /**
+   * Dashboard Statistics Endpoint
+   */
+  app.get('/api/dashboard/stats', async (req: Request, res: Response) => {
+    try {
+      // Get database record count
+      const dbCountResult = await db.execute('SELECT COUNT(*) as count FROM sales_history');
+      const totalRecords = parseInt(dbCountResult.rows[0]?.count as string) || 0;
+
+      // Get recent data additions (last 30 days)
+      const recentAdditionsResult = await db.execute(`
+        SELECT COUNT(*) as count 
+        FROM sales_history 
+        WHERE created_at >= NOW() - INTERVAL '30 days'
+      `);
+      const recentAdditions = parseInt(recentAdditionsResult.rows[0]?.count as string) || 0;
+
+      // Get unique makes and models
+      const makesResult = await db.execute('SELECT COUNT(DISTINCT make) as count FROM sales_history');
+      const totalMakes = parseInt(makesResult.rows[0]?.count as string) || 0;
+
+      const modelsResult = await db.execute('SELECT COUNT(DISTINCT model) as count FROM sales_history');
+      const totalModels = parseInt(modelsResult.rows[0]?.count as string) || 0;
+
+      // Get average sale prices by platform
+      const avgPricesResult = await db.execute(`
+        SELECT 
+          base_site,
+          ROUND(AVG(CAST(purchase_price AS DECIMAL)), 0) as avg_price,
+          COUNT(*) as count
+        FROM sales_history 
+        WHERE purchase_price IS NOT NULL 
+          AND purchase_price != '' 
+          AND CAST(purchase_price AS DECIMAL) > 0
+        GROUP BY base_site
+      `);
+
+      const platformStats = avgPricesResult.rows.reduce((acc: any, row: any) => {
+        acc[row.base_site] = {
+          avgPrice: parseInt(row.avg_price as string),
+          count: parseInt(row.count as string)
+        };
+        return acc;
+      }, {});
+
+      res.json({
+        success: true,
+        data: {
+          totalRecords,
+          recentAdditions,
+          totalMakes,
+          totalModels,
+          platformStats,
+          lastUpdated: new Date().toISOString()
+        }
+      });
+    } catch (error: any) {
+      console.error('Dashboard stats error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to fetch dashboard statistics' 
+      });
+    }
+  });
+
+  /**
    * AuctionMind VIN Analysis Endpoint
    */
   app.post('/api/auction-mind/analyze', async (req: Request, res: Response) => {
