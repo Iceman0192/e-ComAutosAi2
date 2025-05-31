@@ -21,11 +21,15 @@ async function searchLiveLots(lotId: string, site: number): Promise<any> {
   try {
     console.log(`Searching live lots for Lot ID: ${lotId}, Site: ${site}`);
     
-    const response = await axios.get(`https://api.apicar.store/api/cars/${lotId}?site=${site}`, {
+    const response = await axios.get(`https://api.apicar.store/api/cars`, {
       headers: {
         'api-key': process.env.APICAR_API_KEY,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'accept': '*/*'
+      },
+      params: {
+        site: site,
+        lot_id: lotId,
+        size: 25 // APICAR API limit
       }
     });
 
@@ -332,53 +336,15 @@ export function setupAuctionMindV2Routes(app: Express) {
         });
       }
       
-      let targetLot = null;
-      let similarLots: any[] = [];
-      let isLiveLot = false;
-
-      if (liveLotsData && liveLotsData.targetLot) {
-        targetLot = liveLotsData.targetLot;
-        similarLots = liveLotsData.similarLots;
-        isLiveLot = true;
-        console.log(`Found live lot ${lotId} on ${site === 1 ? 'Copart' : 'IAAI'}`);
-      } else {
-        console.log(`Lot ${lotId} not found in current auctions, searching historical data...`);
-        
-        // Search historical database for this lot ID
-        const historicalLot = await db
-          .select()
-          .from(salesHistory)
-          .where(sql`${salesHistory.lot_id} = ${lotId}`)
-          .limit(1);
-
-        if (historicalLot.length > 0) {
-          const record = historicalLot[0];
-          targetLot = {
-            lot_id: lotId,
-            vin: record.vin,
-            year: record.year,
-            make: record.make,
-            model: record.model,
-            series: record.series,
-            odometer: record.vehicle_mileage,
-            damage_pr: record.vehicle_damage,
-            status: 'Historical Record',
-            current_bid: 0,
-            auction_date: record.sale_date,
-            location: record.auction_location,
-            final_bid: record.purchase_price,
-            link_img_hd: [] // No images for historical records
-          };
-          console.log(`Found historical record for lot ${lotId}: ${record.year} ${record.make} ${record.model}`);
-        }
-      }
-
-      if (!targetLot) {
+      if (!liveLotsData.targetLot) {
+        console.log(`Target lot ${lotId} not found in results. Found lots:`, liveLotsData.similarLots?.slice(0, 3).map((lot: any) => ({ lot_id: lot.lot_id, make: lot.make, model: lot.model })));
         return res.json({
           success: false,
-          message: `Lot ${lotId} not found in current auctions or historical database on ${site === 1 ? 'Copart' : 'IAAI'}`
+          message: `Lot ${lotId} not found on ${site === 1 ? 'Copart' : 'IAAI'}. Found ${liveLotsData.totalFound} other lots.`
         });
       }
+
+      const { targetLot, similarLots } = liveLotsData;
 
       // Step 2: AI Vision Analysis
       const visionAnalysis = await performAIVisionAnalysis(targetLot);
