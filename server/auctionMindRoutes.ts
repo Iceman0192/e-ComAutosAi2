@@ -149,22 +149,30 @@ async function performOpenAIAnalysis(vinData: any[]): Promise<any> {
         });
       }
 
-      const prompt = `Analyze this ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} with ${vehicleInfo.odometer} miles.
+      const prompt = `CRITICAL: Be extremely conservative and accurate. Only report damage that is clearly visible and obvious in the photos.
+
+Analyze this ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} with ${vehicleInfo.odometer} miles.
 
 Vehicle Details:
 - Recent Sales: ${saleHistory.slice(0, 3).map(sale => `$${sale.price} (${sale.damage})`).join(', ')}
 - Listed Damage: ${vehicleInfo.damage_pr}
 
-Provide detailed JSON analysis:
-- summary: 2-3 sentence overview of vehicle condition
-- damageAssessment: specific damage observed in images
-- repairEstimate: estimated repair cost range
-- currentValue: market value considering condition
-- trend: price trend analysis
-- recommendation: buy/hold/pass with detailed reasoning
-- confidenceScore: 0-1 based on image quality and data
+IMPORTANT INSTRUCTIONS:
+1. ONLY report damage you can clearly see in the images
+2. If the vehicle looks clean or damage is not visible, state "No visible damage in images"
+3. Do not speculate or assume damage based on listings
+4. Be honest if image quality limits assessment
 
-Analyze the actual images for damage, wear, interior condition, and overall vehicle state.`;
+Provide JSON analysis:
+- summary: 2-3 sentence overview based ONLY on what you see
+- damageAssessment: "No visible damage in images" OR specific damage you clearly observe
+- repairEstimate: realistic cost range only if damage is visible
+- currentValue: market value estimate
+- trend: price trend analysis based on data
+- recommendation: conservative buy/hold/pass recommendation
+- confidenceScore: 0-1 based on image clarity and visible evidence
+
+Focus on what is actually visible, not what might be there.`;
 
       const userContent: any[] = [
         { type: "text", text: prompt },
@@ -176,7 +184,7 @@ Analyze the actual images for damage, wear, interior condition, and overall vehi
         messages: [
           {
             role: "system",
-            content: "You are an expert automotive appraiser and damage assessor. Analyze vehicle images thoroughly for damage, condition, and market value."
+            content: "You are a conservative automotive damage assessor with 20+ years experience. You NEVER report damage unless it's clearly visible and obvious in photos. You prioritize accuracy over assumptions. If damage isn't clearly visible, you state that explicitly."
           },
           {
             role: "user",
