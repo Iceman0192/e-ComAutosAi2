@@ -174,26 +174,66 @@ export default function AuctionMindV2() {
                 </CardHeader>
                 <CardContent>
                   {result.aiAnalysis?.hasImages ? (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div>
-                        <h4 className="font-semibold mb-2">Damage Assessment</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {result.aiAnalysis.summary || 'Analysis completed'}
+                        <h4 className="font-semibold mb-3">Damage Assessment</h4>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {result.aiAnalysis.summary || 'Comprehensive AI analysis of vehicle condition based on auction photos'}
                         </p>
+                        
+                        {result.aiAnalysis.damageAreas && result.aiAnalysis.damageAreas.length > 0 && (
+                          <div className="mb-4">
+                            <h5 className="font-medium mb-2">Identified Damage Areas:</h5>
+                            <div className="flex flex-wrap gap-2">
+                              {result.aiAnalysis.damageAreas.map((area: string, index: number) => (
+                                <Badge key={index} variant="destructive" className="text-xs">
+                                  {area}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {result.aiAnalysis.condition && (
+                          <div className="mb-4">
+                            <h5 className="font-medium mb-2">Overall Condition:</h5>
+                            <p className="text-sm bg-slate-100 dark:bg-slate-800 p-3 rounded">
+                              {result.aiAnalysis.condition}
+                            </p>
+                          </div>
+                        )}
                       </div>
+                      
                       {result.aiAnalysis.estimatedRepairCost && (
-                        <div>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                           <h4 className="font-semibold mb-2">Estimated Repair Cost</h4>
                           <p className="text-2xl font-bold text-blue-600">
                             {result.aiAnalysis.estimatedRepairCost}
+                          </p>
+                          {result.aiAnalysis.repairNotes && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {result.aiAnalysis.repairNotes}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {result.aiAnalysis.marketability && (
+                        <div>
+                          <h4 className="font-semibold mb-2">Marketability Assessment</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {result.aiAnalysis.marketability}
                           </p>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground">
-                      {result.aiAnalysis?.error || 'No images available for analysis'}
-                    </p>
+                    <div className="text-center py-8">
+                      <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">
+                        {result.aiAnalysis?.error || 'No images available for AI analysis'}
+                      </p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -209,9 +249,9 @@ export default function AuctionMindV2() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="text-center p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                      <p className="text-sm text-muted-foreground">Recommendation</p>
+                      <p className="text-sm text-muted-foreground">AI Recommendation</p>
                       <p className="text-xl font-bold">
                         {result.marketIntelligence?.recommendation || 'ANALYZE'}
                       </p>
@@ -221,25 +261,68 @@ export default function AuctionMindV2() {
                     </div>
                     
                     {result.marketIntelligence?.marketData && (
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-sm">Current Bid</span>
-                          <span className="font-semibold">
-                            ${result.marketIntelligence.marketData.currentBid?.toLocaleString() || 'N/A'}
-                          </span>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                            <span className="text-sm font-medium">Current Bid</span>
+                            <span className="font-bold text-green-600">
+                              ${result.marketIntelligence.marketData.currentBid?.toLocaleString() || 'No bids'}
+                            </span>
+                          </div>
+                          
+                          {result.marketIntelligence.marketData.estimatedValue > 0 && (
+                            <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                              <span className="text-sm font-medium">Estimated Value</span>
+                              <span className="font-bold text-blue-600">
+                                ${result.marketIntelligence.marketData.estimatedValue?.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700 rounded">
+                            <span className="text-sm font-medium">Similar Active Lots</span>
+                            <span className="font-bold">
+                              {result.marketIntelligence.marketData.similarLotsCount || 0}
+                            </span>
+                          </div>
+                          
+                          {result.marketIntelligence.marketData.historicalRecords > 0 && (
+                            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-700 rounded">
+                              <span className="text-sm font-medium">Historical Records</span>
+                              <span className="font-bold">
+                                {result.marketIntelligence.marketData.historicalRecords}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {result.marketIntelligence.marketData.historicalAvgPrice > 0 && (
+                            <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded">
+                              <span className="text-sm font-medium">Historical Avg Price</span>
+                              <span className="font-bold text-orange-600">
+                                ${result.marketIntelligence.marketData.historicalAvgPrice?.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Estimated Value</span>
-                          <span className="font-semibold">
-                            ${result.marketIntelligence.marketData.estimatedValue?.toLocaleString() || 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm">Similar Lots</span>
-                          <span className="font-semibold">
-                            {result.marketIntelligence.marketData.similarLotsCount || 0}
-                          </span>
-                        </div>
+                        
+                        {result.marketIntelligence.marketData.currentBid > 0 && result.marketIntelligence.marketData.estimatedValue > 0 && (
+                          <div className="pt-3 border-t">
+                            <div className="text-sm text-muted-foreground mb-2">Bid to Value Ratio</div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-500 h-2 rounded-full transition-all"
+                                  style={{
+                                    width: `${Math.min(100, (result.marketIntelligence.marketData.currentBid / result.marketIntelligence.marketData.estimatedValue) * 100)}%`
+                                  }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium">
+                                {Math.round((result.marketIntelligence.marketData.currentBid / result.marketIntelligence.marketData.estimatedValue) * 100)}%
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -286,29 +369,78 @@ export default function AuctionMindV2() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {result.similarActiveLots.slice(0, 6).map((lot: any, index: number) => (
-                    <div key={index} className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="font-semibold text-sm">{lot.vehicle}</p>
-                        {lot.hasImages && (
-                          <Camera className="h-4 w-4 text-blue-500" />
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{lot.damage}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-green-600">
-                          ${lot.currentBid?.toLocaleString() || 'No bid'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          Lot {lot.lotId}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {lot.location} • {lot.auctionDate}
-                      </p>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2">Vehicle</th>
+                        <th className="text-left p-2">Damage</th>
+                        <th className="text-left p-2">Current Bid</th>
+                        <th className="text-left p-2">Location</th>
+                        <th className="text-left p-2">Auction Date</th>
+                        <th className="text-left p-2">Lot ID</th>
+                        <th className="text-left p-2">Images</th>
+                        <th className="text-left p-2">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {result.similarActiveLots.map((lot: any, index: number) => (
+                        <tr key={index} className="border-b hover:bg-slate-50 dark:hover:bg-slate-800">
+                          <td className="p-2">
+                            <div>
+                              <p className="font-semibold text-sm">{lot.vehicle}</p>
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <span className="text-sm">{lot.damage || 'N/A'}</span>
+                          </td>
+                          <td className="p-2">
+                            <span className="font-bold text-green-600">
+                              ${lot.currentBid?.toLocaleString() || 'No bid'}
+                            </span>
+                          </td>
+                          <td className="p-2">
+                            <span className="text-sm">{lot.location || 'N/A'}</span>
+                          </td>
+                          <td className="p-2">
+                            <span className="text-sm">{lot.auctionDate || 'N/A'}</span>
+                          </td>
+                          <td className="p-2">
+                            <span className="text-sm font-mono">{lot.lotId}</span>
+                          </td>
+                          <td className="p-2">
+                            {lot.hasImages ? (
+                              <Camera className="h-4 w-4 text-blue-500" />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No images</span>
+                            )}
+                          </td>
+                          <td className="p-2">
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => window.open(`https://copart.com/lot/${lot.lotId}`, '_blank')}
+                              >
+                                View on Copart
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setLotId(lot.lotId.toString());
+                                  setSite('1');
+                                  setResult(null);
+                                }}
+                              >
+                                Analyze
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>

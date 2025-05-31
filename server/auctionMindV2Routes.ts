@@ -380,7 +380,7 @@ export function setupAuctionMindV2Routes(app: Express) {
           lotId: record.lot_id
         })),
         aiAnalysis,
-        similarActiveLots: similarActiveLots.slice(0, 8).map((lot: any) => ({
+        similarActiveLots: similarActiveLots.map((lot: any) => ({
           lotId: lot.lot_id,
           vehicle: `${lot.year} ${lot.make} ${lot.model}`,
           damage: lot.damage_pr,
