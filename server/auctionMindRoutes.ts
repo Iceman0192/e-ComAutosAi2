@@ -89,7 +89,18 @@ async function fetchVINData(vin: string): Promise<any> {
       }
     });
     console.log(`VIN API response status: ${response.status}`);
-    console.log(`VIN API response data:`, response.data);
+    console.log(`VIN API response has ${response.data?.length || 0} records`);
+    
+    if (response.data && response.data.length > 0) {
+      const firstRecord = response.data[0];
+      console.log('First record keys:', Object.keys(firstRecord));
+      console.log('Image fields check:', {
+        link_img_hd: firstRecord.link_img_hd ? `Array with ${firstRecord.link_img_hd.length} items` : 'null/undefined',
+        link_img_small: firstRecord.link_img_small ? `Array with ${firstRecord.link_img_small.length} items` : 'null/undefined',
+        images: firstRecord.images ? 'exists' : 'null/undefined'
+      });
+    }
+    
     return response.data;
   } catch (error: any) {
     console.log(`VIN data fetch error:`, error.response?.data || error.message);
