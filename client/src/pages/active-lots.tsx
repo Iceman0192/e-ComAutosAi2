@@ -182,13 +182,13 @@ export default function ActiveLotsPage() {
   };
 
   const handleAnalyzeClick = (lot: AuctionLot) => {
-    // For demonstration, let's change to Gold tier to test Live Lot Analysis
     // This would normally check user tier from authentication context
-    const userTier = 'Gold'; // This should come from user context
+    // For demonstration, let's test both tiers - change this value to test
+    const userTier = 'Platinum'; // This should come from user context
     
     if (userTier === 'Platinum') {
-      // Navigate to Auction Mind Pro using React Router
-      setLocation('/auction-mind');
+      // Navigate to AuctionMind V2 with lot ID pre-populated
+      setLocation(`/auction-mind-v2?lotId=${lot.lot_id}`);
     } else if (userTier === 'Gold') {
       // Navigate to Live Lot Analysis with lot ID pre-populated
       setLocation(`/live-lot-analysis?lotId=${lot.lot_id}`);
