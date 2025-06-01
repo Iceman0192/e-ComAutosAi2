@@ -1151,20 +1151,37 @@ export default function ActiveLotsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setFilters({
+                    site: '',
+                    lot_id: '',
+                    salvage_id: '',
+                    title: '',
+                    status: '',
+                    odometer: '',
+                    odobrand: '',
+                    drive: '',
+                    price_new: '',
+                    price_future: '',
+                    current_bid: '',
+                    auction_date: '',
+                    year: '',
                     make: '',
                     model: '',
-                    yearFrom: '',
-                    yearTo: '',
-                    location: '',
-                    damage: '',
-                    priceMin: '',
-                    priceMax: '',
-                    mileageMin: '',
-                    mileageMax: '',
-                    transmission: '',
+                    series: '',
+                    damage_pr: '',
+                    damage_sec: '',
+                    keys: '',
                     fuel: '',
+                    transmission: '',
                     color: '',
-                    titleType: ''
+                    document: '',
+                    vehicle_type: '',
+                    auction_type: '',
+                    is_buynow: '',
+                    location: '',
+                    seller_type: '',
+                    body_type: '',
+                    cylinders: '',
+                    engine_size: ''
                   })}
                 >
                   <RefreshCw className="h-4 w-4 mr-1" />
