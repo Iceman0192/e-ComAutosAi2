@@ -169,10 +169,9 @@ export default function IAAIPage() {
     params.append('sale_date_from', auctionDateFrom);
     params.append('sale_date_to', auctionDateTo);
     
-    // Add site filters
+    // Add sites parameter as array
     sites.forEach(site => {
-      if (site === 'copart') params.append('site', '1');
-      if (site === 'iaai') params.append('site', '2');
+      params.append('sites', site);
     });
     
     // Add Fresh Data parameter for Gold+ users
@@ -240,10 +239,9 @@ export default function IAAIPage() {
     params.append('sale_date_from', auctionDateFrom);
     params.append('sale_date_to', auctionDateTo);
     
-    // Add site filters
+    // Add sites parameter as array
     sites.forEach(site => {
-      if (site === 'copart') params.append('site', '1');
-      if (site === 'iaai') params.append('site', '2');
+      params.append('sites', site);
     });
     
     // Add Fresh Data parameter for Gold+ users
