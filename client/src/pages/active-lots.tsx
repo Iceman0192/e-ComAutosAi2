@@ -108,6 +108,8 @@ interface SearchFilters {
   drive: string;
   price_new: string;
   price_future: string;
+  price_min: string;
+  price_max: string;
   current_bid: string;
   auction_date: string;
   year: string;
@@ -115,6 +117,8 @@ interface SearchFilters {
   year_to: string;
   odometer_min: string;
   odometer_max: string;
+  mileage_min: string;
+  mileage_max: string;
   make: string;
   model: string;
   series: string;
@@ -162,6 +166,8 @@ export default function ActiveLotsPage() {
     drive: '',
     price_new: '',
     price_future: '',
+    price_min: '',
+    price_max: '',
     current_bid: '',
     auction_date: '',
     year: '',
@@ -169,6 +175,8 @@ export default function ActiveLotsPage() {
     year_to: '',
     odometer_min: '',
     odometer_max: '',
+    mileage_min: '',
+    mileage_max: '',
     make: '',
     model: '',
     series: '',
@@ -341,6 +349,8 @@ export default function ActiveLotsPage() {
       drive: '',
       price_new: '',
       price_future: '',
+      price_min: '',
+      price_max: '',
       current_bid: '',
       auction_date: '',
       year: `${lot.year - 1}-${lot.year + 1}`, // Near-exact match: ±1 year for better results
@@ -348,6 +358,8 @@ export default function ActiveLotsPage() {
       year_to: '',
       odometer_min: '',
       odometer_max: '',
+      mileage_min: '',
+      mileage_max: '',
       make: lot.make,
       model: lot.model,
       series: '',
@@ -816,9 +828,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.price_new === '<5000' ? 'default' : 'outline'}
+                variant={filters.price_max === '5000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('price_new', '<5000')}
+                onClick={() => handleQuickFilter('price_max', '5000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -840,6 +852,8 @@ export default function ActiveLotsPage() {
                     drive: '',
                     price_new: '',
                     price_future: '',
+                    price_min: '',
+                    price_max: '',
                     current_bid: '',
                     auction_date: '',
                     year: '',
@@ -847,6 +861,8 @@ export default function ActiveLotsPage() {
                     year_to: '',
                     odometer_min: '',
                     odometer_max: '',
+                    mileage_min: '',
+                    mileage_max: '',
                     make: '',
                     model: '',
                     series: '',
@@ -1067,6 +1083,8 @@ export default function ActiveLotsPage() {
                     drive: '',
                     price_new: '',
                     price_future: '',
+                    price_min: '',
+                    price_max: '',
                     current_bid: '',
                     auction_date: '',
                     year: '',
@@ -1074,6 +1092,8 @@ export default function ActiveLotsPage() {
                     year_to: '',
                     odometer_min: '',
                     odometer_max: '',
+                    mileage_min: '',
+                    mileage_max: '',
                     make: '',
                     model: '',
                     series: '',
