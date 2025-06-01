@@ -93,8 +93,8 @@ export function setupSubscriptionRoutes(app: Express) {
           },
         ],
         mode: 'subscription',
-        success_url: `${req.headers.origin}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.origin}/billing?canceled=true`,
+        success_url: `https://${req.headers.host}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `https://${req.headers.host}/billing?canceled=true`,
         customer_email: (req as any).user?.email,
         metadata: {
           userId: userId || (req as any).user?.id || 'demo-user',
