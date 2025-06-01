@@ -211,7 +211,7 @@ export default function IAAIPage() {
     
     console.log(`Initial search with params:`, params.toString());
     
-    // Use the same cars endpoint that works for Copart, with site=2 for IAAI
+    // Use the optimized cars endpoint for fast results
     const carsParams = new URLSearchParams({
       site: '2', // IAAI
       page: '1',
@@ -300,8 +300,23 @@ export default function IAAIPage() {
     
     console.log(`Requesting page ${newPage} with params:`, params.toString());
     
-    // Make direct fetch request to avoid resetting search state
-    fetch(`/api/sales-history?${params.toString()}`)
+    // Use the faster cars endpoint for consistent performance
+    const carsParams = new URLSearchParams({
+      site: '2', // IAAI
+      page: newPage.toString(),
+      size: resultsPerPage.toString()
+    });
+    
+    // Add search parameters
+    if (make) carsParams.append('make', make);
+    if (model) carsParams.append('model', model);
+    if (yearFrom) carsParams.append('year_from', yearFrom.toString());
+    if (yearTo) carsParams.append('year_to', yearTo.toString());
+    carsParams.append('sale_date_from', auctionDateFrom);
+    carsParams.append('sale_date_to', auctionDateTo);
+    
+    // Single optimized API call
+    fetch(`/api/cars?${carsParams.toString()}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -313,30 +328,32 @@ export default function IAAIPage() {
         
         // Only update if successful
         if (result.success && result.data) {
+          // Convert to expected format
+          const convertedResult = {
+            success: true,
+            data: {
+              salesHistory: result.data || [],
+              pagination: {
+                totalCount: result.count || 0,
+                currentPage: newPage,
+                pageSize: resultsPerPage,
+                totalPages: result.pages || 1
+              }
+            }
+          };
+          
           // Store results in local state
-          setSearchResults(result);
+          setSearchResults(convertedResult);
           
           // Make sure we're showing search has been performed
           setHasSearched(true);
           
           // Update total results count for pagination
-          if (result.data.pagination && result.data.pagination.totalCount) {
-            setTotalResults(result.data.pagination.totalCount);
-          } else if (result.data.salesHistory) {
-            // If we have more results than just this page, estimate there are more
-            const displayedCount = result.data.salesHistory.length;
-            if (displayedCount === resultsPerPage) {
-              // If we got a full page, assume there are at least more pages available
-              setTotalResults(Math.max(newPage * resultsPerPage + resultsPerPage, totalResults));
-            } else {
-              // If we got a partial page, we can calculate the exact total
-              setTotalResults((newPage - 1) * resultsPerPage + displayedCount);
-            }
-          }
+          setTotalResults(result.count || 0);
         }
       })
       .catch(error => {
-        console.error("Error fetching page", newPage, error);
+        console.error("Error fetching page data:", error);
       });
   };
   
