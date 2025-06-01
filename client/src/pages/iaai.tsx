@@ -980,7 +980,7 @@ export default function IAAIPage() {
                                   {sale.odometer ? `${sale.odometer.toLocaleString()} mi` : 'N/A'}
                                 </span>
                                 <span className="text-gray-600 dark:text-gray-400">
-                                  {sale.damage_pr || sale.vehicle_damage || 'Normal Wear'}
+                                  {sale.vehicle_damage || sale.damage_pr || 'Normal Wear'}
                                 </span>
                               </div>
                               <div className="mt-1 flex items-center justify-between text-xs">
@@ -1105,7 +1105,7 @@ export default function IAAIPage() {
                                 {sale.vehicle_title || sale.title || 'Unknown'}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {sale.damage_pr || sale.vehicle_damage || 'Normal Wear'}
+                                {sale.vehicle_damage || sale.damage_pr || 'Normal Wear'}
                               </div>
                             </td>
                             <td className="px-4 py-4">
@@ -1193,7 +1193,7 @@ export default function IAAIPage() {
                           
                           <div className="mt-2 flex justify-between items-center">
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                              {sale.odometer ? `${sale.odometer.toLocaleString()} mi` : 'N/A'} • {sale.damage_pr || 'Unknown Damage'}
+                              {sale.odometer ? `${sale.odometer.toLocaleString()} mi` : 'N/A'} • {sale.vehicle_damage || sale.damage_pr || 'Unknown Damage'}
                             </div>
                             <div className="font-semibold text-gray-900 dark:text-white">
                               {sale.purchase_price ? `$${sale.purchase_price.toLocaleString()}` : 'N/A'}
