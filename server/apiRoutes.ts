@@ -336,23 +336,12 @@ export function setupApiRoutes(app: Express) {
       
       const data = response.data;
       
-      // Check API response for total count metadata
-      let totalCount = 0;
-      if (data.total_count) {
-        totalCount = data.total_count;
-      } else if (data.total) {
-        totalCount = data.total;
-      } else if (data.count) {
-        totalCount = data.count;
-      } else if (data.meta && data.meta.total) {
-        totalCount = data.meta.total;
-      } else if (data.pagination && data.pagination.total) {
-        totalCount = data.pagination.total;
-      } else {
-        // Fallback to length of returned data
-        const records = data.data || data.salesHistory || data;
-        totalCount = Array.isArray(records) ? records.length : 0;
-      }
+      // Since API returns max 25 records per page, estimate based on returned count
+      const records = data.data || data.salesHistory || data;
+      const recordCount = Array.isArray(records) ? records.length : 0;
+      
+      // If we get exactly 25 records, there are likely more pages available
+      const totalCount = recordCount === 25 ? `${recordCount}+` : recordCount;
       
       return res.json({
         success: true,
