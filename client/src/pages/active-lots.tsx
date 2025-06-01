@@ -1,29 +1,39 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Search, 
-  Filter, 
-  ChevronDown, 
-  RefreshCw, 
-  AlertCircle,
-  Car,
+  Eye, 
   Calendar,
   MapPin,
   DollarSign,
+  Car,
+  Camera,
+  AlertCircle,
+  CheckCircle,
+  Clock,
   Gauge,
-  Fuel,
-  Settings,
-  FileText,
-  Eye,
+  Wrench,
+  Filter,
   TrendingUp,
-  Users
+  BarChart3,
+  Image as ImageIcon,
+  ExternalLink,
+  RefreshCw,
+  Target,
+  ChevronDown,
+  ChevronRight,
+  Zap,
+  Users,
+  FileText,
+  Fuel,
+  Settings
 } from 'lucide-react';
 
 interface AuctionLot {
@@ -104,13 +114,12 @@ interface SearchFilters {
   titleType: string;
 }
 
-interface QuickFilters {
-  priceRange: string;
-  yearRange: string;
-  condition: string;
-}
-
 export default function ActiveLotsPage() {
+  const { user, hasPermission } = useAuth();
+  const { toast } = useToast();
+  
+  // State management
+  const [searchQuery, setSearchQuery] = useState('');
   const [smartSearch, setSmartSearch] = useState('');
   const [lots, setLots] = useState<AuctionLot[]>([]);
   const [page, setPage] = useState(1);
@@ -120,12 +129,7 @@ export default function ActiveLotsPage() {
   const [error, setError] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedLot, setSelectedLot] = useState<AuctionLot | null>(null);
-
-  const [quickFilters, setQuickFilters] = useState<QuickFilters>({
-    priceRange: '',
-    yearRange: '',
-    condition: ''
-  });
+  const [isAutoPopulating, setIsAutoPopulating] = useState(false);
 
   const [filters, setFilters] = useState<SearchFilters>({
     make: '',
@@ -144,8 +148,7 @@ export default function ActiveLotsPage() {
     titleType: ''
   });
 
-  const { toast } = useToast();
-
+  // Enhanced search functionality
   const handleSmartSearch = async () => {
     if (!smartSearch.trim()) {
       toast({
@@ -187,70 +190,45 @@ export default function ActiveLotsPage() {
     }
   };
 
-  const applyQuickFilter = (type: string, value: string) => {
-    if (type === 'clear') {
-      setQuickFilters({ priceRange: '', yearRange: '', condition: '' });
-      setFilters({
-        make: '', model: '', yearFrom: '', yearTo: '', location: '',
-        damage: '', priceMin: '', priceMax: '', mileageMin: '', mileageMax: '',
-        transmission: '', fuel: '', color: '', titleType: ''
-      });
+  // VIN auto-population functionality
+  const autoPopulateFromVIN = async (vin: string) => {
+    if (vin.length !== 17 || !/^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) {
       return;
     }
 
-    const newQuickFilters = { ...quickFilters, [type]: value };
-    setQuickFilters(newQuickFilters);
+    setIsAutoPopulating(true);
+    try {
+      const response = await fetch('/api/vin-decode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vin })
+      });
 
-    // Apply the quick filter logic
-    const newFilters = { ...filters };
-    
-    if (type === 'priceRange') {
-      switch (value) {
-        case 'under5k':
-          newFilters.priceMax = '5000';
-          newFilters.priceMin = '';
-          break;
-        case '5k-15k':
-          newFilters.priceMin = '5000';
-          newFilters.priceMax = '15000';
-          break;
-        case '15k-30k':
-          newFilters.priceMin = '15000';
-          newFilters.priceMax = '30000';
-          break;
-        case 'over30k':
-          newFilters.priceMin = '30000';
-          newFilters.priceMax = '';
-          break;
-        default:
-          newFilters.priceMin = '';
-          newFilters.priceMax = '';
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setFilters(prev => ({
+            ...prev,
+            make: data.make || '',
+            model: data.model || '',
+            yearFrom: data.year?.toString() || '',
+            yearTo: data.year?.toString() || ''
+          }));
+          
+          toast({
+            title: "VIN Decoded",
+            description: `Auto-populated filters for ${data.year} ${data.make} ${data.model}`,
+          });
+        }
       }
+    } catch (err) {
+      console.error('VIN decode error:', err);
+    } finally {
+      setIsAutoPopulating(false);
     }
-
-    if (type === 'yearRange') {
-      switch (value) {
-        case 'new':
-          newFilters.yearFrom = '2020';
-          newFilters.yearTo = '';
-          break;
-        case 'recent':
-          newFilters.yearFrom = '2015';
-          newFilters.yearTo = '2019';
-          break;
-        case 'older':
-          newFilters.yearFrom = '';
-          newFilters.yearTo = '2014';
-          break;
-        default:
-          newFilters.yearFrom = '';
-          newFilters.yearTo = '';
-      }
-    }
-
-    setFilters(newFilters);
   };
 
+  // Enhanced active lots search with all filtering options
   const searchActiveLots = async (resetPage = false) => {
     setIsLoading(true);
     setError('');
@@ -262,8 +240,19 @@ export default function ActiveLotsPage() {
       const queryParams = new URLSearchParams({
         site: selectedPlatform === 'copart' ? '1' : '2',
         page: currentPage.toString(),
-        size: '25',
-        ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v))
+        size: '25'
+      });
+
+      // Add search query if provided
+      if (searchQuery.trim()) {
+        queryParams.append('search', searchQuery.trim());
+      }
+
+      // Add all filter parameters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value.toString().trim()) {
+          queryParams.append(key, value.toString().trim());
+        }
       });
 
       console.log('Active Lots Search:', selectedPlatform === 'copart' ? 'Site 1' : 'Site 2', 'Page', currentPage, 'Query:', Object.fromEntries(queryParams));
@@ -275,7 +264,7 @@ export default function ActiveLotsPage() {
       console.log('Active Lots API Response:', data);
       
       if (data.success) {
-        setLots(data.vehicles || []);
+        setLots(data.data || data.vehicles || []);
         setTotalCount(data.count || 0);
       } else {
         throw new Error(data.message || 'Search failed');
@@ -292,9 +281,223 @@ export default function ActiveLotsPage() {
     }
   };
 
+  // Vehicle analysis functions
+  const analyzeLot = (lot: AuctionLot) => {
+    if (!hasPermission('AI_ANALYSIS')) {
+      toast({
+        title: "Premium Feature",
+        description: "AI analysis is available for Gold+ members",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Analysis logic here
+  };
+
+  const findSimilarVehicles = (lot: AuctionLot) => {
+    if (!hasPermission('CROSS_PLATFORM_SEARCH')) {
+      toast({
+        title: "Premium Feature",
+        description: "Similar vehicle search is available for Platinum+ members",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Similar vehicles logic here
+  };
+
+  // Load initial data
   useEffect(() => {
     searchActiveLots();
   }, [selectedPlatform]);
+
+  // Vehicle lot detail dialog component
+  const LotDetailDialog = ({ lot }: { lot: AuctionLot }) => (
+    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="flex items-center justify-between">
+          <span>{lot.year} {lot.make} {lot.model} - Lot #{lot.lot_id}</span>
+          <Badge variant="secondary">{lot.base_site.toUpperCase()}</Badge>
+        </DialogTitle>
+      </DialogHeader>
+      
+      <div className="space-y-6">
+        {/* Vehicle Images */}
+        {lot.link_img_hd && lot.link_img_hd.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Vehicle Images ({lot.link_img_hd.length})
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {lot.link_img_hd.slice(0, 12).map((img, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={img}
+                    alt={`${lot.make} ${lot.model} - Image ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => window.open(img, '_blank')}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all rounded-lg" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Vehicle Information Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Car className="h-5 w-5" />
+                Vehicle Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">VIN:</span>
+                  <span className="font-mono text-xs">{lot.vin}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Year:</span>
+                  <span className="font-medium">{lot.year}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Make:</span>
+                  <span className="font-medium">{lot.make}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Model:</span>
+                  <span className="font-medium">{lot.model}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Series:</span>
+                  <span className="font-medium">{lot.series}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Color:</span>
+                  <span className="font-medium">{lot.color}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Technical Specifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Specifications
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Engine:</span>
+                  <span className="font-medium">{lot.engine}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Transmission:</span>
+                  <span className="font-medium">{lot.transmission}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Drive:</span>
+                  <span className="font-medium">{lot.drive}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Fuel:</span>
+                  <span className="font-medium">{lot.fuel}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Odometer:</span>
+                  <span className="font-medium">{lot.odometer?.toLocaleString() || 'N/A'} mi</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Keys:</span>
+                  <span className="font-medium">{lot.keys || 'Unknown'}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Auction Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Auction Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Current Bid:</span>
+                  <span className="font-semibold text-green-600">
+                    ${lot.current_bid?.toLocaleString() || '0'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Auction Date:</span>
+                  <span className="font-medium">{new Date(lot.auction_date).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span className="font-medium">{lot.location}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge variant={lot.status === 'Run & Drive' ? 'default' : 'secondary'}>
+                    {lot.status}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Document:</span>
+                  <span className="font-medium">{lot.document}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Primary Damage:</span>
+                  <span className="font-medium text-red-600">{lot.damage_pr}</span>
+                </div>
+                {lot.damage_sec && lot.damage_sec !== 'Unknown' && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Secondary Damage:</span>
+                    <span className="font-medium text-orange-600">{lot.damage_sec}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3 pt-4 border-t">
+          {hasPermission('AI_ANALYSIS') && (
+            <Button onClick={() => analyzeLot(lot)} className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              AI Analysis
+            </Button>
+          )}
+          {hasPermission('CROSS_PLATFORM_SEARCH') && (
+            <Button onClick={() => findSimilarVehicles(lot)} variant="outline" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Find Similar
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            onClick={() => window.open(`https://${lot.base_site}.com/lot/${lot.lot_id}`, '_blank')}
+            className="flex items-center gap-2"
+          >
+            <ExternalLink className="h-4 w-4" />
+            View on {lot.base_site.charAt(0).toUpperCase() + lot.base_site.slice(1)}
+          </Button>
+        </div>
+      </div>
+    </DialogContent>
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
@@ -306,7 +509,7 @@ export default function ActiveLotsPage() {
             Search Active Lots
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           {/* Platform Selection */}
           <div className="flex gap-2">
             <Button
@@ -325,104 +528,84 @@ export default function ActiveLotsPage() {
             </Button>
           </div>
 
-          {/* Smart Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Search vehicles... (e.g., '2020 Honda Civic', '2018-2022 Toyota', 'BMW under 25k')"
-              value={smartSearch}
-              onChange={(e) => setSmartSearch(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
-              className="pl-10 pr-4 py-3 text-base"
-            />
-            <Button 
-              onClick={handleSmartSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
-              size="sm"
-            >
-              Search
-            </Button>
+          {/* Main Search Fields */}
+          <div className="space-y-3">
+            {/* VIN/Keyword Search */}
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Search by VIN, make, model, or keywords..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchQuery(value);
+                    
+                    // Auto-populate when a complete VIN is entered
+                    if (value.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(value)) {
+                      autoPopulateFromVIN(value);
+                    }
+                  }}
+                  className="flex-1"
+                />
+                {isAutoPopulating && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+              </div>
+              <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
+                {isLoading ? 'Searching...' : 'Search'}
+              </Button>
+            </div>
+            
+            {/* VIN Helper */}
+            {searchQuery.length > 0 && searchQuery.length < 17 && /^[A-HJ-NPR-Z0-9]+$/i.test(searchQuery) && (
+              <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-md">
+                💡 Enter a complete 17-digit VIN to auto-populate filters with vehicle details
+              </div>
+            )}
+            
+            {searchQuery.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(searchQuery) && !isAutoPopulating && (
+              <div className="text-xs text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md flex items-center gap-2">
+                <Target className="h-3 w-3" />
+                VIN detected - filters auto-populated for similar vehicles
+              </div>
+            )}
+
+            {/* Smart Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                type="text"
+                placeholder="Smart search... (e.g., '2020 Honda Civic', '2018-2022 Toyota', 'BMW under 25k')"
+                value={smartSearch}
+                onChange={(e) => setSmartSearch(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
+                className="pl-10 pr-4 py-3 text-base"
+              />
+              <Button 
+                onClick={handleSmartSearch}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                size="sm"
+              >
+                Search
+              </Button>
+            </div>
           </div>
 
-          {/* Quick Filter Chips */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filters:</span>
-            
+          {/* Quick Filter - Only Run & Drive */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filter:</span>
             <Button
-              variant={quickFilters.priceRange === 'under5k' ? 'default' : 'outline'}
+              variant={filters.titleType === 'run-drive' ? 'default' : 'outline'}
               size="sm"
-              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'under5k' ? '' : 'under5k')}
+              onClick={() => setFilters(prev => ({
+                ...prev,
+                titleType: prev.titleType === 'run-drive' ? '' : 'run-drive'
+              }))}
               className="h-7 text-xs"
             >
-              Under $5K
-            </Button>
-            <Button
-              variant={quickFilters.priceRange === '5k-15k' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '5k-15k' ? '' : '5k-15k')}
-              className="h-7 text-xs"
-            >
-              $5K - $15K
-            </Button>
-            <Button
-              variant={quickFilters.priceRange === '15k-30k' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '15k-30k' ? '' : '15k-30k')}
-              className="h-7 text-xs"
-            >
-              $15K - $30K
-            </Button>
-            <Button
-              variant={quickFilters.priceRange === 'over30k' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'over30k' ? '' : 'over30k')}
-              className="h-7 text-xs"
-            >
-              Over $30K
-            </Button>
-
-            <Button
-              variant={quickFilters.yearRange === 'new' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'new' ? '' : 'new')}
-              className="h-7 text-xs"
-            >
-              2020+ (New)
-            </Button>
-            <Button
-              variant={quickFilters.yearRange === 'recent' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'recent' ? '' : 'recent')}
-              className="h-7 text-xs"
-            >
-              2015-2019 (Recent)
-            </Button>
-            <Button
-              variant={quickFilters.yearRange === 'older' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'older' ? '' : 'older')}
-              className="h-7 text-xs"
-            >
-              Pre-2015 (Older)
-            </Button>
-
-            <Button
-              variant={quickFilters.condition === 'runDrive' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyQuickFilter('condition', quickFilters.condition === 'runDrive' ? '' : 'runDrive')}
-              className="h-7 text-xs"
-            >
-              Run & Drive
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => applyQuickFilter('clear', 'clear')}
-              className="h-7 text-xs text-red-600 hover:text-red-700"
-            >
-              Clear All
+              Run & Drive Only
             </Button>
           </div>
 
@@ -439,28 +622,48 @@ export default function ActiveLotsPage() {
             </Button>
           </div>
 
-          {/* Advanced Filters */}
+          {/* Advanced Filters (Collapsible) */}
           {showAdvancedFilters && (
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1 block">Make</label>
-                  <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value})}>
+                  <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: ''})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select make" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Makes</SelectItem>
-                      <SelectItem value="Honda">Honda</SelectItem>
-                      <SelectItem value="Toyota">Toyota</SelectItem>
-                      <SelectItem value="Ford">Ford</SelectItem>
-                      <SelectItem value="Chevrolet">Chevrolet</SelectItem>
-                      <SelectItem value="BMW">BMW</SelectItem>
-                      <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
+                      <SelectItem value="Acura">Acura</SelectItem>
                       <SelectItem value="Audi">Audi</SelectItem>
+                      <SelectItem value="BMW">BMW</SelectItem>
+                      <SelectItem value="Chevrolet">Chevrolet</SelectItem>
+                      <SelectItem value="Ford">Ford</SelectItem>
+                      <SelectItem value="Honda">Honda</SelectItem>
+                      <SelectItem value="Hyundai">Hyundai</SelectItem>
+                      <SelectItem value="Infiniti">Infiniti</SelectItem>
+                      <SelectItem value="Jeep">Jeep</SelectItem>
+                      <SelectItem value="Kia">Kia</SelectItem>
+                      <SelectItem value="Lexus">Lexus</SelectItem>
+                      <SelectItem value="Mazda">Mazda</SelectItem>
+                      <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
                       <SelectItem value="Nissan">Nissan</SelectItem>
+                      <SelectItem value="Subaru">Subaru</SelectItem>
+                      <SelectItem value="Tesla">Tesla</SelectItem>
+                      <SelectItem value="Toyota">Toyota</SelectItem>
+                      <SelectItem value="Volkswagen">Volkswagen</SelectItem>
+                      <SelectItem value="Volvo">Volvo</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Model</label>
+                  <Input
+                    placeholder="Enter model"
+                    value={filters.model}
+                    onChange={(e) => setFilters({...filters, model: e.target.value})}
+                  />
                 </div>
 
                 <div>
@@ -489,9 +692,122 @@ export default function ActiveLotsPage() {
                     onChange={(e) => setFilters({...filters, location: e.target.value})}
                   />
                 </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Damage</label>
+                  <Select value={filters.damage} onValueChange={(value) => setFilters({...filters, damage: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select damage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Damage Types</SelectItem>
+                      <SelectItem value="Front End">Front End</SelectItem>
+                      <SelectItem value="Rear End">Rear End</SelectItem>
+                      <SelectItem value="Side">Side</SelectItem>
+                      <SelectItem value="All Over">All Over</SelectItem>
+                      <SelectItem value="Minor Dent/Scratches">Minor Dent/Scratches</SelectItem>
+                      <SelectItem value="Hail">Hail</SelectItem>
+                      <SelectItem value="Water/Flood">Water/Flood</SelectItem>
+                      <SelectItem value="Fire">Fire</SelectItem>
+                      <SelectItem value="Vandalism">Vandalism</SelectItem>
+                      <SelectItem value="Theft">Theft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Price Min</label>
+                  <Input
+                    placeholder="e.g., 1000"
+                    value={filters.priceMin}
+                    onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Price Max</label>
+                  <Input
+                    placeholder="e.g., 50000"
+                    value={filters.priceMax}
+                    onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Mileage Min</label>
+                  <Input
+                    placeholder="e.g., 10000"
+                    value={filters.mileageMin}
+                    onChange={(e) => setFilters({...filters, mileageMin: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Mileage Max</label>
+                  <Input
+                    placeholder="e.g., 100000"
+                    value={filters.mileageMax}
+                    onChange={(e) => setFilters({...filters, mileageMax: e.target.value})}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Transmission</label>
+                  <Select value={filters.transmission} onValueChange={(value) => setFilters({...filters, transmission: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select transmission" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Automatic">Automatic</SelectItem>
+                      <SelectItem value="Manual">Manual</SelectItem>
+                      <SelectItem value="CVT">CVT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block">Fuel Type</label>
+                  <Select value={filters.fuel} onValueChange={(value) => setFilters({...filters, fuel: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select fuel type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Gasoline">Gasoline</SelectItem>
+                      <SelectItem value="Hybrid">Hybrid</SelectItem>
+                      <SelectItem value="Electric">Electric</SelectItem>
+                      <SelectItem value="Diesel">Diesel</SelectItem>
+                      <SelectItem value="Flexible Fuel">Flexible Fuel</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center pt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFilters({
+                    make: '',
+                    model: '',
+                    yearFrom: '',
+                    yearTo: '',
+                    location: '',
+                    damage: '',
+                    priceMin: '',
+                    priceMax: '',
+                    mileageMin: '',
+                    mileageMax: '',
+                    transmission: '',
+                    fuel: '',
+                    color: '',
+                    titleType: ''
+                  })}
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Clear Filters
+                </Button>
                 <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
                   {isLoading ? 'Searching...' : 'Apply Filters'}
                 </Button>
@@ -558,10 +874,27 @@ export default function ActiveLotsPage() {
                       </Badge>
                     </div>
 
+                    {/* Vehicle Image */}
+                    {lot.link_img_hd && lot.link_img_hd.length > 0 && (
+                      <div className="relative">
+                        <img
+                          src={lot.link_img_hd[0]}
+                          alt={`${lot.make} ${lot.model}`}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                        {lot.link_img_hd.length > 1 && (
+                          <Badge className="absolute top-2 right-2 bg-black/70 text-white">
+                            <ImageIcon className="h-3 w-3 mr-1" />
+                            {lot.link_img_hd.length}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">${lot.current_bid.toLocaleString()}</span>
+                        <span className="font-medium">${lot.current_bid?.toLocaleString() || '0'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Gauge className="h-4 w-4 text-blue-600" />
@@ -581,7 +914,10 @@ export default function ActiveLotsPage() {
                       <Badge variant="outline" className="text-xs">
                         {lot.damage_pr}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge 
+                        variant={lot.status === 'Run & Drive' ? 'default' : 'secondary'} 
+                        className="text-xs"
+                      >
                         {lot.status}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
@@ -600,95 +936,7 @@ export default function ActiveLotsPage() {
                           View Details
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>
-                            {selectedLot?.year} {selectedLot?.make} {selectedLot?.model} - Lot #{selectedLot?.lot_id}
-                          </DialogTitle>
-                        </DialogHeader>
-                        {selectedLot && (
-                          <div className="space-y-6">
-                            {/* Vehicle Images */}
-                            {selectedLot.link_img_hd && selectedLot.link_img_hd.length > 0 && (
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {selectedLot.link_img_hd.slice(0, 6).map((img, index) => (
-                                  <img
-                                    key={index}
-                                    src={img}
-                                    alt={`${selectedLot.make} ${selectedLot.model} - Image ${index + 1}`}
-                                    className="w-full h-48 object-cover rounded-lg border"
-                                  />
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Vehicle Details */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Vehicle Information</h3>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">VIN:</span>
-                                    <span className="font-mono">{selectedLot.vin}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Engine:</span>
-                                    <span>{selectedLot.engine}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Fuel:</span>
-                                    <span>{selectedLot.fuel}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Drive:</span>
-                                    <span>{selectedLot.drive}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Color:</span>
-                                    <span>{selectedLot.color}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Keys:</span>
-                                    <span>{selectedLot.keys || 'Unknown'}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Auction Details</h3>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Current Bid:</span>
-                                    <span className="font-semibold text-green-600">
-                                      ${selectedLot.current_bid.toLocaleString()}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Auction Date:</span>
-                                    <span>{new Date(selectedLot.auction_date).toLocaleDateString()}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Location:</span>
-                                    <span>{selectedLot.location}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Document:</span>
-                                    <span>{selectedLot.document}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Primary Damage:</span>
-                                    <span>{selectedLot.damage_pr}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Secondary Damage:</span>
-                                    <span>{selectedLot.damage_sec}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </DialogContent>
+                      {selectedLot && <LotDetailDialog lot={selectedLot} />}
                     </Dialog>
                   </div>
                 </CardContent>
