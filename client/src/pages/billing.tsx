@@ -163,9 +163,17 @@ export default function Billing() {
               </div>
               <div>
                 <p className="font-medium">Usage This Month</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">127 / 500 searches</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {subscription?.usage?.searches || 0} / {subscription?.usage?.searchLimit === -1 ? '∞' : subscription?.usage?.searchLimit || 50} searches
+                </p>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
-                  <div className="bg-purple-600 h-2 rounded-full" style={{width: '25%'}}></div>
+                  <div 
+                    className="bg-purple-600 h-2 rounded-full" 
+                    style={{
+                      width: subscription?.usage?.searchLimit === -1 ? '100%' : 
+                             `${Math.min(100, ((subscription?.usage?.searches || 0) / (subscription?.usage?.searchLimit || 50)) * 100)}%`
+                    }}
+                  ></div>
                 </div>
               </div>
             </div>
@@ -217,8 +225,12 @@ export default function Billing() {
                   <Button 
                     className="w-full" 
                     variant={planOption.disabled ? "outline" : "default"}
-                    disabled={planOption.disabled}
+                    disabled={planOption.disabled || loadingPlan === planOption.id}
+                    onClick={() => handleUpgrade(planOption.id)}
                   >
+                    {loadingPlan === planOption.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
                     {planOption.buttonText}
                   </Button>
                 </div>
