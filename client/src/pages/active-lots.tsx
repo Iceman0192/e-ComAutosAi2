@@ -59,6 +59,10 @@ interface AuctionLot {
   link: string;
   link_img_hd: string[];
   link_img_small: string[];
+  engine?: string;
+  document?: string;
+  odobrand?: string;
+  auction_date?: string;
 }
 
 interface SearchFilters {
@@ -173,6 +177,23 @@ export default function ActiveLotsPage() {
     // Placeholder for AI analysis functionality
     console.log('Analyzing lot:', lot);
     // This would trigger an AI analysis of the vehicle
+  };
+
+  const getTimeUntilAuction = (auctionDate: string | undefined) => {
+    if (!auctionDate) return 'Unknown';
+    
+    const auction = new Date(auctionDate);
+    const now = new Date();
+    const diffTime = auction.getTime() - now.getTime();
+    
+    if (diffTime < 0) return 'Ended';
+    
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+    
+    if (diffDays > 1) return `${diffDays}D`;
+    if (diffHours > 1) return `${diffHours}H`;
+    return `${Math.ceil(diffTime / (1000 * 60))}min`;
   };
 
   const searchActiveLots = async (resetPage = false) => {
@@ -862,190 +883,137 @@ export default function ActiveLotsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="text-left p-4 font-medium">Vehicle</th>
-                      <th className="text-left p-4 font-medium">Lot Details</th>
-                      <th className="text-left p-4 font-medium">Location</th>
-                      <th className="text-left p-4 font-medium">Condition</th>
-                      <th className="text-left p-4 font-medium">Price</th>
-                      <th className="text-left p-4 font-medium">Actions</th>
+                    <tr className="border-b bg-slate-800 text-white">
+                      <th className="text-left p-3 font-medium text-sm">Image</th>
+                      <th className="text-left p-3 font-medium text-sm">Lot Info</th>
+                      <th className="text-left p-3 font-medium text-sm">Vehicle Info</th>
+                      <th className="text-left p-3 font-medium text-sm">Condition</th>
+                      <th className="text-left p-3 font-medium text-sm">Sale Info</th>
+                      <th className="text-left p-3 font-medium text-sm">Bids</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {lots.map((lot) => (
-                      <>
-                        {/* Main Row */}
-                        <tr 
-                          key={lot.lot_id} 
-                          className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
-                          onClick={() => toggleRowExpansion(lot.lot_id)}
-                        >
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <button className="text-muted-foreground hover:text-foreground">
-                                {expandedRows.has(lot.lot_id) ? 
-                                  <ChevronDown className="h-4 w-4" /> : 
-                                  <ChevronRight className="h-4 w-4" />
-                                }
-                              </button>
-                              <div>
-                                <div className="font-semibold text-lg">
-                                  {lot.year} {lot.make} {lot.model}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {lot.series && `${lot.series} • `}VIN: {lot.vin?.slice(-8) || 'Unknown'}
-                                </div>
-                                <div className="flex gap-1 mt-1">
-                                  <Badge variant="outline" className="text-xs">{lot.color}</Badge>
-                                  <Badge variant="outline" className="text-xs">{lot.transmission}</Badge>
-                                </div>
+                    {lots.map((lot, index) => (
+                      <tr 
+                        key={`${lot.lot_id}-${index}`}
+                        className="border-b hover:bg-slate-50 transition-colors"
+                      >
+                        {/* Image */}
+                        <td className="p-3">
+                          <div className="w-20 h-16 bg-slate-100 rounded overflow-hidden">
+                            {lot.link_img_hd && lot.link_img_hd.length > 0 ? (
+                              <img
+                                src={lot.link_img_hd[0]}
+                                alt={`${lot.year} ${lot.make} ${lot.model}`}
+                                className="w-full h-full object-cover cursor-pointer hover:opacity-80"
+                                onClick={() => window.open(lot.link_img_hd[0], '_blank')}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Car className="h-6 w-6 text-slate-400" />
                               </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Lot Info */}
+                        <td className="p-3">
+                          <div>
+                            <div className="font-semibold text-blue-600 text-lg mb-1">
+                              {lot.year} {lot.make} {lot.model}
                             </div>
-                          </td>
-                          <td className="p-4">
-                            <div>
-                              <div className="font-medium">Lot {lot.lot_id}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {formatDate(lot.sale_date)}
-                              </div>
-                              <Badge variant="outline" className={`mt-1 text-xs border-${getPlatformColor()}-600 text-${getPlatformColor()}-600`}>
-                                {selectedPlatform.toUpperCase()}
-                              </Badge>
+                            <div className="text-sm text-slate-600 mb-1">
+                              Lot # {lot.lot_id}
                             </div>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">{lot.auction_location}</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <Gauge className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">{lot.odometer?.toLocaleString() || 'Unknown'} mi</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Wrench className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm">{lot.vehicle_damage}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <div className="text-right">
-                              {getStatusBadge(lot.sale_status, lot.sale_date)}
-                              <div className="text-lg font-bold mt-1">
-                                {lot.purchase_price > 0 ? formatPrice(lot.purchase_price) : formatPrice(lot.current_bid || 0)}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
                             <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  analyzeLot(lot);
-                                }}
-                                className="flex items-center gap-1"
+                              <Button size="sm" variant="outline" className="text-xs h-6 px-2">
+                                Watch
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-xs h-6 px-2"
+                                onClick={() => analyzeLot(lot)}
                               >
-                                <Zap className="h-3 w-3" />
+                                <Zap className="h-3 w-3 mr-1" />
                                 Analyze
                               </Button>
-                              <LotDetailDialog lot={lot} />
                             </div>
-                          </td>
-                        </tr>
-                        
-                        {/* Expanded Details Row */}
-                        {expandedRows.has(lot.lot_id) && (
-                          <tr className="bg-muted/20">
-                            <td colSpan={6} className="p-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Vehicle Specifications */}
-                                <div>
-                                  <h4 className="font-semibold mb-3">Vehicle Specifications</h4>
-                                  <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Engine:</span>
-                                      <span>{lot.engine || 'Unknown'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Drive:</span>
-                                      <span>{lot.drive || 'Unknown'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Fuel:</span>
-                                      <span>{lot.fuel || 'Unknown'}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Title:</span>
-                                      <span>{lot.vehicle_title || 'Unknown'}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {/* Auction Information */}
-                                <div>
-                                  <h4 className="font-semibold mb-3">Auction Information</h4>
-                                  <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Current Bid:</span>
-                                      <span className="font-medium">{formatPrice(lot.current_bid || 0)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Sale Status:</span>
-                                      <span>{lot.sale_status}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Sale Date:</span>
-                                      <span>{formatDate(lot.sale_date)}</span>
-                                    </div>
-                                    {lot.link && (
-                                      <div className="mt-3">
-                                        <Button 
-                                          variant="outline" 
-                                          size="sm" 
-                                          onClick={() => window.open(lot.link, '_blank')}
-                                          className="flex items-center gap-2"
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                          View on {selectedPlatform.toUpperCase()}
-                                        </Button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                {/* Vehicle Images Preview */}
-                                <div>
-                                  <h4 className="font-semibold mb-3">Vehicle Photos</h4>
-                                  {lot.link_img_hd && lot.link_img_hd.length > 0 ? (
-                                    <div className="grid grid-cols-3 gap-2">
-                                      {lot.link_img_hd.slice(0, 3).map((imageUrl: string, index: number) => (
-                                        <div key={index} className="aspect-square bg-muted rounded overflow-hidden">
-                                          <img
-                                            src={imageUrl}
-                                            alt={`Vehicle photo ${index + 1}`}
-                                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                                            onClick={() => window.open(imageUrl, '_blank')}
-                                          />
-                                        </div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <div className="bg-muted rounded-lg p-4 text-center">
-                                      <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                                      <p className="text-sm text-muted-foreground">No photos available</p>
-                                    </div>
-                                  )}
-                                </div>
+                          </div>
+                        </td>
+
+                        {/* Vehicle Info */}
+                        <td className="p-3">
+                          <div className="text-sm space-y-1">
+                            <div>
+                              <span className="font-medium">Odometer</span>
+                              <br />
+                              <span>{lot.odometer?.toLocaleString() || 'Unknown'}</span>
+                              <br />
+                              <span className="text-slate-500">(ACTUAL)</span>
+                            </div>
+                            {lot.engine && (
+                              <div className="mt-2">
+                                <span className="font-medium">Engine</span>
+                                <br />
+                                <span className="text-slate-600">{lot.engine}</span>
                               </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Condition */}
+                        <td className="p-3">
+                          <div className="text-sm space-y-1">
+                            <div>
+                              <span className="font-medium">{lot.vehicle_title || 'Clean Title'} (DV - CA)</span>
+                            </div>
+                            <div>
+                              <span className="font-medium">Damage</span>
+                              <br />
+                              <span className="text-slate-600">{lot.vehicle_damage}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium">Keys available</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Sale Info */}
+                        <td className="p-3">
+                          <div className="text-sm">
+                            <div className="font-semibold text-blue-600 mb-1">
+                              {lot.auction_location?.split(' - ')[0] || 'Unknown Location'}
+                            </div>
+                            <div className="text-slate-600 mb-1">
+                              Item# {lot.lot_id}
+                            </div>
+                            <div className="text-red-600 font-medium">
+                              Auction on {formatDate(lot.sale_date)}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Bids */}
+                        <td className="p-3">
+                          <div className="text-right">
+                            <div className="text-sm text-slate-600 mb-1">
+                              Current bid:
+                            </div>
+                            <div className="text-xl font-bold text-green-600 mb-2">
+                              {formatPrice(lot.current_bid || 0)} USD
+                            </div>
+                            <div className="space-y-1">
+                              <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs h-7">
+                                Bid now
+                              </Button>
+                              <Button size="sm" variant="outline" className="w-full text-xs h-7">
+                                Details
+                              </Button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     ))}
                   </tbody>
                 </table>
