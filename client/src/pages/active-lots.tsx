@@ -184,7 +184,7 @@ export default function ActiveLotsPage() {
   const handleAnalyzeClick = (lot: AuctionLot) => {
     // This would normally check user tier from authentication context
     // For demonstration, let's test both tiers - change this value to test
-    const userTier = 'Platinum'; // This should come from user context
+    const userTier = 'Gold'; // This should come from user context
     
     if (userTier === 'Platinum') {
       // Navigate to AuctionMind V2 with lot ID pre-populated
