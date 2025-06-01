@@ -287,7 +287,16 @@ export function setupApiRoutes(app: Express) {
       const model = req.query.model as string;
       const page = parseInt(req.query.page as string) || 1;
       const size = parseInt(req.query.size as string) || 25;
-      const site = parseInt(req.query.site as string) || 1;
+      // Handle sites parameter correctly for IAAI vs Copart
+      let site = 1; // Default to Copart
+      if (req.query.sites) {
+        const sites = Array.isArray(req.query.sites) ? req.query.sites : [req.query.sites];
+        if (sites[0] === 'iaai') {
+          site = 2;
+        }
+      } else if (req.query.site) {
+        site = parseInt(req.query.site as string) || 1;
+      }
       const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
       const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
       let auctionDateFrom = req.query.sale_date_from as string;
