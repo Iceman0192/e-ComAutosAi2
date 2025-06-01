@@ -217,8 +217,19 @@ export default function ActiveLotsPage() {
       const data = await response.json();
       
       if (data.success) {
-        setLots(data.data.vehicles || []);
-        setTotalCount(data.data.total || 0);
+        // Handle different response structures
+        const vehicles = data.data?.vehicles || data.data?.lots || data.data || [];
+        const total = data.data?.total || data.data?.count || data.count || 0;
+        
+        console.log('Active Lots API Response:', {
+          success: data.success,
+          vehiclesCount: vehicles.length,
+          totalCount: total,
+          firstVehicle: vehicles[0]
+        });
+        
+        setLots(vehicles);
+        setTotalCount(total);
         if (resetPage) setPage(1);
       } else {
         setError(data.message || 'No lots found');
