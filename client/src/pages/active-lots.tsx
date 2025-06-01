@@ -664,9 +664,9 @@ export default function ActiveLotsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={filters.year === '2018' ? 'default' : 'outline'}
+                variant={filters.year === '>=2018' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('year', '2018')}
+                onClick={() => handleQuickFilter('year', '>=2018')}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -674,9 +674,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.odometer === '50000' ? 'default' : 'outline'}
+                variant={filters.odometer === '<50000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('odometer', '50000')}
+                onClick={() => handleQuickFilter('odometer', '<50000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -694,9 +694,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.current_bid === '10000' ? 'default' : 'outline'}
+                variant={filters.current_bid === '<10000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('current_bid', '10000')}
+                onClick={() => handleQuickFilter('current_bid', '<10000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -714,9 +714,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.current_bid === '25000' ? 'default' : 'outline'}
+                variant={filters.current_bid === '<25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('current_bid', '25000')}
+                onClick={() => handleQuickFilter('current_bid', '<25000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -724,9 +724,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.year === '2020' ? 'default' : 'outline'}
+                variant={filters.year === '>=2020' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('year', '2020')}
+                onClick={() => handleQuickFilter('year', '>=2020')}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -734,9 +734,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.odometer === '25000' ? 'default' : 'outline'}
+                variant={filters.odometer === '<25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('odometer', '25000')}
+                onClick={() => handleQuickFilter('odometer', '<25000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -774,9 +774,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.is_buynow === 'true' ? 'default' : 'outline'}
+                variant={filters.is_buynow === '1' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('is_buynow', 'true')}
+                onClick={() => handleQuickFilter('is_buynow', '1')}
                 className="h-7 text-xs"
               >
                 <Zap className="h-3 w-3 mr-1" />
