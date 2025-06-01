@@ -111,6 +111,10 @@ interface SearchFilters {
   current_bid: string;
   auction_date: string;
   year: string;
+  year_from: string;
+  year_to: string;
+  odometer_min: string;
+  odometer_max: string;
   make: string;
   model: string;
   series: string;
@@ -161,6 +165,10 @@ export default function ActiveLotsPage() {
     current_bid: '',
     auction_date: '',
     year: '',
+    year_from: '',
+    year_to: '',
+    odometer_min: '',
+    odometer_max: '',
     make: '',
     model: '',
     series: '',
@@ -336,6 +344,10 @@ export default function ActiveLotsPage() {
       current_bid: '',
       auction_date: '',
       year: `${lot.year - 1}-${lot.year + 1}`, // Near-exact match: ±1 year for better results
+      year_from: '',
+      year_to: '',
+      odometer_min: '',
+      odometer_max: '',
       make: lot.make,
       model: lot.model,
       series: '',
@@ -664,9 +676,9 @@ export default function ActiveLotsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={filters.year === '>=2018' ? 'default' : 'outline'}
+                variant={filters.year_from === '2018' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('year', '>=2018')}
+                onClick={() => handleQuickFilter('year_from', '2018')}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -674,9 +686,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.odometer === '<50000' ? 'default' : 'outline'}
+                variant={filters.odometer_max === '50000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('odometer', '<50000')}
+                onClick={() => handleQuickFilter('odometer_max', '50000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -724,9 +736,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.year === '>=2020' ? 'default' : 'outline'}
+                variant={filters.year_from === '2020' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('year', '>=2020')}
+                onClick={() => handleQuickFilter('year_from', '2020')}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -734,9 +746,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.odometer === '<25000' ? 'default' : 'outline'}
+                variant={filters.odometer_max === '25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('odometer', '<25000')}
+                onClick={() => handleQuickFilter('odometer_max', '25000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -831,6 +843,10 @@ export default function ActiveLotsPage() {
                     current_bid: '',
                     auction_date: '',
                     year: '',
+                    year_from: '',
+                    year_to: '',
+                    odometer_min: '',
+                    odometer_max: '',
                     make: '',
                     model: '',
                     series: '',
@@ -1054,6 +1070,10 @@ export default function ActiveLotsPage() {
                     current_bid: '',
                     auction_date: '',
                     year: '',
+                    year_from: '',
+                    year_to: '',
+                    odometer_min: '',
+                    odometer_max: '',
                     make: '',
                     model: '',
                     series: '',
