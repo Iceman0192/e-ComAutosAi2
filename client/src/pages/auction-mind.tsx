@@ -101,70 +101,75 @@ export default function AuctionMind() {
     };
 
     return (
-      <div className="relative w-full h-80 rounded-lg overflow-hidden bg-black shadow-lg">
-        <img
-          src={images[currentImage]}
-          alt={`Vehicle image ${currentImage + 1}`}
-          className="w-full h-full object-contain"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
+      <div className="w-full space-y-3">
+        {/* Main image container */}
+        <div className="relative w-full h-80 rounded-lg overflow-hidden bg-black shadow-lg">
+          <img
+            src={images[currentImage]}
+            alt={`Vehicle image ${currentImage + 1}`}
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+            }}
+          />
+          
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-105"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-105"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+              
+              {/* Image indicators */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImage(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                      index === currentImage ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/75'
+                    }`}
+                  />
+                ))}
+              </div>
+              
+              {/* Image counter */}
+              <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium">
+                {currentImage + 1} / {images.length}
+              </div>
+            </>
+          )}
+        </div>
         
+        {/* Thumbnail strip below main image */}
         {images.length > 1 && (
-          <>
-            <button
-              onClick={prevImage}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-105"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-105"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-            
-            {/* Image indicators */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {images.map((_, index) => (
+          <div className="flex justify-center">
+            <div className="flex space-x-2 max-w-full overflow-x-auto px-2 py-1">
+              {images.slice(0, 8).map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImage(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                    index === currentImage ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/75'
+                  className={`flex-shrink-0 w-16 h-12 rounded border-2 overflow-hidden transition-all duration-200 ${
+                    index === currentImage ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300 hover:border-gray-400'
                   }`}
-                />
+                >
+                  <img
+                    src={image}
+                    alt={`Thumbnail ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
               ))}
             </div>
-            
-            {/* Image counter */}
-            <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium">
-              {currentImage + 1} / {images.length}
-            </div>
-          </>
-        )}
-        
-        {/* Thumbnail strip for easy navigation */}
-        {images.length > 1 && (
-          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-xs overflow-x-auto">
-            {images.slice(0, 6).map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentImage(index)}
-                className={`flex-shrink-0 w-12 h-8 rounded border-2 overflow-hidden transition-all duration-200 ${
-                  index === currentImage ? 'border-white' : 'border-white/30 hover:border-white/60'
-                }`}
-              >
-                <img
-                  src={image}
-                  alt={`Thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
           </div>
         )}
       </div>
