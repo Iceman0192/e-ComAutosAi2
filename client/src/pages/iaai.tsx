@@ -238,12 +238,28 @@ export default function IAAIPage() {
         
         // Only update if successful
         if (result.success && result.data) {
-          // Convert cars API response to match expected format
-          // The API returns: { count: 50295, data: [...], pages: 5030, size: 25 }
+          // Convert cars API response to match expected format for analytics
+          // Map API fields to the format expected by SalesAnalytics component
+          const convertedSalesHistory = (result.data || []).map((vehicle: any) => ({
+            id: vehicle.id || `${vehicle.lot_id}-${vehicle.site}`,
+            vin: vehicle.vin || '',
+            sale_date: vehicle.auction_date || new Date().toISOString(),
+            purchase_price: vehicle.current_bid || vehicle.price_new || vehicle.reserve_price || 0,
+            sale_status: vehicle.auction_type || 'Unknown',
+            vehicle_damage: vehicle.damage_pr || 'Unknown', // Primary damage field
+            vehicle_title: vehicle.document || vehicle.title || 'Unknown',
+            odometer: vehicle.odometer || 0,
+            vehicle_mileage: vehicle.odometer || 0,
+            year: vehicle.year || 0,
+            make: vehicle.make || '',
+            model: vehicle.model || '',
+            series: vehicle.series || ''
+          }));
+
           const convertedResult = {
             success: true,
             data: {
-              salesHistory: result.data || [],
+              salesHistory: convertedSalesHistory,
               pagination: {
                 totalCount: result.count || 0,
                 currentPage: 1,
@@ -328,11 +344,27 @@ export default function IAAIPage() {
         
         // Only update if successful
         if (result.success && result.data) {
-          // Convert to expected format
+          // Convert cars API response to match expected format for analytics
+          const convertedSalesHistory = (result.data || []).map((vehicle: any) => ({
+            id: vehicle.id || `${vehicle.lot_id}-${vehicle.site}`,
+            vin: vehicle.vin || '',
+            sale_date: vehicle.auction_date || new Date().toISOString(),
+            purchase_price: vehicle.current_bid || vehicle.price_new || vehicle.reserve_price || 0,
+            sale_status: vehicle.auction_type || 'Unknown',
+            vehicle_damage: vehicle.damage_pr || 'Unknown',
+            vehicle_title: vehicle.document || vehicle.title || 'Unknown',
+            odometer: vehicle.odometer || 0,
+            vehicle_mileage: vehicle.odometer || 0,
+            year: vehicle.year || 0,
+            make: vehicle.make || '',
+            model: vehicle.model || '',
+            series: vehicle.series || ''
+          }));
+
           const convertedResult = {
             success: true,
             data: {
-              salesHistory: result.data || [],
+              salesHistory: convertedSalesHistory,
               pagination: {
                 totalCount: result.count || 0,
                 currentPage: newPage,
