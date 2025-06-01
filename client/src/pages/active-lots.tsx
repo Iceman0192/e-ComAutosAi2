@@ -112,6 +112,18 @@ interface SearchFilters {
   fuel: string;
   color: string;
   title_type: string;
+  status: string;
+  keys: string;
+  document: string;
+  drive: string;
+  auction_date: string;
+  current_bid_min: string;
+  current_bid_max: string;
+  engine_size: string;
+  cylinders: string;
+  vehicle_type: string;
+  auction_type: string;
+  is_buynow: string;
 }
 
 export default function ActiveLotsPage() {
@@ -144,7 +156,19 @@ export default function ActiveLotsPage() {
     transmission: '',
     fuel: '',
     color: '',
-    title_type: ''
+    title_type: '',
+    status: '',
+    keys: '',
+    document: '',
+    drive: '',
+    auction_date: '',
+    current_bid_min: '',
+    current_bid_max: '',
+    engine_size: '',
+    cylinders: '',
+    vehicle_type: '',
+    auction_type: '',
+    is_buynow: ''
   });
 
   // Enhanced search functionality
@@ -704,6 +728,91 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
+                variant={filters.status === 'Run & Drive' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    status: filters.status === 'Run & Drive' ? '' : 'Run & Drive'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Run & Drive
+              </Button>
+
+              <Button
+                variant={filters.is_buynow === 'true' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    is_buynow: filters.is_buynow === 'true' ? '' : 'true'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Zap className="h-3 w-3 mr-1" />
+                Buy Now
+              </Button>
+
+              <Button
+                variant={filters.keys === 'Yes' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    keys: filters.keys === 'Yes' ? '' : 'Yes'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Car className="h-3 w-3 mr-1" />
+                Has Keys
+              </Button>
+
+              <Button
+                variant={filters.document === 'Clean' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    document: filters.document === 'Clean' ? '' : 'Clean'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <FileText className="h-3 w-3 mr-1" />
+                Clean Title
+              </Button>
+
+              <Button
+                variant={filters.current_bid_max === '5000' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    current_bid_max: filters.current_bid_max === '5000' ? '' : '5000'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <DollarSign className="h-3 w-3 mr-1" />
+                Low Bids (&lt;$5k)
+              </Button>
+
+              <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
@@ -721,7 +830,19 @@ export default function ActiveLotsPage() {
                     transmission: '',
                     fuel: '',
                     color: '',
-                    title_type: ''
+                    title_type: '',
+                    status: '',
+                    keys: '',
+                    document: '',
+                    drive: '',
+                    auction_date: '',
+                    current_bid_min: '',
+                    current_bid_max: '',
+                    engine_size: '',
+                    cylinders: '',
+                    vehicle_type: '',
+                    auction_type: '',
+                    is_buynow: ''
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
