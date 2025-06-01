@@ -148,6 +148,8 @@ export default function ActiveLotsPage() {
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [smartSearch, setSmartSearch] = useState('');
+  const [budgetPreset, setBudgetPreset] = useState('any');
+  const [yearPreset, setYearPreset] = useState('any');
   const [lots, setLots] = useState<AuctionLot[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -649,38 +651,168 @@ export default function ActiveLotsPage() {
             </Button>
           </div>
 
-          {/* Main Search Fields */}
-          <div className="space-y-3">
-            {/* Keyword Search */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Search by make, model, or keywords..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
-                {isLoading ? 'Searching...' : 'Search'}
-              </Button>
+          {/* Primary Search Interface */}
+          <div className="space-y-6">
+            {/* Vehicle Search - Make & Model */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Find Your Vehicle</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Make</label>
+                  <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: ''})}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select make" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any Make</SelectItem>
+                      <SelectItem value="Toyota">Toyota</SelectItem>
+                      <SelectItem value="Honda">Honda</SelectItem>
+                      <SelectItem value="Ford">Ford</SelectItem>
+                      <SelectItem value="Chevrolet">Chevrolet</SelectItem>
+                      <SelectItem value="BMW">BMW</SelectItem>
+                      <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
+                      <SelectItem value="Audi">Audi</SelectItem>
+                      <SelectItem value="Nissan">Nissan</SelectItem>
+                      <SelectItem value="Hyundai">Hyundai</SelectItem>
+                      <SelectItem value="Kia">Kia</SelectItem>
+                      <SelectItem value="Subaru">Subaru</SelectItem>
+                      <SelectItem value="Mazda">Mazda</SelectItem>
+                      <SelectItem value="Volkswagen">Volkswagen</SelectItem>
+                      <SelectItem value="Lexus">Lexus</SelectItem>
+                      <SelectItem value="Acura">Acura</SelectItem>
+                      <SelectItem value="Infiniti">Infiniti</SelectItem>
+                      <SelectItem value="Cadillac">Cadillac</SelectItem>
+                      <SelectItem value="Lincoln">Lincoln</SelectItem>
+                      <SelectItem value="Buick">Buick</SelectItem>
+                      <SelectItem value="GMC">GMC</SelectItem>
+                      <SelectItem value="Ram">Ram</SelectItem>
+                      <SelectItem value="Jeep">Jeep</SelectItem>
+                      <SelectItem value="Dodge">Dodge</SelectItem>
+                      <SelectItem value="Chrysler">Chrysler</SelectItem>
+                      <SelectItem value="Tesla">Tesla</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Model</label>
+                  <Select value={filters.model} onValueChange={(value) => setFilters({...filters, model: value})}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Any model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any Model</SelectItem>
+                      {filters.make === 'Toyota' && (
+                        <>
+                          <SelectItem value="Camry">Camry</SelectItem>
+                          <SelectItem value="Corolla">Corolla</SelectItem>
+                          <SelectItem value="Prius">Prius</SelectItem>
+                          <SelectItem value="RAV4">RAV4</SelectItem>
+                          <SelectItem value="Highlander">Highlander</SelectItem>
+                          <SelectItem value="Tacoma">Tacoma</SelectItem>
+                          <SelectItem value="Tundra">Tundra</SelectItem>
+                        </>
+                      )}
+                      {filters.make === 'Honda' && (
+                        <>
+                          <SelectItem value="Accord">Accord</SelectItem>
+                          <SelectItem value="Civic">Civic</SelectItem>
+                          <SelectItem value="CR-V">CR-V</SelectItem>
+                          <SelectItem value="Pilot">Pilot</SelectItem>
+                          <SelectItem value="Odyssey">Odyssey</SelectItem>
+                          <SelectItem value="Fit">Fit</SelectItem>
+                        </>
+                      )}
+                      {filters.make === 'Ford' && (
+                        <>
+                          <SelectItem value="F-150">F-150</SelectItem>
+                          <SelectItem value="Mustang">Mustang</SelectItem>
+                          <SelectItem value="Explorer">Explorer</SelectItem>
+                          <SelectItem value="Escape">Escape</SelectItem>
+                          <SelectItem value="Focus">Focus</SelectItem>
+                          <SelectItem value="Fusion">Fusion</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            {/* Smart Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Smart search... (e.g., '2020 Honda Civic', '2018-2022 Toyota', 'BMW under 25k')"
-                value={smartSearch}
-                onChange={(e) => setSmartSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
-                className="pl-10 pr-4 py-3 text-base"
-              />
-              <Button 
-                onClick={handleSmartSearch}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                size="sm"
-              >
-                Search
+            {/* Essential Filters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Budget Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Budget</label>
+                <Select value={budgetPreset} onValueChange={handleBudgetPreset}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Any price" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any Price</SelectItem>
+                    <SelectItem value="under-5k">Under $5K</SelectItem>
+                    <SelectItem value="under-10k">Under $10K</SelectItem>
+                    <SelectItem value="under-25k">Under $25K</SelectItem>
+                    <SelectItem value="under-50k">Under $50K</SelectItem>
+                    <SelectItem value="custom">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Year Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Year</label>
+                <Select value={yearPreset} onValueChange={handleYearPreset}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Any year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any Year</SelectItem>
+                    <SelectItem value="2020+">2020 & Newer</SelectItem>
+                    <SelectItem value="2015-2019">2015-2019</SelectItem>
+                    <SelectItem value="2010-2014">2010-2014</SelectItem>
+                    <SelectItem value="2005-2009">2005-2009</SelectItem>
+                    <SelectItem value="custom">Custom Range</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Condition Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Condition</label>
+                <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Any condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Condition</SelectItem>
+                    <SelectItem value="Run & Drive">Run & Drive</SelectItem>
+                    <SelectItem value="Starts">Starts Only</SelectItem>
+                    <SelectItem value="Won't Start">Won't Start</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Auction Site Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Site</label>
+                <Select value={filters.site} onValueChange={(value) => setFilters({...filters, site: value})}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="All sites" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sites</SelectItem>
+                    <SelectItem value="1">Copart</SelectItem>
+                    <SelectItem value="2">IAAI</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Search Action */}
+            <div>
+              <Button onClick={() => searchActiveLots(true)} className="w-full h-12 text-lg" disabled={isLoading}>
+                <Search className="w-5 h-5 mr-2" />
+                {isLoading ? 'Searching...' : `Search ${totalCount?.toLocaleString() || ''} Vehicles`}
               </Button>
             </div>
           </div>
