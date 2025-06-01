@@ -436,23 +436,25 @@ async function searchVinHistory(vin: string): Promise<any> {
     
     console.log(`Found ${internalResults.length} records in internal database`);
     
-    // Search external API using the correct history-cars endpoint for VIN history
+    // Search external API using the correct /cars/vin/all endpoint for VIN history
     let externalResults = [];
     
     try {
-      const response = await axios.get(`https://api.apicar.store/api/history-cars`, {
+      const response = await axios.get(`https://api.apicar.store/api/cars/vin/all`, {
         headers: {
           'api-key': process.env.APICAR_API_KEY,
           'accept': '*/*'
         },
         params: { 
-          vin: vin,
-          size: 50 // Get more results to ensure we find the VIN
+          vin: vin
         }
       });
       
       if (response.data?.data) {
-        externalResults = response.data.data.filter((vehicle: any) => vehicle.vin === vin);
+        externalResults = response.data.data;
+        console.log(`Found ${externalResults.length} VIN history records from APICAR`);
+      } else if (response.data && Array.isArray(response.data)) {
+        externalResults = response.data;
         console.log(`Found ${externalResults.length} VIN history records from APICAR`);
       }
     } catch (error) {
