@@ -146,6 +146,10 @@ export default function ActiveLotsPage() {
   const [error, setError] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedLot, setSelectedLot] = useState<AuctionLot | null>(null);
+  
+  // Intelligent pagination preloading
+  const [preloadedPages, setPreloadedPages] = useState<Map<number, AuctionLot[]>>(new Map());
+  const [isPreloading, setIsPreloading] = useState(false);
 
   const [filters, setFilters] = useState<SearchFilters>({
     site: '',
@@ -225,13 +229,93 @@ export default function ActiveLotsPage() {
 
 
 
+  // Intelligent pagination preloader
+  const preloadPages = async (currentPage: number) => {
+    if (isPreloading) return;
+    
+    setIsPreloading(true);
+    const maxPages = Math.ceil(totalCount / 25);
+    const pagesToPreload = [];
+    
+    // Preload next 2 pages and previous 1 page for optimal navigation
+    if (currentPage > 1 && !preloadedPages.has(currentPage - 1)) {
+      pagesToPreload.push(currentPage - 1);
+    }
+    if (currentPage < maxPages && !preloadedPages.has(currentPage + 1)) {
+      pagesToPreload.push(currentPage + 1);
+    }
+    if (currentPage + 1 < maxPages && !preloadedPages.has(currentPage + 2)) {
+      pagesToPreload.push(currentPage + 2);
+    }
+
+    try {
+      const preloadPromises = pagesToPreload.map(async (pageNum) => {
+        const queryParams = new URLSearchParams({
+          site: selectedPlatform === 'copart' ? '1' : '2',
+          page: pageNum.toString(),
+          size: '25'
+        });
+
+        if (searchQuery.trim()) {
+          queryParams.append('search', searchQuery.trim());
+        }
+
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value && value.toString().trim()) {
+            queryParams.append(key, value.toString().trim());
+          }
+        });
+
+        const response = await fetch(`/api/cars?${queryParams}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            return { page: pageNum, data: data.data || [] };
+          }
+        }
+        return null;
+      });
+
+      const results = await Promise.all(preloadPromises);
+      const newPreloadedPages = new Map(preloadedPages);
+      
+      results.forEach(result => {
+        if (result) {
+          newPreloadedPages.set(result.page, result.data);
+        }
+      });
+
+      setPreloadedPages(newPreloadedPages);
+    } catch (error) {
+      console.log('Preloading failed:', error);
+    } finally {
+      setIsPreloading(false);
+    }
+  };
+
   // Enhanced active lots search with all filtering options
   const searchActiveLots = async (resetPage = false) => {
     setIsLoading(true);
     setError('');
     
     const currentPage = resetPage ? 1 : page;
-    if (resetPage) setPage(1);
+    if (resetPage) {
+      setPage(1);
+      setPreloadedPages(new Map()); // Clear preloaded pages on reset
+    }
+
+    // Check if page is already preloaded
+    if (!resetPage && preloadedPages.has(currentPage)) {
+      const preloadedData = preloadedPages.get(currentPage);
+      if (preloadedData) {
+        setLots(preloadedData);
+        setIsLoading(false);
+        
+        // Trigger preloading for adjacent pages
+        setTimeout(() => preloadPages(currentPage), 100);
+        return;
+      }
+    }
 
     try {
       const queryParams = new URLSearchParams({
@@ -264,6 +348,14 @@ export default function ActiveLotsPage() {
         setLots(data.data || data.vehicles || []);
         setTotalCount(data.count || 0);
         console.log('Updated totalCount to:', data.count || 0);
+        
+        // Store current page in preloaded cache
+        const newPreloadedPages = new Map(preloadedPages);
+        newPreloadedPages.set(currentPage, data.data || []);
+        setPreloadedPages(newPreloadedPages);
+        
+        // Trigger preloading for adjacent pages
+        setTimeout(() => preloadPages(currentPage), 500);
       } else {
         throw new Error(data.message || 'Search failed');
       }
@@ -1194,7 +1286,20 @@ export default function ActiveLotsPage() {
               Found {totalCount.toLocaleString()} active lots on {selectedPlatform.toUpperCase()}
             </h2>
             <div className="flex items-center justify-between sm:justify-end gap-2">
-              <span className="text-sm text-muted-foreground">Page {page}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Page {page}</span>
+                {isPreloading && (
+                  <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
+                    <div className="w-3 h-3 border border-current rounded-full animate-spin border-t-transparent"></div>
+                    <span>Preloading...</span>
+                  </div>
+                )}
+                {preloadedPages.size > 0 && !isPreloading && (
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    {preloadedPages.size} pages cached
+                  </span>
+                )}
+              </div>
               <div className="flex gap-1">
                 <Button
                   variant="outline"
@@ -1203,29 +1308,18 @@ export default function ActiveLotsPage() {
                     const newPage = Math.max(1, page - 1);
                     setPage(newPage);
                     
-                    // Search with correct page number
-                    const queryParams = new URLSearchParams({
-                      site: selectedPlatform === 'copart' ? '1' : '2',
-                      page: newPage.toString(),
-                      size: '25'
-                    });
-                    
-                    Object.entries(filters).forEach(([key, value]) => {
-                      if (value && value.toString().trim()) {
-                        queryParams.append(key, value.toString().trim());
+                    // Check if page is preloaded for instant navigation
+                    if (preloadedPages.has(newPage)) {
+                      const preloadedData = preloadedPages.get(newPage);
+                      if (preloadedData) {
+                        setLots(preloadedData);
+                        setTimeout(() => preloadPages(newPage), 100);
+                        return;
                       }
-                    });
+                    }
                     
-                    setIsLoading(true);
-                    fetch(`/api/cars?${queryParams}`)
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.success) {
-                          setLots(data.data || []);
-                          setTotalCount(data.count || 0);
-                        }
-                      })
-                      .finally(() => setIsLoading(false));
+                    // Fallback to normal search if not preloaded
+                    searchActiveLots();
                   }}
                   disabled={page <= 1 || isLoading}
                 >
@@ -1238,29 +1332,18 @@ export default function ActiveLotsPage() {
                     const newPage = page + 1;
                     setPage(newPage);
                     
-                    // Search with correct page number
-                    const queryParams = new URLSearchParams({
-                      site: selectedPlatform === 'copart' ? '1' : '2',
-                      page: newPage.toString(),
-                      size: '25'
-                    });
-                    
-                    Object.entries(filters).forEach(([key, value]) => {
-                      if (value && value.toString().trim()) {
-                        queryParams.append(key, value.toString().trim());
+                    // Check if page is preloaded for instant navigation
+                    if (preloadedPages.has(newPage)) {
+                      const preloadedData = preloadedPages.get(newPage);
+                      if (preloadedData) {
+                        setLots(preloadedData);
+                        setTimeout(() => preloadPages(newPage), 100);
+                        return;
                       }
-                    });
+                    }
                     
-                    setIsLoading(true);
-                    fetch(`/api/cars?${queryParams}`)
-                      .then(res => res.json())
-                      .then(data => {
-                        if (data.success) {
-                          setLots(data.data || []);
-                          setTotalCount(data.count || 0);
-                        }
-                      })
-                      .finally(() => setIsLoading(false));
+                    // Fallback to normal search if not preloaded
+                    searchActiveLots();
                   }}
                   disabled={isLoading}
                 >
