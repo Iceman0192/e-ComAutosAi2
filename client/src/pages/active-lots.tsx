@@ -450,7 +450,7 @@ export default function ActiveLotsPage() {
                       <SelectValue placeholder="Select make" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Makes</SelectItem>
+                      <SelectItem value="all">All Makes</SelectItem>
                       <SelectItem value="Honda">Honda</SelectItem>
                       <SelectItem value="Toyota">Toyota</SelectItem>
                       <SelectItem value="Ford">Ford</SelectItem>
