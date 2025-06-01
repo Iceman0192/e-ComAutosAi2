@@ -536,10 +536,14 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'run-drive' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'run-drive' ? '' : 'run-drive'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'run-drive' ? '' : 'run-drive'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
@@ -549,10 +553,14 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'buy-now' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'buy-now' ? '' : 'buy-now'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'buy-now' ? '' : 'buy-now'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Zap className="h-3 w-3 mr-1" />
@@ -562,11 +570,15 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'low-mileage' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'low-mileage' ? '' : 'low-mileage',
-                  mileageMax: prev.titleType === 'low-mileage' ? '' : '50000'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'low-mileage' ? '' : 'low-mileage',
+                    mileageMax: filters.titleType === 'low-mileage' ? '' : '50000'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -576,11 +588,15 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'newer-models' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'newer-models' ? '' : 'newer-models',
-                  yearFrom: prev.titleType === 'newer-models' ? '' : '2018'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'newer-models' ? '' : 'newer-models',
+                    yearFrom: filters.titleType === 'newer-models' ? '' : '2018'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -590,11 +606,15 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'minor-damage' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'minor-damage' ? '' : 'minor-damage',
-                  damage: prev.titleType === 'minor-damage' ? '' : 'Minor Dent/Scratches'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'minor-damage' ? '' : 'minor-damage',
+                    damage: filters.titleType === 'minor-damage' ? '' : 'Minor Dent/Scratches'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Wrench className="h-3 w-3 mr-1" />
@@ -604,10 +624,14 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'has-keys' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'has-keys' ? '' : 'has-keys'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'has-keys' ? '' : 'has-keys'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Car className="h-3 w-3 mr-1" />
@@ -617,10 +641,14 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'auction-tomorrow' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'auction-tomorrow' ? '' : 'auction-tomorrow'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'auction-tomorrow' ? '' : 'auction-tomorrow'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Calendar className="h-3 w-3 mr-1" />
@@ -630,10 +658,14 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'clean-title' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'clean-title' ? '' : 'clean-title'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'clean-title' ? '' : 'clean-title'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <FileText className="h-3 w-3 mr-1" />
@@ -643,11 +675,15 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'under-10k' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'under-10k' ? '' : 'under-10k',
-                  priceMax: prev.titleType === 'under-10k' ? '' : '10000'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'under-10k' ? '' : 'under-10k',
+                    priceMax: filters.titleType === 'under-10k' ? '' : '10000'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -657,11 +693,15 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.titleType === 'hybrid-electric' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  titleType: prev.titleType === 'hybrid-electric' ? '' : 'hybrid-electric',
-                  fuel: prev.titleType === 'hybrid-electric' ? '' : 'Hybrid'
-                }))}
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    titleType: filters.titleType === 'hybrid-electric' ? '' : 'hybrid-electric',
+                    fuel: filters.titleType === 'hybrid-electric' ? '' : 'Hybrid'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs"
               >
                 <Fuel className="h-3 w-3 mr-1" />
@@ -671,22 +711,26 @@ export default function ActiveLotsPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setFilters({
-                  make: '',
-                  model: '',
-                  yearFrom: '',
-                  yearTo: '',
-                  location: '',
-                  damage: '',
-                  priceMin: '',
-                  priceMax: '',
-                  mileageMin: '',
-                  mileageMax: '',
-                  transmission: '',
-                  fuel: '',
-                  color: '',
-                  titleType: ''
-                })}
+                onClick={() => {
+                  const newFilters = {
+                    make: '',
+                    model: '',
+                    yearFrom: '',
+                    yearTo: '',
+                    location: '',
+                    damage: '',
+                    priceMin: '',
+                    priceMax: '',
+                    mileageMin: '',
+                    mileageMax: '',
+                    transmission: '',
+                    fuel: '',
+                    color: '',
+                    titleType: ''
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
                 className="h-7 text-xs text-gray-500"
               >
                 <RefreshCw className="h-3 w-3 mr-1" />
