@@ -190,11 +190,11 @@ export default function ActiveLotsPage() {
     const userTier = 'Gold'; // This should come from user context
     
     if (userTier === 'Platinum') {
-      // Navigate to AuctionMind V2 with lot ID pre-populated
-      setLocation(`/auction-mind-v2?lotId=${lot.lot_id}`);
+      // Navigate to AuctionMind V2 with lot ID and platform pre-populated
+      setLocation(`/auction-mind-v2?lotId=${lot.lot_id}&platform=${selectedPlatform}`);
     } else if (userTier === 'Gold') {
-      // Navigate to Live Lot Analysis with lot ID pre-populated
-      setLocation(`/live-lot-analysis?lotId=${lot.lot_id}`);
+      // Navigate to Live Lot Analysis with lot ID and platform pre-populated
+      setLocation(`/live-lot-analysis?lotId=${lot.lot_id}&platform=${selectedPlatform}`);
     } else {
       // Basic tier users might see a upgrade prompt
       console.log('Upgrade required for lot analysis');
