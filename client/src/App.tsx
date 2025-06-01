@@ -21,6 +21,7 @@ import ImportCalculator from "./pages/import-calculator";
 import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
+import AdminDashboard from "./pages/admin";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -40,6 +41,7 @@ function Router() {
         <Route path="/datasets" component={Datasets} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
+        <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>
