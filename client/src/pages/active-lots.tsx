@@ -75,6 +75,39 @@ interface SearchFilters {
   titleType: string;
 }
 
+// Make-Model mapping data
+const makeModelData: { [key: string]: string[] } = {
+  "Acura": ["CSX", "ILX", "Integra", "MDX", "NSX", "RDX", "RL", "RLX", "TL", "TLX", "TSX", "ZDX"],
+  "Audi": ["A1", "A3", "A4", "A5", "A6", "A7", "A8", "e-tron", "Q2", "Q3", "Q4", "Q5", "Q7", "Q8", "R8", "TT"],
+  "BMW": ["1 Series", "2 Series", "3 Series", "4 Series", "5 Series", "6 Series", "7 Series", "8 Series", "i3", "i4", "i7", "i8", "iX", "M2", "M3", "M4", "M5", "M6", "M8", "X1", "X2", "X3", "X4", "X5", "X6", "X7", "Z4"],
+  "Buick": ["Cascada", "Enclave", "Encore", "Envision", "LaCrosse", "Regal", "Verano"],
+  "Cadillac": ["ATS", "CT4", "CT5", "CT6", "CTS", "Escalade", "LYRIQ", "SRX", "XT4", "XT5", "XT6", "XTS"],
+  "Chevrolet": ["Avalanche", "Blazer", "Bolt EV", "Camaro", "Colorado", "Corvette", "Cruze", "Equinox", "Express", "Impala", "Malibu", "Silverado", "Sonic", "Spark", "Suburban", "Tahoe", "Traverse", "Trax", "Volt"],
+  "Chrysler": ["200", "300", "Pacifica", "Voyager"],
+  "Dodge": ["Challenger", "Charger", "Durango", "Journey", "Ram 1500", "Ram 2500", "Ram 3500"],
+  "Ford": ["Bronco", "Bronco Sport", "E-Transit", "EcoSport", "Edge", "Escape", "Expedition", "Explorer", "F-150", "F-250", "F-350", "F-450", "Fiesta", "Flex", "Focus", "Fusion", "GT", "Maverick", "Mustang", "Ranger", "Taurus", "Transit"],
+  "GMC": ["Acadia", "Canyon", "Savana", "Sierra", "Terrain", "Yukon"],
+  "Honda": ["Accord", "Civic", "CR-V", "HR-V", "Insight", "Odyssey", "Passport", "Pilot", "Ridgeline"],
+  "Hyundai": ["Accent", "Elantra", "Genesis", "Ioniq", "Kona", "Palisade", "Santa Fe", "Sonata", "Tucson", "Veloster", "Venue"],
+  "Infiniti": ["Q50", "Q60", "Q70", "QX30", "QX50", "QX60", "QX70", "QX80"],
+  "Jeep": ["Cherokee", "Compass", "Gladiator", "Grand Cherokee", "Renegade", "Wrangler"],
+  "Kia": ["Cadenza", "Forte", "K5", "Niro", "Optima", "Rio", "Sedona", "Seltos", "Sorento", "Soul", "Sportage", "Stinger", "Telluride"],
+  "Lexus": ["CT", "ES", "GS", "GX", "IS", "LC", "LS", "LX", "NX", "RC", "RX", "UX"],
+  "Lincoln": ["Aviator", "Continental", "Corsair", "MKC", "MKT", "MKX", "MKZ", "Navigator", "Nautilus"],
+  "Mazda": ["CX-3", "CX-30", "CX-5", "CX-9", "Mazda3", "Mazda6", "MX-5 Miata"],
+  "Mercedes-Benz": ["A-Class", "C-Class", "CLA", "CLS", "E-Class", "G-Class", "GLA", "GLB", "GLC", "GLE", "GLS", "S-Class", "SL", "SLC"],
+  "MINI": ["Clubman", "Convertible", "Countryman", "Hardtop"],
+  "Mitsubishi": ["Eclipse Cross", "Mirage", "Outlander", "Outlander Sport"],
+  "Nissan": ["370Z", "Altima", "Armada", "Frontier", "Kicks", "Leaf", "Maxima", "Murano", "NV200", "Pathfinder", "Rogue", "Sentra", "Titan", "Versa"],
+  "Porsche": ["718 Boxster", "718 Cayman", "911", "Cayenne", "Macan", "Panamera", "Taycan"],
+  "Ram": ["1500", "2500", "3500", "ProMaster"],
+  "Subaru": ["Ascent", "BRZ", "Crosstrek", "Forester", "Impreza", "Legacy", "Outback", "WRX"],
+  "Tesla": ["Model 3", "Model S", "Model X", "Model Y"],
+  "Toyota": ["4Runner", "Avalon", "Camry", "C-HR", "Corolla", "Highlander", "Land Cruiser", "Prius", "RAV4", "Sequoia", "Sienna", "Tacoma", "Tundra", "Venza"],
+  "Volkswagen": ["Arteon", "Atlas", "Beetle", "Golf", "Jetta", "Passat", "Tiguan", "Touareg"],
+  "Volvo": ["S60", "S90", "V60", "V90", "XC40", "XC60", "XC90"]
+};
+
 export default function ActiveLotsPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -418,7 +451,7 @@ export default function ActiveLotsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Make</label>
-                <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value})}>
+                <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: 'all'})}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select make" />
                   </SelectTrigger>
@@ -477,97 +510,21 @@ export default function ActiveLotsPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Model</label>
-                <Select value={filters.model} onValueChange={(value) => setFilters({...filters, model: value})}>
+                <Select 
+                  value={filters.model} 
+                  onValueChange={(value) => setFilters({...filters, model: value})}
+                  disabled={!filters.make || filters.make === 'all'}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue placeholder={filters.make && filters.make !== 'all' ? "Select model" : "Select make first"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Models</SelectItem>
-                    <SelectItem value="1 Series">1 Series</SelectItem>
-                    <SelectItem value="2 Series">2 Series</SelectItem>
-                    <SelectItem value="3 Series">3 Series</SelectItem>
-                    <SelectItem value="4 Series">4 Series</SelectItem>
-                    <SelectItem value="5 Series">5 Series</SelectItem>
-                    <SelectItem value="6 Series">6 Series</SelectItem>
-                    <SelectItem value="7 Series">7 Series</SelectItem>
-                    <SelectItem value="8 Series">8 Series</SelectItem>
-                    <SelectItem value="A3">A3</SelectItem>
-                    <SelectItem value="A4">A4</SelectItem>
-                    <SelectItem value="A5">A5</SelectItem>
-                    <SelectItem value="A6">A6</SelectItem>
-                    <SelectItem value="A7">A7</SelectItem>
-                    <SelectItem value="A8">A8</SelectItem>
-                    <SelectItem value="Accord">Accord</SelectItem>
-                    <SelectItem value="Acadia">Acadia</SelectItem>
-                    <SelectItem value="Altima">Altima</SelectItem>
-                    <SelectItem value="Avalanche">Avalanche</SelectItem>
-                    <SelectItem value="Blazer">Blazer</SelectItem>
-                    <SelectItem value="Bronco">Bronco</SelectItem>
-                    <SelectItem value="Bronco Sport">Bronco Sport</SelectItem>
-                    <SelectItem value="C-Class">C-Class</SelectItem>
-                    <SelectItem value="Camaro">Camaro</SelectItem>
-                    <SelectItem value="Camry">Camry</SelectItem>
-                    <SelectItem value="Challenger">Challenger</SelectItem>
-                    <SelectItem value="Charger">Charger</SelectItem>
-                    <SelectItem value="Cherokee">Cherokee</SelectItem>
-                    <SelectItem value="Civic">Civic</SelectItem>
-                    <SelectItem value="Colorado">Colorado</SelectItem>
-                    <SelectItem value="Corolla">Corolla</SelectItem>
-                    <SelectItem value="Corvette">Corvette</SelectItem>
-                    <SelectItem value="CR-V">CR-V</SelectItem>
-                    <SelectItem value="Cruze">Cruze</SelectItem>
-                    <SelectItem value="CX-5">CX-5</SelectItem>
-                    <SelectItem value="Durango">Durango</SelectItem>
-                    <SelectItem value="E-Class">E-Class</SelectItem>
-                    <SelectItem value="Edge">Edge</SelectItem>
-                    <SelectItem value="Elantra">Elantra</SelectItem>
-                    <SelectItem value="Enclave">Enclave</SelectItem>
-                    <SelectItem value="Equinox">Equinox</SelectItem>
-                    <SelectItem value="Escape">Escape</SelectItem>
-                    <SelectItem value="Expedition">Expedition</SelectItem>
-                    <SelectItem value="Explorer">Explorer</SelectItem>
-                    <SelectItem value="F-150">F-150</SelectItem>
-                    <SelectItem value="F-250">F-250</SelectItem>
-                    <SelectItem value="F-350">F-350</SelectItem>
-                    <SelectItem value="Focus">Focus</SelectItem>
-                    <SelectItem value="Forester">Forester</SelectItem>
-                    <SelectItem value="Fusion">Fusion</SelectItem>
-                    <SelectItem value="GLE">GLE</SelectItem>
-                    <SelectItem value="Grand Cherokee">Grand Cherokee</SelectItem>
-                    <SelectItem value="Highlander">Highlander</SelectItem>
-                    <SelectItem value="HR-V">HR-V</SelectItem>
-                    <SelectItem value="Impala">Impala</SelectItem>
-                    <SelectItem value="Malibu">Malibu</SelectItem>
-                    <SelectItem value="Model 3">Model 3</SelectItem>
-                    <SelectItem value="Model S">Model S</SelectItem>
-                    <SelectItem value="Model X">Model X</SelectItem>
-                    <SelectItem value="Model Y">Model Y</SelectItem>
-                    <SelectItem value="Mustang">Mustang</SelectItem>
-                    <SelectItem value="Outback">Outback</SelectItem>
-                    <SelectItem value="Pathfinder">Pathfinder</SelectItem>
-                    <SelectItem value="Pilot">Pilot</SelectItem>
-                    <SelectItem value="Prius">Prius</SelectItem>
-                    <SelectItem value="Q3">Q3</SelectItem>
-                    <SelectItem value="Q5">Q5</SelectItem>
-                    <SelectItem value="Q7">Q7</SelectItem>
-                    <SelectItem value="RAV4">RAV4</SelectItem>
-                    <SelectItem value="Ranger">Ranger</SelectItem>
-                    <SelectItem value="Rogue">Rogue</SelectItem>
-                    <SelectItem value="S-Class">S-Class</SelectItem>
-                    <SelectItem value="Sentra">Sentra</SelectItem>
-                    <SelectItem value="Sierra">Sierra</SelectItem>
-                    <SelectItem value="Silverado">Silverado</SelectItem>
-                    <SelectItem value="Sorento">Sorento</SelectItem>
-                    <SelectItem value="Suburban">Suburban</SelectItem>
-                    <SelectItem value="Tahoe">Tahoe</SelectItem>
-                    <SelectItem value="Taurus">Taurus</SelectItem>
-                    <SelectItem value="Traverse">Traverse</SelectItem>
-                    <SelectItem value="Tucson">Tucson</SelectItem>
-                    <SelectItem value="Wrangler">Wrangler</SelectItem>
-                    <SelectItem value="X1">X1</SelectItem>
-                    <SelectItem value="X3">X3</SelectItem>
-                    <SelectItem value="X5">X5</SelectItem>
-                    <SelectItem value="X7">X7</SelectItem>
+                    {filters.make && filters.make !== 'all' && makeModelData[filters.make] && 
+                      makeModelData[filters.make].map((model) => (
+                        <SelectItem key={model} value={model}>{model}</SelectItem>
+                      ))
+                    }
                   </SelectContent>
                 </Select>
               </div>
