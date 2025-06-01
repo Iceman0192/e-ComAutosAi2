@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2023-10-16",
 });
 
 // Subscription plans configuration
@@ -95,9 +95,9 @@ export function setupSubscriptionRoutes(app: Express) {
         mode: 'subscription',
         success_url: `${req.headers.origin}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.origin}/billing?canceled=true`,
-        customer_email: req.user?.email,
+        customer_email: (req as any).user?.email,
         metadata: {
-          userId: userId || req.user?.id || 'demo-user',
+          userId: userId || (req as any).user?.id || 'demo-user',
           planId: planId
         },
       });
@@ -125,7 +125,7 @@ export function setupSubscriptionRoutes(app: Express) {
     try {
       // For demo purposes, return current user subscription
       // In production, this would query the database for the user's Stripe customer ID
-      const userId = req.user?.id || 'demo-user';
+      const userId = (req as any).user?.id || 'demo-user';
       
       res.json({
         success: true,

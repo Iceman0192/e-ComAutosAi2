@@ -4,6 +4,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
+import { setupSubscriptionRoutes } from "./subscriptionRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
@@ -52,6 +53,9 @@ app.use((req, res, next) => {
   
   // Set up AuctionMind V2 routes
   setupAuctionMindV2Routes(app);
+  
+  // Set up subscription and billing routes
+  setupSubscriptionRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
