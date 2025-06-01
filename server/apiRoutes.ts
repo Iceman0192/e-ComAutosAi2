@@ -318,13 +318,15 @@ export function setupApiRoutes(app: Express) {
       if (auctionDateFrom) params.append('sale_date_from', auctionDateFrom);
       if (auctionDateTo) params.append('sale_date_to', auctionDateTo);
       params.append('page', '1');
-      params.append('size', '1000'); // Large size to get accurate count
+      params.append('size', '25'); // Use same size as working calls
       
       const countUrl = `https://api.apicar.store/api/history-cars?${params.toString()}`;
       
       console.log(`Fetching count from: ${countUrl}`);
       
-      const response = await fetch(countUrl, {
+      // Use same axios pattern as working sales history calls
+      const axios = require('axios');
+      const response = await axios.get(countUrl, {
         headers: {
           'api-key': process.env.APICAR_API_KEY,
           'Accept': 'application/json',
@@ -332,12 +334,25 @@ export function setupApiRoutes(app: Express) {
         }
       });
       
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
+      const data = response.data;
       
-      const data = await response.json();
-      const totalCount = data?.data?.length || 0;
+      // Check API response for total count metadata
+      let totalCount = 0;
+      if (data.total_count) {
+        totalCount = data.total_count;
+      } else if (data.total) {
+        totalCount = data.total;
+      } else if (data.count) {
+        totalCount = data.count;
+      } else if (data.meta && data.meta.total) {
+        totalCount = data.meta.total;
+      } else if (data.pagination && data.pagination.total) {
+        totalCount = data.pagination.total;
+      } else {
+        // Fallback to length of returned data
+        const records = data.data || data.salesHistory || data;
+        totalCount = Array.isArray(records) ? records.length : 0;
+      }
       
       return res.json({
         success: true,
