@@ -3,6 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { 
   CreditCard, 
   Download,
@@ -14,65 +18,97 @@ import {
   Crown,
   Zap,
   Star,
-  Users
+  Users,
+  Loader2
 } from 'lucide-react';
 
 export default function Billing() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const currentPlan = {
-    free: { name: 'Free', price: 0, features: ['Basic search', 'Limited results', 'Standard support'] },
-    gold: { name: 'Gold', price: 49, features: ['Advanced filters', 'Full analytics', 'Both auction platforms', 'Priority support'] },
-    platinum: { name: 'Platinum', price: 99, features: ['Cross-platform analysis', 'AI insights', 'Unlimited results', 'Export data', 'Premium support'] },
-    admin: { name: 'Enterprise', price: 199, features: ['All features', 'Team management', 'Admin tools', 'White-label options'] }
+  // Fetch subscription plans
+  const { data: plansData, isLoading: plansLoading } = useQuery({
+    queryKey: ['/api/subscription/plans'],
+    queryFn: () => fetch('/api/subscription/plans').then(res => res.json())
+  });
+
+  // Fetch subscription status
+  const { data: statusData, isLoading: statusLoading } = useQuery({
+    queryKey: ['/api/subscription/status'],
+    queryFn: () => fetch('/api/subscription/status').then(res => res.json())
+  });
+
+  // Checkout mutation
+  const checkoutMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      const response = await apiRequest('POST', '/api/subscription/create-checkout', {
+        planId,
+        userId: user?.id
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.data.url) {
+        window.location.href = data.data.url;
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create checkout session",
+          variant: "destructive"
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start checkout",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleUpgrade = async (planId: string) => {
+    if (planId === 'free' || planId === user?.role) return;
+    
+    setLoadingPlan(planId);
+    try {
+      await checkoutMutation.mutateAsync(planId);
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
-  const plan = currentPlan[user?.role as keyof typeof currentPlan];
+  const plans = plansData?.data || {};
+  const currentPlan = plans[user?.role as keyof typeof plans] || plans.free;
+  const subscription = statusData?.data;
 
-  const pricingPlans = [
-    {
-      name: 'Free',
-      price: 0,
-      icon: CheckCircle,
-      description: 'Perfect for getting started',
-      features: ['Basic search functionality', '50 searches per month', 'Standard support', 'Single auction access'],
-      buttonText: 'Current Plan',
-      disabled: user?.role === 'free'
-    },
-    {
-      name: 'Gold',
-      price: 49,
-      icon: Star,
-      description: 'For serious vehicle exporters',
-      features: ['Advanced search filters', 'Both auction platforms', 'Full analytics dashboard', '500 searches per month', 'Priority support', 'Dataset creation'],
-      buttonText: user?.role === 'gold' ? 'Current Plan' : 'Upgrade to Gold',
-      disabled: user?.role === 'gold',
-      popular: true
-    },
-    {
-      name: 'Platinum',
-      price: 99,
-      icon: Crown,
-      description: 'Maximum insights and flexibility',
-      features: ['Cross-platform analysis', 'AI-powered insights', 'Unlimited searches', 'Data export capabilities', 'Premium support', 'Custom reports'],
-      buttonText: user?.role === 'platinum' ? 'Current Plan' : 'Upgrade to Platinum',
-      disabled: user?.role === 'platinum'
-    },
-    {
-      name: 'Enterprise',
-      price: 199,
-      icon: Users,
-      description: 'For teams and organizations',
-      features: ['All Platinum features', 'Team management', 'Multiple user seats', 'Admin dashboard', 'White-label options', 'Dedicated support'],
-      buttonText: user?.role === 'admin' ? 'Current Plan' : 'Contact Sales',
-      disabled: user?.role === 'admin'
-    }
-  ];
+  const pricingPlans = Object.entries(plans).map(([planId, plan]: [string, any]) => ({
+    id: planId,
+    name: plan.name,
+    price: plan.price,
+    icon: planId === 'free' ? CheckCircle : 
+          planId === 'gold' ? Star : 
+          planId === 'platinum' ? Crown : Users,
+    description: planId === 'free' ? 'Perfect for getting started' :
+                 planId === 'gold' ? 'For serious vehicle exporters' :
+                 planId === 'platinum' ? 'Maximum insights and flexibility' :
+                 'For teams and organizations',
+    features: plan.features,
+    buttonText: user?.role === planId ? 'Current Plan' : 
+                planId === 'free' ? 'Downgrade' :
+                planId === 'enterprise' ? 'Contact Sales' :
+                `Upgrade to ${plan.name}`,
+    disabled: user?.role === planId,
+    popular: planId === 'gold',
+    limits: plan.limits
+  }));
 
   const billingHistory = [
-    { date: '2024-01-01', amount: plan?.price || 0, status: 'Paid', invoice: 'INV-2024-001' },
-    { date: '2023-12-01', amount: plan?.price || 0, status: 'Paid', invoice: 'INV-2023-012' },
-    { date: '2023-11-01', amount: plan?.price || 0, status: 'Paid', invoice: 'INV-2023-011' }
+    { date: '2024-01-01', amount: currentPlan?.price || 0, status: 'Paid', invoice: 'INV-2024-001' },
+    { date: '2023-12-01', amount: currentPlan?.price || 0, status: 'Paid', invoice: 'INV-2023-012' },
+    { date: '2023-11-01', amount: currentPlan?.price || 0, status: 'Paid', invoice: 'INV-2023-011' }
   ];
 
   return (
@@ -103,9 +139,9 @@ export default function Billing() {
                 <Crown className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="font-semibold text-lg">{plan?.name} Plan</p>
+                <p className="font-semibold text-lg">{currentPlan?.name} Plan</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  ${plan?.price}<span className="text-sm font-normal text-gray-500">/month</span>
+                  ${currentPlan?.price}<span className="text-sm font-normal text-gray-500">/month</span>
                 </p>
               </div>
             </div>
