@@ -1,15 +1,18 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
+import cookieParser from "cookie-parser";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
 import { setupSubscriptionRoutes } from "./subscriptionRoutes";
+import { setupAuthRoutes } from "./authRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -53,6 +56,9 @@ app.use((req, res, next) => {
   
   // Set up AuctionMind V2 routes
   setupAuctionMindV2Routes(app);
+  
+  // Set up authentication routes
+  setupAuthRoutes(app);
   
   // Set up subscription and billing routes
   setupSubscriptionRoutes(app);

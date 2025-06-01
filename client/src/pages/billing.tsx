@@ -31,13 +31,25 @@ export default function Billing() {
   // Fetch subscription plans
   const { data: plansData, isLoading: plansLoading } = useQuery({
     queryKey: ['/api/subscription/plans'],
-    queryFn: () => fetch('/api/subscription/plans').then(res => res.json())
+    queryFn: async () => {
+      const response = await fetch('/api/subscription/plans');
+      if (!response.ok) {
+        throw new Error('Failed to fetch plans');
+      }
+      return response.json();
+    }
   });
 
   // Fetch subscription status
   const { data: statusData, isLoading: statusLoading } = useQuery({
     queryKey: ['/api/subscription/status'],
-    queryFn: () => fetch('/api/subscription/status').then(res => res.json())
+    queryFn: async () => {
+      const response = await fetch('/api/subscription/status');
+      if (!response.ok) {
+        throw new Error('Failed to fetch status');
+      }
+      return response.json();
+    }
   });
 
   // Checkout mutation
@@ -215,7 +227,7 @@ export default function Billing() {
                     </p>
                   </div>
                   <ul className="space-y-2 mb-6">
-                    {planOption.features.map((feature, index) => (
+                    {planOption.features.map((feature: string, index: number) => (
                       <li key={index} className="flex items-start gap-2 text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                         <span>{feature}</span>
