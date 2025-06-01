@@ -740,7 +740,7 @@ export default function IAAIPage() {
             
             {/* Fresh Data Toggle for Gold+ (Gold and Platinum) Users */}
             {hasPermission('ADVANCED_FILTERS') && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <div className="mt-4 p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center space-x-2">
@@ -749,13 +749,13 @@ export default function IAAIPage() {
                         id="freshDataToggle"
                         checked={freshDataEnabled}
                         onChange={(e) => setFreshDataEnabled(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
                       />
-                      <label htmlFor="freshDataToggle" className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                      <label htmlFor="freshDataToggle" className="text-sm font-medium text-red-800 dark:text-red-200">
                         Fresh data
                       </label>
                     </div>
-                    <div className="px-2 py-1 bg-blue-200 dark:bg-blue-700 text-blue-800 dark:text-blue-200 text-xs font-semibold rounded-full">
+                    <div className="px-2 py-1 bg-red-200 dark:bg-red-700 text-red-800 dark:text-red-200 text-xs font-semibold rounded-full">
                       GOLD+
                     </div>
                   </div>
@@ -1209,7 +1209,7 @@ export default function IAAIPage() {
           )}
         </ErrorBoundary>
 
-        {/* Detailed Vehicle Modal for Copart */}
+        {/* Detailed Vehicle Modal for IAAI */}
         {isModalOpen && selectedVehicle && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -1463,11 +1463,11 @@ export default function IAAIPage() {
                     {/* Location Information */}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Location</h3>
-                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                      <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
                         <div>
-                          <span className="text-sm text-blue-700 dark:text-blue-300">Auction Location:</span>
-                          <p className="text-blue-900 dark:text-blue-100 font-medium">
-                            Copart: {selectedVehicle.auction_location || selectedVehicle.location || 'N/A'}
+                          <span className="text-sm text-red-700 dark:text-red-300">Auction Location:</span>
+                          <p className="text-red-900 dark:text-red-100 font-medium">
+                            IAAI: {selectedVehicle.auction_location || selectedVehicle.location || 'N/A'}
                           </p>
                         </div>
                         {selectedVehicle.link && (
@@ -1476,9 +1476,9 @@ export default function IAAIPage() {
                               href={selectedVehicle.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                             >
-                              View Original Copart Listing
+                              View Original IAAI Listing
                               <svg className="ml-2 -mr-0.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
