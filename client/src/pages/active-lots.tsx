@@ -915,31 +915,9 @@ export default function ActiveLotsPage() {
                     status: filters.status === 'Run & Drive' ? '' : 'Run & Drive'
                   };
                   setFilters(newFilters);
-                  
-                  // Immediately search with the new filters
-                  const queryParams = new URLSearchParams({
-                    site: selectedPlatform === 'copart' ? '1' : '2',
-                    page: '1',
-                    size: '25'
-                  });
-                  
-                  Object.entries(newFilters).forEach(([key, value]) => {
-                    if (value && value.toString().trim()) {
-                      queryParams.append(key, value.toString().trim());
-                    }
-                  });
-                  
-                  setIsLoading(true);
-                  fetch(`/api/cars?${queryParams}`)
-                    .then(res => res.json())
-                    .then(data => {
-                      if (data.success) {
-                        setLots(data.data || []);
-                        setTotalCount(data.count || 0);
-                        setPage(1);
-                      }
-                    })
-                    .finally(() => setIsLoading(false));
+                  setPage(1);
+                  setPreloadedPages(new Map());
+                  setTimeout(() => searchActiveLots(true), 50);
                 }}
                 className="h-7 text-xs"
               >
@@ -956,7 +934,9 @@ export default function ActiveLotsPage() {
                     is_buynow: filters.is_buynow === 'true' ? '' : 'true'
                   };
                   setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
+                  setPage(1);
+                  setPreloadedPages(new Map());
+                  setTimeout(() => searchActiveLots(true), 50);
                 }}
                 className="h-7 text-xs"
               >
@@ -973,7 +953,9 @@ export default function ActiveLotsPage() {
                     keys: filters.keys === 'Yes' ? '' : 'Yes'
                   };
                   setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
+                  setPage(1);
+                  setPreloadedPages(new Map());
+                  setTimeout(() => searchActiveLots(true), 50);
                 }}
                 className="h-7 text-xs"
               >
@@ -990,7 +972,9 @@ export default function ActiveLotsPage() {
                     document: filters.document === 'Clean' ? '' : 'Clean'
                   };
                   setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
+                  setPage(1);
+                  setPreloadedPages(new Map());
+                  setTimeout(() => searchActiveLots(true), 50);
                 }}
                 className="h-7 text-xs"
               >
@@ -1007,7 +991,9 @@ export default function ActiveLotsPage() {
                     current_bid: filters.current_bid === '<5000' ? '' : '<5000'
                   };
                   setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
+                  setPage(1);
+                  setPreloadedPages(new Map());
+                  setTimeout(() => searchActiveLots(true), 50);
                 }}
                 className="h-7 text-xs"
               >
