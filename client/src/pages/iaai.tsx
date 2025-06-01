@@ -224,45 +224,13 @@ export default function IAAIPage() {
         
         // Only update if successful
         if (result.success && result.data) {
-          // Convert cars API response to match expected format for analytics
-          // Preserve original fields AND add analytics-compatible fields
-          const convertedSalesHistory = (result.data || []).map((vehicle: any) => ({
-            // Original API fields (preserve for table/image display)
-            ...vehicle,
-            // Analytics-compatible fields
-            id: vehicle.id || `${vehicle.lot_id}-${vehicle.site}`,
-            vin: vehicle.vin || '',
-            sale_date: vehicle.auction_date || new Date().toISOString(),
-            purchase_price: vehicle.current_bid || vehicle.price_new || vehicle.reserve_price || 0,
-            sale_status: vehicle.auction_type || 'Unknown',
-            vehicle_damage: vehicle.damage_pr || 'Unknown', // Primary damage field
-            vehicle_title: vehicle.document || vehicle.title || 'Unknown',
-            odometer: vehicle.odometer || 0,
-            vehicle_mileage: vehicle.odometer || 0,
-            year: vehicle.year || 0,
-            make: vehicle.make || '',
-            model: vehicle.model || '',
-            series: vehicle.series || ''
-          }));
-
-          const convertedResult = {
-            success: true,
-            data: {
-              salesHistory: convertedSalesHistory,
-              pagination: {
-                totalCount: result.count || 0,
-                currentPage: 1,
-                pageSize: resultsPerPage,
-                totalPages: result.pages || 1
-              }
-            }
-          };
-          
-          // Store results in local state
-          setSearchResults(convertedResult);
+          // Sales history API returns data in result.data.salesHistory format
+          // Store results directly since it's already in the correct format
+          setSearchResults(result);
           
           // Update total results count for pagination
-          setTotalResults(result.count || 0);
+          const totalCount = result.data.pagination?.totalCount || result.data.salesHistory?.length || 0;
+          setTotalResults(totalCount);
         }
         
         // Reset loading state whether success or failure
@@ -339,48 +307,15 @@ export default function IAAIPage() {
         
         // Only update if successful
         if (result.success && result.data) {
-          // Convert cars API response to match expected format for analytics
-          // Preserve original fields AND add analytics-compatible fields
-          const convertedSalesHistory = (result.data || []).map((vehicle: any) => ({
-            // Original API fields (preserve for table/image display)
-            ...vehicle,
-            // Analytics-compatible fields
-            id: vehicle.id || `${vehicle.lot_id}-${vehicle.site}`,
-            vin: vehicle.vin || '',
-            sale_date: vehicle.auction_date || new Date().toISOString(),
-            purchase_price: vehicle.current_bid || vehicle.price_new || vehicle.reserve_price || 0,
-            sale_status: vehicle.auction_type || 'Unknown',
-            vehicle_damage: vehicle.damage_pr || 'Unknown',
-            vehicle_title: vehicle.document || vehicle.title || 'Unknown',
-            odometer: vehicle.odometer || 0,
-            vehicle_mileage: vehicle.odometer || 0,
-            year: vehicle.year || 0,
-            make: vehicle.make || '',
-            model: vehicle.model || '',
-            series: vehicle.series || ''
-          }));
-
-          const convertedResult = {
-            success: true,
-            data: {
-              salesHistory: convertedSalesHistory,
-              pagination: {
-                totalCount: result.count || 0,
-                currentPage: newPage,
-                pageSize: resultsPerPage,
-                totalPages: result.pages || 1
-              }
-            }
-          };
-          
-          // Store results in local state
-          setSearchResults(convertedResult);
+          // Sales history API returns data in correct format
+          setSearchResults(result);
           
           // Make sure we're showing search has been performed
           setHasSearched(true);
           
           // Update total results count for pagination
-          setTotalResults(result.count || 0);
+          const totalCount = result.data.pagination?.totalCount || result.data.salesHistory?.length || 0;
+          setTotalResults(totalCount);
         }
       })
       .catch(error => {
