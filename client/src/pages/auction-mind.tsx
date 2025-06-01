@@ -572,65 +572,7 @@ export default function AuctionMind() {
             </Card>
           </div>
 
-          {/* Vehicle Records */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Car className="h-5 w-5" />
-                Auction History ({vinData.totalRecords} records)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {vinData.vehicles.map((vehicle, index) => (
-                  <div key={vehicle.id} className="border rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">
-                          {vehicle.year} {vehicle.make} {vehicle.model}
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Lot {vehicle.lot_id} • {getSiteIcon(vehicle.site)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        {getStatusBadge(vehicle.sale_status)}
-                        <p className="text-lg font-bold mt-1">{formatPrice(vehicle.purchase_price)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{formatDate(vehicle.sale_date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span>{vehicle.auction_location}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Gauge className="h-4 w-4 text-muted-foreground" />
-                        <span>{vehicle.vehicle_mileage?.toLocaleString() || 'Unknown'} mi</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Wrench className="h-4 w-4 text-muted-foreground" />
-                        <span>{vehicle.vehicle_damage}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="flex gap-2">
-                        <Badge variant="outline">{vehicle.color}</Badge>
-                        <Badge variant="outline">{vehicle.transmission}</Badge>
-                        <Badge variant="outline">{vehicle.fuel}</Badge>
-                      </div>
-                      <VehicleDetailDialog vehicle={vehicle} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       )}
 
