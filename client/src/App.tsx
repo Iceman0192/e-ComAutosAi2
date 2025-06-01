@@ -27,8 +27,9 @@ function Router() {
   return (
     <MainLayout>
       <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/home" component={Home} />
         <Route path="/dashboard" component={Dashboard} />
-        <Route path="/" component={Home} />
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
