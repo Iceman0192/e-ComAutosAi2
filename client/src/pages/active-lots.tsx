@@ -179,6 +179,24 @@ export default function ActiveLotsPage() {
     // This would trigger an AI analysis of the vehicle
   };
 
+  const handleAnalyzeClick = (lot: AuctionLot) => {
+    // For now, we'll assume Platinum tier users for demonstration
+    // This would normally check user tier from authentication context
+    const userTier = 'Platinum'; // This should come from user context
+    
+    if (userTier === 'Platinum') {
+      // Redirect to Auction Mind Pro
+      window.location.href = '/auction-mind';
+    } else if (userTier === 'Gold') {
+      // Redirect to Live Lot Analysis (placeholder for now)
+      console.log('Redirecting to Live Lot Analysis for lot:', lot.lot_id);
+      // window.location.href = '/live-lot-analysis';
+    } else {
+      // Basic tier users might see a upgrade prompt
+      console.log('Upgrade required for lot analysis');
+    }
+  };
+
   const getTimeUntilAuction = (auctionDate: string | undefined) => {
     if (!auctionDate) return 'Unknown';
     
@@ -1004,10 +1022,19 @@ export default function ActiveLotsPage() {
                               {formatPrice(lot.current_bid || 0)} USD
                             </div>
                             <div className="space-y-1">
-                              <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs h-7">
-                                Bid now
+                              <Button 
+                                size="sm" 
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs h-7"
+                                onClick={() => handleAnalyzeClick(lot)}
+                              >
+                                Analyze
                               </Button>
-                              <Button size="sm" variant="outline" className="w-full text-xs h-7">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="w-full text-xs h-7"
+                                onClick={() => setSelectedLot(lot)}
+                              >
                                 Details
                               </Button>
                             </div>
@@ -1032,6 +1059,172 @@ export default function ActiveLotsPage() {
             Try adjusting your search criteria or switch platforms
           </p>
         </div>
+      )}
+
+      {/* Vehicle Details Dialog */}
+      {selectedLot && (
+        <Dialog open={true} onOpenChange={() => setSelectedLot(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between">
+                <span>{selectedLot.year} {selectedLot.make} {selectedLot.model} - Lot {selectedLot.lot_id}</span>
+                {selectedLot.link && (
+                  <Button variant="outline" size="sm" onClick={() => window.open(selectedLot.link, '_blank')}>
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    View on {selectedPlatform.toUpperCase()}
+                  </Button>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Vehicle Images */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
+                {selectedLot.link_img_hd && selectedLot.link_img_hd.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedLot.link_img_hd.slice(0, 4).map((imageUrl: string, index: number) => (
+                      <div key={index} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded overflow-hidden">
+                        <img
+                          src={imageUrl}
+                          alt={`Vehicle photo ${index + 1}`}
+                          className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                          onClick={() => window.open(imageUrl, '_blank')}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-8 text-center">
+                    <Camera className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+                    <p className="text-slate-500">No photos available</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Vehicle Details */}
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Vehicle Information</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">VIN:</span>
+                      <span className="font-mono">{selectedLot.vin}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Year:</span>
+                      <span>{selectedLot.year}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Make:</span>
+                      <span>{selectedLot.make}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Model:</span>
+                      <span>{selectedLot.model}</span>
+                    </div>
+                    {selectedLot.series && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Series:</span>
+                        <span>{selectedLot.series}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Color:</span>
+                      <span>{selectedLot.color}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Transmission:</span>
+                      <span>{selectedLot.transmission}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Drive:</span>
+                      <span>{selectedLot.drive}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Fuel:</span>
+                      <span>{selectedLot.fuel}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Odometer:</span>
+                      <span>{selectedLot.odometer?.toLocaleString() || 'Unknown'} miles</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Auction Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Auction Details</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Lot Number:</span>
+                      <span className="font-mono">{selectedLot.lot_id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Location:</span>
+                      <span>{selectedLot.auction_location}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Sale Date:</span>
+                      <span>{formatDate(selectedLot.sale_date)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Sale Status:</span>
+                      <span>{selectedLot.sale_status}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Current Bid:</span>
+                      <span className="font-semibold text-blue-600">{formatPrice(selectedLot.current_bid || 0)}</span>
+                    </div>
+                    {selectedLot.purchase_price > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-slate-600">Final Price:</span>
+                        <span className="font-bold text-lg text-green-600">{formatPrice(selectedLot.purchase_price)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Condition Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Condition</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Title:</span>
+                      <span>{selectedLot.vehicle_title}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Primary Damage:</span>
+                      <span>{selectedLot.vehicle_damage}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-4 border-t">
+                  <Button 
+                    className="w-full mb-2"
+                    onClick={() => handleAnalyzeClick(selectedLot)}
+                  >
+                    <Zap className="h-4 w-4 mr-2" />
+                    Analyze Vehicle
+                  </Button>
+                  {selectedLot.link && (
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => window.open(selectedLot.link, '_blank')}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View on {selectedPlatform.toUpperCase()}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
