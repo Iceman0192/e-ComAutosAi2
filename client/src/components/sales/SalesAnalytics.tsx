@@ -105,7 +105,8 @@ export default function SalesAnalytics({ salesHistory }: SalesAnalyticsProps) {
     const colors = ['#ff6b6b', '#66bb6a', '#42a5f5', '#ffa726', '#ab47bc', '#78909c'];
     
     validSales.forEach(sale => {
-      const damage = sale.vehicle_damage || 'Unknown';
+      // Check multiple possible damage field names from the API
+      const damage = sale.vehicle_damage || (sale as any).damage_pr || (sale as any).damage_primary || 'Unknown';
       const price = sale.purchase_price!;
       
       if (!damageMap.has(damage)) {
