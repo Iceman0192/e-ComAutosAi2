@@ -263,6 +263,7 @@ export default function ActiveLotsPage() {
       if (data.success) {
         setLots(data.data || data.vehicles || []);
         setTotalCount(data.count || 0);
+        console.log('Updated totalCount to:', data.count || 0);
       } else {
         throw new Error(data.message || 'Search failed');
       }
