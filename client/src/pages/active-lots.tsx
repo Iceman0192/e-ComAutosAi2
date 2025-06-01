@@ -527,20 +527,172 @@ export default function ActiveLotsPage() {
             </div>
           </div>
 
-          {/* Quick Filter - Only Run & Drive */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filter:</span>
-            <Button
-              variant={filters.titleType === 'run-drive' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilters(prev => ({
-                ...prev,
-                titleType: prev.titleType === 'run-drive' ? '' : 'run-drive'
-              }))}
-              className="h-7 text-xs"
-            >
-              Run & Drive Only
-            </Button>
+          {/* Quick Filters for Quality Vehicle Discovery */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filters:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={filters.titleType === 'run-drive' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'run-drive' ? '' : 'run-drive'
+                }))}
+                className="h-7 text-xs"
+              >
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Run & Drive
+              </Button>
+              
+              <Button
+                variant={filters.titleType === 'buy-now' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'buy-now' ? '' : 'buy-now'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Zap className="h-3 w-3 mr-1" />
+                Buy Now
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'low-mileage' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'low-mileage' ? '' : 'low-mileage',
+                  mileageMax: prev.titleType === 'low-mileage' ? '' : '50000'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Gauge className="h-3 w-3 mr-1" />
+                Low Miles (&lt;50k)
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'newer-models' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'newer-models' ? '' : 'newer-models',
+                  yearFrom: prev.titleType === 'newer-models' ? '' : '2018'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                2018+ Models
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'minor-damage' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'minor-damage' ? '' : 'minor-damage',
+                  damage: prev.titleType === 'minor-damage' ? '' : 'Minor Dent/Scratches'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Wrench className="h-3 w-3 mr-1" />
+                Minor Damage
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'has-keys' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'has-keys' ? '' : 'has-keys'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Car className="h-3 w-3 mr-1" />
+                Has Keys
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'auction-tomorrow' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'auction-tomorrow' ? '' : 'auction-tomorrow'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Calendar className="h-3 w-3 mr-1" />
+                Auction Tomorrow
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'clean-title' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'clean-title' ? '' : 'clean-title'
+                }))}
+                className="h-7 text-xs"
+              >
+                <FileText className="h-3 w-3 mr-1" />
+                Clean Title
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'under-10k' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'under-10k' ? '' : 'under-10k',
+                  priceMax: prev.titleType === 'under-10k' ? '' : '10000'
+                }))}
+                className="h-7 text-xs"
+              >
+                <DollarSign className="h-3 w-3 mr-1" />
+                Under $10k
+              </Button>
+
+              <Button
+                variant={filters.titleType === 'hybrid-electric' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  titleType: prev.titleType === 'hybrid-electric' ? '' : 'hybrid-electric',
+                  fuel: prev.titleType === 'hybrid-electric' ? '' : 'Hybrid'
+                }))}
+                className="h-7 text-xs"
+              >
+                <Fuel className="h-3 w-3 mr-1" />
+                Hybrid/Electric
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilters({
+                  make: '',
+                  model: '',
+                  yearFrom: '',
+                  yearTo: '',
+                  location: '',
+                  damage: '',
+                  priceMin: '',
+                  priceMax: '',
+                  mileageMin: '',
+                  mileageMax: '',
+                  transmission: '',
+                  fuel: '',
+                  color: '',
+                  titleType: ''
+                })}
+                className="h-7 text-xs text-gray-500"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Clear All
+              </Button>
+            </div>
           </div>
 
           {/* Advanced Filters Toggle */}
