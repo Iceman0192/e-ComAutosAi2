@@ -738,129 +738,107 @@ export default function ActiveLotsPage() {
               </Button>
             </div>
 
-            {/* Integrated Filter Interface */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 space-y-6 border border-gray-200 dark:border-gray-600">
+            {/* Quick Filter Chips */}
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filters:</span>
               
-              {/* Quick Filter Chips Row */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Quick Filters</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => applyQuickFilter('clear', 'clear')}
-                    className="h-6 text-xs text-red-600 hover:text-red-700 px-2"
-                  >
-                    Clear All
-                  </Button>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {/* Price Range */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Price Range</label>
-                    <div className="flex flex-wrap gap-1">
-                      <Button
-                        variant={quickFilters.priceRange === 'under5k' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'under5k' ? '' : 'under5k')}
-                        className="h-6 text-xs px-2"
-                      >
-                        Under 5K
-                      </Button>
-                      <Button
-                        variant={quickFilters.priceRange === '5k-15k' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '5k-15k' ? '' : '5k-15k')}
-                        className="h-6 text-xs px-2"
-                      >
-                        5K-15K
-                      </Button>
-                      <Button
-                        variant={quickFilters.priceRange === '15k-30k' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '15k-30k' ? '' : '15k-30k')}
-                        className="h-6 text-xs px-2"
-                      >
-                        15K-30K
-                      </Button>
-                      <Button
-                        variant={quickFilters.priceRange === 'over30k' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'over30k' ? '' : 'over30k')}
-                        className="h-6 text-xs px-2"
-                      >
-                        30K+
-                      </Button>
-                    </div>
-                  </div>
+              {/* Price Range Chips */}
+              <Button
+                variant={quickFilters.priceRange === 'under5k' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'under5k' ? '' : 'under5k')}
+                className="h-7 text-xs"
+              >
+                Under $5K
+              </Button>
+              <Button
+                variant={quickFilters.priceRange === '5k-15k' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '5k-15k' ? '' : '5k-15k')}
+                className="h-7 text-xs"
+              >
+                $5K - $15K
+              </Button>
+              <Button
+                variant={quickFilters.priceRange === '15k-30k' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '15k-30k' ? '' : '15k-30k')}
+                className="h-7 text-xs"
+              >
+                $15K - $30K
+              </Button>
+              <Button
+                variant={quickFilters.priceRange === 'over30k' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'over30k' ? '' : 'over30k')}
+                className="h-7 text-xs"
+              >
+                Over $30K
+              </Button>
 
-                  {/* Year Range */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Year Range</label>
-                    <div className="flex flex-wrap gap-1">
-                      <Button
-                        variant={quickFilters.yearRange === 'new' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'new' ? '' : 'new')}
-                        className="h-6 text-xs px-2"
-                      >
-                        2020+
-                      </Button>
-                      <Button
-                        variant={quickFilters.yearRange === 'recent' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'recent' ? '' : 'recent')}
-                        className="h-6 text-xs px-2"
-                      >
-                        2015-19
-                      </Button>
-                      <Button
-                        variant={quickFilters.yearRange === 'older' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'older' ? '' : 'older')}
-                        className="h-6 text-xs px-2"
-                      >
-                        Pre-2015
-                      </Button>
-                    </div>
-                  </div>
+              {/* Year Range Chips */}
+              <Button
+                variant={quickFilters.yearRange === 'new' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'new' ? '' : 'new')}
+                className="h-7 text-xs"
+              >
+                2020+ (New)
+              </Button>
+              <Button
+                variant={quickFilters.yearRange === 'recent' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'recent' ? '' : 'recent')}
+                className="h-7 text-xs"
+              >
+                2015-2019 (Recent)
+              </Button>
+              <Button
+                variant={quickFilters.yearRange === 'older' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'older' ? '' : 'older')}
+                className="h-7 text-xs"
+              >
+                Pre-2015 (Older)
+              </Button>
 
-                  {/* Condition */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">Condition</label>
-                    <div className="flex flex-wrap gap-1">
-                      <Button
-                        variant={quickFilters.condition === 'runDrive' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => applyQuickFilter('condition', quickFilters.condition === 'runDrive' ? '' : 'runDrive')}
-                        className="h-6 text-xs px-2"
-                      >
-                        Run & Drive
-                      </Button>
-                    </div>
-                  </div>
+              {/* Condition Chips */}
+              <Button
+                variant={quickFilters.condition === 'runDrive' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyQuickFilter('condition', quickFilters.condition === 'runDrive' ? '' : 'runDrive')}
+                className="h-7 text-xs"
+              >
+                Run & Drive
+              </Button>
 
-                  {/* Toggle Advanced */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-600 dark:text-gray-400">More Filters</label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                      className="h-6 text-xs px-2 w-full"
-                    >
-                      <Filter className="h-3 w-3 mr-1" />
-                      {showAdvancedFilters ? 'Less' : 'More'}
-                      <ChevronDown className={`h-3 w-3 ml-1 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              {/* Clear All */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => applyQuickFilter('clear', 'clear')}
+                className="h-7 text-xs text-red-600 hover:text-red-700"
+              >
+                Clear All
+              </Button>
+            </div>
 
-              {/* Advanced Filters (Expandable) */}
-              {showAdvancedFilters && (
-                <div className="border-t border-gray-300 dark:border-gray-600 pt-4 space-y-4">
+            {/* Advanced Filters Toggle */}
+            <div className="border-t pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Filter className="h-4 w-4" />
+                Advanced Filters
+                <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+              </Button>
+            </div>
+
+            {/* Advanced Filters (Collapsible) */}
+            {showAdvancedFilters && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Make</label>
