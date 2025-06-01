@@ -210,8 +210,22 @@ export default function IAAIPage() {
     
     console.log(`Initial search with params:`, params.toString());
     
-    // Make direct fetch request to be consistent with pagination
-    fetch(`/api/sales-history?${params.toString()}`)
+    // Use the same cars endpoint that works for Copart, with site=2 for IAAI
+    const carsParams = new URLSearchParams({
+      site: '2', // IAAI
+      page: '1',
+      size: resultsPerPage.toString()
+    });
+
+    // Add all the search parameters
+    if (make) carsParams.append('make', make);
+    if (model) carsParams.append('model', model);
+    if (yearFrom) carsParams.append('year_from', yearFrom.toString());
+    if (yearTo) carsParams.append('year_to', yearTo.toString());
+    carsParams.append('sale_date_from', auctionDateFrom);
+    carsParams.append('sale_date_to', auctionDateTo);
+
+    fetch(`/api/cars?${carsParams.toString()}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -223,24 +237,25 @@ export default function IAAIPage() {
         
         // Only update if successful
         if (result.success && result.data) {
+          // Convert cars API response to match expected format
+          const convertedResult = {
+            success: true,
+            data: {
+              salesHistory: result.data.vehicles || [],
+              pagination: {
+                totalCount: result.data.total || 0,
+                currentPage: 1,
+                pageSize: resultsPerPage,
+                totalPages: result.data.totalPages || 1
+              }
+            }
+          };
+          
           // Store results in local state
-          setSearchResults(result);
+          setSearchResults(convertedResult);
           
           // Update total results count for pagination
-          if (result.data.pagination && result.data.pagination.totalCount) {
-            setTotalResults(result.data.pagination.totalCount);
-          } else if (result.data.salesHistory) {
-            // If we got a full page, assume there are more results
-            const displayedCount = result.data.salesHistory.length;
-            if (displayedCount === resultsPerPage) {
-              setTotalResults(resultsPerPage * 2); // Assume at least 2 pages
-            } else {
-              setTotalResults(displayedCount);
-            }
-          }
-          
-          // Fetch actual total count for better pagination display
-          fetchTotalCount();
+          setTotalResults(result.data.total || 0);
         }
         
         // Reset loading state whether success or failure
