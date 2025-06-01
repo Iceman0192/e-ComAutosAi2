@@ -752,6 +752,18 @@ export function setupApiRoutes(app: Express) {
       if (req.query.fuel) params.append('fuel', req.query.fuel as string);
       if (req.query.color) params.append('color', req.query.color as string);
       if (req.query.title_type) params.append('title_type', req.query.title_type as string);
+      if (req.query.status) params.append('status', req.query.status as string);
+      if (req.query.keys) params.append('keys', req.query.keys as string);
+      if (req.query.document) params.append('document', req.query.document as string);
+      if (req.query.drive) params.append('drive', req.query.drive as string);
+      if (req.query.auction_date) params.append('auction_date', req.query.auction_date as string);
+      if (req.query.current_bid_min) params.append('current_bid_min', req.query.current_bid_min as string);
+      if (req.query.current_bid_max) params.append('current_bid_max', req.query.current_bid_max as string);
+      if (req.query.engine_size) params.append('engine_size', req.query.engine_size as string);
+      if (req.query.cylinders) params.append('cylinders', req.query.cylinders as string);
+      if (req.query.vehicle_type) params.append('vehicle_type', req.query.vehicle_type as string);
+      if (req.query.auction_type) params.append('auction_type', req.query.auction_type as string);
+      if (req.query.is_buynow) params.append('is_buynow', req.query.is_buynow as string);
 
       console.log(`Active Lots Search: Site ${site}, Page ${page}, Query:`, req.query);
 
