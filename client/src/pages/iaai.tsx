@@ -47,6 +47,7 @@ export default function IAAIPage() {
   const [page, setPage] = useState(1);
   const [resultsPerPage, setResultsPerPage] = useState(25); // API supports up to 25 per page
   const [totalResults, setTotalResults] = useState(0);
+  const [actualTotalCount, setActualTotalCount] = useState<number | null>(null);
   
   // UI state
   const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
@@ -153,10 +154,38 @@ export default function IAAIPage() {
   // Fetch data - will only execute when triggered by button click
   const { data, isLoading, error, refetch } = useSalesHistory(filterState);
   
+  // Function to fetch actual total count
+  const fetchTotalCount = async () => {
+    const params = new URLSearchParams();
+    params.append('make', make);
+    if (model) params.append('model', model);
+    if (yearFrom) params.append('year_from', yearFrom.toString());
+    if (yearTo) params.append('year_to', yearTo.toString());
+    params.append('sale_date_from', auctionDateFrom);
+    params.append('sale_date_to', auctionDateTo);
+    
+    // Add sites parameter
+    sites.forEach(site => {
+      params.append('sites', site);
+    });
+    
+    try {
+      const response = await fetch(`/api/vehicle-count?${params.toString()}`);
+      const result = await response.json();
+      
+      if (result.success && result.data.totalCount) {
+        setActualTotalCount(result.data.totalCount);
+      }
+    } catch (error) {
+      console.error('Failed to fetch total count:', error);
+    }
+  };
+
   const handleSearch = () => {
     setPage(1); // Reset to first page on new search
     setHasSearched(true); // Mark that a search has been performed
     setIsSearching(true); // Show loading state
+    setActualTotalCount(null); // Reset count
     
     // Build parameters for initial search
     const params = new URLSearchParams();
@@ -209,6 +238,9 @@ export default function IAAIPage() {
               setTotalResults(displayedCount);
             }
           }
+          
+          // Fetch actual total count for better pagination display
+          fetchTotalCount();
         }
         
         // Reset loading state whether success or failure
@@ -1128,13 +1160,16 @@ export default function IAAIPage() {
                           return "No results found";
                         }
                         
+                        // Use actual total count if available, otherwise fall back to dynamic calculation
+                        const totalDisplay = actualTotalCount !== null 
+                          ? actualTotalCount.toLocaleString()
+                          : (currentResults === resultsPerPage ? `${endIndex}+` : endIndex);
+                        
                         return (
                           <>
                             Showing <span className="font-medium">{startIndex}</span> to{' '}
                             <span className="font-medium">{endIndex}</span> of{' '}
-                            <span className="font-medium">
-                              {currentResults === resultsPerPage ? `${endIndex}+` : endIndex}
-                            </span> results
+                            <span className="font-medium">{totalDisplay}</span> results
                           </>
                         );
                       })()}

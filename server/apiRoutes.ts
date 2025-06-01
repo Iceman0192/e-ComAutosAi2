@@ -278,6 +278,83 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
+   * Vehicle Count Endpoint - Get total count for search parameters
+   */
+  app.get('/api/vehicle-count', async (req: Request, res: Response) => {
+    try {
+      const make = req.query.make as string;
+      const model = req.query.model as string;
+      
+      // Handle sites parameter correctly for IAAI vs Copart
+      let site = 1; // Default to Copart
+      if (req.query.sites) {
+        const sites = Array.isArray(req.query.sites) ? req.query.sites : [req.query.sites];
+        if (sites[0] === 'iaai') {
+          site = 2;
+        }
+      } else if (req.query.site) {
+        site = parseInt(req.query.site as string) || 1;
+      }
+      
+      const yearFrom = req.query.year_from ? parseInt(req.query.year_from as string) : undefined;
+      const yearTo = req.query.year_to ? parseInt(req.query.year_to as string) : undefined;
+      let auctionDateFrom = req.query.sale_date_from as string;
+      let auctionDateTo = req.query.sale_date_to as string;
+      
+      if (!make) {
+        return res.status(400).json({
+          success: false,
+          message: 'Make parameter is required'
+        });
+      }
+      
+      // Construct count API URL
+      const params = new URLSearchParams();
+      params.append('make', make);
+      if (model) params.append('model', model);
+      params.append('site', site.toString());
+      if (yearFrom) params.append('year_from', yearFrom.toString());
+      if (yearTo) params.append('year_to', yearTo.toString());
+      if (auctionDateFrom) params.append('sale_date_from', auctionDateFrom);
+      if (auctionDateTo) params.append('sale_date_to', auctionDateTo);
+      params.append('page', '1');
+      params.append('size', '1000'); // Large size to get accurate count
+      
+      const countUrl = `https://api.apicar.store/api/history-cars?${params.toString()}`;
+      
+      console.log(`Fetching count from: ${countUrl}`);
+      
+      const response = await fetch(countUrl, {
+        headers: {
+          'Authorization': `Bearer ${process.env.APICAR_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const totalCount = data?.data?.length || 0;
+      
+      return res.json({
+        success: true,
+        data: {
+          totalCount: totalCount
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('Vehicle count error:', error);
+      return res.status(500).json({
+        success: false,
+        message: `Count request failed: ${error.message}`
+      });
+    }
+  });
+
+  /**
    * Copart Sales History Endpoint - Clean Cache System
    */
   app.get('/api/sales-history', async (req: Request, res: Response) => {
