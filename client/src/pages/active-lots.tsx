@@ -38,27 +38,34 @@ interface AuctionLot {
   site: number;
   base_site: string;
   vin: string;
-  sale_status: string;
-  sale_date: string;
-  purchase_price: number;
+  sale_status?: string;
+  sale_date?: string;
+  auction_date?: string;
+  purchase_price?: number;
   current_bid: number;
-  auction_location: string;
-  vehicle_damage: string;
-  vehicle_title: string;
+  auction_location?: string;
+  location?: string;
+  vehicle_damage?: string;
+  damage_pr?: string;
+  damage_sec?: string;
+  vehicle_title?: string;
+  status?: string;
   year: number;
   make: string;
   model: string;
-  series: string;
-  trim: string;
-  transmission: string;
-  drive: string;
-  fuel: string;
-  color: string;
-  odometer: number;
-  images: string[];
-  link: string;
-  link_img_hd: string[];
-  link_img_small: string[];
+  series?: string;
+  trim?: string;
+  transmission?: string;
+  drive?: string;
+  fuel?: string;
+  color?: string;
+  odometer?: number;
+  images?: string[];
+  link?: string;
+  link_img_hd?: string[];
+  link_img_small?: string[];
+  engine?: string;
+  title?: string;
 }
 
 interface SearchFilters {
@@ -838,39 +845,109 @@ export default function ActiveLotsPage() {
       {/* Results */}
       {lots.length > 0 && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold">
               Found {totalCount.toLocaleString()} active lots on {selectedPlatform.toUpperCase()}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between sm:justify-end gap-2">
               <span className="text-sm text-muted-foreground">Page {page}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page === 1}
-                onClick={() => {
-                  setPage(page - 1);
-                  searchActiveLots();
-                }}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setPage(page + 1);
-                  searchActiveLots();
-                }}
-              >
-                Next
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page === 1}
+                  onClick={() => {
+                    setPage(page - 1);
+                    searchActiveLots();
+                  }}
+                  className="min-w-[80px]"
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setPage(page + 1);
+                    searchActiveLots();
+                  }}
+                  className="min-w-[60px]"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </div>
 
           <Card>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              {/* Mobile Card View (md and below) */}
+              <div className="block md:hidden">
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {lots.map((lot) => (
+                    <div key={lot.lot_id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
+                      <div className="flex items-start space-x-3">
+                        {/* Vehicle Image */}
+                        <div className="flex-shrink-0 w-20 h-16 relative">
+                          {lot.link_img_hd && lot.link_img_hd.length > 0 ? (
+                            <img 
+                              src={lot.link_img_hd[0]} 
+                              alt={`${lot.year} ${lot.make} ${lot.model}`}
+                              className="w-20 h-16 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-20 h-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                              <Car className="w-5 h-5 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Vehicle Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {lot.year} {lot.make} {lot.model} {lot.series}
+                            </h3>
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">
+                              {formatPrice(lot.current_bid || 0)}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            Lot# {lot.lot_id} • VIN: {lot.vin ? lot.vin.substring(lot.vin.length - 8) : 'N/A'}
+                          </div>
+                          <div className="mt-1 flex items-center justify-between text-xs">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {lot.odometer ? `${lot.odometer.toLocaleString()} mi` : 'Unknown mileage'}
+                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {(lot as any).damage_pr || 'Normal Wear'}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex items-center justify-between text-xs">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {(lot as any).location || 'Unknown'}
+                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {(lot as any).auction_date ? new Date((lot as any).auction_date).toLocaleDateString() : 'TBD'}
+                            </span>
+                          </div>
+                          <div className="mt-2 flex items-center space-x-2">
+                            {getStatusBadge((lot as any).status, (lot as any).auction_date)}
+                            <LotDetailDialog lot={lot} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Table View (md and above) */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
