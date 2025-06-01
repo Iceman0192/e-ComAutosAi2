@@ -279,6 +279,16 @@ export default function ActiveLotsPage() {
     }
   };
 
+  // Helper function to handle quick filter clicks
+  const handleQuickFilter = (filterKey: keyof SearchFilters, filterValue: string) => {
+    const newFilters = {
+      ...filters,
+      [filterKey]: filters[filterKey] === filterValue ? '' : filterValue
+    };
+    setFilters(newFilters);
+    setTimeout(() => searchActiveLots(true), 50);
+  };
+
   // Vehicle analysis functions
   const analyzeLot = (lot: AuctionLot) => {
     if (!hasPermission('AI_ANALYSIS')) {
@@ -647,14 +657,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.year === '2018' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    year: filters.year === '2018' ? '' : '2018'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('year', '2018')}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -664,14 +667,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.odometer === '50000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    odometer: filters.odometer === '50000' ? '' : '50000'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('odometer', '50000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -681,14 +677,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.damage_pr === 'Minor Dent/Scratches' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    damage_pr: filters.damage_pr === 'Minor Dent/Scratches' ? '' : 'Minor Dent/Scratches'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('damage_pr', 'Minor Dent/Scratches')}
                 className="h-7 text-xs"
               >
                 <Wrench className="h-3 w-3 mr-1" />
@@ -698,14 +687,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.current_bid === '10000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    current_bid: filters.current_bid === '10000' ? '' : '10000'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('current_bid', '10000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -715,14 +697,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.fuel === 'Hybrid' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    fuel: filters.fuel === 'Hybrid' ? '' : 'Hybrid'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('fuel', 'Hybrid')}
                 className="h-7 text-xs"
               >
                 <Fuel className="h-3 w-3 mr-1" />
@@ -732,14 +707,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.current_bid === '25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    current_bid: filters.current_bid === '25000' ? '' : '25000'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('current_bid', '25000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -749,14 +717,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.year === '2020' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    year: filters.year === '2020' ? '' : '2020'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('year', '2020')}
                 className="h-7 text-xs"
               >
                 <Clock className="h-3 w-3 mr-1" />
@@ -766,14 +727,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.odometer === '25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    odometer: filters.odometer === '25000' ? '' : '25000'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('odometer', '25000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -783,14 +737,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.damage_pr === 'Hail' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    damage_pr: filters.damage_pr === 'Hail' ? '' : 'Hail'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('damage_pr', 'Hail')}
                 className="h-7 text-xs"
               >
                 <Wrench className="h-3 w-3 mr-1" />
@@ -800,14 +747,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.transmission === 'Automatic' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    transmission: filters.transmission === 'Automatic' ? '' : 'Automatic'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('transmission', 'Automatic')}
                 className="h-7 text-xs"
               >
                 <Settings className="h-3 w-3 mr-1" />
@@ -817,38 +757,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.status === 'Run & Drive' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    status: filters.status === 'Run & Drive' ? '' : 'Run & Drive'
-                  };
-                  setFilters(newFilters);
-                  
-                  // Immediately search with the new filters
-                  const queryParams = new URLSearchParams({
-                    site: selectedPlatform === 'copart' ? '1' : '2',
-                    page: '1',
-                    size: '25'
-                  });
-                  
-                  Object.entries(newFilters).forEach(([key, value]) => {
-                    if (value && value.toString().trim()) {
-                      queryParams.append(key, value.toString().trim());
-                    }
-                  });
-                  
-                  setIsLoading(true);
-                  fetch(`/api/cars?${queryParams}`)
-                    .then(res => res.json())
-                    .then(data => {
-                      if (data.success) {
-                        setLots(data.data || []);
-                        setTotalCount(data.count || 0);
-                        setPage(1);
-                      }
-                    })
-                    .finally(() => setIsLoading(false));
-                }}
+                onClick={() => handleQuickFilter('status', 'Run & Drive')}
                 className="h-7 text-xs"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
@@ -858,14 +767,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.is_buynow === 'true' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    is_buynow: filters.is_buynow === 'true' ? '' : 'true'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('is_buynow', 'true')}
                 className="h-7 text-xs"
               >
                 <Zap className="h-3 w-3 mr-1" />
@@ -875,14 +777,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.keys === 'Yes' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    keys: filters.keys === 'Yes' ? '' : 'Yes'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('keys', 'Yes')}
                 className="h-7 text-xs"
               >
                 <Car className="h-3 w-3 mr-1" />
@@ -892,14 +787,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.document === 'Clean' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    document: filters.document === 'Clean' ? '' : 'Clean'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('document', 'Clean')}
                 className="h-7 text-xs"
               >
                 <FileText className="h-3 w-3 mr-1" />
@@ -909,14 +797,7 @@ export default function ActiveLotsPage() {
               <Button
                 variant={filters.current_bid === '<5000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    current_bid: filters.current_bid === '<5000' ? '' : '<5000'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
+                onClick={() => handleQuickFilter('current_bid', '<5000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
