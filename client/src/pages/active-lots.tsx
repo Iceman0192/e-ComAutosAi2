@@ -449,11 +449,47 @@ export default function ActiveLotsPage() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Model</label>
-                <Input
-                  placeholder="Camry, F-150, Accord..."
-                  value={filters.model}
-                  onChange={(e) => setFilters({...filters, model: e.target.value})}
-                />
+                <Select value={filters.model} onValueChange={(value) => setFilters({...filters, model: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Models</SelectItem>
+                    <SelectItem value="Camry">Camry</SelectItem>
+                    <SelectItem value="Corolla">Corolla</SelectItem>
+                    <SelectItem value="Prius">Prius</SelectItem>
+                    <SelectItem value="RAV4">RAV4</SelectItem>
+                    <SelectItem value="Highlander">Highlander</SelectItem>
+                    <SelectItem value="F-150">F-150</SelectItem>
+                    <SelectItem value="F-250">F-250</SelectItem>
+                    <SelectItem value="F-350">F-350</SelectItem>
+                    <SelectItem value="Explorer">Explorer</SelectItem>
+                    <SelectItem value="Escape">Escape</SelectItem>
+                    <SelectItem value="Mustang">Mustang</SelectItem>
+                    <SelectItem value="Accord">Accord</SelectItem>
+                    <SelectItem value="Civic">Civic</SelectItem>
+                    <SelectItem value="CR-V">CR-V</SelectItem>
+                    <SelectItem value="Pilot">Pilot</SelectItem>
+                    <SelectItem value="Silverado">Silverado</SelectItem>
+                    <SelectItem value="Malibu">Malibu</SelectItem>
+                    <SelectItem value="Equinox">Equinox</SelectItem>
+                    <SelectItem value="Tahoe">Tahoe</SelectItem>
+                    <SelectItem value="Altima">Altima</SelectItem>
+                    <SelectItem value="Sentra">Sentra</SelectItem>
+                    <SelectItem value="Rogue">Rogue</SelectItem>
+                    <SelectItem value="Pathfinder">Pathfinder</SelectItem>
+                    <SelectItem value="3 Series">3 Series</SelectItem>
+                    <SelectItem value="5 Series">5 Series</SelectItem>
+                    <SelectItem value="X3">X3</SelectItem>
+                    <SelectItem value="X5">X5</SelectItem>
+                    <SelectItem value="C-Class">C-Class</SelectItem>
+                    <SelectItem value="E-Class">E-Class</SelectItem>
+                    <SelectItem value="GLE">GLE</SelectItem>
+                    <SelectItem value="A4">A4</SelectItem>
+                    <SelectItem value="A6">A6</SelectItem>
+                    <SelectItem value="Q5">Q5</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Year From</label>
