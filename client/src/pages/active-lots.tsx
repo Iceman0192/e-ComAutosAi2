@@ -98,32 +98,37 @@ interface AuctionLot {
 }
 
 interface SearchFilters {
+  site: string;
+  lot_id: string;
+  salvage_id: string;
+  title: string;
+  status: string;
+  odometer: string;
+  odobrand: string;
+  drive: string;
+  price_new: string;
+  price_future: string;
+  current_bid: string;
+  auction_date: string;
+  year: string;
   make: string;
   model: string;
-  year_from: string;
-  year_to: string;
-  location: string;
-  damage: string;
-  price_min: string;
-  price_max: string;
-  mileage_min: string;
-  mileage_max: string;
-  transmission: string;
-  fuel: string;
-  color: string;
-  title_type: string;
-  status: string;
+  series: string;
+  damage_pr: string;
+  damage_sec: string;
   keys: string;
+  fuel: string;
+  transmission: string;
+  color: string;
   document: string;
-  drive: string;
-  auction_date: string;
-  current_bid_min: string;
-  current_bid_max: string;
-  engine_size: string;
-  cylinders: string;
   vehicle_type: string;
   auction_type: string;
   is_buynow: string;
+  location: string;
+  seller_type: string;
+  body_type: string;
+  cylinders: string;
+  engine_size: string;
 }
 
 export default function ActiveLotsPage() {
@@ -143,32 +148,37 @@ export default function ActiveLotsPage() {
   const [selectedLot, setSelectedLot] = useState<AuctionLot | null>(null);
 
   const [filters, setFilters] = useState<SearchFilters>({
+    site: '',
+    lot_id: '',
+    salvage_id: '',
+    title: '',
+    status: '',
+    odometer: '',
+    odobrand: '',
+    drive: '',
+    price_new: '',
+    price_future: '',
+    current_bid: '',
+    auction_date: '',
+    year: '',
     make: '',
     model: '',
-    year_from: '',
-    year_to: '',
-    location: '',
-    damage: '',
-    price_min: '',
-    price_max: '',
-    mileage_min: '',
-    mileage_max: '',
-    transmission: '',
-    fuel: '',
-    color: '',
-    title_type: '',
-    status: '',
+    series: '',
+    damage_pr: '',
+    damage_sec: '',
     keys: '',
+    fuel: '',
+    transmission: '',
+    color: '',
     document: '',
-    drive: '',
-    auction_date: '',
-    current_bid_min: '',
-    current_bid_max: '',
-    engine_size: '',
-    cylinders: '',
     vehicle_type: '',
     auction_type: '',
-    is_buynow: ''
+    is_buynow: '',
+    location: '',
+    seller_type: '',
+    body_type: '',
+    cylinders: '',
+    engine_size: ''
   });
 
   // Enhanced search functionality
@@ -796,12 +806,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.current_bid_max === '5000' ? 'default' : 'outline'}
+                variant={filters.current_bid === '<5000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    current_bid_max: filters.current_bid_max === '5000' ? '' : '5000'
+                    current_bid: filters.current_bid === '<5000' ? '' : '<5000'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -817,32 +827,37 @@ export default function ActiveLotsPage() {
                 size="sm"
                 onClick={() => {
                   const newFilters = {
+                    site: '',
+                    lot_id: '',
+                    salvage_id: '',
+                    title: '',
+                    status: '',
+                    odometer: '',
+                    odobrand: '',
+                    drive: '',
+                    price_new: '',
+                    price_future: '',
+                    current_bid: '',
+                    auction_date: '',
+                    year: '',
                     make: '',
                     model: '',
-                    year_from: '',
-                    year_to: '',
-                    location: '',
-                    damage: '',
-                    price_min: '',
-                    price_max: '',
-                    mileage_min: '',
-                    mileage_max: '',
-                    transmission: '',
-                    fuel: '',
-                    color: '',
-                    title_type: '',
-                    status: '',
+                    series: '',
+                    damage_pr: '',
+                    damage_sec: '',
                     keys: '',
+                    fuel: '',
+                    transmission: '',
+                    color: '',
                     document: '',
-                    drive: '',
-                    auction_date: '',
-                    current_bid_min: '',
-                    current_bid_max: '',
-                    engine_size: '',
-                    cylinders: '',
                     vehicle_type: '',
                     auction_type: '',
-                    is_buynow: ''
+                    is_buynow: '',
+                    location: '',
+                    seller_type: '',
+                    body_type: '',
+                    cylinders: '',
+                    engine_size: ''
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
