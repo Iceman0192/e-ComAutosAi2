@@ -132,6 +132,7 @@ interface SearchFilters {
   vehicle_type: string;
   auction_type: string;
   is_buynow: string;
+  buy_now: string;
   location: string;
   seller_type: string;
   body_type: string;
@@ -190,6 +191,7 @@ export default function ActiveLotsPage() {
     vehicle_type: '',
     auction_type: '',
     is_buynow: '',
+    buy_now: '',
     location: '',
     seller_type: '',
     body_type: '',
@@ -373,6 +375,7 @@ export default function ActiveLotsPage() {
       vehicle_type: '',
       auction_type: '',
       is_buynow: '',
+      buy_now: '',
       location: '',
       seller_type: '',
       body_type: '',
@@ -797,15 +800,7 @@ export default function ActiveLotsPage() {
                 Run & Drive
               </Button>
 
-              <Button
-                variant={filters.is_buynow === 'true' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleQuickFilter('is_buynow', 'true')}
-                className="h-7 text-xs"
-              >
-                <Zap className="h-3 w-3 mr-1" />
-                Buy Now
-              </Button>
+
 
               <Button
                 variant={filters.keys === 'Yes' ? 'default' : 'outline'}
@@ -876,6 +871,7 @@ export default function ActiveLotsPage() {
                     vehicle_type: '',
                     auction_type: '',
                     is_buynow: '',
+                    buy_now: '',
                     location: '',
                     seller_type: '',
                     body_type: '',
@@ -1107,6 +1103,7 @@ export default function ActiveLotsPage() {
                     vehicle_type: '',
                     auction_type: '',
                     is_buynow: '',
+                    buy_now: '',
                     location: '',
                     seller_type: '',
                     body_type: '',

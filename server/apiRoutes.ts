@@ -775,7 +775,8 @@ export function setupApiRoutes(app: Express) {
       if (req.query.cylinders) params.append('cylinders', req.query.cylinders as string);
       if (req.query.vehicle_type) params.append('vehicle_type', req.query.vehicle_type as string);
       if (req.query.auction_type) params.append('auction_type', req.query.auction_type as string);
-      if (req.query.is_buynow) params.append('is_buynow', req.query.is_buynow as string);
+      if (req.query.buy_now) params.append('buy_now', req.query.buy_now as string);
+      if (req.query.is_buynow) params.append('buy_now', req.query.is_buynow as string);
 
       console.log(`Active Lots Search: Site ${site}, Page ${page}, Query:`, req.query);
 
