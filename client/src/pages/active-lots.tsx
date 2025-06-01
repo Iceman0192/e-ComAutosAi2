@@ -301,7 +301,59 @@ export default function ActiveLotsPage() {
       });
       return;
     }
-    // Similar vehicles logic here
+
+    // Set filters to find similar vehicles
+    const similarFilters = {
+      ...filters,
+      make: lot.make,
+      model: lot.model,
+      year: (lot.year - 2).toString() + '-' + (lot.year + 2).toString(),
+      status: 'Run & Drive', // Focus on driveable vehicles
+      document: '', // Clear title filter to find more options
+      damage_pr: '', // Clear damage filter for broader results
+    };
+
+    setFilters(similarFilters);
+    
+    // Search with similar vehicle criteria
+    const queryParams = new URLSearchParams({
+      site: selectedPlatform === 'copart' ? '2' : '1', // Search opposite platform
+      page: '1',
+      size: '25'
+    });
+    
+    Object.entries(similarFilters).forEach(([key, value]) => {
+      if (value && value.toString().trim()) {
+        queryParams.append(key, value.toString().trim());
+      }
+    });
+    
+    setIsLoading(true);
+    fetch(`/api/cars?${queryParams}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setLots(data.data || []);
+          setTotalCount(data.count || 0);
+          setPage(1);
+          
+          toast({
+            title: "Similar Vehicles Found",
+            description: `Found ${data.count || 0} similar ${lot.year} ${lot.make} ${lot.model} vehicles on ${selectedPlatform === 'copart' ? 'IAAI' : 'Copart'}`,
+          });
+          
+          // Switch to the opposite platform to show cross-platform results
+          setSelectedPlatform(selectedPlatform === 'copart' ? 'iaai' : 'copart');
+        }
+      })
+      .catch(() => {
+        toast({
+          title: "Search Error",
+          description: "Failed to find similar vehicles. Please try again.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => setIsLoading(false));
   };
 
   // Load initial data
@@ -747,7 +799,31 @@ export default function ActiveLotsPage() {
                     status: filters.status === 'Run & Drive' ? '' : 'Run & Drive'
                   };
                   setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
+                  
+                  // Immediately search with the new filters
+                  const queryParams = new URLSearchParams({
+                    site: selectedPlatform === 'copart' ? '1' : '2',
+                    page: '1',
+                    size: '25'
+                  });
+                  
+                  Object.entries(newFilters).forEach(([key, value]) => {
+                    if (value && value.toString().trim()) {
+                      queryParams.append(key, value.toString().trim());
+                    }
+                  });
+                  
+                  setIsLoading(true);
+                  fetch(`/api/cars?${queryParams}`)
+                    .then(res => res.json())
+                    .then(data => {
+                      if (data.success) {
+                        setLots(data.data || []);
+                        setTotalCount(data.count || 0);
+                        setPage(1);
+                      }
+                    })
+                    .finally(() => setIsLoading(false));
                 }}
                 className="h-7 text-xs"
               >
