@@ -423,7 +423,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select make" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Makes</SelectItem>
+                    <SelectItem value="all">All Makes</SelectItem>
                     <SelectItem value="Toyota">Toyota</SelectItem>
                     <SelectItem value="Ford">Ford</SelectItem>
                     <SelectItem value="Honda">Honda</SelectItem>
@@ -462,7 +462,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="From year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any Year</SelectItem>
+                    <SelectItem value="all">Any Year</SelectItem>
                     {Array.from({length: 25}, (_, i) => 2024 - i).map(year => (
                       <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                     ))}
@@ -476,7 +476,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="To year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any Year</SelectItem>
+                    <SelectItem value="all">Any Year</SelectItem>
                     {Array.from({length: 25}, (_, i) => 2024 - i).map(year => (
                       <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                     ))}
@@ -494,7 +494,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Min price" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Min</SelectItem>
+                    <SelectItem value="all">No Min</SelectItem>
                     <SelectItem value="500">$500</SelectItem>
                     <SelectItem value="1000">$1,000</SelectItem>
                     <SelectItem value="2500">$2,500</SelectItem>
@@ -515,7 +515,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Max price" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Max</SelectItem>
+                    <SelectItem value="all">No Max</SelectItem>
                     <SelectItem value="5000">$5,000</SelectItem>
                     <SelectItem value="10000">$10,000</SelectItem>
                     <SelectItem value="15000">$15,000</SelectItem>
@@ -536,7 +536,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Min mileage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Min</SelectItem>
+                    <SelectItem value="all">No Min</SelectItem>
                     <SelectItem value="0">0 miles</SelectItem>
                     <SelectItem value="10000">10,000 miles</SelectItem>
                     <SelectItem value="25000">25,000 miles</SelectItem>
@@ -555,7 +555,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Max mileage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Max</SelectItem>
+                    <SelectItem value="all">No Max</SelectItem>
                     <SelectItem value="25000">25,000 miles</SelectItem>
                     <SelectItem value="50000">50,000 miles</SelectItem>
                     <SelectItem value="75000">75,000 miles</SelectItem>
@@ -578,7 +578,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Locations</SelectItem>
+                    <SelectItem value="all">All Locations</SelectItem>
                     <SelectItem value="TX">Texas</SelectItem>
                     <SelectItem value="CA">California</SelectItem>
                     <SelectItem value="FL">Florida</SelectItem>
@@ -604,7 +604,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select damage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Damage Types</SelectItem>
+                    <SelectItem value="all">All Damage Types</SelectItem>
                     <SelectItem value="Front End">Front End</SelectItem>
                     <SelectItem value="Rear End">Rear End</SelectItem>
                     <SelectItem value="Side">Side</SelectItem>
@@ -626,7 +626,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select transmission" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Transmissions</SelectItem>
+                    <SelectItem value="all">All Transmissions</SelectItem>
                     <SelectItem value="Automatic">Automatic</SelectItem>
                     <SelectItem value="Manual">Manual</SelectItem>
                     <SelectItem value="CVT">CVT</SelectItem>
@@ -640,7 +640,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select fuel type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Fuel Types</SelectItem>
+                    <SelectItem value="all">All Fuel Types</SelectItem>
                     <SelectItem value="Gasoline">Gasoline</SelectItem>
                     <SelectItem value="Hybrid">Hybrid</SelectItem>
                     <SelectItem value="Electric">Electric</SelectItem>
@@ -656,7 +656,7 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select color" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Colors</SelectItem>
+                    <SelectItem value="all">All Colors</SelectItem>
                     <SelectItem value="Black">Black</SelectItem>
                     <SelectItem value="White">White</SelectItem>
                     <SelectItem value="Silver">Silver</SelectItem>
