@@ -169,6 +169,14 @@ export default function ActiveLotsPage() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<'copart' | 'iaai'>('copart');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [smartSearch, setSmartSearch] = useState('');
+  const [quickFilters, setQuickFilters] = useState({
+    priceRange: '',
+    yearRange: '',
+    condition: '',
+    location: ''
+  });
   const [filters, setFilters] = useState<SearchFilters>({
     make: '',
     model: '',
@@ -257,13 +265,103 @@ export default function ActiveLotsPage() {
       color: ''
     }));
     
-    // Clear the VIN search to search by filters instead
+    // Clear the searches
     setSearchQuery('');
+    setSmartSearch('');
     
     // Trigger search
     setTimeout(() => {
       searchActiveLots(true);
     }, 100);
+  };
+
+  const parseSmartSearch = (query: string) => {
+    const lowercaseQuery = query.toLowerCase();
+    const newFilters: Partial<SearchFilters> = {};
+    
+    // Extract year ranges
+    const yearMatch = lowercaseQuery.match(/(\d{4})\s*(?:-|to)\s*(\d{4})|(\d{4})/);
+    if (yearMatch) {
+      if (yearMatch[1] && yearMatch[2]) {
+        newFilters.yearFrom = yearMatch[1];
+        newFilters.yearTo = yearMatch[2];
+      } else if (yearMatch[3]) {
+        newFilters.yearFrom = yearMatch[3];
+        newFilters.yearTo = yearMatch[3];
+      }
+    }
+    
+    // Extract make from makeModelData
+    Object.keys(makeModelData).forEach(make => {
+      if (lowercaseQuery.includes(make.toLowerCase())) {
+        newFilters.make = make;
+        
+        // Extract model if make is found
+        makeModelData[make].forEach(model => {
+          if (lowercaseQuery.includes(model.toLowerCase())) {
+            newFilters.model = model;
+          }
+        });
+      }
+    });
+    
+    return newFilters;
+  };
+
+  const handleSmartSearch = () => {
+    if (!smartSearch.trim()) {
+      searchActiveLots(true);
+      return;
+    }
+    
+    const parsedFilters = parseSmartSearch(smartSearch);
+    setFilters(prev => ({ ...prev, ...parsedFilters }));
+    setSearchQuery('');
+    
+    setTimeout(() => {
+      searchActiveLots(true);
+    }, 100);
+  };
+
+  const applyQuickFilter = (type: string, value: string) => {
+    const newQuickFilters = { ...quickFilters, [type]: value };
+    setQuickFilters(newQuickFilters);
+    
+    // Convert quick filters to detailed filters
+    const newFilters: Partial<SearchFilters> = {};
+    
+    if (value === 'clear') {
+      // Clear all filters
+      setFilters({
+        make: '', model: '', yearFrom: '', yearTo: '', location: '', damage: '',
+        priceMin: '', priceMax: '', mileageMin: '', mileageMax: '', 
+        transmission: '', fuel: '', color: '', titleType: ''
+      });
+      setQuickFilters({ priceRange: '', yearRange: '', condition: '', location: '' });
+      return;
+    }
+    
+    switch (type) {
+      case 'priceRange':
+        if (value === 'under5k') { newFilters.priceMax = '5000'; }
+        else if (value === '5k-15k') { newFilters.priceMin = '5000'; newFilters.priceMax = '15000'; }
+        else if (value === '15k-30k') { newFilters.priceMin = '15000'; newFilters.priceMax = '30000'; }
+        else if (value === 'over30k') { newFilters.priceMin = '30000'; }
+        break;
+      case 'yearRange':
+        if (value === 'new') { newFilters.yearFrom = '2020'; }
+        else if (value === 'recent') { newFilters.yearFrom = '2015'; newFilters.yearTo = '2019'; }
+        else if (value === 'older') { newFilters.yearTo = '2014'; }
+        break;
+      case 'condition':
+        if (value === 'runDrive') { newFilters.damage = 'Run and Drive'; }
+        else if (value === 'minor') { newFilters.damage = 'Minor'; }
+        else if (value === 'enhanced') { newFilters.damage = 'Enhanced'; }
+        break;
+    }
+    
+    setFilters(prev => ({ ...prev, ...newFilters }));
+    setTimeout(() => searchActiveLots(true), 100);
   };
 
   const searchActiveLots = async (resetPage = false) => {
@@ -619,17 +717,141 @@ export default function ActiveLotsPage() {
             )}
           </div>
 
-          <div className="space-y-4">
-            {/* Basic Filters */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Make</label>
-                <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: 'all'})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select make" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Makes</SelectItem>
+          {/* Smart Search Bar */}
+          <div className="space-y-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Input
+                type="text"
+                placeholder="Search vehicles... (e.g., '2020 Honda Civic', '2018-2022 Toyota', 'BMW under 25k')"
+                value={smartSearch}
+                onChange={(e) => setSmartSearch(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
+                className="pl-10 pr-4 py-3 text-base"
+              />
+              <Button 
+                onClick={handleSmartSearch}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                size="sm"
+              >
+                Search
+              </Button>
+            </div>
+
+            {/* Quick Filter Chips */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filters:</span>
+                
+                {/* Price Range Chips */}
+                <Button
+                  variant={quickFilters.priceRange === 'under5k' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'under5k' ? '' : 'under5k')}
+                  className="h-7 text-xs"
+                >
+                  Under $5K
+                </Button>
+                <Button
+                  variant={quickFilters.priceRange === '5k-15k' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '5k-15k' ? '' : '5k-15k')}
+                  className="h-7 text-xs"
+                >
+                  $5K - $15K
+                </Button>
+                <Button
+                  variant={quickFilters.priceRange === '15k-30k' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '15k-30k' ? '' : '15k-30k')}
+                  className="h-7 text-xs"
+                >
+                  $15K - $30K
+                </Button>
+                <Button
+                  variant={quickFilters.priceRange === 'over30k' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'over30k' ? '' : 'over30k')}
+                  className="h-7 text-xs"
+                >
+                  Over $30K
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {/* Year Range Chips */}
+                <Button
+                  variant={quickFilters.yearRange === 'new' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'new' ? '' : 'new')}
+                  className="h-7 text-xs"
+                >
+                  2020+ (New)
+                </Button>
+                <Button
+                  variant={quickFilters.yearRange === 'recent' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'recent' ? '' : 'recent')}
+                  className="h-7 text-xs"
+                >
+                  2015-2019 (Recent)
+                </Button>
+                <Button
+                  variant={quickFilters.yearRange === 'older' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'older' ? '' : 'older')}
+                  className="h-7 text-xs"
+                >
+                  Pre-2015 (Older)
+                </Button>
+
+                {/* Condition Chips */}
+                <Button
+                  variant={quickFilters.condition === 'runDrive' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => applyQuickFilter('condition', quickFilters.condition === 'runDrive' ? '' : 'runDrive')}
+                  className="h-7 text-xs"
+                >
+                  Run & Drive
+                </Button>
+
+                {/* Clear All */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => applyQuickFilter('clear', 'clear')}
+                  className="h-7 text-xs text-red-600 hover:text-red-700"
+                >
+                  Clear All
+                </Button>
+              </div>
+            </div>
+
+            {/* Advanced Filters Toggle */}
+            <div className="border-t pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Filter className="h-4 w-4" />
+                Advanced Filters
+                <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+              </Button>
+            </div>
+
+            {/* Advanced Filters (Collapsible) */}
+            {showAdvancedFilters && (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Make</label>
+                    <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: ''})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select make" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All Makes</SelectItem>
                     <SelectItem value="Acura">Acura</SelectItem>
                     <SelectItem value="Alfa Romeo">Alfa Romeo</SelectItem>
                     <SelectItem value="Aston Martin">Aston Martin</SelectItem>
@@ -946,6 +1168,8 @@ export default function ActiveLotsPage() {
                 Clear Filters
               </Button>
             </div>
+              </div>
+            )}
           </div>
 
           {error && (
