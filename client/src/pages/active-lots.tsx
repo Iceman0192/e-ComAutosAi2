@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Target,
   ChevronDown,
+  ChevronUp,
   ChevronRight,
   Zap,
   Users,
@@ -889,23 +890,182 @@ export default function ActiveLotsPage() {
             </div>
           </div>
 
-          {/* Advanced Filters Toggle */}
+          {/* Primary Advanced Filters */}
           <div className="border-t pt-4">
-            <Button
-              variant="ghost"
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-3 rounded-lg transition-colors"
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="flex items-center gap-2 text-sm"
             >
-              <Filter className="h-4 w-4" />
-              Advanced Filters
-              <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
-            </Button>
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-lg">Advanced Filters</span>
+                <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+                  {Object.values(filters).filter(value => value && value !== '').length} active
+                </span>
+              </div>
+              <ChevronDown className={`h-5 w-5 text-blue-600 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+            </div>
           </div>
 
           {/* Advanced Filters (Collapsible) */}
           {showAdvancedFilters && (
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 space-y-6 border border-blue-200 dark:border-blue-700">
+              
+              {/* Vehicle Information Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 border-b border-blue-200 dark:border-blue-700 pb-2">Vehicle Information</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  
+                  {/* Pricing & Financial Section */}
+                  <div className="md:col-span-4 mt-6 space-y-4">
+                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 border-b border-blue-200 dark:border-blue-700 pb-2">Pricing & Financial</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Price Min</label>
+                        <Input
+                          placeholder="e.g., 5000"
+                          value={filters.price_min}
+                          onChange={(e) => setFilters({...filters, price_min: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Price Max</label>
+                        <Input
+                          placeholder="e.g., 50000"
+                          value={filters.price_max}
+                          onChange={(e) => setFilters({...filters, price_max: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Buy Now Max Price</label>
+                        <Input
+                          placeholder="e.g., 25000"
+                          value={filters.buy_now}
+                          onChange={(e) => setFilters({...filters, buy_now: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Current Bid</label>
+                        <Input
+                          placeholder="e.g., 1000"
+                          value={filters.current_bid}
+                          onChange={(e) => setFilters({...filters, current_bid: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mileage & Condition Section */}
+                  <div className="md:col-span-4 mt-6 space-y-4">
+                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 border-b border-blue-200 dark:border-blue-700 pb-2">Mileage & Condition</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Mileage Min</label>
+                        <Input
+                          placeholder="e.g., 10000"
+                          value={filters.mileage_min}
+                          onChange={(e) => setFilters({...filters, mileage_min: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Mileage Max</label>
+                        <Input
+                          placeholder="e.g., 100000"
+                          value={filters.mileage_max}
+                          onChange={(e) => setFilters({...filters, mileage_max: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Status</label>
+                        <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All Status</SelectItem>
+                            <SelectItem value="Run & Drive">Run & Drive</SelectItem>
+                            <SelectItem value="Starts">Starts</SelectItem>
+                            <SelectItem value="Won't Start">Won't Start</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">Keys Available</label>
+                        <Select value={filters.keys} onValueChange={(value) => setFilters({...filters, keys: value})}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select keys" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All</SelectItem>
+                            <SelectItem value="Yes">Yes</SelectItem>
+                            <SelectItem value="No">No</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Controls */}
+                  <div className="md:col-span-4 mt-6 pt-4 border-t border-blue-200 dark:border-blue-700">
+                    <div className="flex justify-between items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFilters({
+                          site: '',
+                          lot_id: '',
+                          salvage_id: '',
+                          title: '',
+                          status: '',
+                          odometer: '',
+                          odobrand: '',
+                          drive: '',
+                          price_new: '',
+                          price_future: '',
+                          price_min: '',
+                          price_max: '',
+                          current_bid: '',
+                          auction_date: '',
+                          year: '',
+                          year_from: '',
+                          year_to: '',
+                          odometer_min: '',
+                          odometer_max: '',
+                          mileage_min: '',
+                          mileage_max: '',
+                          make: '',
+                          model: '',
+                          series: '',
+                          damage_pr: '',
+                          damage_sec: '',
+                          keys: '',
+                          fuel: '',
+                          transmission: '',
+                          color: '',
+                          document: '',
+                          vehicle_type: '',
+                          auction_type: '',
+                          is_buynow: '',
+                          buy_now: '',
+                          location: '',
+                          seller_type: '',
+                          body_type: '',
+                          cylinders: '',
+                          engine_size: ''
+                        })}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Clear All Filters
+                      </Button>
+                      <Button 
+                        onClick={() => searchActiveLots(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                      >
+                        <Search className="h-4 w-4 mr-2" />
+                        Search with Filters ({Object.values(filters).filter(value => value && value !== '').length})
+                      </Button>
+                    </div>
+                  </div>
                 <div>
                   <label className="text-sm font-medium mb-1 block">Make</label>
                   <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: ''})}>
@@ -1117,6 +1277,7 @@ export default function ActiveLotsPage() {
                 <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
                   {isLoading ? 'Searching...' : 'Apply Filters'}
                 </Button>
+              </div>
               </div>
             </div>
           )}
