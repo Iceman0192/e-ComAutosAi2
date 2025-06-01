@@ -304,13 +304,37 @@ export default function ActiveLotsPage() {
 
     // Set filters to find similar vehicles
     const similarFilters = {
-      ...filters,
+      site: '',
+      lot_id: '',
+      salvage_id: '',
+      title: '',
+      status: 'Run & Drive',
+      odometer: '',
+      odobrand: '',
+      drive: '',
+      price_new: '',
+      price_future: '',
+      current_bid: '',
+      auction_date: '',
+      year: lot.year.toString(), // Use exact year for better matches
       make: lot.make,
       model: lot.model,
-      year: (lot.year - 2).toString() + '-' + (lot.year + 2).toString(),
-      status: 'Run & Drive', // Focus on driveable vehicles
-      document: '', // Clear title filter to find more options
-      damage_pr: '', // Clear damage filter for broader results
+      series: '',
+      damage_pr: '',
+      damage_sec: '',
+      keys: '',
+      fuel: '',
+      transmission: '',
+      color: '',
+      document: '',
+      vehicle_type: '',
+      auction_type: '',
+      is_buynow: '',
+      location: '',
+      seller_type: '',
+      body_type: '',
+      cylinders: '',
+      engine_size: ''
     };
 
     setFilters(similarFilters);
@@ -1176,8 +1200,32 @@ export default function ActiveLotsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setPage(Math.max(1, page - 1));
-                    searchActiveLots();
+                    const newPage = Math.max(1, page - 1);
+                    setPage(newPage);
+                    
+                    // Search with correct page number
+                    const queryParams = new URLSearchParams({
+                      site: selectedPlatform === 'copart' ? '1' : '2',
+                      page: newPage.toString(),
+                      size: '25'
+                    });
+                    
+                    Object.entries(filters).forEach(([key, value]) => {
+                      if (value && value.toString().trim()) {
+                        queryParams.append(key, value.toString().trim());
+                      }
+                    });
+                    
+                    setIsLoading(true);
+                    fetch(`/api/cars?${queryParams}`)
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.success) {
+                          setLots(data.data || []);
+                          setTotalCount(data.count || 0);
+                        }
+                      })
+                      .finally(() => setIsLoading(false));
                   }}
                   disabled={page <= 1 || isLoading}
                 >
@@ -1187,8 +1235,32 @@ export default function ActiveLotsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    setPage(page + 1);
-                    searchActiveLots();
+                    const newPage = page + 1;
+                    setPage(newPage);
+                    
+                    // Search with correct page number
+                    const queryParams = new URLSearchParams({
+                      site: selectedPlatform === 'copart' ? '1' : '2',
+                      page: newPage.toString(),
+                      size: '25'
+                    });
+                    
+                    Object.entries(filters).forEach(([key, value]) => {
+                      if (value && value.toString().trim()) {
+                        queryParams.append(key, value.toString().trim());
+                      }
+                    });
+                    
+                    setIsLoading(true);
+                    fetch(`/api/cars?${queryParams}`)
+                      .then(res => res.json())
+                      .then(data => {
+                        if (data.success) {
+                          setLots(data.data || []);
+                          setTotalCount(data.count || 0);
+                        }
+                      })
+                      .finally(() => setIsLoading(false));
                   }}
                   disabled={isLoading}
                 >
