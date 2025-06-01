@@ -348,39 +348,43 @@ export default function CopartPage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium mb-1 block">Make</label>
+              <label className="text-sm font-medium mb-2 block">Make</label>
               <Input
                 placeholder="Toyota, Ford..."
                 value={filters.make}
                 onChange={(e) => setFilters({...filters, make: e.target.value})}
+                className="h-12 text-base touch-manipulation"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Model</label>
+              <label className="text-sm font-medium mb-2 block">Model</label>
               <Input
                 placeholder="Camry, F-150..."
                 value={filters.model}
                 onChange={(e) => setFilters({...filters, model: e.target.value})}
+                className="h-12 text-base touch-manipulation"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Year From</label>
+              <label className="text-sm font-medium mb-2 block">Year From</label>
               <Input
                 type="number"
                 placeholder="2020"
                 value={filters.yearFrom}
                 onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
+                className="h-12 text-base touch-manipulation"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Year To</label>
+              <label className="text-sm font-medium mb-2 block">Year To</label>
               <Input
                 type="number"
                 placeholder="2024"
                 value={filters.yearTo}
                 onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
+                className="h-12 text-base touch-manipulation"
               />
             </div>
           </div>

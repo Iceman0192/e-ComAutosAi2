@@ -372,17 +372,17 @@ export default function IAAIPage() {
           <div className="p-4 sm:p-6">
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Search Vehicle Sales History</h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Make - Required */}
               <div>
-                <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label htmlFor="make" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Make <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="make"
                   value={make}
                   onChange={(e) => setMake(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base py-3 px-4 touch-manipulation"
                 >
                   <option value="">Select Make</option>
                   <option value="Acura">Acura</option>
@@ -708,16 +708,16 @@ export default function IAAIPage() {
               </div>
               
               {/* Year Range - Mobile Optimized */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="yearFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Year From
                   </label>
                   <select
                     id="yearFrom"
                     value={yearFrom}
                     onChange={(e) => setYearFrom(parseInt(e.target.value))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base py-3 px-4 touch-manipulation"
                   >
                     {Array.from({ length: 30 }, (_, i) => currentYear - 29 + i).map(year => (
                       <option key={year} value={year}>{year}</option>
@@ -725,14 +725,14 @@ export default function IAAIPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  <label htmlFor="yearTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Year To
                   </label>
                   <select
                     id="yearTo"
                     value={yearTo}
                     onChange={(e) => setYearTo(parseInt(e.target.value))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base py-3 px-4 touch-manipulation"
                   >
                     {Array.from({ length: 30 }, (_, i) => currentYear - 29 + i).map(year => (
                       <option key={year} value={year}>{year}</option>
@@ -741,10 +741,10 @@ export default function IAAIPage() {
                 </div>
               </div>
               
-              {/* Auction Date Range */}
-              <div className="flex space-x-2">
-                <div className="flex-1">
-                  <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {/* Auction Date Range - Mobile Optimized */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="auctionDateFrom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Auction Date From
                   </label>
                   <input
@@ -752,11 +752,11 @@ export default function IAAIPage() {
                     id="auctionDateFrom"
                     value={auctionDateFrom}
                     onChange={(e) => setAuctionDateFrom(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base py-3 px-4 touch-manipulation"
                   />
                 </div>
-                <div className="flex-1">
-                  <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div>
+                  <label htmlFor="auctionDateTo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Auction Date To
                   </label>
                   <input
@@ -764,7 +764,7 @@ export default function IAAIPage() {
                     id="auctionDateTo"
                     value={auctionDateTo}
                     onChange={(e) => setAuctionDateTo(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-base py-3 px-4 touch-manipulation"
                   />
                 </div>
               </div>
@@ -924,8 +924,82 @@ export default function IAAIPage() {
               
               {activeTab === TabType.TABLE && (
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                  {/* Clean, Simple Table - No filters sidebar */}
-                  <div className="overflow-x-auto">
+                  {/* Mobile-First Responsive Table */}
+                  
+                  {/* Mobile Card View (md and below) */}
+                  <div className="block md:hidden">
+                    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {searchResults?.data?.salesHistory?.map((sale: any, index: number) => (
+                        <div key={index} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onClick={() => openVehicleDetails(sale)}>
+                          <div className="flex items-start space-x-3">
+                            {/* Vehicle Image */}
+                            <div className="flex-shrink-0 w-20 h-16 relative">
+                              {(() => {
+                                let imageUrl = '';
+                                if (sale.link_img_hd && Array.isArray(sale.link_img_hd) && sale.link_img_hd.length > 0) {
+                                  imageUrl = sale.link_img_hd[0];
+                                } else if (sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0) {
+                                  imageUrl = sale.link_img_small[0];
+                                }
+                                
+                                if (imageUrl) {
+                                  return (
+                                    <img 
+                                      src={imageUrl} 
+                                      alt={`${sale.year} ${sale.make} ${sale.model}`}
+                                      className="w-20 h-16 object-cover rounded-lg border border-red-200 dark:border-red-700"
+                                    />
+                                  );
+                                } else {
+                                  return (
+                                    <div className="w-20 h-16 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-700 flex items-center justify-center">
+                                      <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
+                                    </div>
+                                  );
+                                }
+                              })()}
+                            </div>
+                            
+                            {/* Vehicle Details */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-medium text-red-600 dark:text-red-400 truncate">
+                                  {sale.year} {sale.make} {sale.model} {sale.series}
+                                </h3>
+                                <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                  {sale.purchase_price ? formatCurrency(sale.purchase_price) : 'N/A'}
+                                </span>
+                              </div>
+                              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Lot# {sale.lot_id || "N/A"} • VIN: {sale.vin ? sale.vin.substring(0, 8) + '...' : 'N/A'}
+                              </div>
+                              <div className="mt-1 flex items-center justify-between text-xs">
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {sale.odometer ? `${sale.odometer.toLocaleString()} mi` : 'N/A'}
+                                </span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {sale.damage_pr || sale.vehicle_damage || 'Normal Wear'}
+                                </span>
+                              </div>
+                              <div className="mt-1 flex items-center justify-between text-xs">
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {sale.location || sale.auction_location || 'Unknown'}
+                                </span>
+                                <span className="text-gray-600 dark:text-gray-400">
+                                  {new Date(sale.sale_date).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Desktop Table View (md and above) */}
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
