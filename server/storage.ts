@@ -25,77 +25,69 @@ export interface IStorage {
   updateVehicle(vin: string, vehicle: Partial<InsertVehicle>): Promise<Vehicle | undefined>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private saleHistories: Map<string, SaleHistory>;
-  private vehicles: Map<string, Vehicle>;
-  currentId: number;
 
-  constructor() {
-    this.users = new Map();
-    this.saleHistories = new Map();
-    this.vehicles = new Map();
-    this.currentId = 1;
-  }
 
-  // User methods
+import { db } from "./db";
+import { users, salesHistory, vehicles } from "@shared/schema";
+import { eq } from "drizzle-orm";
+
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
-  
-  // Sales history methods
+
   async getSaleHistory(id: string): Promise<SaleHistory | undefined> {
-    return this.saleHistories.get(id);
+    const [saleHistory] = await db.select().from(salesHistory).where(eq(salesHistory.id, id));
+    return saleHistory || undefined;
   }
-  
+
   async getSaleHistoriesByVin(vin: string): Promise<SaleHistory[]> {
-    return Array.from(this.saleHistories.values()).filter(
-      (saleHistory) => saleHistory.vin === vin,
-    );
+    return await db.select().from(salesHistory).where(eq(salesHistory.vin, vin));
   }
-  
+
   async createSaleHistory(insertSaleHistory: InsertSaleHistory): Promise<SaleHistory> {
-    const saleHistory = insertSaleHistory as SaleHistory;
-    this.saleHistories.set(saleHistory.id, saleHistory);
+    const [saleHistory] = await db
+      .insert(salesHistory)
+      .values(insertSaleHistory)
+      .returning();
     return saleHistory;
   }
-  
-  // Vehicle methods
+
   async getVehicle(vin: string): Promise<Vehicle | undefined> {
-    return this.vehicles.get(vin);
+    const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.vin, vin));
+    return vehicle || undefined;
   }
-  
+
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
-    const vehicle = insertVehicle as Vehicle;
-    this.vehicles.set(vehicle.vin, vehicle);
+    const [vehicle] = await db
+      .insert(vehicles)
+      .values(insertVehicle)
+      .returning();
     return vehicle;
   }
-  
+
   async updateVehicle(vin: string, partialVehicle: Partial<InsertVehicle>): Promise<Vehicle | undefined> {
-    const existingVehicle = this.vehicles.get(vin);
-    
-    if (!existingVehicle) {
-      return undefined;
-    }
-    
-    const updatedVehicle = { ...existingVehicle, ...partialVehicle };
-    this.vehicles.set(vin, updatedVehicle);
-    
-    return updatedVehicle;
+    const [vehicle] = await db
+      .update(vehicles)
+      .set(partialVehicle)
+      .where(eq(vehicles.vin, vin))
+      .returning();
+    return vehicle || undefined;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
