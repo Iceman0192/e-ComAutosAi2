@@ -6,6 +6,7 @@ import SalesAnalytics from '../components/sales/SalesAnalytics';
 import { Button } from '@/components/ui/button';
 import { Car } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { vehicleMakesAndModels } from '@shared/vehicleData';
 
 import { formatCurrency } from '../utils/formatters';
 import PlatformToggle from '../components/ui/platform-toggle';
@@ -1176,10 +1177,13 @@ export default function IAAIPage() {
                           return "No results found";
                         }
                         
-                        // Use actual total count if available, otherwise fall back to dynamic calculation
-                        const totalDisplay = actualTotalCount !== null 
-                          ? actualTotalCount.toLocaleString()
-                          : (currentResults === resultsPerPage ? `${endIndex}+` : endIndex);
+                        // Use total count from API response, fall back to actualTotalCount, then dynamic calculation
+                        const apiTotalCount = searchResults?.data?.pagination?.totalCount || totalResults;
+                        const totalDisplay = apiTotalCount > 0 
+                          ? apiTotalCount.toLocaleString()
+                          : actualTotalCount !== null 
+                            ? actualTotalCount.toLocaleString()
+                            : (currentResults === resultsPerPage ? `${endIndex}+` : endIndex);
                         
                         return (
                           <>
