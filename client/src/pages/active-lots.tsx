@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'wouter';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -137,6 +138,7 @@ const makeModelData: { [key: string]: string[] } = {
 
 export default function ActiveLotsPage() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState<'copart' | 'iaai'>('copart');
   const [filters, setFilters] = useState<SearchFilters>({
@@ -185,12 +187,12 @@ export default function ActiveLotsPage() {
     const userTier = 'Platinum'; // This should come from user context
     
     if (userTier === 'Platinum') {
-      // Redirect to Auction Mind Pro
-      window.location.href = '/auction-mind';
+      // Navigate to Auction Mind Pro using React Router
+      setLocation('/auction-mind');
     } else if (userTier === 'Gold') {
-      // Redirect to Live Lot Analysis (placeholder for now)
+      // Navigate to Live Lot Analysis (placeholder for now)
       console.log('Redirecting to Live Lot Analysis for lot:', lot.lot_id);
-      // window.location.href = '/live-lot-analysis';
+      // setLocation('/live-lot-analysis');
     } else {
       // Basic tier users might see a upgrade prompt
       console.log('Upgrade required for lot analysis');
@@ -1075,6 +1077,9 @@ export default function ActiveLotsPage() {
                   </Button>
                 )}
               </DialogTitle>
+              <DialogDescription>
+                Detailed vehicle information, auction details, and high-resolution photos
+              </DialogDescription>
             </DialogHeader>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
