@@ -152,6 +152,7 @@ export default function IAAIPage() {
   };
 
   const getStatusBadge = (status: string, saleDate: string) => {
+    if (!status) return <Badge variant="outline">Unknown</Badge>;
     const statusLower = status.toLowerCase();
     const isUpcoming = new Date(saleDate) > new Date();
     
