@@ -34,38 +34,65 @@ import {
 } from 'lucide-react';
 
 interface AuctionLot {
+  id: string;
   lot_id: number;
   site: number;
   base_site: string;
   vin: string;
-  sale_status?: string;
-  sale_date?: string;
-  auction_date?: string;
-  purchase_price?: number;
+  odometer: number;
   current_bid: number;
-  auction_location?: string;
-  location?: string;
-  vehicle_damage?: string;
-  damage_pr?: string;
-  damage_sec?: string;
-  vehicle_title?: string;
-  status?: string;
+  auction_date: string;
   year: number;
   make: string;
   model: string;
-  series?: string;
+  series: string;
+  damage_pr: string;
+  damage_sec: string;
+  fuel: string;
+  drive: string;
+  transmission: string;
+  color: string;
+  status: string;
+  title: string;
+  engine: string;
+  location: string;
+  country: string;
+  document: string;
+  currency: string;
+  link_img_hd: string[];
+  link_img_small?: string[];
+  // Optional fields
+  salvage_id?: number;
+  price_new?: number;
+  price_future?: number;
+  reserve_price?: number;
+  cost_priced?: number;
+  cost_repair?: number;
+  cylinders?: number;
+  state?: string;
+  vehicle_type?: string;
+  auction_type?: string;
+  keys?: string;
+  odobrand?: string;
+  engine_size?: number;
+  location_old?: string;
+  location_id?: number;
+  document_old?: string;
+  seller?: string;
+  is_buynow?: boolean;
+  iaai_360?: any;
+  copart_exterior_360?: any[];
+  copart_interior_360?: any;
+  video?: string;
+  purchase_price?: number;
+  sale_status?: string;
+  sale_date?: string;
+  auction_location?: string;
+  vehicle_damage?: string;
+  vehicle_title?: string;
   trim?: string;
-  transmission?: string;
-  drive?: string;
-  fuel?: string;
-  color?: string;
-  odometer?: number;
   images?: string[];
   link?: string;
-  link_img_hd?: string[];
-  link_img_small?: string[];
-  engine?: string;
-  title?: string;
 }
 
 interface SearchFilters {
@@ -165,6 +192,7 @@ export default function ActiveLotsPage() {
   const [page, setPage] = useState(1);
   const [selectedLot, setSelectedLot] = useState<AuctionLot | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [isAutoPopulating, setIsAutoPopulating] = useState(false);
 
   const toggleRowExpansion = (lotId: number) => {
     const newExpanded = new Set(expandedRows);
@@ -176,10 +204,66 @@ export default function ActiveLotsPage() {
     setExpandedRows(newExpanded);
   };
 
+  const autoPopulateFromVIN = async (vin: string) => {
+    if (vin.length !== 17) return;
+    
+    setIsAutoPopulating(true);
+    try {
+      // First, search for this specific VIN to get vehicle details
+      const response = await fetch(`/api/cars?vin=${vin}&site=${selectedPlatform === 'copart' ? '1' : '2'}&size=1`);
+      const data = await response.json();
+      
+      if (data.success && data.data.vehicles && data.data.vehicles.length > 0) {
+        const vehicle = data.data.vehicles[0];
+        
+        // Auto-populate filters based on the found vehicle
+        setFilters(prev => ({
+          ...prev,
+          make: vehicle.make || '',
+          model: vehicle.model || '',
+          yearFrom: vehicle.year ? vehicle.year.toString() : '',
+          yearTo: vehicle.year ? vehicle.year.toString() : '',
+          transmission: vehicle.transmission || '',
+          fuel: vehicle.fuel || '',
+          color: vehicle.color || ''
+        }));
+        
+        // Show notification to user
+        console.log(`Auto-populated filters for ${vehicle.year} ${vehicle.make} ${vehicle.model}`);
+      }
+    } catch (error) {
+      console.error('Error auto-populating from VIN:', error);
+    } finally {
+      setIsAutoPopulating(false);
+    }
+  };
+
   const analyzeLot = (lot: AuctionLot) => {
     // Placeholder for AI analysis functionality
     console.log('Analyzing lot:', lot);
     // This would trigger an AI analysis of the vehicle
+  };
+
+  const findSimilarVehicles = (lot: AuctionLot) => {
+    // Auto-populate filters based on the selected lot
+    setFilters(prev => ({
+      ...prev,
+      make: lot.make || '',
+      model: lot.model || '',
+      yearFrom: lot.year ? Math.max(2000, lot.year - 2).toString() : '',
+      yearTo: lot.year ? Math.min(new Date().getFullYear(), lot.year + 2).toString() : '',
+      transmission: '',  // Reset specific filters to find more matches
+      fuel: '',
+      color: ''
+    }));
+    
+    // Clear the VIN search to search by filters instead
+    setSearchQuery('');
+    
+    // Trigger search
+    setTimeout(() => {
+      searchActiveLots(true);
+    }, 100);
   };
 
   const searchActiveLots = async (resetPage = false) => {
@@ -403,7 +487,7 @@ export default function ActiveLotsPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Sale Date:</span>
-                  <span>{formatDate(lot.sale_date)}</span>
+                  <span>{lot.sale_date ? formatDate(lot.sale_date) : 'TBD'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Location:</span>
@@ -492,16 +576,47 @@ export default function ActiveLotsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search by VIN, make, model, or keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
-              {isLoading ? 'Searching...' : 'Search'}
-            </Button>
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Input
+                  placeholder="Search by VIN, make, model, or keywords..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchQuery(value);
+                    
+                    // Auto-populate when a complete VIN is entered
+                    if (value.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(value)) {
+                      autoPopulateFromVIN(value);
+                    }
+                  }}
+                  className="flex-1"
+                />
+                {isAutoPopulating && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+              </div>
+              <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
+                {isLoading ? 'Searching...' : 'Search'}
+              </Button>
+            </div>
+            
+            {/* VIN Helper */}
+            {searchQuery.length > 0 && searchQuery.length < 17 && /^[A-HJ-NPR-Z0-9]+$/i.test(searchQuery) && (
+              <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-md">
+                💡 Enter a complete 17-digit VIN to auto-populate filters with vehicle details
+              </div>
+            )}
+            
+            {searchQuery.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(searchQuery) && !isAutoPopulating && (
+              <div className="text-xs text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md flex items-center gap-2">
+                <Target className="h-3 w-3" />
+                VIN detected - filters auto-populated for similar vehicles
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -924,19 +1039,19 @@ export default function ActiveLotsPage() {
                               {lot.odometer ? `${lot.odometer.toLocaleString()} mi` : 'Unknown mileage'}
                             </span>
                             <span className="text-gray-600 dark:text-gray-400">
-                              {(lot as any).damage_pr || 'Normal Wear'}
+                              {lot.damage_pr || 'Normal Wear'}
                             </span>
                           </div>
                           <div className="mt-1 flex items-center justify-between text-xs">
                             <span className="text-gray-600 dark:text-gray-400">
-                              {(lot as any).location || 'Unknown'}
+                              {lot.location || 'Unknown'}
                             </span>
                             <span className="text-gray-600 dark:text-gray-400">
-                              {(lot as any).auction_date ? new Date((lot as any).auction_date).toLocaleDateString() : 'TBD'}
+                              {lot.auction_date ? new Date(lot.auction_date).toLocaleDateString() : 'TBD'}
                             </span>
                           </div>
                           <div className="mt-2 flex items-center space-x-2">
-                            {getStatusBadge((lot as any).status, (lot as any).auction_date)}
+                            {getStatusBadge(lot.status, lot.auction_date)}
                             <LotDetailDialog lot={lot} />
                           </div>
                         </div>
