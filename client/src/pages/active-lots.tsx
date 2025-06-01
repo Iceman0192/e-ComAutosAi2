@@ -706,9 +706,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.current_bid === '<10000' ? 'default' : 'outline'}
+                variant={filters.price_max === '10000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('current_bid', '<10000')}
+                onClick={() => handleQuickFilter('price_max', '10000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -726,9 +726,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.current_bid === '<25000' ? 'default' : 'outline'}
+                variant={filters.price_max === '25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('current_bid', '<25000')}
+                onClick={() => handleQuickFilter('price_max', '25000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
@@ -746,9 +746,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.odometer_max === '25000' ? 'default' : 'outline'}
+                variant={filters.mileage_max === '25000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('odometer_max', '25000')}
+                onClick={() => handleQuickFilter('mileage_max', '25000')}
                 className="h-7 text-xs"
               >
                 <Gauge className="h-3 w-3 mr-1" />
@@ -816,13 +816,13 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.current_bid === '<5000' ? 'default' : 'outline'}
+                variant={filters.price_new === '<5000' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('current_bid', '<5000')}
+                onClick={() => handleQuickFilter('price_new', '<5000')}
                 className="h-7 text-xs"
               >
                 <DollarSign className="h-3 w-3 mr-1" />
-                Low Bids (&lt;$5k)
+                Low Price (&lt;$5k)
               </Button>
 
               <Button
