@@ -21,7 +21,9 @@ import {
   Wrench,
   History,
   BarChart3,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface VehicleRecord {
@@ -74,6 +76,100 @@ export default function AuctionMind() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleRecord | null>(null);
+
+  // Hero Carousel Component
+  const HeroCarousel = ({ images }: { images: string[] }) => {
+    const [currentImage, setCurrentImage] = useState(0);
+    
+    if (!images || images.length === 0) {
+      return (
+        <div className="relative w-full h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+          <div className="text-center">
+            <Camera className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">No images available</p>
+          </div>
+        </div>
+      );
+    }
+
+    const nextImage = () => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = () => {
+      setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    return (
+      <div className="relative w-full h-80 rounded-lg overflow-hidden bg-black shadow-lg">
+        <img
+          src={images[currentImage]}
+          alt={`Vehicle image ${currentImage + 1}`}
+          className="w-full h-full object-contain"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
+        />
+        
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={prevImage}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-105"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={nextImage}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all duration-200 hover:scale-105"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+            
+            {/* Image indicators */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImage(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                    index === currentImage ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/75'
+                  }`}
+                />
+              ))}
+            </div>
+            
+            {/* Image counter */}
+            <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1 rounded-full text-sm font-medium">
+              {currentImage + 1} / {images.length}
+            </div>
+          </>
+        )}
+        
+        {/* Thumbnail strip for easy navigation */}
+        {images.length > 1 && (
+          <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex space-x-2 max-w-xs overflow-x-auto">
+            {images.slice(0, 6).map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImage(index)}
+                className={`flex-shrink-0 w-12 h-8 rounded border-2 overflow-hidden transition-all duration-200 ${
+                  index === currentImage ? 'border-white' : 'border-white/30 hover:border-white/60'
+                }`}
+              >
+                <img
+                  src={image}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const searchVinHistory = async () => {
     if (!vinInput.trim()) {
@@ -159,38 +255,10 @@ export default function AuctionMind() {
         </DialogHeader>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Vehicle Images */}
-          <div>
+          {/* Hero Carousel */}
+          <div className="col-span-full">
             <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
-            {vehicle.images && vehicle.images.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {vehicle.images.slice(0, 4).map((imageUrl: string, index: number) => (
-                  <div key={index} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded overflow-hidden">
-                    <img
-                      src={imageUrl}
-                      alt={`Vehicle photo ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      onClick={() => window.open(imageUrl, '_blank')}
-                    />
-                  </div>
-                ))}
-                {vehicle.images.length > 4 && (
-                  <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
-                    <div className="text-center">
-                      <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        +{vehicle.images.length - 4} more
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-8 text-center">
-                <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No photos available</p>
-              </div>
-            )}
+            <HeroCarousel images={vehicle.images || vehicle.link_img_hd || vehicle.link_img_small || []} />
           </div>
 
           {/* Vehicle Specifications */}
