@@ -645,12 +645,12 @@ export default function ActiveLotsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={filters.year_from === '2018' ? 'default' : 'outline'}
+                variant={filters.year === '2018' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    year_from: filters.year_from === '2018' ? '' : '2018'
+                    year: filters.year === '2018' ? '' : '2018'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -662,12 +662,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.mileage_max === '50000' ? 'default' : 'outline'}
+                variant={filters.odometer === '50000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    mileage_max: filters.mileage_max === '50000' ? '' : '50000'
+                    odometer: filters.odometer === '50000' ? '' : '50000'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -679,12 +679,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.damage === 'Minor Dent/Scratches' ? 'default' : 'outline'}
+                variant={filters.damage_pr === 'Minor Dent/Scratches' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    damage: filters.damage === 'Minor Dent/Scratches' ? '' : 'Minor Dent/Scratches'
+                    damage_pr: filters.damage_pr === 'Minor Dent/Scratches' ? '' : 'Minor Dent/Scratches'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -696,12 +696,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.price_max === '10000' ? 'default' : 'outline'}
+                variant={filters.current_bid === '10000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    price_max: filters.price_max === '10000' ? '' : '10000'
+                    current_bid: filters.current_bid === '10000' ? '' : '10000'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -730,12 +730,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.price_max === '25000' ? 'default' : 'outline'}
+                variant={filters.current_bid === '25000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    price_max: filters.price_max === '25000' ? '' : '25000'
+                    current_bid: filters.current_bid === '25000' ? '' : '25000'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -747,12 +747,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.year_from === '2020' ? 'default' : 'outline'}
+                variant={filters.year === '2020' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    year_from: filters.year_from === '2020' ? '' : '2020'
+                    year: filters.year === '2020' ? '' : '2020'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -764,12 +764,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.mileage_max === '25000' ? 'default' : 'outline'}
+                variant={filters.odometer === '25000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    mileage_max: filters.mileage_max === '25000' ? '' : '25000'
+                    odometer: filters.odometer === '25000' ? '' : '25000'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -781,12 +781,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.damage === 'Hail' ? 'default' : 'outline'}
+                variant={filters.damage_pr === 'Hail' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    damage: filters.damage === 'Hail' ? '' : 'Hail'
+                    damage_pr: filters.damage_pr === 'Hail' ? '' : 'Hail'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -1032,17 +1032,17 @@ export default function ActiveLotsPage() {
                   <label className="text-sm font-medium mb-1 block">Year From</label>
                   <Input
                     placeholder="e.g., 2015"
-                    value={filters.yearFrom}
-                    onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
+                    value={filters.year}
+                    onChange={(e) => setFilters({...filters, year: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Year To</label>
+                  <label className="text-sm font-medium mb-1 block">Engine Size</label>
                   <Input
-                    placeholder="e.g., 2023"
-                    value={filters.yearTo}
-                    onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
+                    placeholder="e.g., 2.5"
+                    value={filters.engine_size}
+                    onChange={(e) => setFilters({...filters, engine_size: e.target.value})}
                   />
                 </div>
 
@@ -1057,7 +1057,7 @@ export default function ActiveLotsPage() {
 
                 <div>
                   <label className="text-sm font-medium mb-1 block">Damage</label>
-                  <Select value={filters.damage} onValueChange={(value) => setFilters({...filters, damage: value})}>
+                  <Select value={filters.damage_pr} onValueChange={(value) => setFilters({...filters, damage_pr: value})}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select damage" />
                     </SelectTrigger>
@@ -1081,8 +1081,8 @@ export default function ActiveLotsPage() {
                   <label className="text-sm font-medium mb-1 block">Price Min</label>
                   <Input
                     placeholder="e.g., 1000"
-                    value={filters.priceMin}
-                    onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
+                    value={filters.price_new}
+                    onChange={(e) => setFilters({...filters, price_new: e.target.value})}
                   />
                 </div>
 
@@ -1090,8 +1090,8 @@ export default function ActiveLotsPage() {
                   <label className="text-sm font-medium mb-1 block">Price Max</label>
                   <Input
                     placeholder="e.g., 50000"
-                    value={filters.priceMax}
-                    onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
+                    value={filters.price_future}
+                    onChange={(e) => setFilters({...filters, price_future: e.target.value})}
                   />
                 </div>
 
@@ -1099,17 +1099,17 @@ export default function ActiveLotsPage() {
                   <label className="text-sm font-medium mb-1 block">Mileage Min</label>
                   <Input
                     placeholder="e.g., 10000"
-                    value={filters.mileageMin}
-                    onChange={(e) => setFilters({...filters, mileageMin: e.target.value})}
+                    value={filters.odometer}
+                    onChange={(e) => setFilters({...filters, odometer: e.target.value})}
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Mileage Max</label>
+                  <label className="text-sm font-medium mb-1 block">Secondary Damage</label>
                   <Input
-                    placeholder="e.g., 100000"
-                    value={filters.mileageMax}
-                    onChange={(e) => setFilters({...filters, mileageMax: e.target.value})}
+                    placeholder="e.g., Hail, Side"
+                    value={filters.damage_sec}
+                    onChange={(e) => setFilters({...filters, damage_sec: e.target.value})}
                   />
                 </div>
 
