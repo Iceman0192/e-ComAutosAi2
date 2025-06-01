@@ -101,6 +101,15 @@ export function Sidebar({ className = '' }: SidebarProps) {
     }
   ];
 
+  const adminItems = [
+    {
+      title: 'Admin Dashboard',
+      href: '/admin',
+      icon: Settings,
+      permission: 'ADMIN'
+    }
+  ];
+
   const isActiveRoute = (href: string) => {
     if (href === '/dashboard') return location === '/dashboard';
     if (href === '/') return location === '/' && !location.includes('/dashboard');
@@ -178,6 +187,36 @@ export function Sidebar({ className = '' }: SidebarProps) {
             );
           })}
         </div>
+
+        {/* Admin Section - Only for admin users */}
+        {user?.role === 'admin' && (
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+              Administration
+            </h3>
+            {adminItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = isActiveRoute(item.href);
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant={isActive ? "default" : "ghost"}
+                    className={`w-full justify-start gap-3 mb-1 ${
+                      isActive 
+                        ? 'bg-red-600 text-white hover:bg-red-700' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20'
+                    }`}
+                    onClick={() => setIsMobileOpen(false)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.title}
+                  </Button>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         <div className="mb-4">
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
