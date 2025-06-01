@@ -227,6 +227,25 @@ export default function ActiveLotsPage() {
 
   // Enhanced active lots search with all filtering options
   const searchActiveLots = async (resetPage = false) => {
+    searchWithFilters(filters, resetPage);
+  };
+
+  // Helper function to handle quick filter clicks
+  const handleQuickFilter = (filterKey: keyof SearchFilters, filterValue: string) => {
+    const newFilters = {
+      ...filters,
+      [filterKey]: filters[filterKey] === filterValue ? '' : filterValue
+    };
+    console.log('Quick Filter Applied:', filterKey, '=', newFilters[filterKey]);
+    console.log('New Filter State:', newFilters);
+    setFilters(newFilters);
+    
+    // Search with the new filters immediately
+    searchWithFilters(newFilters, true);
+  };
+
+  // Search function that accepts filters as parameter
+  const searchWithFilters = async (searchFilters: SearchFilters, resetPage = false) => {
     setIsLoading(true);
     setError('');
     
@@ -245,8 +264,8 @@ export default function ActiveLotsPage() {
         queryParams.append('search', searchQuery.trim());
       }
 
-      // Add all filter parameters
-      Object.entries(filters).forEach(([key, value]) => {
+      // Add all filter parameters using the provided filters
+      Object.entries(searchFilters).forEach(([key, value]) => {
         if (value && value.toString().trim()) {
           queryParams.append(key, value.toString().trim());
         }
@@ -277,16 +296,6 @@ export default function ActiveLotsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Helper function to handle quick filter clicks
-  const handleQuickFilter = (filterKey: keyof SearchFilters, filterValue: string) => {
-    const newFilters = {
-      ...filters,
-      [filterKey]: filters[filterKey] === filterValue ? '' : filterValue
-    };
-    setFilters(newFilters);
-    setTimeout(() => searchActiveLots(true), 50);
   };
 
   // Vehicle analysis functions
