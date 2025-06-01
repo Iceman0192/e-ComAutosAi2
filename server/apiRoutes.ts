@@ -326,7 +326,7 @@ export function setupApiRoutes(app: Express) {
       
       const response = await fetch(countUrl, {
         headers: {
-          'Authorization': `Bearer ${process.env.APICAR_TOKEN}`,
+          'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
           'Content-Type': 'application/json'
         }
       });
