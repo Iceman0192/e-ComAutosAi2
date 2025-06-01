@@ -982,7 +982,7 @@ export default function ActiveLotsPage() {
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All Status</SelectItem>
+                            <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="Run & Drive">Run & Drive</SelectItem>
                             <SelectItem value="Starts">Starts</SelectItem>
                             <SelectItem value="Won't Start">Won't Start</SelectItem>
@@ -996,7 +996,7 @@ export default function ActiveLotsPage() {
                             <SelectValue placeholder="Select keys" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All</SelectItem>
+                            <SelectItem value="all">All</SelectItem>
                             <SelectItem value="Yes">Yes</SelectItem>
                             <SelectItem value="No">No</SelectItem>
                           </SelectContent>
