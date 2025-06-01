@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
   Eye, 
@@ -417,37 +418,70 @@ export default function ActiveLotsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Make</label>
-                <Input
-                  placeholder="Toyota, Ford..."
-                  value={filters.make}
-                  onChange={(e) => setFilters({...filters, make: e.target.value})}
-                />
+                <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select make" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Makes</SelectItem>
+                    <SelectItem value="Toyota">Toyota</SelectItem>
+                    <SelectItem value="Ford">Ford</SelectItem>
+                    <SelectItem value="Honda">Honda</SelectItem>
+                    <SelectItem value="Chevrolet">Chevrolet</SelectItem>
+                    <SelectItem value="Nissan">Nissan</SelectItem>
+                    <SelectItem value="BMW">BMW</SelectItem>
+                    <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
+                    <SelectItem value="Audi">Audi</SelectItem>
+                    <SelectItem value="Volkswagen">Volkswagen</SelectItem>
+                    <SelectItem value="Hyundai">Hyundai</SelectItem>
+                    <SelectItem value="Kia">Kia</SelectItem>
+                    <SelectItem value="Mazda">Mazda</SelectItem>
+                    <SelectItem value="Subaru">Subaru</SelectItem>
+                    <SelectItem value="Lexus">Lexus</SelectItem>
+                    <SelectItem value="Acura">Acura</SelectItem>
+                    <SelectItem value="Infiniti">Infiniti</SelectItem>
+                    <SelectItem value="Cadillac">Cadillac</SelectItem>
+                    <SelectItem value="Lincoln">Lincoln</SelectItem>
+                    <SelectItem value="Buick">Buick</SelectItem>
+                    <SelectItem value="GMC">GMC</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Model</label>
                 <Input
-                  placeholder="Camry, F-150..."
+                  placeholder="Camry, F-150, Accord..."
                   value={filters.model}
                   onChange={(e) => setFilters({...filters, model: e.target.value})}
                 />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Year From</label>
-                <Input
-                  type="number"
-                  placeholder="2020"
-                  value={filters.yearFrom}
-                  onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
-                />
+                <Select value={filters.yearFrom} onValueChange={(value) => setFilters({...filters, yearFrom: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="From year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Year</SelectItem>
+                    {Array.from({length: 25}, (_, i) => 2024 - i).map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Year To</label>
-                <Input
-                  type="number"
-                  placeholder="2024"
-                  value={filters.yearTo}
-                  onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
-                />
+                <Select value={filters.yearTo} onValueChange={(value) => setFilters({...filters, yearTo: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="To year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Year</SelectItem>
+                    {Array.from({length: 25}, (_, i) => 2024 - i).map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -455,39 +489,83 @@ export default function ActiveLotsPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Min Price ($)</label>
-                <Input
-                  type="number"
-                  placeholder="1000"
-                  value={filters.priceMin}
-                  onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
-                />
+                <Select value={filters.priceMin} onValueChange={(value) => setFilters({...filters, priceMin: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Min price" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Min</SelectItem>
+                    <SelectItem value="500">$500</SelectItem>
+                    <SelectItem value="1000">$1,000</SelectItem>
+                    <SelectItem value="2500">$2,500</SelectItem>
+                    <SelectItem value="5000">$5,000</SelectItem>
+                    <SelectItem value="7500">$7,500</SelectItem>
+                    <SelectItem value="10000">$10,000</SelectItem>
+                    <SelectItem value="15000">$15,000</SelectItem>
+                    <SelectItem value="20000">$20,000</SelectItem>
+                    <SelectItem value="25000">$25,000</SelectItem>
+                    <SelectItem value="30000">$30,000</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Max Price ($)</label>
-                <Input
-                  type="number"
-                  placeholder="50000"
-                  value={filters.priceMax}
-                  onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
-                />
+                <Select value={filters.priceMax} onValueChange={(value) => setFilters({...filters, priceMax: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Max price" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Max</SelectItem>
+                    <SelectItem value="5000">$5,000</SelectItem>
+                    <SelectItem value="10000">$10,000</SelectItem>
+                    <SelectItem value="15000">$15,000</SelectItem>
+                    <SelectItem value="20000">$20,000</SelectItem>
+                    <SelectItem value="25000">$25,000</SelectItem>
+                    <SelectItem value="30000">$30,000</SelectItem>
+                    <SelectItem value="40000">$40,000</SelectItem>
+                    <SelectItem value="50000">$50,000</SelectItem>
+                    <SelectItem value="75000">$75,000</SelectItem>
+                    <SelectItem value="100000">$100,000</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Min Mileage</label>
-                <Input
-                  type="number"
-                  placeholder="0"
-                  value={filters.mileageMin}
-                  onChange={(e) => setFilters({...filters, mileageMin: e.target.value})}
-                />
+                <Select value={filters.mileageMin} onValueChange={(value) => setFilters({...filters, mileageMin: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Min mileage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Min</SelectItem>
+                    <SelectItem value="0">0 miles</SelectItem>
+                    <SelectItem value="10000">10,000 miles</SelectItem>
+                    <SelectItem value="25000">25,000 miles</SelectItem>
+                    <SelectItem value="50000">50,000 miles</SelectItem>
+                    <SelectItem value="75000">75,000 miles</SelectItem>
+                    <SelectItem value="100000">100,000 miles</SelectItem>
+                    <SelectItem value="150000">150,000 miles</SelectItem>
+                    <SelectItem value="200000">200,000 miles</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Max Mileage</label>
-                <Input
-                  type="number"
-                  placeholder="100000"
-                  value={filters.mileageMax}
-                  onChange={(e) => setFilters({...filters, mileageMax: e.target.value})}
-                />
+                <Select value={filters.mileageMax} onValueChange={(value) => setFilters({...filters, mileageMax: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Max mileage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Max</SelectItem>
+                    <SelectItem value="25000">25,000 miles</SelectItem>
+                    <SelectItem value="50000">50,000 miles</SelectItem>
+                    <SelectItem value="75000">75,000 miles</SelectItem>
+                    <SelectItem value="100000">100,000 miles</SelectItem>
+                    <SelectItem value="150000">150,000 miles</SelectItem>
+                    <SelectItem value="200000">200,000 miles</SelectItem>
+                    <SelectItem value="250000">250,000 miles</SelectItem>
+                    <SelectItem value="300000">300,000+ miles</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -495,43 +573,104 @@ export default function ActiveLotsPage() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">Location</label>
-                <Input
-                  placeholder="TX, CA, NY..."
-                  value={filters.location}
-                  onChange={(e) => setFilters({...filters, location: e.target.value})}
-                />
+                <Select value={filters.location} onValueChange={(value) => setFilters({...filters, location: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Locations</SelectItem>
+                    <SelectItem value="TX">Texas</SelectItem>
+                    <SelectItem value="CA">California</SelectItem>
+                    <SelectItem value="FL">Florida</SelectItem>
+                    <SelectItem value="NY">New York</SelectItem>
+                    <SelectItem value="PA">Pennsylvania</SelectItem>
+                    <SelectItem value="IL">Illinois</SelectItem>
+                    <SelectItem value="OH">Ohio</SelectItem>
+                    <SelectItem value="GA">Georgia</SelectItem>
+                    <SelectItem value="NC">North Carolina</SelectItem>
+                    <SelectItem value="MI">Michigan</SelectItem>
+                    <SelectItem value="NJ">New Jersey</SelectItem>
+                    <SelectItem value="VA">Virginia</SelectItem>
+                    <SelectItem value="WA">Washington</SelectItem>
+                    <SelectItem value="AZ">Arizona</SelectItem>
+                    <SelectItem value="MA">Massachusetts</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Damage</label>
-                <Input
-                  placeholder="Front End, Rear..."
-                  value={filters.damage}
-                  onChange={(e) => setFilters({...filters, damage: e.target.value})}
-                />
+                <Select value={filters.damage} onValueChange={(value) => setFilters({...filters, damage: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select damage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Damage Types</SelectItem>
+                    <SelectItem value="Front End">Front End</SelectItem>
+                    <SelectItem value="Rear End">Rear End</SelectItem>
+                    <SelectItem value="Side">Side</SelectItem>
+                    <SelectItem value="Hail">Hail</SelectItem>
+                    <SelectItem value="Water/Flood">Water/Flood</SelectItem>
+                    <SelectItem value="Fire">Fire</SelectItem>
+                    <SelectItem value="Vandalism">Vandalism</SelectItem>
+                    <SelectItem value="Theft">Theft</SelectItem>
+                    <SelectItem value="Minor Dent/Scratches">Minor Dent/Scratches</SelectItem>
+                    <SelectItem value="Normal Wear">Normal Wear</SelectItem>
+                    <SelectItem value="Unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Transmission</label>
-                <Input
-                  placeholder="Automatic, Manual"
-                  value={filters.transmission}
-                  onChange={(e) => setFilters({...filters, transmission: e.target.value})}
-                />
+                <Select value={filters.transmission} onValueChange={(value) => setFilters({...filters, transmission: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select transmission" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Transmissions</SelectItem>
+                    <SelectItem value="Automatic">Automatic</SelectItem>
+                    <SelectItem value="Manual">Manual</SelectItem>
+                    <SelectItem value="CVT">CVT</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Fuel Type</label>
-                <Input
-                  placeholder="Gas, Hybrid, Electric"
-                  value={filters.fuel}
-                  onChange={(e) => setFilters({...filters, fuel: e.target.value})}
-                />
+                <Select value={filters.fuel} onValueChange={(value) => setFilters({...filters, fuel: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select fuel type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Fuel Types</SelectItem>
+                    <SelectItem value="Gasoline">Gasoline</SelectItem>
+                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="Electric">Electric</SelectItem>
+                    <SelectItem value="Diesel">Diesel</SelectItem>
+                    <SelectItem value="Flex Fuel">Flex Fuel</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">Color</label>
-                <Input
-                  placeholder="Black, White, Silver"
-                  value={filters.color}
-                  onChange={(e) => setFilters({...filters, color: e.target.value})}
-                />
+                <Select value={filters.color} onValueChange={(value) => setFilters({...filters, color: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Colors</SelectItem>
+                    <SelectItem value="Black">Black</SelectItem>
+                    <SelectItem value="White">White</SelectItem>
+                    <SelectItem value="Silver">Silver</SelectItem>
+                    <SelectItem value="Gray">Gray</SelectItem>
+                    <SelectItem value="Red">Red</SelectItem>
+                    <SelectItem value="Blue">Blue</SelectItem>
+                    <SelectItem value="Brown">Brown</SelectItem>
+                    <SelectItem value="Green">Green</SelectItem>
+                    <SelectItem value="Yellow">Yellow</SelectItem>
+                    <SelectItem value="Orange">Orange</SelectItem>
+                    <SelectItem value="Purple">Purple</SelectItem>
+                    <SelectItem value="Gold">Gold</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
