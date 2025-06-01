@@ -763,16 +763,14 @@ export function setupApiRoutes(app: Express) {
         }
       });
 
-      if (response.data && response.data.data) {
+      if (response.data) {
         return res.json({
           success: true,
-          data: {
-            vehicles: response.data.data,
-            total: response.data.count || 0,
-            currentPage: page,
-            pageSize: size,
-            totalPages: Math.ceil((response.data.count || 0) / size)
-          }
+          count: response.data.count || 0,
+          pages: response.data.pages || 0,
+          size: response.data.size || size,
+          page: response.data.page || page,
+          data: response.data.data || []
         });
       } else {
         return res.json({

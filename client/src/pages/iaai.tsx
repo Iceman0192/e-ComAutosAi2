@@ -238,15 +238,16 @@ export default function IAAIPage() {
         // Only update if successful
         if (result.success && result.data) {
           // Convert cars API response to match expected format
+          // The API returns: { count: 50295, data: [...], pages: 5030, size: 25 }
           const convertedResult = {
             success: true,
             data: {
-              salesHistory: result.data.vehicles || [],
+              salesHistory: result.data || [],
               pagination: {
-                totalCount: result.data.total || 0,
+                totalCount: result.count || 0,
                 currentPage: 1,
                 pageSize: resultsPerPage,
-                totalPages: result.data.totalPages || 1
+                totalPages: result.pages || 1
               }
             }
           };
@@ -255,7 +256,7 @@ export default function IAAIPage() {
           setSearchResults(convertedResult);
           
           // Update total results count for pagination
-          setTotalResults(result.data.total || 0);
+          setTotalResults(result.count || 0);
         }
         
         // Reset loading state whether success or failure
