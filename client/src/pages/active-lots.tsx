@@ -190,8 +190,8 @@ export default function ActiveLotsPage() {
       // Navigate to Auction Mind Pro using React Router
       setLocation('/auction-mind');
     } else if (userTier === 'Gold') {
-      // Navigate to Live Lot Analysis
-      setLocation('/live-lot-analysis');
+      // Navigate to Live Lot Analysis with lot ID pre-populated
+      setLocation(`/live-lot-analysis?lotId=${lot.lot_id}`);
     } else {
       // Basic tier users might see a upgrade prompt
       console.log('Upgrade required for lot analysis');
