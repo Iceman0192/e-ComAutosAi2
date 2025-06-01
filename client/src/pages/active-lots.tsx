@@ -316,7 +316,7 @@ export default function ActiveLotsPage() {
       price_future: '',
       current_bid: '',
       auction_date: '',
-      year: lot.year.toString(), // Use exact year for better matches
+      year: `${lot.year - 1}-${lot.year + 1}`, // Near-exact match: ±1 year for better results
       make: lot.make,
       model: lot.model,
       series: '',
