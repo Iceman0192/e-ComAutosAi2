@@ -1052,6 +1052,17 @@ export default function ActiveLotsPage() {
                           </div>
                           <div className="mt-2 flex items-center space-x-2">
                             {getStatusBadge(lot.status, lot.auction_date)}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                findSimilarVehicles(lot);
+                              }}
+                              className="h-6 px-2 text-xs"
+                            >
+                              Find Similar
+                            </Button>
                             <LotDetailDialog lot={lot} />
                           </div>
                         </div>
@@ -1144,6 +1155,18 @@ export default function ActiveLotsPage() {
                           </td>
                           <td className="p-4">
                             <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  findSimilarVehicles(lot);
+                                }}
+                                className="flex items-center gap-1"
+                              >
+                                <Target className="h-3 w-3" />
+                                Find Similar
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
