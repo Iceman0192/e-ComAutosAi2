@@ -275,7 +275,6 @@ export default function ActiveLotsPage() {
 
     try {
       const queryParams = new URLSearchParams({
-        site: selectedPlatform === 'copart' ? '1' : '2',
         page: currentPage.toString(),
         size: '25'
       });
@@ -317,6 +316,64 @@ export default function ActiveLotsPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle preset filters
+  const handleBudgetPreset = (preset: string) => {
+    setBudgetPreset(preset);
+    const newFilters = { ...filters };
+    
+    switch (preset) {
+      case 'under-5k':
+        newFilters.price_max = '5000';
+        break;
+      case 'under-10k':
+        newFilters.price_max = '10000';
+        break;
+      case 'under-25k':
+        newFilters.price_max = '25000';
+        break;
+      case 'under-50k':
+        newFilters.price_max = '50000';
+        break;
+      case 'any':
+      default:
+        newFilters.price_max = '';
+        break;
+    }
+    
+    setFilters(newFilters);
+  };
+
+  const handleYearPreset = (preset: string) => {
+    setYearPreset(preset);
+    const newFilters = { ...filters };
+    
+    switch (preset) {
+      case '2020+':
+        newFilters.year_from = '2020';
+        newFilters.year_to = '';
+        break;
+      case '2015-2019':
+        newFilters.year_from = '2015';
+        newFilters.year_to = '2019';
+        break;
+      case '2010-2014':
+        newFilters.year_from = '2010';
+        newFilters.year_to = '2014';
+        break;
+      case '2005-2009':
+        newFilters.year_from = '2005';
+        newFilters.year_to = '2009';
+        break;
+      case 'any':
+      default:
+        newFilters.year_from = '';
+        newFilters.year_to = '';
+        break;
+    }
+    
+    setFilters(newFilters);
   };
 
   // Vehicle analysis functions
@@ -739,12 +796,12 @@ export default function ActiveLotsPage() {
             </div>
 
             {/* Essential Filters */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Budget Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Budget</label>
                 <Select value={budgetPreset} onValueChange={handleBudgetPreset}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-12">
                     <SelectValue placeholder="Any price" />
                   </SelectTrigger>
                   <SelectContent>
@@ -762,7 +819,7 @@ export default function ActiveLotsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Year</label>
                 <Select value={yearPreset} onValueChange={handleYearPreset}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-12">
                     <SelectValue placeholder="Any year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -780,7 +837,7 @@ export default function ActiveLotsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Condition</label>
                 <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
-                  <SelectTrigger className="h-10">
+                  <SelectTrigger className="h-12">
                     <SelectValue placeholder="Any condition" />
                   </SelectTrigger>
                   <SelectContent>
@@ -791,29 +848,66 @@ export default function ActiveLotsPage() {
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Auction Site Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Site</label>
-                <Select value={filters.site} onValueChange={(value) => setFilters({...filters, site: value})}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="All sites" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sites</SelectItem>
-                    <SelectItem value="1">Copart</SelectItem>
-                    <SelectItem value="2">IAAI</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
+
+            {/* Active Filters Display */}
+            {(filters.make !== '' || filters.price_max !== '' || filters.year_from !== '' || filters.status !== '') && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Active filters:</span>
+                  {filters.make && filters.make !== 'all' && (
+                    <span className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
+                      {filters.make} {filters.model && filters.model !== 'all' ? filters.model : ''}
+                    </span>
+                  )}
+                  {filters.price_max && (
+                    <span className="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm">
+                      Under ${parseInt(filters.price_max).toLocaleString()}
+                    </span>
+                  )}
+                  {(filters.year_from || filters.year_to) && (
+                    <span className="bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full text-sm">
+                      {filters.year_from}{filters.year_to ? `-${filters.year_to}` : '+'}
+                    </span>
+                  )}
+                  {filters.status && filters.status !== 'all' && (
+                    <span className="bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-full text-sm">
+                      {filters.status}
+                    </span>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => {
+                      setFilters({
+                        site: '', lot_id: '', salvage_id: '', title: '', status: '', odometer: '', odobrand: '', drive: '',
+                        price_new: '', price_future: '', price_min: '', price_max: '', current_bid: '', auction_date: '',
+                        year: '', year_from: '', year_to: '', odometer_min: '', odometer_max: '', mileage_min: '', mileage_max: '',
+                        make: '', model: '', series: '', damage_pr: '', damage_sec: '', keys: '', fuel: '', transmission: '',
+                        color: '', document: '', vehicle_type: '', auction_type: '', is_buynow: '', buy_now: '', location: '',
+                        seller_type: '', body_type: '', cylinders: '', engine_size: ''
+                      });
+                      setBudgetPreset('any');
+                      setYearPreset('any');
+                    }}
+                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Clear all
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Search Action */}
             <div>
-              <Button onClick={() => searchActiveLots(true)} className="w-full h-12 text-lg" disabled={isLoading}>
+              <Button onClick={() => searchActiveLots(true)} className="w-full h-14 text-lg font-semibold" disabled={isLoading}>
                 <Search className="w-5 h-5 mr-2" />
-                {isLoading ? 'Searching...' : `Search ${totalCount?.toLocaleString() || ''} Vehicles`}
+                {isLoading ? 'Searching vehicles...' : `Search ${totalCount?.toLocaleString() || ''} Vehicles`}
               </Button>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
+                Searching across Copart & IAAI auction platforms
+              </p>
             </div>
           </div>
 
