@@ -100,18 +100,18 @@ interface AuctionLot {
 interface SearchFilters {
   make: string;
   model: string;
-  yearFrom: string;
-  yearTo: string;
+  year_from: string;
+  year_to: string;
   location: string;
   damage: string;
-  priceMin: string;
-  priceMax: string;
-  mileageMin: string;
-  mileageMax: string;
+  price_min: string;
+  price_max: string;
+  mileage_min: string;
+  mileage_max: string;
   transmission: string;
   fuel: string;
   color: string;
-  titleType: string;
+  title_type: string;
 }
 
 export default function ActiveLotsPage() {
@@ -133,18 +133,18 @@ export default function ActiveLotsPage() {
   const [filters, setFilters] = useState<SearchFilters>({
     make: '',
     model: '',
-    yearFrom: '',
-    yearTo: '',
+    year_from: '',
+    year_to: '',
     location: '',
     damage: '',
-    priceMin: '',
-    priceMax: '',
-    mileageMin: '',
-    mileageMax: '',
+    price_min: '',
+    price_max: '',
+    mileage_min: '',
+    mileage_max: '',
     transmission: '',
     fuel: '',
     color: '',
-    titleType: ''
+    title_type: ''
   });
 
   // Enhanced search functionality
@@ -534,65 +534,12 @@ export default function ActiveLotsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={filters.titleType === 'run-drive' ? 'default' : 'outline'}
+                variant={filters.year_from === '2018' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    titleType: filters.titleType === 'run-drive' ? '' : 'run-drive'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
-                className="h-7 text-xs"
-              >
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Run & Drive
-              </Button>
-              
-              <Button
-                variant={filters.titleType === 'buy-now' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    titleType: filters.titleType === 'buy-now' ? '' : 'buy-now'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
-                className="h-7 text-xs"
-              >
-                <Zap className="h-3 w-3 mr-1" />
-                Buy Now
-              </Button>
-
-              <Button
-                variant={filters.titleType === 'low-mileage' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    titleType: filters.titleType === 'low-mileage' ? '' : 'low-mileage',
-                    mileageMax: filters.titleType === 'low-mileage' ? '' : '50000'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
-                className="h-7 text-xs"
-              >
-                <Gauge className="h-3 w-3 mr-1" />
-                Low Miles (&lt;50k)
-              </Button>
-
-              <Button
-                variant={filters.titleType === 'newer-models' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    titleType: filters.titleType === 'newer-models' ? '' : 'newer-models',
-                    yearFrom: filters.titleType === 'newer-models' ? '' : '2018'
+                    year_from: filters.year_from === '2018' ? '' : '2018'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -604,13 +551,29 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.titleType === 'minor-damage' ? 'default' : 'outline'}
+                variant={filters.mileage_max === '50000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    titleType: filters.titleType === 'minor-damage' ? '' : 'minor-damage',
-                    damage: filters.titleType === 'minor-damage' ? '' : 'Minor Dent/Scratches'
+                    mileage_max: filters.mileage_max === '50000' ? '' : '50000'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Gauge className="h-3 w-3 mr-1" />
+                Low Miles (&lt;50k)
+              </Button>
+
+              <Button
+                variant={filters.damage === 'Minor Dent/Scratches' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    damage: filters.damage === 'Minor Dent/Scratches' ? '' : 'Minor Dent/Scratches'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -622,64 +585,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.titleType === 'has-keys' ? 'default' : 'outline'}
+                variant={filters.price_max === '10000' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    titleType: filters.titleType === 'has-keys' ? '' : 'has-keys'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
-                className="h-7 text-xs"
-              >
-                <Car className="h-3 w-3 mr-1" />
-                Has Keys
-              </Button>
-
-              <Button
-                variant={filters.titleType === 'auction-tomorrow' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    titleType: filters.titleType === 'auction-tomorrow' ? '' : 'auction-tomorrow'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
-                className="h-7 text-xs"
-              >
-                <Calendar className="h-3 w-3 mr-1" />
-                Auction Tomorrow
-              </Button>
-
-              <Button
-                variant={filters.titleType === 'clean-title' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    titleType: filters.titleType === 'clean-title' ? '' : 'clean-title'
-                  };
-                  setFilters(newFilters);
-                  setTimeout(() => searchActiveLots(true), 100);
-                }}
-                className="h-7 text-xs"
-              >
-                <FileText className="h-3 w-3 mr-1" />
-                Clean Title
-              </Button>
-
-              <Button
-                variant={filters.titleType === 'under-10k' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  const newFilters = {
-                    ...filters,
-                    titleType: filters.titleType === 'under-10k' ? '' : 'under-10k',
-                    priceMax: filters.titleType === 'under-10k' ? '' : '10000'
+                    price_max: filters.price_max === '10000' ? '' : '10000'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -691,13 +602,12 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.titleType === 'hybrid-electric' ? 'default' : 'outline'}
+                variant={filters.fuel === 'Hybrid' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     ...filters,
-                    titleType: filters.titleType === 'hybrid-electric' ? '' : 'hybrid-electric',
-                    fuel: filters.titleType === 'hybrid-electric' ? '' : 'Hybrid'
+                    fuel: filters.fuel === 'Hybrid' ? '' : 'Hybrid'
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
@@ -709,24 +619,109 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
+                variant={filters.price_max === '25000' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    price_max: filters.price_max === '25000' ? '' : '25000'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <DollarSign className="h-3 w-3 mr-1" />
+                Under $25k
+              </Button>
+
+              <Button
+                variant={filters.year_from === '2020' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    year_from: filters.year_from === '2020' ? '' : '2020'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                2020+ Only
+              </Button>
+
+              <Button
+                variant={filters.mileage_max === '25000' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    mileage_max: filters.mileage_max === '25000' ? '' : '25000'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Gauge className="h-3 w-3 mr-1" />
+                Very Low Miles (&lt;25k)
+              </Button>
+
+              <Button
+                variant={filters.damage === 'Hail' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    damage: filters.damage === 'Hail' ? '' : 'Hail'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Wrench className="h-3 w-3 mr-1" />
+                Hail Damage
+              </Button>
+
+              <Button
+                variant={filters.transmission === 'Automatic' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    transmission: filters.transmission === 'Automatic' ? '' : 'Automatic'
+                  };
+                  setFilters(newFilters);
+                  setTimeout(() => searchActiveLots(true), 100);
+                }}
+                className="h-7 text-xs"
+              >
+                <Settings className="h-3 w-3 mr-1" />
+                Automatic Only
+              </Button>
+
+              <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   const newFilters = {
                     make: '',
                     model: '',
-                    yearFrom: '',
-                    yearTo: '',
+                    year_from: '',
+                    year_to: '',
                     location: '',
                     damage: '',
-                    priceMin: '',
-                    priceMax: '',
-                    mileageMin: '',
-                    mileageMax: '',
+                    price_min: '',
+                    price_max: '',
+                    mileage_min: '',
+                    mileage_max: '',
                     transmission: '',
                     fuel: '',
                     color: '',
-                    titleType: ''
+                    title_type: ''
                   };
                   setFilters(newFilters);
                   setTimeout(() => searchActiveLots(true), 100);
