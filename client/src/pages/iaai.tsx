@@ -1,498 +1,177 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { useSalesHistory, FilterState } from '../hooks/useSalesHistory';
+import ErrorBoundary from '../components/ui/error-boundary';
+import { Link, useLocation } from 'wouter';
+import SalesAnalytics from '../components/sales/SalesAnalytics';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Search, 
-  Eye, 
-  Calendar,
-  MapPin,
-  DollarSign,
-  Car,
-  Camera,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Gauge,
-  Wrench,
-  Filter,
-  TrendingUp,
-  BarChart3,
-  Image as ImageIcon,
-  ExternalLink
-} from 'lucide-react';
+import { Car } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
-interface IAAILot {
-  lot_id: number;
-  site: number;
-  base_site: string;
-  vin: string;
-  sale_status: string;
-  sale_date: string;
-  purchase_price: number;
-  current_bid: number;
-  auction_location: string;
-  vehicle_damage: string;
-  vehicle_title: string;
-  year: number;
-  make: string;
-  model: string;
-  series: string;
-  trim: string;
-  transmission: string;
-  drive: string;
-  fuel: string;
-  color: string;
-  odometer: number;
-  images: string[];
-  link: string;
-  link_img_hd: string[];
-  link_img_small: string[];
+import { formatCurrency } from '../utils/formatters';
+import PlatformToggle from '../components/ui/platform-toggle';
+
+// Tab enum for better organization
+enum TabType {
+  TIMELINE = "timeline",
+  TABLE = "table",
+  PHOTOS = "photos"
 }
 
-interface SearchFilters {
-  make: string;
-  model: string;
-  yearFrom: string;
-  yearTo: string;
-  location: string;
-  damage: string;
-  status: string;
-}
+// Get current year for the year picker default value
+const currentYear = new Date().getFullYear();
 
 export default function IAAIPage() {
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<SearchFilters>({
-    make: '',
-    model: '',
-    yearFrom: '',
-    yearTo: '',
-    location: '',
-    damage: '',
-    status: ''
+  // Primary search parameters
+  const [make, setMake] = useState('Toyota');
+  const [model, setModel] = useState('');
+  const [vin, setVin] = useState('');
+  const [yearFrom, setYearFrom] = useState(currentYear - 5);
+  const [yearTo, setYearTo] = useState(currentYear);
+  const [sites, setSites] = useState<string[]>(['iaai']); // Changed to iaai
+  const [condition, setCondition] = useState<string>('all'); // 'all', 'used', 'salvage'
+  const [damageType, setDamageType] = useState<string>('all');
+  const [minMileage, setMinMileage] = useState<number | undefined>(undefined);
+  const [maxMileage, setMaxMileage] = useState<number | undefined>(undefined);
+  
+  // Date range for auction
+  const [auctionDateFrom, setAuctionDateFrom] = useState<string>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    return date.toISOString().split('T')[0];
   });
-  const [lots, setLots] = useState<IAAILot[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
+  const [auctionDateTo, setAuctionDateTo] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  
+  // Pagination
   const [page, setPage] = useState(1);
-  const [selectedLot, setSelectedLot] = useState<IAAILot | null>(null);
-
-  const searchIAAILots = async (resetPage = false) => {
-    setIsLoading(true);
-    setError(null);
-    const currentPage = resetPage ? 1 : page;
+  const [resultsPerPage, setResultsPerPage] = useState(25); // API supports up to 25 per page
+  const [totalResults, setTotalResults] = useState(0);
+  
+  // UI state
+  const [activeTab, setActiveTab] = useState<TabType>(TabType.TIMELINE);
+  
+  // Combine filter state for API request
+  const filterState: FilterState = {
+    make,
+    model,
+    year_from: yearFrom,
+    year_to: yearTo,
+    sites,
+    auction_date_from: auctionDateFrom,
+    auction_date_to: auctionDateTo,
+    page,
+    size: resultsPerPage,
+    damage_type: damageType !== 'all' ? damageType : undefined,
+    odometer_from: minMileage,
+    odometer_to: maxMileage
+  };
+  
+  // State to track if a search has been performed
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Helper function to calculate average price from sales history
+  const calculateAveragePrice = (salesHistory: any[] = []) => {
+    if (!salesHistory || salesHistory.length === 0) return 0;
     
-    try {
-      const params = new URLSearchParams({
-        site: '2', // IAAI
-        page: currentPage.toString(),
-        size: '25'
-      });
-
-      if (searchQuery.trim()) {
-        if (searchQuery.length === 17) {
-          params.append('vin', searchQuery);
-        } else {
-          params.append('query', searchQuery);
-        }
-      }
-
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          if (key === 'yearFrom') params.append('year_from', value);
-          else if (key === 'yearTo') params.append('year_to', value);
-          else params.append(key, value);
-        }
-      });
-
-      const response = await fetch(`/api/cars?${params}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to search IAAI lots');
-      }
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setLots(data.data.vehicles || []);
-        setTotalCount(data.data.total || 0);
-        if (resetPage) setPage(1);
-      } else {
-        setError(data.message || 'No lots found');
-        setLots([]);
-      }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while searching');
-      setLots([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    searchIAAILots(true);
-  }, []);
-
-  const formatPrice = (price: number) => {
-    return price > 0 ? `$${price.toLocaleString()}` : 'No bid';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getStatusBadge = (status: string, saleDate: string) => {
-    if (!status) return <Badge variant="outline">Unknown</Badge>;
-    const statusLower = status.toLowerCase();
-    const isUpcoming = new Date(saleDate) > new Date();
+    const salesWithPrices = salesHistory.filter(sale => sale.purchase_price !== undefined);
+    if (salesWithPrices.length === 0) return 0;
     
-    if (statusLower.includes('sold')) {
-      return <Badge variant="default" className="bg-green-600">Sold</Badge>;
-    } else if (statusLower.includes('not sold')) {
-      return <Badge variant="destructive">Not Sold</Badge>;
-    } else if (isUpcoming) {
-      return <Badge variant="secondary" className="bg-orange-600 text-white">Live Auction</Badge>;
-    }
-    return <Badge variant="outline">{status}</Badge>;
+    const total = salesWithPrices.reduce((sum, sale) => sum + (sale.purchase_price || 0), 0);
+    return total / salesWithPrices.length;
   };
 
-  const LotDetailDialog = ({ lot }: { lot: IAAILot }) => (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Eye className="h-4 w-4 mr-1" />
-          View Details
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>{lot.year} {lot.make} {lot.model} - Lot {lot.lot_id}</span>
-            {lot.link && (
-              <Button variant="outline" size="sm" onClick={() => window.open(lot.link, '_blank')}>
-                <ExternalLink className="h-4 w-4 mr-1" />
-                View on IAAI
-              </Button>
-            )}
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Vehicle Images */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
-            {lot.link_img_hd && lot.link_img_hd.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {lot.link_img_hd.slice(0, 4).map((imageUrl: string, index: number) => (
-                  <div key={index} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded overflow-hidden">
-                    <img
-                      src={imageUrl}
-                      alt={`Vehicle photo ${index + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      onClick={() => window.open(imageUrl, '_blank')}
-                    />
-                  </div>
-                ))}
-                {lot.link_img_hd.length > 4 && (
-                  <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
-                    <div className="text-center">
-                      <ImageIcon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        +{lot.link_img_hd.length - 4} more
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-8 text-center">
-                <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No photos available</p>
-              </div>
-            )}
-          </div>
+  // State to hold the actual results data
+  const [searchResults, setSearchResults] = useState<any>(null);
+  
+  // State for detailed vehicle modal
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Fresh Data Toggle for Gold+ (Gold and Platinum) users
+  const { hasPermission } = useAuth();
+  const [freshDataEnabled, setFreshDataEnabled] = useState(false);
+  const [fetchingFreshData, setFetchingFreshData] = useState(false);
+  
+  // Function to open vehicle details modal
+  const openVehicleDetails = (vehicle: any) => {
+    setSelectedVehicle(vehicle);
+    setCurrentImageIndex(0);
+    setIsModalOpen(true);
+  };
 
-          {/* Vehicle Specifications */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Vehicle Specifications</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="font-medium">VIN:</span>
-                <span className="font-mono text-sm">{lot.vin}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Year:</span>
-                <span>{lot.year}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Make:</span>
-                <span>{lot.make}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Model:</span>
-                <span>{lot.model}</span>
-              </div>
-              {lot.series && (
-                <div className="flex justify-between">
-                  <span className="font-medium">Series:</span>
-                  <span>{lot.series}</span>
-                </div>
-              )}
-              {lot.trim && (
-                <div className="flex justify-between">
-                  <span className="font-medium">Trim:</span>
-                  <span>{lot.trim}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="font-medium">Mileage:</span>
-                <span>{lot.odometer?.toLocaleString() || 'Unknown'} miles</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Color:</span>
-                <span>{lot.color}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Transmission:</span>
-                <span>{lot.transmission}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Drive:</span>
-                <span>{lot.drive}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Fuel:</span>
-                <span>{lot.fuel}</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <h4 className="font-semibold mb-3">Auction Information</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="font-medium">Sale Date:</span>
-                  <span>{formatDate(lot.sale_date)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Location:</span>
-                  <span>{lot.auction_location}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Damage:</span>
-                  <span>{lot.vehicle_damage}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Title:</span>
-                  <span>{lot.vehicle_title}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Current Bid:</span>
-                  <span className="font-bold text-lg">{formatPrice(lot.current_bid || 0)}</span>
-                </div>
-                {lot.purchase_price > 0 && (
-                  <div className="flex justify-between">
-                    <span className="font-medium">Final Price:</span>
-                    <span className="font-bold text-lg text-green-600">{formatPrice(lot.purchase_price)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  // Function to close vehicle details modal
+  const closeVehicleDetails = () => {
+    setIsModalOpen(false);
+    setSelectedVehicle(null);
+    setCurrentImageIndex(0);
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-orange-600 rounded flex items-center justify-center">
-            <span className="text-white font-bold text-sm">I</span>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Hero Section with Platform Toggle */}
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                  IAAI Vehicle Sales History
+                </h1>
+                <p className="text-red-100 text-lg">
+                  Search and analyze vehicle sales data from IAAI auctions
+                </p>
+              </div>
+              <PlatformToggle />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold">IAAI Auctions</h1>
         </div>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Search and explore vehicles from IAAI (Insurance Auto Auctions) platform. Find insurance total loss, salvage, and recovered theft vehicles.
-        </p>
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <SalesAnalytics
+            make={make}
+            setMake={setMake}
+            model={model}
+            setModel={setModel}
+            vin={vin}
+            setVin={setVin}
+            yearFrom={yearFrom}
+            setYearFrom={setYearFrom}
+            yearTo={yearTo}
+            setYearTo={setYearTo}
+            auctionDateFrom={auctionDateFrom}
+            setAuctionDateFrom={setAuctionDateFrom}
+            auctionDateTo={auctionDateTo}
+            setAuctionDateTo={setAuctionDateTo}
+            damageType={damageType}
+            setDamageType={setDamageType}
+            minMileage={minMileage}
+            setMinMileage={setMinMileage}
+            maxMileage={maxMileage}
+            setMaxMileage={setMaxMileage}
+            platform="iaai"
+            hasSearched={hasSearched}
+            setHasSearched={setHasSearched}
+            searchResults={searchResults}
+            setSearchResults={setSearchResults}
+            openVehicleDetails={openVehicleDetails}
+            selectedVehicle={selectedVehicle}
+            isModalOpen={isModalOpen}
+            closeVehicleDetails={closeVehicleDetails}
+            currentImageIndex={currentImageIndex}
+            setCurrentImageIndex={setCurrentImageIndex}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            freshDataEnabled={freshDataEnabled}
+            setFreshDataEnabled={setFreshDataEnabled}
+            fetchingFreshData={fetchingFreshData}
+            setFetchingFreshData={setFetchingFreshData}
+          />
+        </div>
       </div>
-
-      {/* Search and Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search IAAI Lots
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search by VIN, make, model, or keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={() => searchIAAILots(true)} disabled={isLoading}>
-              {isLoading ? 'Searching...' : 'Search'}
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Make</label>
-              <Input
-                placeholder="Toyota, Ford..."
-                value={filters.make}
-                onChange={(e) => setFilters({...filters, make: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Model</label>
-              <Input
-                placeholder="Camry, F-150..."
-                value={filters.model}
-                onChange={(e) => setFilters({...filters, model: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Year From</label>
-              <Input
-                type="number"
-                placeholder="2020"
-                value={filters.yearFrom}
-                onChange={(e) => setFilters({...filters, yearFrom: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Year To</label>
-              <Input
-                type="number"
-                placeholder="2024"
-                value={filters.yearTo}
-                onChange={(e) => setFilters({...filters, yearTo: e.target.value})}
-              />
-            </div>
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {lots.length > 0 && (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
-              Found {totalCount.toLocaleString()} IAAI lots
-            </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Page {page}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page === 1}
-                onClick={() => {
-                  setPage(page - 1);
-                  searchIAAILots();
-                }}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setPage(page + 1);
-                  searchIAAILots();
-                }}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4">
-            {lots.map((lot) => (
-              <Card key={lot.lot_id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-semibold text-lg">
-                        {lot.year} {lot.make} {lot.model}
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Lot {lot.lot_id} • {lot.series && `${lot.series} • `}VIN: {lot.vin}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      {getStatusBadge(lot.sale_status, lot.sale_date)}
-                      <p className="text-lg font-bold mt-1">
-                        {lot.purchase_price > 0 ? formatPrice(lot.purchase_price) : formatPrice(lot.current_bid || 0)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{formatDate(lot.sale_date)}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{lot.auction_location}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Gauge className="h-4 w-4 text-muted-foreground" />
-                      <span>{lot.odometer?.toLocaleString() || 'Unknown'} mi</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Wrench className="h-4 w-4 text-muted-foreground" />
-                      <span>{lot.vehicle_damage}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex gap-2">
-                      <Badge variant="outline">{lot.color}</Badge>
-                      <Badge variant="outline">{lot.transmission}</Badge>
-                      <Badge variant="outline">{lot.fuel}</Badge>
-                    </div>
-                    <LotDetailDialog lot={lot} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && lots.length === 0 && (
-        <div className="text-center py-12">
-          <Car className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No lots found</h3>
-          <p className="text-muted-foreground">
-            Try adjusting your search criteria or filters
-          </p>
-        </div>
-      )}
-    </div>
+    </ErrorBoundary>
   );
 }
