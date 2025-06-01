@@ -182,17 +182,16 @@ export default function ActiveLotsPage() {
   };
 
   const handleAnalyzeClick = (lot: AuctionLot) => {
-    // For now, we'll assume Platinum tier users for demonstration
+    // For demonstration, let's change to Gold tier to test Live Lot Analysis
     // This would normally check user tier from authentication context
-    const userTier = 'Platinum'; // This should come from user context
+    const userTier = 'Gold'; // This should come from user context
     
     if (userTier === 'Platinum') {
       // Navigate to Auction Mind Pro using React Router
       setLocation('/auction-mind');
     } else if (userTier === 'Gold') {
-      // Navigate to Live Lot Analysis (placeholder for now)
-      console.log('Redirecting to Live Lot Analysis for lot:', lot.lot_id);
-      // setLocation('/live-lot-analysis');
+      // Navigate to Live Lot Analysis
+      setLocation('/live-lot-analysis');
     } else {
       // Basic tier users might see a upgrade prompt
       console.log('Upgrade required for lot analysis');
