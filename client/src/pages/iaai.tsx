@@ -1166,7 +1166,7 @@ export default function IAAIPage() {
                       </button>
                       
                       {/* Enhanced pagination display that highlights current page better */}
-                      <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-blue-100 dark:bg-blue-900 text-sm font-bold text-blue-600 dark:text-blue-200">
+                      <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-red-100 dark:bg-red-900 text-sm font-bold text-red-600 dark:text-red-200">
                         Page {page}
                       </span>
                       
