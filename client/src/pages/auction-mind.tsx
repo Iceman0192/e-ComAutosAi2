@@ -400,8 +400,128 @@ export default function AuctionMind() {
 
       {/* Results Section */}
       {vinData && (
-        <div className="space-y-6">
-          {/* Summary Cards */}
+        <div className="space-y-8">
+          {/* Vehicle Hero Section - Main Display */}
+          {vinData.vehicles && vinData.vehicles.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+              {/* Hero Carousel */}
+              <div className="p-6">
+                <HeroCarousel images={vinData.vehicles[0].images || vinData.vehicles[0].link_img_hd || vinData.vehicles[0].link_img_small || []} />
+              </div>
+              
+              {/* Vehicle Information */}
+              <div className="p-6 border-t bg-gray-50 dark:bg-gray-700">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    {vinData.vehicles[0].year} {vinData.vehicles[0].make} {vinData.vehicles[0].model}
+                  </h2>
+                  {vinData.vehicles[0].series && (
+                    <p className="text-xl text-gray-600 dark:text-gray-300">{vinData.vehicles[0].series}</p>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {/* Basic Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                      <Car className="h-5 w-5 mr-2" />
+                      Vehicle Details
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">VIN:</span>
+                        <span className="font-mono text-sm">{vinData.vehicles[0].vin}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Lot ID:</span>
+                        <span>{vinData.vehicles[0].lot_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Platform:</span>
+                        <Badge variant={vinData.vehicles[0].base_site === 'copart' ? 'default' : 'secondary'}>
+                          {vinData.vehicles[0].base_site?.toUpperCase()}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Location:</span>
+                        <span>{vinData.vehicles[0].location || vinData.vehicles[0].auction_location}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Mileage:</span>
+                        <span>{vinData.vehicles[0].odometer?.toLocaleString() || 'Unknown'} mi</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Vehicle Specifications */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                      <Wrench className="h-5 w-5 mr-2" />
+                      Specifications
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Color:</span>
+                        <span>{vinData.vehicles[0].color}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Transmission:</span>
+                        <span>{vinData.vehicles[0].transmission}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Drive:</span>
+                        <span>{vinData.vehicles[0].drive}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Fuel:</span>
+                        <span>{vinData.vehicles[0].fuel}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Engine:</span>
+                        <span>{vinData.vehicles[0].engine || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Auction Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                      <History className="h-5 w-5 mr-2" />
+                      Auction Details
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Primary Damage:</span>
+                        <span className="text-red-600 font-medium">{vinData.vehicles[0].damage_pr || vinData.vehicles[0].vehicle_damage}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Title:</span>
+                        <span>{vinData.vehicles[0].document || vinData.vehicles[0].vehicle_title}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Sale Date:</span>
+                        <span>{new Date(vinData.vehicles[0].sale_date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Sale Price:</span>
+                        <span className="text-2xl font-bold text-green-600">
+                          ${vinData.vehicles[0].purchase_price?.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600 dark:text-gray-300">Status:</span>
+                        <Badge variant={vinData.vehicles[0].sale_status === 'Sold' ? 'default' : 'destructive'}>
+                          {vinData.vehicles[0].sale_status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Summary Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
