@@ -211,22 +211,8 @@ export default function IAAIPage() {
     
     console.log(`Initial search with params:`, params.toString());
     
-    // Use the optimized cars endpoint for fast results
-    const carsParams = new URLSearchParams({
-      site: '2', // IAAI
-      page: '1',
-      size: resultsPerPage.toString()
-    });
-
-    // Add all the search parameters
-    if (make) carsParams.append('make', make);
-    if (model) carsParams.append('model', model);
-    if (yearFrom) carsParams.append('year_from', yearFrom.toString());
-    if (yearTo) carsParams.append('year_to', yearTo.toString());
-    carsParams.append('sale_date_from', auctionDateFrom);
-    carsParams.append('sale_date_to', auctionDateTo);
-
-    fetch(`/api/cars?${carsParams.toString()}`)
+    // Use the correct sales-history endpoint for completed sales
+    fetch(`/api/sales-history?${params.toString()}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -317,25 +303,31 @@ export default function IAAIPage() {
       params.append('fresh_data', 'true');
     }
     
-    console.log(`Requesting page ${newPage} with params:`, params.toString());
+    // Build complete URL parameters for sales history API request
+    const salesParams = new URLSearchParams();
+    salesParams.append('make', make);
+    if (model) salesParams.append('model', model);
+    if (yearFrom) salesParams.append('year_from', yearFrom.toString());
+    if (yearTo) salesParams.append('year_to', yearTo.toString());
+    salesParams.append('page', newPage.toString());
+    salesParams.append('size', resultsPerPage.toString());
+    salesParams.append('sale_date_from', auctionDateFrom);
+    salesParams.append('sale_date_to', auctionDateTo);
     
-    // Use the faster cars endpoint for consistent performance
-    const carsParams = new URLSearchParams({
-      site: '2', // IAAI
-      page: newPage.toString(),
-      size: resultsPerPage.toString()
+    // Add sites parameter
+    sites.forEach(site => {
+      salesParams.append('sites', site);
     });
     
-    // Add search parameters
-    if (make) carsParams.append('make', make);
-    if (model) carsParams.append('model', model);
-    if (yearFrom) carsParams.append('year_from', yearFrom.toString());
-    if (yearTo) carsParams.append('year_to', yearTo.toString());
-    carsParams.append('sale_date_from', auctionDateFrom);
-    carsParams.append('sale_date_to', auctionDateTo);
+    // Add Fresh Data parameter for Gold+ users
+    if (freshDataEnabled) {
+      salesParams.append('fresh_data', 'true');
+    }
     
-    // Single optimized API call
-    fetch(`/api/cars?${carsParams.toString()}`)
+    console.log(`Requesting page ${newPage} with params:`, salesParams.toString());
+    
+    // Fetch sales history data
+    fetch(`/api/sales-history?${salesParams.toString()}`)
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
