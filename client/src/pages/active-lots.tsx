@@ -64,6 +64,9 @@ interface AuctionLot {
   document?: string;
   odobrand?: string;
   auction_date?: string;
+  location?: string;
+  damage_pr?: string;
+  title?: string;
 }
 
 interface SearchFilters {
@@ -1002,13 +1005,13 @@ export default function ActiveLotsPage() {
                         <td className="p-3">
                           <div className="text-sm">
                             <div className="font-semibold text-blue-600 mb-1">
-                              {lot.auction_location?.split(' - ')[0] || 'Unknown Location'}
+                              {(lot as any).location || lot.auction_location || 'Unknown Location'}
                             </div>
                             <div className="text-slate-600 mb-1">
                               Item# {lot.lot_id}
                             </div>
                             <div className="text-red-600 font-medium">
-                              Auction on {formatDate(lot.sale_date)}
+                              Auction on {formatDate((lot as any).auction_date || lot.sale_date)}
                             </div>
                           </div>
                         </td>
