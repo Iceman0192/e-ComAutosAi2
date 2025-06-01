@@ -239,8 +239,11 @@ export default function IAAIPage() {
         // Only update if successful
         if (result.success && result.data) {
           // Convert cars API response to match expected format for analytics
-          // Map API fields to the format expected by SalesAnalytics component
+          // Preserve original fields AND add analytics-compatible fields
           const convertedSalesHistory = (result.data || []).map((vehicle: any) => ({
+            // Original API fields (preserve for table/image display)
+            ...vehicle,
+            // Analytics-compatible fields
             id: vehicle.id || `${vehicle.lot_id}-${vehicle.site}`,
             vin: vehicle.vin || '',
             sale_date: vehicle.auction_date || new Date().toISOString(),
@@ -345,7 +348,11 @@ export default function IAAIPage() {
         // Only update if successful
         if (result.success && result.data) {
           // Convert cars API response to match expected format for analytics
+          // Preserve original fields AND add analytics-compatible fields
           const convertedSalesHistory = (result.data || []).map((vehicle: any) => ({
+            // Original API fields (preserve for table/image display)
+            ...vehicle,
+            // Analytics-compatible fields
             id: vehicle.id || `${vehicle.lot_id}-${vehicle.site}`,
             vin: vehicle.vin || '',
             sale_date: vehicle.auction_date || new Date().toISOString(),
