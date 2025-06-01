@@ -275,6 +275,7 @@ export default function ActiveLotsPage() {
 
     try {
       const queryParams = new URLSearchParams({
+        site: selectedPlatform === 'copart' ? '1' : '2',
         page: currentPage.toString(),
         size: '25'
       });
@@ -906,7 +907,7 @@ export default function ActiveLotsPage() {
                 {isLoading ? 'Searching vehicles...' : `Search ${totalCount?.toLocaleString() || ''} Vehicles`}
               </Button>
               <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-2">
-                Searching across Copart & IAAI auction platforms
+                Searching {selectedPlatform === 'copart' ? 'Copart' : 'IAAI'} auction platform
               </p>
             </div>
           </div>
