@@ -473,6 +473,21 @@ async function searchVinHistory(vin: string): Promise<any> {
       );
       
       if (!exists) {
+        // Get the most recent sale from sale_history if available
+        let latestSale = extResult;
+        if (extResult.sale_history && extResult.sale_history.length > 0) {
+          // Sort by sale_date and get the most recent one
+          const sortedSales = extResult.sale_history.sort((a: any, b: any) => 
+            new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime()
+          );
+          latestSale = {
+            ...extResult,
+            sale_status: sortedSales[0].sale_status,
+            sale_date: sortedSales[0].sale_date,
+            purchase_price: sortedSales[0].purchase_price
+          };
+        }
+
         // Transform external result to match internal format
         allResults.push({
           id: `${extResult.lot_id}-${extResult.site}-ext`,
@@ -480,9 +495,9 @@ async function searchVinHistory(vin: string): Promise<any> {
           site: extResult.site,
           base_site: extResult.site === 1 ? 'copart' : 'iaai',
           vin: extResult.vin,
-          sale_status: extResult.sale_status || 'Unknown',
-          sale_date: extResult.sale_date || new Date(),
-          purchase_price: extResult.purchase_price || extResult.price || 0,
+          sale_status: latestSale.sale_status || 'Unknown',
+          sale_date: latestSale.sale_date || new Date(),
+          purchase_price: latestSale.purchase_price || extResult.price || 0,
           auction_location: extResult.location || 'Unknown',
           vehicle_damage: extResult.damage_pr || extResult.vehicle_damage || 'Unknown',
           vehicle_title: extResult.title || extResult.vehicle_title || 'Unknown',
