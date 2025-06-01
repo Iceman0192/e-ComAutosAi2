@@ -673,172 +673,128 @@ export default function ActiveLotsPage() {
             Search Active Lots
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  placeholder="Search by VIN, make, model, or keywords..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSearchQuery(value);
-                    
-                    // Auto-populate when a complete VIN is entered
-                    if (value.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(value)) {
-                      autoPopulateFromVIN(value);
-                    }
-                  }}
-                  className="flex-1"
-                />
-                {isAutoPopulating && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  </div>
-                )}
-              </div>
-              <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
-                {isLoading ? 'Searching...' : 'Search'}
-              </Button>
-            </div>
-            
-            {/* VIN Helper */}
-            {searchQuery.length > 0 && searchQuery.length < 17 && /^[A-HJ-NPR-Z0-9]+$/i.test(searchQuery) && (
-              <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-md">
-                💡 Enter a complete 17-digit VIN to auto-populate filters with vehicle details
-              </div>
-            )}
-            
-            {searchQuery.length === 17 && /^[A-HJ-NPR-Z0-9]{17}$/i.test(searchQuery) && !isAutoPopulating && (
-              <div className="text-xs text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-md flex items-center gap-2">
-                <Target className="h-3 w-3" />
-                VIN detected - filters auto-populated for similar vehicles
-              </div>
-            )}
+        <CardContent className="space-y-6">
+          {/* Smart Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <Input
+              type="text"
+              placeholder="Search vehicles... (e.g., '2020 Honda Civic', '2018-2022 Toyota', 'BMW under 25k')"
+              value={smartSearch}
+              onChange={(e) => setSmartSearch(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
+              className="pl-10 pr-4 py-3 text-base"
+            />
+            <Button 
+              onClick={handleSmartSearch}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+              size="sm"
+            >
+              Search
+            </Button>
           </div>
 
-          {/* Smart Search Bar */}
-          <div className="space-y-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Search vehicles... (e.g., '2020 Honda Civic', '2018-2022 Toyota', 'BMW under 25k')"
-                value={smartSearch}
-                onChange={(e) => setSmartSearch(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSmartSearch()}
-                className="pl-10 pr-4 py-3 text-base"
-              />
-              <Button 
-                onClick={handleSmartSearch}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2"
-                size="sm"
-              >
-                Search
-              </Button>
-            </div>
+          {/* Quick Filter Chips */}
+          <div className="flex flex-wrap gap-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filters:</span>
+            
+            {/* Price Range Chips */}
+            <Button
+              variant={quickFilters.priceRange === 'under5k' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'under5k' ? '' : 'under5k')}
+              className="h-7 text-xs"
+            >
+              Under $5K
+            </Button>
+            <Button
+              variant={quickFilters.priceRange === '5k-15k' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '5k-15k' ? '' : '5k-15k')}
+              className="h-7 text-xs"
+            >
+              $5K - $15K
+            </Button>
+            <Button
+              variant={quickFilters.priceRange === '15k-30k' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '15k-30k' ? '' : '15k-30k')}
+              className="h-7 text-xs"
+            >
+              $15K - $30K
+            </Button>
+            <Button
+              variant={quickFilters.priceRange === 'over30k' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'over30k' ? '' : 'over30k')}
+              className="h-7 text-xs"
+            >
+              Over $30K
+            </Button>
 
-            {/* Quick Filter Chips */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick filters:</span>
-              
-              {/* Price Range Chips */}
-              <Button
-                variant={quickFilters.priceRange === 'under5k' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'under5k' ? '' : 'under5k')}
-                className="h-7 text-xs"
-              >
-                Under $5K
-              </Button>
-              <Button
-                variant={quickFilters.priceRange === '5k-15k' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '5k-15k' ? '' : '5k-15k')}
-                className="h-7 text-xs"
-              >
-                $5K - $15K
-              </Button>
-              <Button
-                variant={quickFilters.priceRange === '15k-30k' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === '15k-30k' ? '' : '15k-30k')}
-                className="h-7 text-xs"
-              >
-                $15K - $30K
-              </Button>
-              <Button
-                variant={quickFilters.priceRange === 'over30k' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('priceRange', quickFilters.priceRange === 'over30k' ? '' : 'over30k')}
-                className="h-7 text-xs"
-              >
-                Over $30K
-              </Button>
+            {/* Year Range Chips */}
+            <Button
+              variant={quickFilters.yearRange === 'new' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'new' ? '' : 'new')}
+              className="h-7 text-xs"
+            >
+              2020+ (New)
+            </Button>
+            <Button
+              variant={quickFilters.yearRange === 'recent' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'recent' ? '' : 'recent')}
+              className="h-7 text-xs"
+            >
+              2015-2019 (Recent)
+            </Button>
+            <Button
+              variant={quickFilters.yearRange === 'older' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'older' ? '' : 'older')}
+              className="h-7 text-xs"
+            >
+              Pre-2015 (Older)
+            </Button>
 
-              {/* Year Range Chips */}
-              <Button
-                variant={quickFilters.yearRange === 'new' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'new' ? '' : 'new')}
-                className="h-7 text-xs"
-              >
-                2020+ (New)
-              </Button>
-              <Button
-                variant={quickFilters.yearRange === 'recent' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'recent' ? '' : 'recent')}
-                className="h-7 text-xs"
-              >
-                2015-2019 (Recent)
-              </Button>
-              <Button
-                variant={quickFilters.yearRange === 'older' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('yearRange', quickFilters.yearRange === 'older' ? '' : 'older')}
-                className="h-7 text-xs"
-              >
-                Pre-2015 (Older)
-              </Button>
+            {/* Condition Chips */}
+            <Button
+              variant={quickFilters.condition === 'runDrive' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => applyQuickFilter('condition', quickFilters.condition === 'runDrive' ? '' : 'runDrive')}
+              className="h-7 text-xs"
+            >
+              Run & Drive
+            </Button>
 
-              {/* Condition Chips */}
-              <Button
-                variant={quickFilters.condition === 'runDrive' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => applyQuickFilter('condition', quickFilters.condition === 'runDrive' ? '' : 'runDrive')}
-                className="h-7 text-xs"
-              >
-                Run & Drive
-              </Button>
+            {/* Clear All */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => applyQuickFilter('clear', 'clear')}
+              className="h-7 text-xs text-red-600 hover:text-red-700"
+            >
+              Clear All
+            </Button>
+          </div>
 
-              {/* Clear All */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => applyQuickFilter('clear', 'clear')}
-                className="h-7 text-xs text-red-600 hover:text-red-700"
-              >
-                Clear All
-              </Button>
-            </div>
+          {/* Advanced Filters Toggle */}
+          <div className="border-t pt-4">
+            <Button
+              variant="ghost"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center gap-2 text-sm"
+            >
+              <Filter className="h-4 w-4" />
+              Advanced Filters
+              <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+            </Button>
+          </div>
 
-            {/* Advanced Filters Toggle */}
-            <div className="border-t pt-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="flex items-center gap-2 text-sm"
-              >
-                <Filter className="h-4 w-4" />
-                Advanced Filters
-                <ChevronDown className={`h-4 w-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
-
-            {/* Advanced Filters (Collapsible) */}
-            {showAdvancedFilters && (
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
+          {/* Advanced Filters (Collapsible) */}
+          {showAdvancedFilters && (
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Make</label>
@@ -1163,7 +1119,6 @@ export default function ActiveLotsPage() {
                 <RefreshCw className="h-4 w-4 mr-1" />
                 Clear Filters
               </Button>
-            </div>
               </div>
             )}
           </div>
