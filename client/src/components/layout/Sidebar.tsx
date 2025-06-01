@@ -117,18 +117,18 @@ export function Sidebar({ className = '' }: SidebarProps) {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full max-h-screen">
       {/* Logo and User Info */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
           VehicleIntel
         </h2>
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+          <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
             {user?.name?.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
               {user?.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
@@ -150,7 +150,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 p-4 space-y-1">
+      <div className="flex-1 p-4 space-y-1 overflow-y-auto min-h-0">
         <div className="mb-4">
           <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
             Main Navigation
@@ -247,7 +247,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       </div>
 
       {/* Logout */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <Button
           variant="ghost"
           className="w-full justify-start gap-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -266,7 +266,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
+        className="fixed top-4 left-4 z-[60] md:hidden bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-700"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
         {isMobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -288,7 +288,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       {/* Mobile Sidebar */}
       <aside className={`fixed top-0 left-0 z-50 w-64 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out md:hidden ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      } overflow-hidden`}>
         <SidebarContent />
       </aside>
     </>
