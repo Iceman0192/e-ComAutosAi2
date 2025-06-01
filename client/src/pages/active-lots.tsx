@@ -306,7 +306,7 @@ export default function ActiveLotsPage() {
 
   // Load initial data
   useEffect(() => {
-    searchActiveLots();
+    searchActiveLots(true);
   }, [selectedPlatform]);
 
   // Vehicle lot detail dialog component
