@@ -774,9 +774,9 @@ export default function ActiveLotsPage() {
               </Button>
 
               <Button
-                variant={filters.is_buynow === '1' ? 'default' : 'outline'}
+                variant={filters.is_buynow === 'true' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => handleQuickFilter('is_buynow', '1')}
+                onClick={() => handleQuickFilter('is_buynow', 'true')}
                 className="h-7 text-xs"
               >
                 <Zap className="h-3 w-3 mr-1" />
