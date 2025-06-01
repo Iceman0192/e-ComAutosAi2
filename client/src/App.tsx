@@ -14,6 +14,8 @@ import Home from "./pages/home";
 import ActiveLots from "./pages/active-lots";
 import LiveCopart from "./pages/live-copart";
 import LiveIAAI from "./pages/live-iaai";
+import Copart from "./pages/copart";
+import IAAI from "./pages/iaai";
 import AuctionMind from "./pages/auction-mind";
 import AuctionMindV2 from "./pages/auction-mind-v2";
 import ImportCalculator from "./pages/import-calculator";
@@ -31,6 +33,8 @@ function Router() {
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
+        <Route path="/sales-history" component={Copart} />
+        <Route path="/iaai" component={IAAI} />
         <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={ImportCalculator} />
