@@ -760,7 +760,7 @@ export default function IAAIPage() {
                     </div>
                   </div>
                   {fetchingFreshData && (
-                    <div className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+                    <div className="flex items-center space-x-2 text-red-700 dark:text-red-300">
                       <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -769,7 +769,7 @@ export default function IAAIPage() {
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                <p className="text-xs text-red-700 dark:text-red-300 mt-2">
                   {freshDataEnabled 
                     ? "✓ Fresh auction data will be included in your search results"
                     : "Enable to fetch the latest auction data from the last 3 days"
@@ -783,7 +783,7 @@ export default function IAAIPage() {
                 type="button"
                 onClick={handleSearch}
                 disabled={!make || isSearching}
-                className="w-full inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors min-h-[48px] touch-manipulation"
+                className="w-full inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors min-h-[48px] touch-manipulation"
               >
                 {isSearching ? (
                   <>
@@ -849,7 +849,7 @@ export default function IAAIPage() {
                   <button
                     className={`px-4 py-2 text-sm font-medium ${
                       activeTab === TabType.TIMELINE
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-red-600 text-white'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                     onClick={() => setActiveTab(TabType.TIMELINE)}
@@ -859,7 +859,7 @@ export default function IAAIPage() {
                   <button
                     className={`px-4 py-2 text-sm font-medium ${
                       activeTab === TabType.TABLE
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-red-600 text-white'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                     onClick={() => setActiveTab(TabType.TABLE)}
@@ -869,7 +869,7 @@ export default function IAAIPage() {
                   <button
                     className={`px-4 py-2 text-sm font-medium ${
                       activeTab === TabType.PHOTOS
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-red-600 text-white'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
                     onClick={() => setActiveTab(TabType.PHOTOS)}
