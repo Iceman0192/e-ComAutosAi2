@@ -526,11 +526,11 @@ export default function AuctionMind() {
             </div>
           )}
 
-          {/* Complete VIN History Records */}
-          {vinData.vehicles && vinData.vehicles.length > 1 && (
+          {/* Complete VIN History Records - Only Sold Vehicles */}
+          {vinData.vehicles && vinData.vehicles.filter((v: any) => v.purchase_price && parseFloat(v.purchase_price) > 0).length > 1 && (
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Complete Auction History</h2>
-              {vinData.vehicles.map((vehicle: any, index: number) => (
+              {vinData.vehicles.filter((vehicle: any) => vehicle.purchase_price && parseFloat(vehicle.purchase_price) > 0).map((vehicle: any, index: number) => (
                 <Card key={index} className="overflow-hidden">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
