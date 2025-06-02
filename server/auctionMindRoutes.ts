@@ -473,16 +473,11 @@ async function searchVinHistory(vin: string): Promise<any> {
       }, null, 2));
     }
     
-    // Combine and deduplicate results
-    const allResults = [...internalResults];
+    // Combine and deduplicate results, preferring external data with more complete image arrays
+    const allResults = [];
     
-    // Add external results that aren't already in internal database
+    // First, add all external results with their complete image data
     for (const extResult of externalResults) {
-      const exists = internalResults.some(internal => 
-        internal.lot_id === extResult.lot_id && internal.site === extResult.site
-      );
-      
-      if (!exists) {
         // Get the most recent sale from sale_history if available
         let latestSale = extResult;
         if (extResult.sale_history && extResult.sale_history.length > 0) {
@@ -521,7 +516,9 @@ async function searchVinHistory(vin: string): Promise<any> {
           fuel: extResult.fuel,
           color: extResult.color,
           vehicle_mileage: extResult.odometer || extResult.vehicle_mileage,
-          images: extResult.link_img_hd || extResult.images || extResult.photo_links || [],
+          images: Array.isArray(extResult.link_img_hd) ? extResult.link_img_hd.filter(img => !img.includes('.mp4')) : 
+                  Array.isArray(extResult.images) ? extResult.images : 
+                  Array.isArray(extResult.photo_links) ? extResult.photo_links : [],
           link: extResult.link,
           created_at: new Date(),
           vehicle_has_keys: null,
@@ -530,6 +527,16 @@ async function searchVinHistory(vin: string): Promise<any> {
           buyer_type: null,
           engine: extResult.engine
         });
+    }
+    
+    // Add internal results that don't have external counterparts
+    for (const internalResult of internalResults) {
+      const existsInExternal = externalResults.some(external => 
+        external.lot_id === internalResult.lot_id && external.site === internalResult.site
+      );
+      
+      if (!existsInExternal) {
+        allResults.push(internalResult);
       }
     }
     
