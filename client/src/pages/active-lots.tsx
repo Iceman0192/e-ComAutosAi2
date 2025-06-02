@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { 
   Search, 
   Eye, 
@@ -14,28 +12,10 @@ import {
   MapPin,
   DollarSign,
   Car,
-  Camera,
   AlertCircle,
-  CheckCircle,
-  Clock,
   Gauge,
-  Wrench,
-  Filter,
-  TrendingUp,
-  BarChart3,
-  Image as ImageIcon,
   ExternalLink,
-  RefreshCw,
-  Target,
-  ChevronDown,
-  X,
-  ChevronUp,
-  ChevronRight,
-  Zap,
-  Users,
-  FileText,
-  Fuel,
-  Settings
+  RefreshCw
 } from 'lucide-react';
 
 interface AuctionLot {
@@ -180,27 +160,27 @@ export default function ActiveLotsPage() {
     year_to: '',
     odometer_min: '',
     odometer_max: '',
-    mileage_min: string;
-    mileage_max: string;
-    make: string;
-    model: string;
-    series: string;
-    damage_pr: string;
-    damage_sec: string;
-    keys: string;
-    fuel: string;
-    transmission: string;
-    color: string;
-    document: string;
-    vehicle_type: string;
-    auction_type: string;
-    is_buynow: string;
-    buy_now: string;
-    location: string;
-    seller_type: string;
-    body_type: string;
-    cylinders: string;
-    engine_size: string;
+    mileage_min: '',
+    mileage_max: '',
+    make: '',
+    model: '',
+    series: '',
+    damage_pr: '',
+    damage_sec: '',
+    keys: '',
+    fuel: '',
+    transmission: '',
+    color: '',
+    document: '',
+    vehicle_type: '',
+    auction_type: '',
+    is_buynow: '',
+    buy_now: '',
+    location: '',
+    seller_type: '',
+    body_type: '',
+    cylinders: '',
+    engine_size: ''
   });
 
   // Enhanced search functionality
