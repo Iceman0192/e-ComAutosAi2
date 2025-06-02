@@ -60,24 +60,77 @@ export default function Dashboard() {
   const getQuickActions = () => {
     const actions = [
       {
-        title: 'Copart Search',
+        title: 'Copart Sales History',
         description: 'Search Copart auction database',
         icon: Car,
-        href: '/',
+        href: '/copart',
         permission: 'BASIC_SEARCH',
         color: 'bg-blue-500'
       },
       {
-        title: 'IAAI Search', 
+        title: 'IAAI Sales History', 
         description: 'Search IAAI auction database',
         icon: Search,
         href: '/iaai',
+        permission: 'BASIC_SEARCH',
+        color: 'bg-red-500'
+      },
+      {
+        title: 'VIN History Search',
+        description: 'Complete VIN auction history with images',
+        icon: BarChart3,
+        href: '/vin-history',
+        permission: 'BASIC_SEARCH',
+        color: 'bg-purple-500'
+      },
+      {
+        title: 'Active Lot Finder',
+        description: 'Find current auction lots',
+        icon: Clock,
+        href: '/active-lots',
         permission: 'BASIC_SEARCH',
         color: 'bg-green-500'
       }
     ];
 
+    // Premium features (Gold/Platinum tiers)
+    if (hasPermission('FULL_ANALYTICS')) {
+      actions.push({
+        title: 'Live Copart Analysis',
+        description: 'Real-time lot analysis with AI insights',
+        icon: TrendingUp,
+        href: '/live-copart',
+        permission: 'FULL_ANALYTICS',
+        color: 'bg-indigo-500'
+      });
 
+      actions.push({
+        title: 'Live IAAI Analysis',
+        description: 'Real-time IAAI lot analysis',
+        icon: Activity,
+        href: '/live-iaai',
+        permission: 'FULL_ANALYTICS',
+        color: 'bg-pink-500'
+      });
+
+      actions.push({
+        title: 'AuctionMind Pro',
+        description: 'AI-powered vehicle analysis & comparable search',
+        icon: Settings,
+        href: '/auction-mind-v2',
+        permission: 'FULL_ANALYTICS',
+        color: 'bg-emerald-500'
+      });
+
+      actions.push({
+        title: 'Import Calculator',
+        description: 'Calculate import duties and taxes',
+        icon: Car,
+        href: '/import-calculator',
+        permission: 'FULL_ANALYTICS',
+        color: 'bg-amber-500'
+      });
+    }
 
     // Admin-only features
     if (user?.role === 'admin') {
@@ -307,24 +360,55 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Upgrade Prompt for Free Users */}
-      {user?.role === 'free' && (
-        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-          <CardHeader>
-            <CardTitle className="text-amber-800 dark:text-amber-200">
-              Unlock Premium Features
-            </CardTitle>
-            <CardDescription className="text-amber-700 dark:text-amber-300">
-              Upgrade to Gold or Platinum for advanced analytics and unlimited searches
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="bg-amber-600 hover:bg-amber-700">
-              View Pricing Plans
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Feature Tier Information */}
+      <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+        <CardHeader>
+          <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
+            <Badge className="h-4 w-4" />
+            Current Plan: {user?.role.charAt(0).toUpperCase() + user?.role.slice(1)} Tier
+          </CardTitle>
+          <CardDescription className="text-blue-700 dark:text-blue-300">
+            {user?.role === 'free' && "You have access to basic sales history search and VIN history."}
+            {user?.role === 'basic' && "You have access to all basic features plus Active Lot Finder."}
+            {user?.role === 'gold' && "You have access to live analysis tools and AuctionMind Pro."}
+            {user?.role === 'platinum' && "You have access to all premium features including import calculator."}
+            {user?.role === 'admin' && "You have full administrative access to all features."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-blue-700 dark:text-blue-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="font-medium mb-2">Basic Features (All Tiers)</h4>
+                <ul className="space-y-1 text-xs">
+                  <li>• Copart & IAAI Sales History Search</li>
+                  <li>• VIN History Search with Complete Image Gallery</li>
+                  <li>• Active Lot Finder</li>
+                  <li>• Basic Vehicle Analytics</li>
+                </ul>
+              </div>
+              {(user?.role === 'gold' || user?.role === 'platinum' || user?.role === 'admin') && (
+                <div>
+                  <h4 className="font-medium mb-2">Premium Features (Gold/Platinum)</h4>
+                  <ul className="space-y-1 text-xs">
+                    <li>• Live Copart & IAAI Analysis</li>
+                    <li>• AuctionMind Pro AI Analysis</li>
+                    <li>• Advanced Comparable Search</li>
+                    {(user?.role === 'platinum' || user?.role === 'admin') && <li>• Import Duty Calculator</li>}
+                  </ul>
+                </div>
+              )}
+            </div>
+            {user?.role === 'free' && (
+              <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                <Button className="bg-blue-600 hover:bg-blue-700" size="sm">
+                  Upgrade to Gold for Live Analysis Tools
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
