@@ -798,7 +798,7 @@ export default function ActiveLotsPage() {
             </div>
 
             {/* Essential Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {/* Budget Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Budget</label>
@@ -847,6 +847,69 @@ export default function ActiveLotsPage() {
                     <SelectItem value="Run & Drive">Run & Drive</SelectItem>
                     <SelectItem value="Starts">Starts Only</SelectItem>
                     <SelectItem value="Won't Start">Won't Start</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Location Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Location</label>
+                <Select value={filters.location} onValueChange={(value) => setFilters({...filters, location: value})}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Any location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Location</SelectItem>
+                    <SelectItem value="FL">Florida</SelectItem>
+                    <SelectItem value="TX">Texas</SelectItem>
+                    <SelectItem value="CA">California</SelectItem>
+                    <SelectItem value="NY">New York</SelectItem>
+                    <SelectItem value="PA">Pennsylvania</SelectItem>
+                    <SelectItem value="OH">Ohio</SelectItem>
+                    <SelectItem value="IL">Illinois</SelectItem>
+                    <SelectItem value="NC">North Carolina</SelectItem>
+                    <SelectItem value="GA">Georgia</SelectItem>
+                    <SelectItem value="VA">Virginia</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Primary Damage Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Primary Damage</label>
+                <Select value={filters.damage_pr} onValueChange={(value) => setFilters({...filters, damage_pr: value})}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Any damage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Damage</SelectItem>
+                    <SelectItem value="Front End">Front End</SelectItem>
+                    <SelectItem value="Rear End">Rear End</SelectItem>
+                    <SelectItem value="Side">Side</SelectItem>
+                    <SelectItem value="Hail">Hail</SelectItem>
+                    <SelectItem value="Minor Dent/Scratches">Minor Dent/Scratches</SelectItem>
+                    <SelectItem value="Water/Flood">Water/Flood</SelectItem>
+                    <SelectItem value="Fire">Fire</SelectItem>
+                    <SelectItem value="Vandalism">Vandalism</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Document Type Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Document Type</label>
+                <Select value={filters.document} onValueChange={(value) => setFilters({...filters, document: value})}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Any title" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Title</SelectItem>
+                    <SelectItem value="Clean">Clean</SelectItem>
+                    <SelectItem value="Salvage">Salvage</SelectItem>
+                    <SelectItem value="Rebuilt">Rebuilt</SelectItem>
+                    <SelectItem value="Lemon">Lemon</SelectItem>
+                    <SelectItem value="Flood">Flood</SelectItem>
+                    <SelectItem value="Cert of Title">Cert of Title</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1284,7 +1347,6 @@ export default function ActiveLotsPage() {
                 <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
                   {isLoading ? 'Searching...' : 'Apply Filters'}
                 </Button>
-              </div>
               </div>
             </div>
           )}
