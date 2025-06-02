@@ -276,11 +276,24 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
 
     console.log(`Running AI vision analysis on ${lotData.link_img_hd.length} images`);
 
-    // Filter images to only include supported formats and valid URLs
-    const images = lotData.link_img_hd.filter((url: string) => {
-      // Check if URL contains supported image formats
+    // Filter and convert images to supported formats
+    const images = lotData.link_img_hd.map((url: string) => {
+      // Handle IAAI deepzoom format - convert to direct image URL
+      if (url.includes('vis.iaai.com/deepzoom')) {
+        // Extract imageKey from deepzoom URL
+        const imageKeyMatch = url.match(/imageKey=([^&]+)/);
+        if (imageKeyMatch) {
+          const imageKey = imageKeyMatch[1];
+          // Convert to direct image URL format that OpenAI can process
+          return `https://vis.iaai.com/resizer?imageKeys=${imageKey}&width=800&height=600`;
+        }
+      }
+      return url;
+    }).filter((url: string) => {
+      // Check if URL contains supported image formats or is converted IAAI URL
       const supportedFormats = /\.(jpg|jpeg|png|gif|webp)($|\?)/i;
-      const hasValidFormat = supportedFormats.test(url);
+      const isIAAIConverted = url.includes('vis.iaai.com/resizer');
+      const hasValidFormat = supportedFormats.test(url) || isIAAIConverted;
       
       // Skip video files
       const isVideo = /\.(mp4|mov|avi|webm)($|\?)/i.test(url);
