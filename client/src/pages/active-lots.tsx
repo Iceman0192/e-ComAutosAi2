@@ -180,27 +180,27 @@ export default function ActiveLotsPage() {
     year_to: '',
     odometer_min: '',
     odometer_max: '',
-    mileage_min: '',
-    mileage_max: '',
-    make: '',
-    model: '',
-    series: '',
-    damage_pr: '',
-    damage_sec: '',
-    keys: '',
-    fuel: '',
-    transmission: '',
-    color: '',
-    document: '',
-    vehicle_type: '',
-    auction_type: '',
-    is_buynow: '',
-    buy_now: '',
-    location: '',
-    seller_type: '',
-    body_type: '',
-    cylinders: '',
-    engine_size: ''
+    mileage_min: string;
+    mileage_max: string;
+    make: string;
+    model: string;
+    series: string;
+    damage_pr: string;
+    damage_sec: string;
+    keys: string;
+    fuel: string;
+    transmission: string;
+    color: string;
+    document: string;
+    vehicle_type: string;
+    auction_type: string;
+    is_buynow: string;
+    buy_now: string;
+    location: string;
+    seller_type: string;
+    body_type: string;
+    cylinders: string;
+    engine_size: string;
   });
 
   // Enhanced search functionality
@@ -889,9 +889,7 @@ export default function ActiveLotsPage() {
                     <SelectItem value="Hail">Hail</SelectItem>
                     <SelectItem value="Minor Dent/Scratches">Minor Dent/Scratches</SelectItem>
                     <SelectItem value="Water/Flood">Water/Flood</SelectItem>
-                    <SelectItem value="Fire">Fire</SelectItem>
-                    <SelectItem value="Vandalism">Vandalism</SelectItem>
-                  ```tool_code
+                    <SelectItem value="Fire">Fire</SelectItem>                    <SelectItem value="Vandalism">Vandalism</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
