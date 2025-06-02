@@ -377,36 +377,23 @@ export default function ActiveLotsPage() {
   };
 
   const findSimilarVehicles = async (lot: AuctionLot) => {
-    setIsLoadingSimilar(true);
-    setSimilarVehicles([]);
+    // Close any open dialogs
+    setSelectedLot(null);
     
-    try {
-      const response = await fetch('/api/search-similar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          make: lot.make,
-          model: lot.model,
-          year_from: (lot.year - 2).toString(),
-          year_to: (lot.year + 2).toString(),
-          site: selectedSite,
-          exclude_lot_id: lot.lot_id
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setSimilarVehicles(data.lots.slice(0, 6));
-        }
-      }
-    } catch (error) {
-      console.error('Similar vehicles search error:', error);
-    } finally {
-      setIsLoadingSimilar(false);
-    }
+    // Update search parameters to find similar vehicles
+    setSearchMake(lot.make);
+    setSearchModel(lot.model);
+    
+    // Set year range (±2 years)
+    const newFilters = {
+      ...filters,
+      year_from: (lot.year - 2).toString(),
+      year_to: (lot.year + 2).toString()
+    };
+    setFilters(newFilters);
+    
+    // Trigger new search with similar vehicle parameters
+    await searchActiveLots(true, lot.make, lot.model, newFilters);
   };
 
   const LotDetailDialog = ({ lot }: { lot: AuctionLot }) => (
