@@ -915,29 +915,8 @@ export default function ActiveLotsPage() {
         </CardContent>
       </Card>
 
-      {/* Advanced Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          {/* Primary Advanced Filters */}
-          <div className="border-t pt-4">
-            <div 
-              className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 p-3 rounded-lg transition-colors"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            >
-              <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-lg">Advanced Filters</span>
-                <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-                  {Object.values(filters).filter(value => value && value !== '').length} active
-                </span>
-              </div>
-              <ChevronDown className={`h-5 w-5 text-blue-600 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
-            </div>
-          </div>
-
-          {/* Advanced Filters (Collapsible) */}
-          {showAdvancedFilters && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 space-y-6 border border-blue-200 dark:border-blue-700">
+      {/* Results Section */}
+      <div className="space-y-6">
               
               {/* Vehicle Information Section */}
               <div className="space-y-4">
