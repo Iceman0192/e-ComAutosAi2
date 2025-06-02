@@ -1230,7 +1230,7 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      // Document/Title type filter - search within vehicle title only
+      // Document/Title type filter - search within vehicle title for document types
       if (documentType && documentType !== 'any') {
         console.log('APPLYING DOCUMENT TYPE FILTER:', documentType);
         whereConditions.push(`vehicle_title ILIKE $${paramIndex}`);
