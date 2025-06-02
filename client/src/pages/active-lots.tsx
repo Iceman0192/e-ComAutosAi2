@@ -127,8 +127,8 @@ export default function ActiveLotsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedSite, setSelectedSite] = useState('copart');
-  const [searchMake, setSearchMake] = useState('');
-  const [searchModel, setSearchModel] = useState('');
+  const [searchMake, setSearchMake] = useState('all');
+  const [searchModel, setSearchModel] = useState('all');
   const [budgetPreset, setBudgetPreset] = useState('any');
   const [yearPreset, setYearPreset] = useState('any');
   const [totalResults, setTotalResults] = useState(0);
@@ -199,8 +199,8 @@ export default function ActiveLotsPage() {
       });
 
       // Add search parameters if provided
-      if (searchMake.trim()) searchParams.append('make', searchMake);
-      if (searchModel.trim()) searchParams.append('model', searchModel);
+      if (searchMake && searchMake !== 'all') searchParams.append('make', searchMake);
+      if (searchModel && searchModel !== 'all') searchParams.append('model', searchModel);
       
       // Add active filters
       Object.entries(filters).forEach(([key, value]) => {
@@ -660,37 +660,61 @@ export default function ActiveLotsPage() {
                     <SelectValue placeholder="Select make" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any Make</SelectItem>
+                    <SelectItem value="all">Any Make</SelectItem>
                     <SelectItem value="Acura">Acura</SelectItem>
+                    <SelectItem value="Alfa Romeo">Alfa Romeo</SelectItem>
+                    <SelectItem value="AM General">AM General</SelectItem>
+                    <SelectItem value="Aston Martin">Aston Martin</SelectItem>
                     <SelectItem value="Audi">Audi</SelectItem>
+                    <SelectItem value="Bentley">Bentley</SelectItem>
                     <SelectItem value="BMW">BMW</SelectItem>
                     <SelectItem value="Buick">Buick</SelectItem>
                     <SelectItem value="Cadillac">Cadillac</SelectItem>
                     <SelectItem value="Chevrolet">Chevrolet</SelectItem>
                     <SelectItem value="Chrysler">Chrysler</SelectItem>
+                    <SelectItem value="Daewoo">Daewoo</SelectItem>
+                    <SelectItem value="Daihatsu">Daihatsu</SelectItem>
                     <SelectItem value="Dodge">Dodge</SelectItem>
+                    <SelectItem value="Eagle">Eagle</SelectItem>
+                    <SelectItem value="Ferrari">Ferrari</SelectItem>
+                    <SelectItem value="Fiat">Fiat</SelectItem>
                     <SelectItem value="Ford">Ford</SelectItem>
+                    <SelectItem value="Freightliner">Freightliner</SelectItem>
+                    <SelectItem value="Genesis">Genesis</SelectItem>
+                    <SelectItem value="Geo">Geo</SelectItem>
                     <SelectItem value="GMC">GMC</SelectItem>
                     <SelectItem value="Honda">Honda</SelectItem>
+                    <SelectItem value="Hummer">Hummer</SelectItem>
                     <SelectItem value="Hyundai">Hyundai</SelectItem>
                     <SelectItem value="Infiniti">Infiniti</SelectItem>
+                    <SelectItem value="Isuzu">Isuzu</SelectItem>
                     <SelectItem value="Jaguar">Jaguar</SelectItem>
                     <SelectItem value="Jeep">Jeep</SelectItem>
                     <SelectItem value="Kia">Kia</SelectItem>
+                    <SelectItem value="Lamborghini">Lamborghini</SelectItem>
                     <SelectItem value="Land Rover">Land Rover</SelectItem>
                     <SelectItem value="Lexus">Lexus</SelectItem>
                     <SelectItem value="Lincoln">Lincoln</SelectItem>
+                    <SelectItem value="Lotus">Lotus</SelectItem>
+                    <SelectItem value="Maserati">Maserati</SelectItem>
+                    <SelectItem value="Maybach">Maybach</SelectItem>
                     <SelectItem value="Mazda">Mazda</SelectItem>
+                    <SelectItem value="McLaren">McLaren</SelectItem>
                     <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
                     <SelectItem value="Mercury">Mercury</SelectItem>
+                    <SelectItem value="MINI">MINI</SelectItem>
                     <SelectItem value="Mitsubishi">Mitsubishi</SelectItem>
                     <SelectItem value="Nissan">Nissan</SelectItem>
+                    <SelectItem value="Oldsmobile">Oldsmobile</SelectItem>
+                    <SelectItem value="Plymouth">Plymouth</SelectItem>
                     <SelectItem value="Pontiac">Pontiac</SelectItem>
                     <SelectItem value="Porsche">Porsche</SelectItem>
                     <SelectItem value="Ram">Ram</SelectItem>
+                    <SelectItem value="Rolls-Royce">Rolls-Royce</SelectItem>
                     <SelectItem value="Saab">Saab</SelectItem>
                     <SelectItem value="Saturn">Saturn</SelectItem>
                     <SelectItem value="Scion">Scion</SelectItem>
+                    <SelectItem value="Smart">Smart</SelectItem>
                     <SelectItem value="Subaru">Subaru</SelectItem>
                     <SelectItem value="Suzuki">Suzuki</SelectItem>
                     <SelectItem value="Tesla">Tesla</SelectItem>
@@ -706,102 +730,299 @@ export default function ActiveLotsPage() {
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Model</SelectItem>
-                    {searchMake === 'Toyota' && (
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="all">Any Model</SelectItem>
+                    {searchMake === 'all' && (
                       <>
                         <SelectItem value="Camry">Camry</SelectItem>
+                        <SelectItem value="Civic">Civic</SelectItem>
+                        <SelectItem value="Accord">Accord</SelectItem>
+                        <SelectItem value="F-150">F-150</SelectItem>
+                        <SelectItem value="Silverado">Silverado</SelectItem>
                         <SelectItem value="Corolla">Corolla</SelectItem>
-                        <SelectItem value="Prius">Prius</SelectItem>
+                        <SelectItem value="CR-V">CR-V</SelectItem>
+                        <SelectItem value="Altima">Altima</SelectItem>
+                        <SelectItem value="Escape">Escape</SelectItem>
+                        <SelectItem value="Explorer">Explorer</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Toyota' && (
+                      <>
+                        <SelectItem value="4Runner">4Runner</SelectItem>
+                        <SelectItem value="86">86</SelectItem>
+                        <SelectItem value="Avalon">Avalon</SelectItem>
+                        <SelectItem value="Camry">Camry</SelectItem>
+                        <SelectItem value="C-HR">C-HR</SelectItem>
+                        <SelectItem value="Corolla">Corolla</SelectItem>
                         <SelectItem value="Highlander">Highlander</SelectItem>
+                        <SelectItem value="Land Cruiser">Land Cruiser</SelectItem>
+                        <SelectItem value="Prius">Prius</SelectItem>
                         <SelectItem value="RAV4">RAV4</SelectItem>
+                        <SelectItem value="Sequoia">Sequoia</SelectItem>
                         <SelectItem value="Sienna">Sienna</SelectItem>
                         <SelectItem value="Tacoma">Tacoma</SelectItem>
                         <SelectItem value="Tundra">Tundra</SelectItem>
+                        <SelectItem value="Venza">Venza</SelectItem>
+                        <SelectItem value="Yaris">Yaris</SelectItem>
                       </>
                     )}
                     {searchMake === 'Honda' && (
                       <>
-                        <SelectItem value="Civic">Civic</SelectItem>
                         <SelectItem value="Accord">Accord</SelectItem>
+                        <SelectItem value="Civic">Civic</SelectItem>
                         <SelectItem value="CR-V">CR-V</SelectItem>
-                        <SelectItem value="Pilot">Pilot</SelectItem>
-                        <SelectItem value="Odyssey">Odyssey</SelectItem>
-                        <SelectItem value="Ridgeline">Ridgeline</SelectItem>
+                        <SelectItem value="Fit">Fit</SelectItem>
                         <SelectItem value="HR-V">HR-V</SelectItem>
+                        <SelectItem value="Insight">Insight</SelectItem>
+                        <SelectItem value="Odyssey">Odyssey</SelectItem>
                         <SelectItem value="Passport">Passport</SelectItem>
+                        <SelectItem value="Pilot">Pilot</SelectItem>
+                        <SelectItem value="Ridgeline">Ridgeline</SelectItem>
                       </>
                     )}
                     {searchMake === 'Ford' && (
                       <>
-                        <SelectItem value="F-150">F-150</SelectItem>
+                        <SelectItem value="Bronco">Bronco</SelectItem>
+                        <SelectItem value="EcoSport">EcoSport</SelectItem>
+                        <SelectItem value="Edge">Edge</SelectItem>
                         <SelectItem value="Escape">Escape</SelectItem>
+                        <SelectItem value="Expedition">Expedition</SelectItem>
                         <SelectItem value="Explorer">Explorer</SelectItem>
+                        <SelectItem value="F-150">F-150</SelectItem>
+                        <SelectItem value="F-250">F-250</SelectItem>
+                        <SelectItem value="F-350">F-350</SelectItem>
+                        <SelectItem value="Fiesta">Fiesta</SelectItem>
                         <SelectItem value="Focus">Focus</SelectItem>
                         <SelectItem value="Fusion">Fusion</SelectItem>
                         <SelectItem value="Mustang">Mustang</SelectItem>
-                        <SelectItem value="Edge">Edge</SelectItem>
-                        <SelectItem value="Expedition">Expedition</SelectItem>
+                        <SelectItem value="Ranger">Ranger</SelectItem>
+                        <SelectItem value="Taurus">Taurus</SelectItem>
+                        <SelectItem value="Transit">Transit</SelectItem>
                       </>
                     )}
                     {searchMake === 'Chevrolet' && (
                       <>
-                        <SelectItem value="Silverado">Silverado</SelectItem>
-                        <SelectItem value="Equinox">Equinox</SelectItem>
-                        <SelectItem value="Malibu">Malibu</SelectItem>
-                        <SelectItem value="Traverse">Traverse</SelectItem>
-                        <SelectItem value="Tahoe">Tahoe</SelectItem>
-                        <SelectItem value="Suburban">Suburban</SelectItem>
+                        <SelectItem value="Blazer">Blazer</SelectItem>
                         <SelectItem value="Camaro">Camaro</SelectItem>
+                        <SelectItem value="Colorado">Colorado</SelectItem>
                         <SelectItem value="Corvette">Corvette</SelectItem>
+                        <SelectItem value="Cruze">Cruze</SelectItem>
+                        <SelectItem value="Equinox">Equinox</SelectItem>
+                        <SelectItem value="Impala">Impala</SelectItem>
+                        <SelectItem value="Malibu">Malibu</SelectItem>
+                        <SelectItem value="Silverado">Silverado</SelectItem>
+                        <SelectItem value="Sonic">Sonic</SelectItem>
+                        <SelectItem value="Spark">Spark</SelectItem>
+                        <SelectItem value="Suburban">Suburban</SelectItem>
+                        <SelectItem value="Tahoe">Tahoe</SelectItem>
+                        <SelectItem value="Traverse">Traverse</SelectItem>
+                        <SelectItem value="Trax">Trax</SelectItem>
                       </>
                     )}
                     {searchMake === 'BMW' && (
                       <>
+                        <SelectItem value="1 Series">1 Series</SelectItem>
+                        <SelectItem value="2 Series">2 Series</SelectItem>
                         <SelectItem value="3 Series">3 Series</SelectItem>
-                        <SelectItem value="5 Series">5 Series</SelectItem>
-                        <SelectItem value="X3">X3</SelectItem>
-                        <SelectItem value="X5">X5</SelectItem>
-                        <SelectItem value="X1">X1</SelectItem>
-                        <SelectItem value="7 Series">7 Series</SelectItem>
                         <SelectItem value="4 Series">4 Series</SelectItem>
+                        <SelectItem value="5 Series">5 Series</SelectItem>
+                        <SelectItem value="6 Series">6 Series</SelectItem>
+                        <SelectItem value="7 Series">7 Series</SelectItem>
+                        <SelectItem value="8 Series">8 Series</SelectItem>
+                        <SelectItem value="X1">X1</SelectItem>
+                        <SelectItem value="X2">X2</SelectItem>
+                        <SelectItem value="X3">X3</SelectItem>
+                        <SelectItem value="X4">X4</SelectItem>
+                        <SelectItem value="X5">X5</SelectItem>
+                        <SelectItem value="X6">X6</SelectItem>
                         <SelectItem value="X7">X7</SelectItem>
+                        <SelectItem value="Z4">Z4</SelectItem>
                       </>
                     )}
                     {searchMake === 'Mercedes-Benz' && (
                       <>
+                        <SelectItem value="A-Class">A-Class</SelectItem>
                         <SelectItem value="C-Class">C-Class</SelectItem>
-                        <SelectItem value="E-Class">E-Class</SelectItem>
-                        <SelectItem value="GLE">GLE</SelectItem>
-                        <SelectItem value="GLC">GLC</SelectItem>
-                        <SelectItem value="S-Class">S-Class</SelectItem>
                         <SelectItem value="CLA">CLA</SelectItem>
+                        <SelectItem value="CLS">CLS</SelectItem>
+                        <SelectItem value="E-Class">E-Class</SelectItem>
+                        <SelectItem value="G-Class">G-Class</SelectItem>
                         <SelectItem value="GLA">GLA</SelectItem>
                         <SelectItem value="GLB">GLB</SelectItem>
+                        <SelectItem value="GLC">GLC</SelectItem>
+                        <SelectItem value="GLE">GLE</SelectItem>
+                        <SelectItem value="GLS">GLS</SelectItem>
+                        <SelectItem value="S-Class">S-Class</SelectItem>
+                        <SelectItem value="SL">SL</SelectItem>
+                        <SelectItem value="SLC">SLC</SelectItem>
                       </>
                     )}
                     {searchMake === 'Nissan' && (
                       <>
+                        <SelectItem value="370Z">370Z</SelectItem>
                         <SelectItem value="Altima">Altima</SelectItem>
-                        <SelectItem value="Sentra">Sentra</SelectItem>
-                        <SelectItem value="Rogue">Rogue</SelectItem>
-                        <SelectItem value="Pathfinder">Pathfinder</SelectItem>
-                        <SelectItem value="Murano">Murano</SelectItem>
-                        <SelectItem value="Frontier">Frontier</SelectItem>
-                        <SelectItem value="Titan">Titan</SelectItem>
                         <SelectItem value="Armada">Armada</SelectItem>
+                        <SelectItem value="Frontier">Frontier</SelectItem>
+                        <SelectItem value="GT-R">GT-R</SelectItem>
+                        <SelectItem value="Kicks">Kicks</SelectItem>
+                        <SelectItem value="Leaf">Leaf</SelectItem>
+                        <SelectItem value="Maxima">Maxima</SelectItem>
+                        <SelectItem value="Murano">Murano</SelectItem>
+                        <SelectItem value="NV200">NV200</SelectItem>
+                        <SelectItem value="Pathfinder">Pathfinder</SelectItem>
+                        <SelectItem value="Rogue">Rogue</SelectItem>
+                        <SelectItem value="Sentra">Sentra</SelectItem>
+                        <SelectItem value="Titan">Titan</SelectItem>
+                        <SelectItem value="Versa">Versa</SelectItem>
                       </>
                     )}
                     {searchMake === 'Hyundai' && (
                       <>
+                        <SelectItem value="Accent">Accent</SelectItem>
                         <SelectItem value="Elantra">Elantra</SelectItem>
+                        <SelectItem value="Genesis">Genesis</SelectItem>
+                        <SelectItem value="Ioniq">Ioniq</SelectItem>
+                        <SelectItem value="Kona">Kona</SelectItem>
+                        <SelectItem value="Nexo">Nexo</SelectItem>
+                        <SelectItem value="Palisade">Palisade</SelectItem>
+                        <SelectItem value="Santa Fe">Santa Fe</SelectItem>
                         <SelectItem value="Sonata">Sonata</SelectItem>
                         <SelectItem value="Tucson">Tucson</SelectItem>
-                        <SelectItem value="Santa Fe">Santa Fe</SelectItem>
-                        <SelectItem value="Accent">Accent</SelectItem>
-                        <SelectItem value="Kona">Kona</SelectItem>
-                        <SelectItem value="Palisade">Palisade</SelectItem>
-                        <SelectItem value="Genesis">Genesis</SelectItem>
+                        <SelectItem value="Veloster">Veloster</SelectItem>
+                        <SelectItem value="Venue">Venue</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Audi' && (
+                      <>
+                        <SelectItem value="A3">A3</SelectItem>
+                        <SelectItem value="A4">A4</SelectItem>
+                        <SelectItem value="A5">A5</SelectItem>
+                        <SelectItem value="A6">A6</SelectItem>
+                        <SelectItem value="A7">A7</SelectItem>
+                        <SelectItem value="A8">A8</SelectItem>
+                        <SelectItem value="Q3">Q3</SelectItem>
+                        <SelectItem value="Q5">Q5</SelectItem>
+                        <SelectItem value="Q7">Q7</SelectItem>
+                        <SelectItem value="Q8">Q8</SelectItem>
+                        <SelectItem value="R8">R8</SelectItem>
+                        <SelectItem value="TT">TT</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Jeep' && (
+                      <>
+                        <SelectItem value="Cherokee">Cherokee</SelectItem>
+                        <SelectItem value="Compass">Compass</SelectItem>
+                        <SelectItem value="Gladiator">Gladiator</SelectItem>
+                        <SelectItem value="Grand Cherokee">Grand Cherokee</SelectItem>
+                        <SelectItem value="Patriot">Patriot</SelectItem>
+                        <SelectItem value="Renegade">Renegade</SelectItem>
+                        <SelectItem value="Wrangler">Wrangler</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Dodge' && (
+                      <>
+                        <SelectItem value="Challenger">Challenger</SelectItem>
+                        <SelectItem value="Charger">Charger</SelectItem>
+                        <SelectItem value="Dart">Dart</SelectItem>
+                        <SelectItem value="Durango">Durango</SelectItem>
+                        <SelectItem value="Grand Caravan">Grand Caravan</SelectItem>
+                        <SelectItem value="Journey">Journey</SelectItem>
+                        <SelectItem value="Ram 1500">Ram 1500</SelectItem>
+                        <SelectItem value="Viper">Viper</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Subaru' && (
+                      <>
+                        <SelectItem value="Ascent">Ascent</SelectItem>
+                        <SelectItem value="BRZ">BRZ</SelectItem>
+                        <SelectItem value="Crosstrek">Crosstrek</SelectItem>
+                        <SelectItem value="Forester">Forester</SelectItem>
+                        <SelectItem value="Impreza">Impreza</SelectItem>
+                        <SelectItem value="Legacy">Legacy</SelectItem>
+                        <SelectItem value="Outback">Outback</SelectItem>
+                        <SelectItem value="WRX">WRX</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Lexus' && (
+                      <>
+                        <SelectItem value="ES">ES</SelectItem>
+                        <SelectItem value="GS">GS</SelectItem>
+                        <SelectItem value="GX">GX</SelectItem>
+                        <SelectItem value="IS">IS</SelectItem>
+                        <SelectItem value="LC">LC</SelectItem>
+                        <SelectItem value="LS">LS</SelectItem>
+                        <SelectItem value="LX">LX</SelectItem>
+                        <SelectItem value="NX">NX</SelectItem>
+                        <SelectItem value="RC">RC</SelectItem>
+                        <SelectItem value="RX">RX</SelectItem>
+                        <SelectItem value="UX">UX</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Acura' && (
+                      <>
+                        <SelectItem value="ILX">ILX</SelectItem>
+                        <SelectItem value="MDX">MDX</SelectItem>
+                        <SelectItem value="NSX">NSX</SelectItem>
+                        <SelectItem value="RDX">RDX</SelectItem>
+                        <SelectItem value="TLX">TLX</SelectItem>
+                        <SelectItem value="TSX">TSX</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Infiniti' && (
+                      <>
+                        <SelectItem value="Q50">Q50</SelectItem>
+                        <SelectItem value="Q60">Q60</SelectItem>
+                        <SelectItem value="Q70">Q70</SelectItem>
+                        <SelectItem value="QX50">QX50</SelectItem>
+                        <SelectItem value="QX60">QX60</SelectItem>
+                        <SelectItem value="QX80">QX80</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Tesla' && (
+                      <>
+                        <SelectItem value="Model 3">Model 3</SelectItem>
+                        <SelectItem value="Model S">Model S</SelectItem>
+                        <SelectItem value="Model X">Model X</SelectItem>
+                        <SelectItem value="Model Y">Model Y</SelectItem>
+                        <SelectItem value="Cybertruck">Cybertruck</SelectItem>
+                        <SelectItem value="Roadster">Roadster</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Volkswagen' && (
+                      <>
+                        <SelectItem value="Atlas">Atlas</SelectItem>
+                        <SelectItem value="Beetle">Beetle</SelectItem>
+                        <SelectItem value="Golf">Golf</SelectItem>
+                        <SelectItem value="Jetta">Jetta</SelectItem>
+                        <SelectItem value="Passat">Passat</SelectItem>
+                        <SelectItem value="Tiguan">Tiguan</SelectItem>
+                        <SelectItem value="Touareg">Touareg</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Mazda' && (
+                      <>
+                        <SelectItem value="CX-3">CX-3</SelectItem>
+                        <SelectItem value="CX-30">CX-30</SelectItem>
+                        <SelectItem value="CX-5">CX-5</SelectItem>
+                        <SelectItem value="CX-9">CX-9</SelectItem>
+                        <SelectItem value="Mazda3">Mazda3</SelectItem>
+                        <SelectItem value="Mazda6">Mazda6</SelectItem>
+                        <SelectItem value="MX-5 Miata">MX-5 Miata</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Kia' && (
+                      <>
+                        <SelectItem value="Forte">Forte</SelectItem>
+                        <SelectItem value="K5">K5</SelectItem>
+                        <SelectItem value="Niro">Niro</SelectItem>
+                        <SelectItem value="Optima">Optima</SelectItem>
+                        <SelectItem value="Rio">Rio</SelectItem>
+                        <SelectItem value="Sedona">Sedona</SelectItem>
+                        <SelectItem value="Sorento">Sorento</SelectItem>
+                        <SelectItem value="Soul">Soul</SelectItem>
+                        <SelectItem value="Sportage">Sportage</SelectItem>
+                        <SelectItem value="Stinger">Stinger</SelectItem>
+                        <SelectItem value="Telluride">Telluride</SelectItem>
                       </>
                     )}
                   </SelectContent>
