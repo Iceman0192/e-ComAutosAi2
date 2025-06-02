@@ -654,22 +654,158 @@ export default function ActiveLotsPage() {
             <h3 className="text-lg font-semibold">Make & Model</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Make *</label>
-                <Input
-                  placeholder="e.g., Toyota, Honda, Ford"
-                  value={searchMake}
-                  onChange={(e) => setSearchMake(e.target.value)}
-                  className="h-12"
-                />
+                <label className="text-sm font-medium">Make</label>
+                <Select value={searchMake} onValueChange={setSearchMake}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select make" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Make</SelectItem>
+                    <SelectItem value="Acura">Acura</SelectItem>
+                    <SelectItem value="Audi">Audi</SelectItem>
+                    <SelectItem value="BMW">BMW</SelectItem>
+                    <SelectItem value="Buick">Buick</SelectItem>
+                    <SelectItem value="Cadillac">Cadillac</SelectItem>
+                    <SelectItem value="Chevrolet">Chevrolet</SelectItem>
+                    <SelectItem value="Chrysler">Chrysler</SelectItem>
+                    <SelectItem value="Dodge">Dodge</SelectItem>
+                    <SelectItem value="Ford">Ford</SelectItem>
+                    <SelectItem value="GMC">GMC</SelectItem>
+                    <SelectItem value="Honda">Honda</SelectItem>
+                    <SelectItem value="Hyundai">Hyundai</SelectItem>
+                    <SelectItem value="Infiniti">Infiniti</SelectItem>
+                    <SelectItem value="Jaguar">Jaguar</SelectItem>
+                    <SelectItem value="Jeep">Jeep</SelectItem>
+                    <SelectItem value="Kia">Kia</SelectItem>
+                    <SelectItem value="Land Rover">Land Rover</SelectItem>
+                    <SelectItem value="Lexus">Lexus</SelectItem>
+                    <SelectItem value="Lincoln">Lincoln</SelectItem>
+                    <SelectItem value="Mazda">Mazda</SelectItem>
+                    <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
+                    <SelectItem value="Mercury">Mercury</SelectItem>
+                    <SelectItem value="Mitsubishi">Mitsubishi</SelectItem>
+                    <SelectItem value="Nissan">Nissan</SelectItem>
+                    <SelectItem value="Pontiac">Pontiac</SelectItem>
+                    <SelectItem value="Porsche">Porsche</SelectItem>
+                    <SelectItem value="Ram">Ram</SelectItem>
+                    <SelectItem value="Saab">Saab</SelectItem>
+                    <SelectItem value="Saturn">Saturn</SelectItem>
+                    <SelectItem value="Scion">Scion</SelectItem>
+                    <SelectItem value="Subaru">Subaru</SelectItem>
+                    <SelectItem value="Suzuki">Suzuki</SelectItem>
+                    <SelectItem value="Tesla">Tesla</SelectItem>
+                    <SelectItem value="Toyota">Toyota</SelectItem>
+                    <SelectItem value="Volkswagen">Volkswagen</SelectItem>
+                    <SelectItem value="Volvo">Volvo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Model (Optional)</label>
-                <Input
-                  placeholder="e.g., Camry, Civic, F-150"
-                  value={searchModel}
-                  onChange={(e) => setSearchModel(e.target.value)}
-                  className="h-12"
-                />
+                <Select value={searchModel} onValueChange={setSearchModel}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Model</SelectItem>
+                    {searchMake === 'Toyota' && (
+                      <>
+                        <SelectItem value="Camry">Camry</SelectItem>
+                        <SelectItem value="Corolla">Corolla</SelectItem>
+                        <SelectItem value="Prius">Prius</SelectItem>
+                        <SelectItem value="Highlander">Highlander</SelectItem>
+                        <SelectItem value="RAV4">RAV4</SelectItem>
+                        <SelectItem value="Sienna">Sienna</SelectItem>
+                        <SelectItem value="Tacoma">Tacoma</SelectItem>
+                        <SelectItem value="Tundra">Tundra</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Honda' && (
+                      <>
+                        <SelectItem value="Civic">Civic</SelectItem>
+                        <SelectItem value="Accord">Accord</SelectItem>
+                        <SelectItem value="CR-V">CR-V</SelectItem>
+                        <SelectItem value="Pilot">Pilot</SelectItem>
+                        <SelectItem value="Odyssey">Odyssey</SelectItem>
+                        <SelectItem value="Ridgeline">Ridgeline</SelectItem>
+                        <SelectItem value="HR-V">HR-V</SelectItem>
+                        <SelectItem value="Passport">Passport</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Ford' && (
+                      <>
+                        <SelectItem value="F-150">F-150</SelectItem>
+                        <SelectItem value="Escape">Escape</SelectItem>
+                        <SelectItem value="Explorer">Explorer</SelectItem>
+                        <SelectItem value="Focus">Focus</SelectItem>
+                        <SelectItem value="Fusion">Fusion</SelectItem>
+                        <SelectItem value="Mustang">Mustang</SelectItem>
+                        <SelectItem value="Edge">Edge</SelectItem>
+                        <SelectItem value="Expedition">Expedition</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Chevrolet' && (
+                      <>
+                        <SelectItem value="Silverado">Silverado</SelectItem>
+                        <SelectItem value="Equinox">Equinox</SelectItem>
+                        <SelectItem value="Malibu">Malibu</SelectItem>
+                        <SelectItem value="Traverse">Traverse</SelectItem>
+                        <SelectItem value="Tahoe">Tahoe</SelectItem>
+                        <SelectItem value="Suburban">Suburban</SelectItem>
+                        <SelectItem value="Camaro">Camaro</SelectItem>
+                        <SelectItem value="Corvette">Corvette</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'BMW' && (
+                      <>
+                        <SelectItem value="3 Series">3 Series</SelectItem>
+                        <SelectItem value="5 Series">5 Series</SelectItem>
+                        <SelectItem value="X3">X3</SelectItem>
+                        <SelectItem value="X5">X5</SelectItem>
+                        <SelectItem value="X1">X1</SelectItem>
+                        <SelectItem value="7 Series">7 Series</SelectItem>
+                        <SelectItem value="4 Series">4 Series</SelectItem>
+                        <SelectItem value="X7">X7</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Mercedes-Benz' && (
+                      <>
+                        <SelectItem value="C-Class">C-Class</SelectItem>
+                        <SelectItem value="E-Class">E-Class</SelectItem>
+                        <SelectItem value="GLE">GLE</SelectItem>
+                        <SelectItem value="GLC">GLC</SelectItem>
+                        <SelectItem value="S-Class">S-Class</SelectItem>
+                        <SelectItem value="CLA">CLA</SelectItem>
+                        <SelectItem value="GLA">GLA</SelectItem>
+                        <SelectItem value="GLB">GLB</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Nissan' && (
+                      <>
+                        <SelectItem value="Altima">Altima</SelectItem>
+                        <SelectItem value="Sentra">Sentra</SelectItem>
+                        <SelectItem value="Rogue">Rogue</SelectItem>
+                        <SelectItem value="Pathfinder">Pathfinder</SelectItem>
+                        <SelectItem value="Murano">Murano</SelectItem>
+                        <SelectItem value="Frontier">Frontier</SelectItem>
+                        <SelectItem value="Titan">Titan</SelectItem>
+                        <SelectItem value="Armada">Armada</SelectItem>
+                      </>
+                    )}
+                    {searchMake === 'Hyundai' && (
+                      <>
+                        <SelectItem value="Elantra">Elantra</SelectItem>
+                        <SelectItem value="Sonata">Sonata</SelectItem>
+                        <SelectItem value="Tucson">Tucson</SelectItem>
+                        <SelectItem value="Santa Fe">Santa Fe</SelectItem>
+                        <SelectItem value="Accent">Accent</SelectItem>
+                        <SelectItem value="Kona">Kona</SelectItem>
+                        <SelectItem value="Palisade">Palisade</SelectItem>
+                        <SelectItem value="Genesis">Genesis</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -739,16 +875,56 @@ export default function ActiveLotsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any Location</SelectItem>
-                    <SelectItem value="FL">Florida</SelectItem>
-                    <SelectItem value="TX">Texas</SelectItem>
+                    <SelectItem value="AL">Alabama</SelectItem>
+                    <SelectItem value="AK">Alaska</SelectItem>
+                    <SelectItem value="AZ">Arizona</SelectItem>
+                    <SelectItem value="AR">Arkansas</SelectItem>
                     <SelectItem value="CA">California</SelectItem>
-                    <SelectItem value="NY">New York</SelectItem>
-                    <SelectItem value="PA">Pennsylvania</SelectItem>
-                    <SelectItem value="OH">Ohio</SelectItem>
-                    <SelectItem value="IL">Illinois</SelectItem>
-                    <SelectItem value="NC">North Carolina</SelectItem>
+                    <SelectItem value="CO">Colorado</SelectItem>
+                    <SelectItem value="CT">Connecticut</SelectItem>
+                    <SelectItem value="DE">Delaware</SelectItem>
+                    <SelectItem value="FL">Florida</SelectItem>
                     <SelectItem value="GA">Georgia</SelectItem>
+                    <SelectItem value="HI">Hawaii</SelectItem>
+                    <SelectItem value="ID">Idaho</SelectItem>
+                    <SelectItem value="IL">Illinois</SelectItem>
+                    <SelectItem value="IN">Indiana</SelectItem>
+                    <SelectItem value="IA">Iowa</SelectItem>
+                    <SelectItem value="KS">Kansas</SelectItem>
+                    <SelectItem value="KY">Kentucky</SelectItem>
+                    <SelectItem value="LA">Louisiana</SelectItem>
+                    <SelectItem value="ME">Maine</SelectItem>
+                    <SelectItem value="MD">Maryland</SelectItem>
+                    <SelectItem value="MA">Massachusetts</SelectItem>
+                    <SelectItem value="MI">Michigan</SelectItem>
+                    <SelectItem value="MN">Minnesota</SelectItem>
+                    <SelectItem value="MS">Mississippi</SelectItem>
+                    <SelectItem value="MO">Missouri</SelectItem>
+                    <SelectItem value="MT">Montana</SelectItem>
+                    <SelectItem value="NE">Nebraska</SelectItem>
+                    <SelectItem value="NV">Nevada</SelectItem>
+                    <SelectItem value="NH">New Hampshire</SelectItem>
+                    <SelectItem value="NJ">New Jersey</SelectItem>
+                    <SelectItem value="NM">New Mexico</SelectItem>
+                    <SelectItem value="NY">New York</SelectItem>
+                    <SelectItem value="NC">North Carolina</SelectItem>
+                    <SelectItem value="ND">North Dakota</SelectItem>
+                    <SelectItem value="OH">Ohio</SelectItem>
+                    <SelectItem value="OK">Oklahoma</SelectItem>
+                    <SelectItem value="OR">Oregon</SelectItem>
+                    <SelectItem value="PA">Pennsylvania</SelectItem>
+                    <SelectItem value="RI">Rhode Island</SelectItem>
+                    <SelectItem value="SC">South Carolina</SelectItem>
+                    <SelectItem value="SD">South Dakota</SelectItem>
+                    <SelectItem value="TN">Tennessee</SelectItem>
+                    <SelectItem value="TX">Texas</SelectItem>
+                    <SelectItem value="UT">Utah</SelectItem>
+                    <SelectItem value="VT">Vermont</SelectItem>
                     <SelectItem value="VA">Virginia</SelectItem>
+                    <SelectItem value="WA">Washington</SelectItem>
+                    <SelectItem value="WV">West Virginia</SelectItem>
+                    <SelectItem value="WI">Wisconsin</SelectItem>
+                    <SelectItem value="WY">Wyoming</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
