@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  Calculator
+  Calculator,
+  History
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
@@ -55,7 +56,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'VIN History Search',
       href: '/vin-history',
-      icon: Brain,
+      icon: History,
       permission: 'BASIC_SEARCH'
     },
     {
