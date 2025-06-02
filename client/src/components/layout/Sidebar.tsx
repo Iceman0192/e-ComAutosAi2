@@ -111,7 +111,18 @@ export function Sidebar({ className = '' }: SidebarProps) {
   const isActiveRoute = (href: string) => {
     if (href === '/dashboard') return location === '/dashboard';
     if (href === '/') return location === '/' && !location.includes('/dashboard');
-    return location.startsWith(href);
+    
+    // Exact match for similar routes to prevent conflicts
+    if (href === '/auction-mind' && location === '/auction-mind') return true;
+    if (href === '/auction-mind-v2' && location === '/auction-mind-v2') return true;
+    
+    // For other routes, check if location starts with href but ensure it's not a partial match
+    if (location.startsWith(href)) {
+      const nextChar = location[href.length];
+      return nextChar === undefined || nextChar === '/' || nextChar === '?';
+    }
+    
+    return false;
   };
 
   const SidebarContent = () => (
