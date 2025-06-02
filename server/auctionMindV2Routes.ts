@@ -276,8 +276,41 @@ async function performAIVisionAnalysis(lotData: any): Promise<any> {
 
     console.log(`Running AI vision analysis on ${lotData.link_img_hd.length} images`);
 
-    // Use ALL available images for maximum analysis quality
-    const images = lotData.link_img_hd;
+    // Filter images to only include supported formats and valid URLs
+    const images = lotData.link_img_hd.filter((url: string) => {
+      // Check if URL contains supported image formats
+      const supportedFormats = /\.(jpg|jpeg|png|gif|webp)($|\?)/i;
+      const hasValidFormat = supportedFormats.test(url);
+      
+      // Skip video files
+      const isVideo = /\.(mp4|mov|avi|webm)($|\?)/i.test(url);
+      
+      if (isVideo) {
+        console.log(`Skipping video file: ${url}`);
+        return false;
+      }
+      
+      if (!hasValidFormat) {
+        console.log(`Skipping unsupported format: ${url}`);
+        return false;
+      }
+      
+      return true;
+    });
+
+    console.log(`Filtered to ${images.length} valid image files for AI analysis`);
+
+    if (images.length === 0) {
+      console.log('No valid images found for AI analysis');
+      return {
+        overallCondition: "Unable to assess - no valid images",
+        damageAssessment: "No analyzable images available",
+        repairEstimate: "Cannot estimate without images",
+        marketImpact: "Unknown",
+        confidence: 0
+      };
+    }
+
     const imageMessages = images.map((url: string) => ({
       type: "image_url",
       image_url: { url }
