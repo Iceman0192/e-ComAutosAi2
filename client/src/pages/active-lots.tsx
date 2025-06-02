@@ -198,16 +198,23 @@ export default function ActiveLotsPage() {
 
     try {
       const searchParams = new URLSearchParams({
-        site: selectedSite,
-        make: searchMake,
-        model: searchModel,
+        site: selectedSite === 'copart' ? '1' : '2',
         page: resetPage ? '1' : currentPage.toString(),
-        ...Object.fromEntries(
-          Object.entries(filters).filter(([_, value]) => value !== '' && value !== 'all')
-        )
+        size: '25'
       });
 
-      const response = await fetch(`/api/search-active-lots?${searchParams}`);
+      // Add search parameters
+      if (searchMake.trim()) searchParams.append('make', searchMake);
+      if (searchModel.trim()) searchParams.append('model', searchModel);
+      
+      // Add filters
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value && value !== '' && value !== 'all') {
+          searchParams.append(key, value);
+        }
+      });
+
+      const response = await fetch(`/api/cars?${searchParams}`);
       
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`);
