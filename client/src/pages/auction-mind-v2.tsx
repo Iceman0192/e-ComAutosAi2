@@ -85,6 +85,9 @@ export default function AuctionMindV2() {
 
       if (data.success) {
         setResult(data.data);
+        // Reset image carousel state for new analysis
+        setCurrentImageIndex(0);
+        setIsCarouselPlaying(false);
       } else {
         setError(data.message || 'Analysis failed');
       }
@@ -140,6 +143,9 @@ export default function AuctionMindV2() {
 
       if (data.success) {
         setResult(data.data);
+        // Reset image carousel state for new analysis
+        setCurrentImageIndex(0);
+        setIsCarouselPlaying(false);
       } else {
         setError(data.message || 'Analysis failed');
       }
@@ -165,12 +171,19 @@ export default function AuctionMindV2() {
     if (isCarouselPlaying && result?.lotInfo?.images && result.lotInfo.images.length > 1) {
       const interval = setInterval(() => {
         setCurrentImageIndex(prev => 
-          prev === result.lotInfo.images.length - 1 ? 0 : prev + 1
+          prev >= result.lotInfo.images.length - 1 ? 0 : prev + 1
         );
       }, 3000);
       return () => clearInterval(interval);
     }
   }, [isCarouselPlaying, result?.lotInfo?.images]);
+
+  // Reset carousel index if it's out of bounds when images change
+  useEffect(() => {
+    if (result?.lotInfo?.images && currentImageIndex >= result.lotInfo.images.length) {
+      setCurrentImageIndex(0);
+    }
+  }, [result?.lotInfo?.images, currentImageIndex]);
 
   // Hero Carousel Component
   const HeroCarousel = ({ images }: { images: string[] }) => {
