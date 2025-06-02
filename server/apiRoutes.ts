@@ -360,6 +360,80 @@ export function setupApiRoutes(app: Express) {
   });
 
   /**
+   * Search Similar Vehicles Endpoint
+   */
+  app.post('/api/search-similar', async (req: Request, res: Response) => {
+    try {
+      const { make, model, year_from, year_to, site, exclude_lot_id } = req.body;
+      
+      if (!make || !model) {
+        return res.status(400).json({
+          success: false,
+          message: 'Make and model parameters are required'
+        });
+      }
+
+      console.log(`Similar Vehicles Search: ${make} ${model} (${year_from}-${year_to}) on site ${site}, excluding ${exclude_lot_id}`);
+
+      // Convert site parameter to number (copart/iaai to 1/2)
+      let siteNumber = 1; // Default to Copart
+      if (site === 'iaai' || site === '2') {
+        siteNumber = 2;
+      } else if (site === 'copart' || site === '1') {
+        siteNumber = 1;
+      }
+
+      // Build APICAR API request parameters
+      const params = new URLSearchParams({
+        site: siteNumber.toString(),
+        make: make,
+        model: model,
+        page: '1',
+        size: '25'
+      });
+
+      // Add year range if provided
+      if (year_from) params.append('year_from', year_from);
+      if (year_to) params.append('year_to', year_to);
+
+      const apiUrl = `https://api.apicar.store/api/cars?${params.toString()}`;
+      console.log(`Similar vehicles API URL: ${apiUrl}`);
+
+      const response = await axios.get(apiUrl, {
+        headers: {
+          'api-key': process.env.APICAR_API_KEY,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = response.data;
+      let lots = data.data || [];
+
+      // Filter out the excluded lot if specified
+      if (exclude_lot_id) {
+        lots = lots.filter((lot: any) => lot.lot_id?.toString() !== exclude_lot_id?.toString());
+      }
+
+      console.log(`Similar vehicles API response: Found ${lots.length} similar vehicles`);
+
+      return res.json({
+        success: true,
+        lots: lots,
+        total: lots.length
+      });
+
+    } catch (error: any) {
+      console.error('Similar vehicles search error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to search similar vehicles: ' + error.message,
+        lots: []
+      });
+    }
+  });
+
+  /**
    * Copart Sales History Endpoint - Clean Cache System
    */
   app.get('/api/sales-history', async (req: Request, res: Response) => {
