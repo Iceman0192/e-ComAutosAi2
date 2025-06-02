@@ -11,6 +11,29 @@ import { pool } from './db';
 import axios from 'axios';
 import OpenAI from 'openai';
 
+// Simple response cache for live lots (30 second TTL)
+const responseCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 30000; // 30 seconds
+
+function getCachedResponse(key: string) {
+  const cached = responseCache.get(key);
+  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setCachedResponse(key: string, data: any) {
+  responseCache.set(key, { data, timestamp: Date.now() });
+  // Clean old entries
+  if (responseCache.size > 100) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey) {
+      responseCache.delete(oldestKey);
+    }
+  }
+}
+
 // AI Analysis Helper Functions
 async function analyzeVehicleImages(openai: OpenAI, vehicleData: any) {
   try {
@@ -852,25 +875,44 @@ export function setupApiRoutes(app: Express) {
       if (req.query.buy_now) params.append('buy_now', req.query.buy_now as string);
       if (req.query.is_buynow) params.append('buy_now', req.query.is_buynow as string);
 
+      // Create cache key from search parameters
+      const cacheKey = `cars_${params.toString()}`;
+      
+      // Check cache first
+      const cachedResponse = getCachedResponse(cacheKey);
+      if (cachedResponse) {
+        return res.json(cachedResponse);
+      }
+
       console.log(`Active Lots Search: Site ${site}, Page ${page}, Query:`, req.query);
 
-      // Make request to APICAR API
+      // Make optimized request to APICAR API
       const response = await axios.get(`https://api.apicar.store/api/cars?${params}`, {
         headers: {
           'api-key': process.env.APICAR_API_KEY,
-          'accept': '*/*'
-        }
+          'accept': '*/*',
+          'Connection': 'keep-alive',
+          'Accept-Encoding': 'gzip, deflate'
+        },
+        timeout: 8000, // 8 second timeout
+        maxRedirects: 2,
+        decompress: true
       });
 
       if (response.data) {
-        return res.json({
+        const responseData = {
           success: true,
           count: response.data.count || 0,
           pages: response.data.pages || 0,
           size: response.data.size || size,
           page: response.data.page || page,
           data: response.data.data || []
-        });
+        };
+        
+        // Cache the response
+        setCachedResponse(cacheKey, responseData);
+        
+        return res.json(responseData);
       } else {
         return res.json({
           success: false,
