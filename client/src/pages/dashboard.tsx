@@ -3,6 +3,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { OnboardingTrigger } from '@/components/OnboardingFlow';
+import { LoadingState } from '@/components/ui/loading-spinner';
+import { ErrorState } from '@/components/ui/error-state';
 import { 
   Car, 
   BarChart3, 
@@ -163,6 +166,9 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Onboarding for new users */}
+      <OnboardingTrigger />
+      
       {/* Welcome Header - Mobile Responsive */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
