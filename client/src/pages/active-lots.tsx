@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Target,
   ChevronDown,
+  X,
   ChevronUp,
   ChevronRight,
   Zap,
