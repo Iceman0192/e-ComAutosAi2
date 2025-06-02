@@ -1205,10 +1205,11 @@ Be direct, specific, and focus exclusively on this vehicle.`;
       params.push(0);
       paramIndex++;
       
-      // Engine type filter - precise matching for accurate comparables
+      // Engine type filter - handle different data completeness between platforms
       if (engineType && engineType !== 'any') {
         console.log('APPLYING ENGINE FILTER:', engineType);
-        whereConditions.push(`engine = $${paramIndex}`);
+        // Include records where engine matches OR engine is null/empty (for IAAI compatibility)
+        whereConditions.push(`(engine = $${paramIndex} OR engine IS NULL OR engine = '')`);
         params.push(engineType);
         paramIndex++;
       }
@@ -1218,6 +1219,31 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         console.log('APPLYING LOCATION FILTER:', locationState);
         whereConditions.push(`auction_location ILIKE $${paramIndex}`);
         params.push(`%${locationState}%`);
+        paramIndex++;
+      }
+      
+      // Drive type filter
+      if (driveType && driveType !== 'any') {
+        console.log('APPLYING DRIVE TYPE FILTER:', driveType);
+        whereConditions.push(`drive = $${paramIndex}`);
+        params.push(driveType);
+        paramIndex++;
+      }
+      
+      // Document/Title type filter - search within vehicle title
+      if (documentType && documentType !== 'any') {
+        console.log('APPLYING DOCUMENT TYPE FILTER:', documentType);
+        // For document types like "Clean", "Salvage", etc., search in the document field
+        whereConditions.push(`(document ILIKE $${paramIndex} OR vehicle_title ILIKE $${paramIndex})`);
+        params.push(`%${documentType}%`);
+        paramIndex++;
+      }
+      
+      // Vehicle status filter - map to appropriate database field
+      if (vehicleStatus && vehicleStatus !== 'any') {
+        console.log('APPLYING VEHICLE STATUS FILTER:', vehicleStatus);
+        whereConditions.push(`status = $${paramIndex}`);
+        params.push(vehicleStatus);
         paramIndex++;
       }
       
