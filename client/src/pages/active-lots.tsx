@@ -184,11 +184,6 @@ export default function ActiveLotsPage() {
   });
 
   const searchActiveLots = async (resetPage = false) => {
-    if (!searchMake.trim()) {
-      setError('Please enter a vehicle make to search');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
     
@@ -203,11 +198,11 @@ export default function ActiveLotsPage() {
         size: '25'
       });
 
-      // Add search parameters
+      // Add search parameters if provided
       if (searchMake.trim()) searchParams.append('make', searchMake);
       if (searchModel.trim()) searchParams.append('model', searchModel);
       
-      // Add filters
+      // Add active filters
       Object.entries(filters).forEach(([key, value]) => {
         if (value && value !== '' && value !== 'all') {
           searchParams.append(key, value);
@@ -223,12 +218,12 @@ export default function ActiveLotsPage() {
       const data = await response.json();
       
       if (data.success) {
-        setLots(data.lots || []);
-        setTotalResults(data.total || 0);
-        setTotalPages(data.totalPages || 0);
+        setLots(data.data || []);
+        setTotalResults(data.count || 0);
+        setTotalPages(data.pages || 0);
         if (resetPage) setCurrentPage(1);
       } else {
-        throw new Error(data.error || 'Search failed');
+        throw new Error(data.message || 'Search failed');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
@@ -237,6 +232,11 @@ export default function ActiveLotsPage() {
       setIsLoading(false);
     }
   };
+
+  // Load initial data on component mount
+  useEffect(() => {
+    searchActiveLots(true);
+  }, [selectedSite]);
 
   const handleBudgetPreset = (value: string) => {
     setBudgetPreset(value);
