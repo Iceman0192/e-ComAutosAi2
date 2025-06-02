@@ -44,8 +44,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Active Lot Finder',
       href: '/active-lots',
       icon: Car,
-      permission: 'BASIC_SEARCH',
-      badge: 'NEW'
+      permission: 'BASIC_SEARCH'
     },
     {
       title: 'Live Lot Analysis',
@@ -57,8 +56,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'VIN History Search',
       href: '/auction-mind',
       icon: Brain,
-      permission: 'BASIC_SEARCH',
-      badge: 'UPDATED'
+      permission: 'BASIC_SEARCH'
     },
     {
       title: 'AuctionMind Pro',
