@@ -1162,11 +1162,14 @@ export default function ActiveLotsPage() {
                     <SelectItem value="Front End">Front End</SelectItem>
                     <SelectItem value="Rear End">Rear End</SelectItem>
                     <SelectItem value="Side">Side</SelectItem>
+                    <SelectItem value="All Over">All Over</SelectItem>
                     <SelectItem value="Hail">Hail</SelectItem>
                     <SelectItem value="Minor Dent/Scratches">Minor Dent/Scratches</SelectItem>
                     <SelectItem value="Water/Flood">Water/Flood</SelectItem>
-                    <SelectItem value="Fire">Fire</SelectItem>
+                    <SelectItem value="Burn">Fire/Burn</SelectItem>
                     <SelectItem value="Vandalism">Vandalism</SelectItem>
+                    <SelectItem value="Theft">Theft</SelectItem>
+                    <SelectItem value="Top/Roof">Top/Roof</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1180,12 +1183,13 @@ export default function ActiveLotsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any Title</SelectItem>
-                    <SelectItem value="Clean">Clean</SelectItem>
-                    <SelectItem value="Salvage">Salvage</SelectItem>
-                    <SelectItem value="Rebuilt">Rebuilt</SelectItem>
-                    <SelectItem value="Lemon">Lemon</SelectItem>
-                    <SelectItem value="Flood">Flood</SelectItem>
-                    <SelectItem value="Cert of Title">Cert of Title</SelectItem>
+                    <SelectItem value="Clear Title">Clear Title</SelectItem>
+                    <SelectItem value="Salvage Certificate">Salvage</SelectItem>
+                    <SelectItem value="Rebuilt Title">Rebuilt</SelectItem>
+                    <SelectItem value="Certificate of Title">Certificate of Title</SelectItem>
+                    <SelectItem value="Lemon Law Buyback">Lemon</SelectItem>
+                    <SelectItem value="Flood Title">Flood Title</SelectItem>
+                    <SelectItem value="Bill of Sale">Bill of Sale</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

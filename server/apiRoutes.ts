@@ -832,32 +832,50 @@ export function setupApiRoutes(app: Express) {
         size: size.toString()
       });
 
-      // Add search parameters
+      // Add search parameters with correct auction platform mapping
       if (req.query.query) params.append('query', req.query.query as string);
       if (req.query.vin) params.append('vin', req.query.vin as string);
       if (req.query.make) params.append('make', req.query.make as string);
       if (req.query.model) params.append('model', req.query.model as string);
       if (req.query.year_from) params.append('year_from', req.query.year_from as string);
       if (req.query.year_to) params.append('year_to', req.query.year_to as string);
-      if (req.query.location) params.append('location', req.query.location as string);
-      // Map frontend filter names to correct API parameter names
-      if (req.query.damage_pr) params.append('damage_pr', req.query.damage_pr as string);
-      if (req.query.damage) params.append('damage_pr', req.query.damage as string);
-      if (req.query.price_min) params.append('price_min', req.query.price_min as string);
-      if (req.query.price_max) params.append('price_max', req.query.price_max as string);
-      if (req.query.mileage_min) params.append('mileage_min', req.query.mileage_min as string);
-      if (req.query.mileage_max) params.append('mileage_max', req.query.mileage_max as string);
-      if (req.query.transmission) params.append('transmission', req.query.transmission as string);
-      if (req.query.fuel) params.append('fuel', req.query.fuel as string);
-      if (req.query.color) params.append('color', req.query.color as string);
-      if (req.query.title_type) params.append('title_type', req.query.title_type as string);
-      if (req.query.document) params.append('document', req.query.document as string);
-      if (req.query.drive) params.append('drive', req.query.drive as string);
       
-      // Handle status mapping - only add if not 'all'
+      // Location mapping - use correct parameter name
+      if (req.query.location && req.query.location !== 'all') {
+        params.append('location', req.query.location as string);
+      }
+      
+      // Damage mapping - use primary damage parameter
+      if (req.query.damage_pr && req.query.damage_pr !== 'all') {
+        params.append('damage_pr', req.query.damage_pr as string);
+      }
+      if (req.query.damage && req.query.damage !== 'all') {
+        params.append('damage_pr', req.query.damage as string);
+      }
+      
+      // Document/Title type mapping
+      if (req.query.document && req.query.document !== 'all') {
+        params.append('document', req.query.document as string);
+      }
+      
+      // Vehicle status/condition mapping
       if (req.query.status && req.query.status !== 'all') {
         params.append('status', req.query.status as string);
       }
+      
+      // Price range
+      if (req.query.price_min) params.append('price_min', req.query.price_min as string);
+      if (req.query.price_max) params.append('price_max', req.query.price_max as string);
+      
+      // Mileage range  
+      if (req.query.mileage_min) params.append('mileage_min', req.query.mileage_min as string);
+      if (req.query.mileage_max) params.append('mileage_max', req.query.mileage_max as string);
+      
+      // Additional filters
+      if (req.query.transmission) params.append('transmission', req.query.transmission as string);
+      if (req.query.fuel) params.append('fuel', req.query.fuel as string);
+      if (req.query.color) params.append('color', req.query.color as string);
+      if (req.query.drive) params.append('drive', req.query.drive as string);
       if (req.query.auction_date) params.append('auction_date', req.query.auction_date as string);
       if (req.query.current_bid) params.append('current_bid', req.query.current_bid as string);
       if (req.query.lot_id) params.append('lot_id', req.query.lot_id as string);
