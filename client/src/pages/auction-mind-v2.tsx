@@ -49,6 +49,21 @@ export default function AuctionMindV2() {
   const [isCarouselPlaying, setIsCarouselPlaying] = useState(false);
   const lotsPerPage = 10;
 
+  const renderDamageAssessment = (damageData: any) => {
+    if (!damageData || typeof damageData !== 'object') return null;
+    
+    return (
+      <div className="space-y-2">
+        {Object.entries(damageData).map(([area, description]) => (
+          <div key={area} className="text-sm">
+            <span className="font-medium capitalize">{area.replace(/([A-Z])/g, ' $1').trim()}:</span>
+            <span className="ml-2">{String(description)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const handleAnalyzeFromUrl = async (urlLotId: string, urlSite: string) => {
     setIsAnalyzing(true);
     setError(null);
@@ -528,9 +543,22 @@ export default function AuctionMindV2() {
                     <div className="space-y-6">
                       <div>
                         <h4 className="font-semibold mb-3">Professional Damage Assessment</h4>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          {result.aiAnalysis.damageAssessment || result.aiAnalysis.summary || 'Comprehensive AI analysis completed'}
-                        </p>
+                        <div className="text-sm text-muted-foreground mb-4">
+                          {typeof result.aiAnalysis.damageAssessment === 'string' 
+                            ? result.aiAnalysis.damageAssessment 
+                            : typeof result.aiAnalysis.damageAssessment === 'object' && result.aiAnalysis.damageAssessment
+                            ? (
+                                <div className="space-y-2">
+                                  {Object.entries(result.aiAnalysis.damageAssessment).map(([area, description]) => (
+                                    <div key={area} className="text-sm">
+                                      <span className="font-medium capitalize">{area.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                                      <span className="ml-2">{String(description)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )
+                            : result.aiAnalysis.summary || 'Comprehensive AI analysis completed'}
+                        </div>
                         
                         {result.aiAnalysis.overallCondition && (
                           <div className="mb-4">
