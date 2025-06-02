@@ -1078,9 +1078,11 @@ export default function ActiveLotsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any Condition</SelectItem>
-                    <SelectItem value="Run & Drive">Run & Drive</SelectItem>
+                    <SelectItem value="Run and Drive">Run & Drive</SelectItem>
                     <SelectItem value="Starts">Starts Only</SelectItem>
-                    <SelectItem value="Won't Start">Won't Start</SelectItem>
+                    <SelectItem value="Engine Start Program">Engine Start</SelectItem>
+                    <SelectItem value="Runs/Drives">Runs/Drives</SelectItem>
+                    <SelectItem value="Not Run/Drive">Won't Start</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
