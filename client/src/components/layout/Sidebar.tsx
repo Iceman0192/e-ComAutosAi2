@@ -54,7 +54,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'VIN History Search',
-      href: '/auction-mind',
+      href: '/vin-history',
       icon: Brain,
       permission: 'BASIC_SEARCH'
     },
@@ -113,7 +113,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     if (href === '/') return location === '/' && !location.includes('/dashboard');
     
     // Exact match for similar routes to prevent conflicts
-    if (href === '/auction-mind' && location === '/auction-mind') return true;
+    if (href === '/vin-history' && location === '/vin-history') return true;
     if (href === '/auction-mind-v2' && location === '/auction-mind-v2') return true;
     
     // For other routes, check if location starts with href but ensure it's not a partial match
