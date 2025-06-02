@@ -135,121 +135,101 @@ async function findComparableVehicles(vehicleInfo: any): Promise<any[]> {
     
     console.log(`Finding exact specification matches for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} in ${targetState} region`);
     
-    // Step 1: Exact specification matches in same location using raw SQL for precision
-    const exactMatchQuery = `
-      SELECT * FROM sales_history 
-      WHERE make = $1 
-      AND model = $2 
-      AND year = $3
-      AND purchase_price IS NOT NULL 
-      AND purchase_price::numeric > 0
-      AND sale_status = 'Sold'
-      AND (auction_location ILIKE $4 OR buyer_state = $5)
-      ORDER BY sale_date DESC
-      LIMIT 15
-    `;
-    
-    const exactMatchResult = await db.execute(sql.raw(exactMatchQuery, [
-      vehicleInfo.make,
-      vehicleInfo.model,
-      vehicleInfo.year,
-      `%${targetState}%`,
-      targetState
-    ]));
-    
-    let exactMatches = exactMatchResult.rows || [];
-
-    // Add specification filters if available
-    if (vehicleInfo.transmission && exactMatches.length > 0) {
-      exactMatches = exactMatches.filter(vehicle => 
-        vehicle.transmission?.toLowerCase().includes(vehicleInfo.transmission?.toLowerCase()) ||
-        !vehicle.transmission
-      );
-    }
-
-    if (vehicleInfo.engine && exactMatches.length > 0) {
-      exactMatches = exactMatches.filter(vehicle => 
-        vehicle.engine?.toLowerCase().includes(vehicleInfo.engine?.toLowerCase()) ||
-        !vehicle.engine
-      );
-    }
-
-    if (vehicleInfo.trim || vehicleInfo.series) {
-      const targetTrim = (vehicleInfo.trim || vehicleInfo.series).toLowerCase();
-      exactMatches = exactMatches.filter(vehicle => 
-        vehicle.trim?.toLowerCase().includes(targetTrim) ||
-        vehicle.series?.toLowerCase().includes(targetTrim) ||
-        (!vehicle.trim && !vehicle.series)
-      );
-    }
-
-    // Filter by similar mileage (±20,000 miles)
-    if (targetMileage > 0) {
-      exactMatches = exactMatches.filter(vehicle => {
-        const vehicleMileage = parseInt(vehicle.vehicle_mileage) || 0;
-        return Math.abs(vehicleMileage - targetMileage) <= 20000;
-      });
-    }
-
-    console.log(`Found ${exactMatches.length} exact specification matches in ${targetState}`);
-
-    // Step 2: If not enough exact matches, expand to nearby years in same location
-    if (exactMatches.length < 10) {
-      const nearbyYearMatches = await db
-        .select()
-        .from(salesHistory)
-        .where(
-          and(
-            eq(salesHistory.make, vehicleInfo.make),
-            eq(salesHistory.model, vehicleInfo.model),
-            between(salesHistory.year, vehicleInfo.year - 1, vehicleInfo.year + 1),
-            isNotNull(salesHistory.purchase_price),
-            gt(salesHistory.purchase_price, '0'),
-            eq(salesHistory.sale_status, 'Sold'),
-            or(
-              ilike(salesHistory.auction_location, `%${targetState}%`),
-              eq(salesHistory.buyer_state, targetState)
-            )
-          )
+    // Use simpler query approach that works with current setup
+    const result = await db
+      .select()
+      .from(salesHistory)
+      .where(
+        and(
+          ilike(salesHistory.make, vehicleInfo.make),
+          ilike(salesHistory.model, vehicleInfo.model),
+          between(salesHistory.year, vehicleInfo.year - 2, vehicleInfo.year + 2),
+          isNotNull(salesHistory.purchase_price)
         )
-        .orderBy(salesHistory.sale_date)
-        .limit(10 - exactMatches.length);
+      )
+      .orderBy(salesHistory.sale_date)
+      .limit(30);
 
-      exactMatches = [...exactMatches, ...nearbyYearMatches];
-      console.log(`Added ${nearbyYearMatches.length} nearby year matches, total: ${exactMatches.length}`);
-    }
+    // Filter for exact specifications and location preferences
+    let exactMatches = result.filter(vehicle => {
+      // Exact year match gets priority
+      const isExactYear = vehicle.year === vehicleInfo.year;
+      
+      // Location matching - prioritize same state
+      const isLocationMatch = targetState && (
+        vehicle.auction_location?.includes(targetState) || 
+        vehicle.buyer_state === targetState
+      );
+      
+      // Specification matching
+      let specScore = 0;
+      
+      if (vehicleInfo.transmission && vehicle.transmission) {
+        if (vehicle.transmission.toLowerCase().includes(vehicleInfo.transmission.toLowerCase())) {
+          specScore += 2;
+        }
+      }
+      
+      if (vehicleInfo.engine && vehicle.engine) {
+        if (vehicle.engine.toLowerCase().includes(vehicleInfo.engine.toLowerCase())) {
+          specScore += 2;
+        }
+      }
+      
+      if ((vehicleInfo.trim || vehicleInfo.series) && (vehicle.trim || vehicle.series)) {
+        const targetTrim = (vehicleInfo.trim || vehicleInfo.series).toLowerCase();
+        if (vehicle.trim?.toLowerCase().includes(targetTrim) || 
+            vehicle.series?.toLowerCase().includes(targetTrim)) {
+          specScore += 2;
+        }
+      }
+      
+      // Mileage similarity (±20,000 miles gets bonus)
+      if (targetMileage > 0 && vehicle.vehicle_mileage) {
+        const mileageDiff = Math.abs(parseInt(vehicle.vehicle_mileage) - targetMileage);
+        if (mileageDiff <= 20000) {
+          specScore += 1;
+        }
+      }
+      
+      // Only include sold vehicles with valid prices
+      const hasSalePrice = vehicle.sale_status === 'Sold' && 
+                          vehicle.purchase_price && 
+                          parseFloat(vehicle.purchase_price) > 0;
+      
+      // Assign matching priority
+      vehicle.matchPriority = 0;
+      if (isExactYear && isLocationMatch && specScore >= 3) vehicle.matchPriority = 1; // Perfect match
+      else if (isExactYear && isLocationMatch) vehicle.matchPriority = 2; // Exact year + location
+      else if (isExactYear && specScore >= 2) vehicle.matchPriority = 3; // Exact year + specs
+      else if (isLocationMatch && specScore >= 2) vehicle.matchPriority = 4; // Location + specs
+      else if (isExactYear) vehicle.matchPriority = 5; // Exact year only
+      else if (isLocationMatch) vehicle.matchPriority = 6; // Location only
+      else if (specScore >= 2) vehicle.matchPriority = 7; // Specs only
+      else vehicle.matchPriority = 8; // Basic match
+      
+      return hasSalePrice;
+    });
 
-    // Step 3: If still not enough, expand to regional/national but keep exact specifications
-    if (exactMatches.length < 8) {
-      const nationalMatches = await db
-        .select()
-        .from(salesHistory)
-        .where(
-          and(
-            eq(salesHistory.make, vehicleInfo.make),
-            eq(salesHistory.model, vehicleInfo.model),
-            eq(salesHistory.year, vehicleInfo.year),
-            isNotNull(salesHistory.purchase_price),
-            gt(salesHistory.purchase_price, '0'),
-            eq(salesHistory.sale_status, 'Sold')
-          )
-        )
-        .orderBy(salesHistory.sale_date)
-        .limit(8 - exactMatches.length);
-
-      exactMatches = [...exactMatches, ...nationalMatches];
-      console.log(`Added ${nationalMatches.length} national matches, total: ${exactMatches.length}`);
-    }
+    // Sort by priority and take best matches
+    exactMatches.sort((a, b) => a.matchPriority - b.matchPriority);
+    exactMatches = exactMatches.slice(0, 20);
 
     // Calculate location-based pricing insights
     const locationMatches = exactMatches.filter(vehicle => 
-      vehicle.auction_location?.includes(targetState) || vehicle.buyer_state === targetState
+      targetState && (
+        vehicle.auction_location?.includes(targetState) || 
+        vehicle.buyer_state === targetState
+      )
     );
     
     const locationAvgPrice = locationMatches.length > 0 
       ? locationMatches.reduce((sum, v) => sum + parseFloat(v.purchase_price || '0'), 0) / locationMatches.length
       : 0;
 
+    const exactYearMatches = exactMatches.filter(v => v.year === vehicleInfo.year);
+    
+    console.log(`Found ${exactMatches.length} total matches: ${exactYearMatches.length} exact year, ${locationMatches.length} in ${targetState}`);
     console.log(`Location-based average: $${Math.round(locationAvgPrice)} from ${locationMatches.length} local sales`);
 
     return exactMatches;
