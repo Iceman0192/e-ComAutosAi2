@@ -49,6 +49,56 @@ export default function AuctionMindV2() {
   const [isCarouselPlaying, setIsCarouselPlaying] = useState(false);
   const lotsPerPage = 10;
 
+  const handleAnalyzeFromUrl = async (urlLotId: string, urlSite: string) => {
+    setIsAnalyzing(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/auction-mind-v2/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          lotId: urlLotId.trim(),
+          site: parseInt(urlSite)
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setResult(data.data);
+      } else {
+        setError(data.message || 'Analysis failed');
+      }
+    } catch (err) {
+      setError('Network error occurred');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Parse URL parameters and auto-populate form
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLotId = urlParams.get('lot_id');
+    const urlSite = urlParams.get('site');
+    const autoAnalyze = urlParams.get('auto_analyze');
+
+    if (urlLotId && urlSite) {
+      setLotId(urlLotId);
+      setSite(urlSite);
+      
+      // Auto-trigger analysis if requested
+      if (autoAnalyze === 'true') {
+        setTimeout(() => {
+          handleAnalyzeFromUrl(urlLotId, urlSite);
+        }, 500); // Small delay to ensure state is set
+      }
+    }
+  }, []);
+
   const handleAnalyze = async () => {
     if (!lotId.trim() || !site) {
       setError('Please enter a Lot ID and select auction site');

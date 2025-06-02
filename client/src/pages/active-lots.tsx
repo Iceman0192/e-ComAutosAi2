@@ -332,21 +332,13 @@ export default function ActiveLotsPage() {
   };
 
   const analyzeLot = async (lot: AuctionLot) => {
-    // Debug: Check user permissions and role
-    console.log('User role:', user?.role);
-    console.log('Has AI_ANALYSIS permission:', hasPermission('AI_ANALYSIS'));
-    console.log('User object:', user);
-    
     // Check if user has premium membership (Gold/Platinum/Admin)
     if (hasPermission('AI_ANALYSIS') && (user?.role === 'gold' || user?.role === 'platinum' || user?.role === 'admin')) {
       // Redirect premium members to AuctionMind v2 with auto-analysis
-      console.log('Redirecting premium user to AuctionMind v2');
       const auctionMindUrl = `/auction-mind-v2?lot_id=${lot.lot_id}&site=${lot.site}&auto_analyze=true`;
       window.location.href = auctionMindUrl;
       return;
     }
-    
-    console.log('Using basic AI analysis for non-premium user');
 
     // For non-premium users, use basic AI analysis
     setIsAnalyzing(true);
