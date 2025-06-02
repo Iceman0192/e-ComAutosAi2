@@ -337,8 +337,8 @@ export default function ActiveLotsPage() {
     console.log('Has AI_ANALYSIS permission:', hasPermission('AI_ANALYSIS'));
     console.log('User object:', user);
     
-    // Check if user has premium membership (Gold/Platinum)
-    if (hasPermission('AI_ANALYSIS') && (user?.role === 'gold' || user?.role === 'platinum')) {
+    // Check if user has premium membership (Gold/Platinum/Admin)
+    if (hasPermission('AI_ANALYSIS') && (user?.role === 'gold' || user?.role === 'platinum' || user?.role === 'admin')) {
       // Redirect premium members to AuctionMind v2 with auto-analysis
       console.log('Redirecting premium user to AuctionMind v2');
       const auctionMindUrl = `/auction-mind-v2?lot_id=${lot.lot_id}&site=${lot.site}&auto_analyze=true`;
@@ -1095,15 +1095,17 @@ export default function ActiveLotsPage() {
                 </Select>
               </div>
 
-              {/* Location Filter - Temporarily Disabled */}
-              <div className="space-y-2 opacity-50">
-                <label className="text-sm font-medium text-muted-foreground">Location (Coming Soon)</label>
-                <Select disabled value="all">
+              {/* Buy Now Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Buy Now</label>
+                <Select value={filters.is_buynow} onValueChange={(value) => setFilters({...filters, is_buynow: value})}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Location filtering coming soon" />
+                    <SelectValue placeholder="Any listing type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Location filtering coming soon</SelectItem>
+                    <SelectItem value="all">Any Listing Type</SelectItem>
+                    <SelectItem value="true">Buy Now Only</SelectItem>
+                    <SelectItem value="false">Auction Only</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
