@@ -840,37 +840,31 @@ export function setupApiRoutes(app: Express) {
       if (req.query.year_from) params.append('year_from', req.query.year_from as string);
       if (req.query.year_to) params.append('year_to', req.query.year_to as string);
       
-      // Location mapping - use correct parameter name and format for each platform
+      // Location mapping - based on actual API response format
       if (req.query.location && req.query.location !== 'all') {
         const locationCode = req.query.location as string;
         
-        // State code to full name mapping for IAAI (site 2)
-        const stateNameMap: { [key: string]: string } = {
-          'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
-          'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
-          'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
-          'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
-          'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
-          'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
-          'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
-          'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
-          'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
-          'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
-          'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
-          'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
-          'WI': 'Wisconsin', 'WY': 'Wyoming'
+        // Map state codes to formats that match actual API location patterns
+        // Based on API response showing formats like "Toronto North (ONTARIO)"
+        const locationSearchMap: { [key: string]: string } = {
+          'TX': 'TEXAS', 'CA': 'CALIFORNIA', 'FL': 'FLORIDA', 'NY': 'NEW YORK',
+          'IL': 'ILLINOIS', 'PA': 'PENNSYLVANIA', 'OH': 'OHIO', 'GA': 'GEORGIA',
+          'NC': 'NORTH CAROLINA', 'MI': 'MICHIGAN', 'NJ': 'NEW JERSEY', 'VA': 'VIRGINIA',
+          'WA': 'WASHINGTON', 'AZ': 'ARIZONA', 'MA': 'MASSACHUSETTS', 'TN': 'TENNESSEE',
+          'IN': 'INDIANA', 'MO': 'MISSOURI', 'MD': 'MARYLAND', 'WI': 'WISCONSIN',
+          'CO': 'COLORADO', 'MN': 'MINNESOTA', 'SC': 'SOUTH CAROLINA', 'AL': 'ALABAMA',
+          'LA': 'LOUISIANA', 'KY': 'KENTUCKY', 'OR': 'OREGON', 'OK': 'OKLAHOMA',
+          'CT': 'CONNECTICUT', 'UT': 'UTAH', 'IA': 'IOWA', 'NV': 'NEVADA',
+          'AR': 'ARKANSAS', 'MS': 'MISSISSIPPI', 'KS': 'KANSAS', 'NM': 'NEW MEXICO',
+          'NE': 'NEBRASKA', 'WV': 'WEST VIRGINIA', 'ID': 'IDAHO', 'HI': 'HAWAII',
+          'NH': 'NEW HAMPSHIRE', 'ME': 'MAINE', 'RI': 'RHODE ISLAND', 'MT': 'MONTANA',
+          'DE': 'DELAWARE', 'SD': 'SOUTH DAKOTA', 'ND': 'NORTH DAKOTA', 'AK': 'ALASKA',
+          'VT': 'VERMONT', 'WY': 'WYOMING'
         };
 
-        if (site === '2') {
-          // IAAI uses full state names
-          const stateName = stateNameMap[locationCode];
-          if (stateName) {
-            params.append('location', stateName);
-          }
-        } else {
-          // Copart uses state codes directly
-          params.append('location', locationCode);
-        }
+        // Use the mapped location format for both platforms
+        const mappedLocation = locationSearchMap[locationCode] || locationCode;
+        params.append('location', mappedLocation);
       }
       
       // Damage mapping - use primary damage parameter
