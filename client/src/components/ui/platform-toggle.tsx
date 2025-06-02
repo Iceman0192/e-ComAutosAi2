@@ -20,8 +20,8 @@ export default function PlatformToggle({ onPlatformChange }: PlatformToggleProps
       // On live lot pages, switch between live-copart and live-iaai
       newPath = platform === 'iaai' ? '/live-iaai' : '/live-copart';
     } else {
-      // On sales history pages, switch between / and /iaai
-      newPath = platform === 'iaai' ? '/iaai' : '/';
+      // On sales history pages, switch between /copart and /iaai
+      newPath = platform === 'iaai' ? '/iaai' : '/copart';
     }
     
     setLocation(newPath);
