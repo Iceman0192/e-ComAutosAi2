@@ -1185,14 +1185,11 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      // Mileage filter for more accurate comparable pricing
+      // Mileage filter - find vehicles with X miles or less
       if (maxMileage && maxMileage > 0) {
-        // Use a reasonable mileage range for better comparables
-        const mileageRange = Math.max(20000, maxMileage * 0.3); // 30% range or minimum 20k miles
-        whereConditions.push(`vehicle_mileage BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
-        params.push(Math.max(0, maxMileage - mileageRange));
-        params.push(maxMileage + mileageRange);
-        paramIndex += 2;
+        whereConditions.push(`vehicle_mileage <= $${paramIndex}`);
+        params.push(parseInt(maxMileage));
+        paramIndex++;
       }
       
       // ALWAYS filter for sold vehicles only (exclude not sold and on approval)
