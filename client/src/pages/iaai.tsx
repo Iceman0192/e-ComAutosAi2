@@ -936,10 +936,11 @@ export default function IAAIPage() {
                             <div className="flex-shrink-0 w-20 h-16 relative">
                               {(() => {
                                 let imageUrl = '';
-                                if (sale.link_img_hd && Array.isArray(sale.link_img_hd) && sale.link_img_hd.length > 0) {
-                                  imageUrl = sale.link_img_hd[0];
-                                } else if (sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0) {
+                                // For IAAI mobile view, prioritize small images for faster loading
+                                if (sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0) {
                                   imageUrl = sale.link_img_small[0];
+                                } else if (sale.link_img_hd && Array.isArray(sale.link_img_hd) && sale.link_img_hd.length > 0) {
+                                  imageUrl = sale.link_img_hd[0];
                                 }
                                 
                                 if (imageUrl) {
@@ -1030,16 +1031,16 @@ export default function IAAIPage() {
                               <div className="flex items-center">
                                 <div className="flex-shrink-0 h-16 w-20 mr-4 relative">
                                   {(() => {
-                                    // Get image URL from API response - prioritize HD images
+                                    // Get image URL from API response - prioritize fast loading for IAAI
                                     let imageUrl = '';
                                     
-                                    // Check link_img_hd first (highest quality)
-                                    if (sale.link_img_hd && Array.isArray(sale.link_img_hd) && sale.link_img_hd.length > 0) {
-                                      imageUrl = sale.link_img_hd[0];
-                                    }
-                                    // Fallback to link_img_small
-                                    else if (sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0) {
+                                    // For IAAI, prioritize small images (faster loading)
+                                    if (sale.link_img_small && Array.isArray(sale.link_img_small) && sale.link_img_small.length > 0) {
                                       imageUrl = sale.link_img_small[0];
+                                    }
+                                    // Fallback to HD only if small not available
+                                    else if (sale.link_img_hd && Array.isArray(sale.link_img_hd) && sale.link_img_hd.length > 0) {
+                                      imageUrl = sale.link_img_hd[0];
                                     }
                                     // Final fallback to images field
                                     else if (sale.images) {
@@ -1363,9 +1364,12 @@ export default function IAAIPage() {
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Vehicle Photos</h3>
                       {(() => {
-                        // Handle different image formats (API direct vs database cached)
+                        // Handle different image formats - prioritize small images for IAAI speed
                         let images = [];
-                        if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
+                        // For IAAI modal, use small images first for faster loading, HD as backup
+                        if (selectedVehicle.link_img_small && Array.isArray(selectedVehicle.link_img_small)) {
+                          images = selectedVehicle.link_img_small;
+                        } else if (selectedVehicle.link_img_hd && Array.isArray(selectedVehicle.link_img_hd)) {
                           images = selectedVehicle.link_img_hd;
                         } else if (selectedVehicle.images) {
                           images = typeof selectedVehicle.images === 'string' 
