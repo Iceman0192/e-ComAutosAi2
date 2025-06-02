@@ -1179,17 +1179,19 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      if (damageType && damageType !== 'all') {
+      if (damageType && damageType !== 'all' && damageType !== 'Normal Wear') {
         whereConditions.push(`vehicle_damage ILIKE $${paramIndex}`);
         params.push(`%${damageType}%`);
         paramIndex++;
       }
       
-      if (maxMileage && maxMileage > 0) {
-        whereConditions.push(`vehicle_mileage <= $${paramIndex}`);
-        params.push(maxMileage);
-        paramIndex++;
-      }
+      // Skip mileage filter as it's too restrictive for comparable search
+      // Users want to see price ranges across different mileages
+      // if (maxMileage && maxMileage > 0) {
+      //   whereConditions.push(`vehicle_mileage <= $${paramIndex}`);
+      //   params.push(maxMileage);
+      //   paramIndex++;
+      // }
       
       // ALWAYS filter for sold vehicles only (exclude not sold and on approval)
       whereConditions.push(`sale_status = $${paramIndex}`);
