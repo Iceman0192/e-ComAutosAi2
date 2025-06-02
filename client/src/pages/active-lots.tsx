@@ -575,14 +575,44 @@ export default function ActiveLotsPage() {
     </DialogContent>
   );
 
+  const getBrandColors = () => {
+    if (selectedSite === 'copart') {
+      return {
+        primary: 'bg-blue-600',
+        primaryHover: 'hover:bg-blue-700',
+        accent: 'bg-blue-50 dark:bg-blue-900/20',
+        border: 'border-blue-200 dark:border-blue-700',
+        text: 'text-blue-600',
+        badge: 'bg-blue-100 text-blue-800',
+        gradient: 'from-blue-500 to-blue-600'
+      };
+    } else {
+      return {
+        primary: 'bg-red-600',
+        primaryHover: 'hover:bg-red-700',
+        accent: 'bg-red-50 dark:bg-red-900/20',
+        border: 'border-red-200 dark:border-red-700',
+        text: 'text-red-600',
+        badge: 'bg-red-100 text-red-800',
+        gradient: 'from-red-500 to-red-600'
+      };
+    }
+  };
+
+  const brandColors = getBrandColors();
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className={`${brandColors.border} border-2`}>
+        <CardHeader className={`${brandColors.accent} border-b ${brandColors.border}`}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Vehicle Search</h1>
-              <p className="text-gray-600 dark:text-gray-300">Find vehicles from Copart and IAAI auctions</p>
+              <h1 className={`text-3xl font-bold ${brandColors.text}`}>
+                {selectedSite === 'copart' ? 'Copart' : 'IAAI'} Vehicle Search
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300">
+                Find vehicles from {selectedSite === 'copart' ? 'Copart' : 'IAAI'} auctions
+              </p>
             </div>
             
             {/* Platform Toggle */}
@@ -591,8 +621,8 @@ export default function ActiveLotsPage() {
                 onClick={() => setSelectedSite('copart')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedSite === 'copart'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-blue-600'
                 }`}
               >
                 Copart
@@ -601,8 +631,8 @@ export default function ActiveLotsPage() {
                 onClick={() => setSelectedSite('iaai')}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedSite === 'iaai'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-300 hover:text-red-600'
                 }`}
               >
                 IAAI
@@ -760,11 +790,19 @@ export default function ActiveLotsPage() {
 
           {/* Search Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button onClick={clearAllFilters} variant="outline" className="flex items-center gap-2">
+            <Button 
+              onClick={clearAllFilters} 
+              variant="outline" 
+              className={`flex items-center gap-2 border-2 ${brandColors.border} ${brandColors.text} ${brandColors.primaryHover}`}
+            >
               <RefreshCw className="h-4 w-4" />
               Clear All
             </Button>
-            <Button onClick={() => searchActiveLots(true)} disabled={isLoading} className="flex items-center gap-2">
+            <Button 
+              onClick={() => searchActiveLots(true)} 
+              disabled={isLoading} 
+              className={`flex items-center gap-2 ${brandColors.primary} ${brandColors.primaryHover} text-white`}
+            >
               <Search className="h-4 w-4" />
               {isLoading ? 'Searching...' : 'Search Vehicles'}
             </Button>
@@ -809,7 +847,7 @@ export default function ActiveLotsPage() {
                   )}
                   
                   <div className="absolute top-2 right-2">
-                    <Badge variant="secondary" className="bg-white/90 text-black">
+                    <Badge className={`${brandColors.badge} font-medium`}>
                       {selectedSite === 'copart' ? 'Copart' : 'IAAI'}
                     </Badge>
                   </div>
@@ -875,7 +913,7 @@ export default function ActiveLotsPage() {
                           analyzeLot(lot);
                         }}
                         disabled={isAnalyzing}
-                        className="w-full"
+                        className={`w-full ${brandColors.primary} ${brandColors.primaryHover} text-white`}
                       >
                         {isAnalyzing && selectedLot?.id === lot.id ? 'Analyzing...' : 'AI Analysis'}
                       </Button>
@@ -888,7 +926,7 @@ export default function ActiveLotsPage() {
                           findSimilarVehicles(lot);
                         }}
                         disabled={isLoadingSimilar}
-                        className="w-full"
+                        className={`w-full border-2 ${brandColors.border} ${brandColors.text} ${brandColors.primaryHover}`}
                       >
                         {isLoadingSimilar && selectedLot?.id === lot.id ? 'Finding...' : 'Similar Vehicles'}
                       </Button>
