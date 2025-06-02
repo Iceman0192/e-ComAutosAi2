@@ -1185,13 +1185,15 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      // Skip mileage filter as it's too restrictive for comparable search
-      // Users want to see price ranges across different mileages
-      // if (maxMileage && maxMileage > 0) {
-      //   whereConditions.push(`vehicle_mileage <= $${paramIndex}`);
-      //   params.push(maxMileage);
-      //   paramIndex++;
-      // }
+      // Mileage filter for more accurate comparable pricing
+      if (maxMileage && maxMileage > 0) {
+        // Use a reasonable mileage range for better comparables
+        const mileageRange = Math.max(20000, maxMileage * 0.3); // 30% range or minimum 20k miles
+        whereConditions.push(`vehicle_mileage BETWEEN $${paramIndex} AND $${paramIndex + 1}`);
+        params.push(Math.max(0, maxMileage - mileageRange));
+        params.push(maxMileage + mileageRange);
+        paramIndex += 2;
+      }
       
       // ALWAYS filter for sold vehicles only (exclude not sold and on approval)
       whereConditions.push(`sale_status = $${paramIndex}`);
@@ -1203,20 +1205,17 @@ Be direct, specific, and focus exclusively on this vehicle.`;
       params.push(0);
       paramIndex++;
       
-      // Only apply additional filters if they would be meaningful
-      // Skip overly restrictive filters that cause 0 results
-      
-      // Engine type filter - only if it's a meaningful filter
-      if (engineType && engineType !== 'any' && engineType !== '2.5l 4') {
+      // Engine type filter - precise matching for accurate comparables
+      if (engineType && engineType !== 'any') {
         console.log('APPLYING ENGINE FILTER:', engineType);
-        whereConditions.push(`engine ILIKE $${paramIndex}`);
-        params.push(`%${engineType}%`);
+        whereConditions.push(`engine = $${paramIndex}`);
+        params.push(engineType);
         paramIndex++;
       }
       
-      // Location filter - only for broader regions, not specific states  
-      if (locationState && locationState !== 'any' && locationState.length > 2) {
-        console.log('APPLYING BROAD LOCATION FILTER:', locationState);
+      // Location filter - search for state/region in auction location
+      if (locationState && locationState !== 'any') {
+        console.log('APPLYING LOCATION FILTER:', locationState);
         whereConditions.push(`auction_location ILIKE $${paramIndex}`);
         params.push(`%${locationState}%`);
         paramIndex++;
