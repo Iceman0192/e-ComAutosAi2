@@ -113,14 +113,17 @@ export default function Dashboard() {
         color: 'bg-pink-500'
       });
 
-      actions.push({
-        title: 'AuctionMind Pro',
-        description: 'AI-powered vehicle analysis & comparable search',
-        icon: Settings,
-        href: '/auction-mind-v2',
-        permission: 'FULL_ANALYTICS',
-        color: 'bg-emerald-500'
-      });
+      // AuctionMind Pro - Platinum tier only
+      if (user?.role === 'platinum' || user?.role === 'admin') {
+        actions.push({
+          title: 'AuctionMind Pro',
+          description: 'AI-powered vehicle analysis & comparable search',
+          icon: Settings,
+          href: '/auction-mind-v2',
+          permission: 'FULL_ANALYTICS',
+          color: 'bg-emerald-500'
+        });
+      }
 
       actions.push({
         title: 'Import Calculator',
