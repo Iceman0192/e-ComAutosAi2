@@ -145,7 +145,7 @@ interface SearchFilters {
 export default function ActiveLotsPage() {
   const { user, hasPermission } = useAuth();
   const { toast } = useToast();
-  
+
   // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [smartSearch, setSmartSearch] = useState('');
@@ -216,7 +216,7 @@ export default function ActiveLotsPage() {
 
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch('/api/cars/smart-search', {
         method: 'POST',
@@ -228,7 +228,7 @@ export default function ActiveLotsPage() {
       });
 
       if (!response.ok) throw new Error('Search failed');
-      
+
       const data = await response.json();
       setLots(data.vehicles || []);
       setTotalCount(data.count || 0);
@@ -261,7 +261,7 @@ export default function ActiveLotsPage() {
     console.log('Quick Filter Applied:', filterKey, '=', newFilters[filterKey]);
     console.log('New Filter State:', newFilters);
     setFilters(newFilters);
-    
+
     // Search with the new filters immediately
     searchWithFilters(newFilters, true);
   };
@@ -270,7 +270,7 @@ export default function ActiveLotsPage() {
   const searchWithFilters = async (searchFilters: SearchFilters, resetPage = false) => {
     setIsLoading(true);
     setError('');
-    
+
     const currentPage = resetPage ? 1 : page;
     if (resetPage) setPage(1);
 
@@ -297,10 +297,10 @@ export default function ActiveLotsPage() {
 
       const response = await fetch(`/api/cars?${queryParams}`);
       if (!response.ok) throw new Error('Failed to fetch lots');
-      
+
       const data = await response.json();
       console.log('Active Lots API Response:', data);
-      
+
       if (data.success) {
         setLots(data.data || data.vehicles || []);
         setTotalCount(data.count || 0);
@@ -324,7 +324,7 @@ export default function ActiveLotsPage() {
   const handleBudgetPreset = (preset: string) => {
     setBudgetPreset(preset);
     const newFilters = { ...filters };
-    
+
     switch (preset) {
       case 'under-5k':
         newFilters.price_max = '5000';
@@ -343,14 +343,14 @@ export default function ActiveLotsPage() {
         newFilters.price_max = '';
         break;
     }
-    
+
     setFilters(newFilters);
   };
 
   const handleYearPreset = (preset: string) => {
     setYearPreset(preset);
     const newFilters = { ...filters };
-    
+
     switch (preset) {
       case '2020+':
         newFilters.year_from = '2020';
@@ -374,7 +374,7 @@ export default function ActiveLotsPage() {
         newFilters.year_to = '';
         break;
     }
-    
+
     setFilters(newFilters);
   };
 
@@ -446,20 +446,20 @@ export default function ActiveLotsPage() {
     };
 
     setFilters(similarFilters);
-    
+
     // Search with similar vehicle criteria
     const queryParams = new URLSearchParams({
       site: selectedPlatform === 'copart' ? '2' : '1', // Search opposite platform
       page: '1',
       size: '25'
     });
-    
+
     Object.entries(similarFilters).forEach(([key, value]) => {
       if (value && value.toString().trim()) {
         queryParams.append(key, value.toString().trim());
       }
     });
-    
+
     setIsLoading(true);
     fetch(`/api/cars?${queryParams}`)
       .then(res => res.json())
@@ -468,12 +468,12 @@ export default function ActiveLotsPage() {
           setLots(data.data || []);
           setTotalCount(data.count || 0);
           setPage(1);
-          
+
           toast({
             title: "Similar Vehicles Found",
             description: `Found ${data.count || 0} similar ${lot.year} ${lot.make} ${lot.model} vehicles on ${selectedPlatform === 'copart' ? 'IAAI' : 'Copart'}`,
           });
-          
+
           // Switch to the opposite platform to show cross-platform results
           setSelectedPlatform(selectedPlatform === 'copart' ? 'iaai' : 'copart');
         }
@@ -502,7 +502,7 @@ export default function ActiveLotsPage() {
           <Badge variant="secondary">{lot.base_site.toUpperCase()}</Badge>
         </DialogTitle>
       </DialogHeader>
-      
+
       <div className="space-y-6">
         {/* Vehicle Images */}
         {lot.link_img_hd && lot.link_img_hd.length > 0 && (
@@ -891,6 +891,7 @@ export default function ActiveLotsPage() {
                     <SelectItem value="Water/Flood">Water/Flood</SelectItem>
                     <SelectItem value="Fire">Fire</SelectItem>
                     <SelectItem value="Vandalism">Vandalism</SelectItem>
+                  ```tool_code
                   </SelectContent>
                 </Select>
               </div>
@@ -980,330 +981,20 @@ export default function ActiveLotsPage() {
 
       {/* Results Section */}
       <div className="space-y-6">
-              
-              {/* Vehicle Information Section */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 border-b border-blue-200 dark:border-blue-700 pb-2">Vehicle Information</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  
-                  {/* Pricing & Financial Section */}
-                  <div className="md:col-span-4 mt-6 space-y-4">
-                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 border-b border-blue-200 dark:border-blue-700 pb-2">Pricing & Financial</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Price Min</label>
-                        <Input
-                          placeholder="e.g., 5000"
-                          value={filters.price_min}
-                          onChange={(e) => setFilters({...filters, price_min: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Price Max</label>
-                        <Input
-                          placeholder="e.g., 50000"
-                          value={filters.price_max}
-                          onChange={(e) => setFilters({...filters, price_max: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Buy Now Max Price</label>
-                        <Input
-                          placeholder="e.g., 25000"
-                          value={filters.buy_now}
-                          onChange={(e) => setFilters({...filters, buy_now: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Current Bid</label>
-                        <Input
-                          placeholder="e.g., 1000"
-                          value={filters.current_bid}
-                          onChange={(e) => setFilters({...filters, current_bid: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Mileage & Condition Section */}
-                  <div className="md:col-span-4 mt-6 space-y-4">
-                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 border-b border-blue-200 dark:border-blue-700 pb-2">Mileage & Condition</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Mileage Min</label>
-                        <Input
-                          placeholder="e.g., 10000"
-                          value={filters.mileage_min}
-                          onChange={(e) => setFilters({...filters, mileage_min: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Mileage Max</label>
-                        <Input
-                          placeholder="e.g., 100000"
-                          value={filters.mileage_max}
-                          onChange={(e) => setFilters({...filters, mileage_max: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Status</label>
-                        <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="Run & Drive">Run & Drive</SelectItem>
-                            <SelectItem value="Starts">Starts</SelectItem>
-                            <SelectItem value="Won't Start">Won't Start</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Keys Available</label>
-                        <Select value={filters.keys} onValueChange={(value) => setFilters({...filters, keys: value})}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select keys" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="Yes">Yes</SelectItem>
-                            <SelectItem value="No">No</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Controls */}
-                  <div className="md:col-span-4 mt-6 pt-4 border-t border-blue-200 dark:border-blue-700">
-                    <div className="flex justify-between items-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFilters({
-                          site: '',
-                          lot_id: '',
-                          salvage_id: '',
-                          title: '',
-                          status: '',
-                          odometer: '',
-                          odobrand: '',
-                          drive: '',
-                          price_new: '',
-                          price_future: '',
-                          price_min: '',
-                          price_max: '',
-                          current_bid: '',
-                          auction_date: '',
-                          year: '',
-                          year_from: '',
-                          year_to: '',
-                          odometer_min: '',
-                          odometer_max: '',
-                          mileage_min: '',
-                          mileage_max: '',
-                          make: '',
-                          model: '',
-                          series: '',
-                          damage_pr: '',
-                          damage_sec: '',
-                          keys: '',
-                          fuel: '',
-                          transmission: '',
-                          color: '',
-                          document: '',
-                          vehicle_type: '',
-                          auction_type: '',
-                          is_buynow: '',
-                          buy_now: '',
-                          location: '',
-                          seller_type: '',
-                          body_type: '',
-                          cylinders: '',
-                          engine_size: ''
-                        })}
-                      >
-                        <RefreshCw className="h-4 w-4 mr-1" />
-                        Clear All Filters
-                      </Button>
-                      <Button 
-                        onClick={() => searchActiveLots(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                      >
-                        <Search className="h-4 w-4 mr-2" />
-                        Search with Filters ({Object.values(filters).filter(value => value && value !== '').length})
-                      </Button>
-                    </div>
-                  </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Make</label>
-                  <Select value={filters.make} onValueChange={(value) => setFilters({...filters, make: value, model: ''})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select make" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Makes</SelectItem>
-                      <SelectItem value="Acura">Acura</SelectItem>
-                      <SelectItem value="Audi">Audi</SelectItem>
-                      <SelectItem value="BMW">BMW</SelectItem>
-                      <SelectItem value="Chevrolet">Chevrolet</SelectItem>
-                      <SelectItem value="Ford">Ford</SelectItem>
-                      <SelectItem value="Honda">Honda</SelectItem>
-                      <SelectItem value="Hyundai">Hyundai</SelectItem>
-                      <SelectItem value="Infiniti">Infiniti</SelectItem>
-                      <SelectItem value="Jeep">Jeep</SelectItem>
-                      <SelectItem value="Kia">Kia</SelectItem>
-                      <SelectItem value="Lexus">Lexus</SelectItem>
-                      <SelectItem value="Mazda">Mazda</SelectItem>
-                      <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
-                      <SelectItem value="Nissan">Nissan</SelectItem>
-                      <SelectItem value="Subaru">Subaru</SelectItem>
-                      <SelectItem value="Tesla">Tesla</SelectItem>
-                      <SelectItem value="Toyota">Toyota</SelectItem>
-                      <SelectItem value="Volkswagen">Volkswagen</SelectItem>
-                      <SelectItem value="Volvo">Volvo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Model</label>
-                  <Input
-                    placeholder="Enter model"
-                    value={filters.model}
-                    onChange={(e) => setFilters({...filters, model: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Year From</label>
-                  <Input
-                    placeholder="e.g., 2015"
-                    value={filters.year}
-                    onChange={(e) => setFilters({...filters, year: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Engine Size</label>
-                  <Input
-                    placeholder="e.g., 2.5"
-                    value={filters.engine_size}
-                    onChange={(e) => setFilters({...filters, engine_size: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Location</label>
-                  <Input
-                    placeholder="e.g., CA, TX, FL"
-                    value={filters.location}
-                    onChange={(e) => setFilters({...filters, location: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Damage</label>
-                  <Select value={filters.damage_pr} onValueChange={(value) => setFilters({...filters, damage_pr: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select damage" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Damage Types</SelectItem>
-                      <SelectItem value="Front End">Front End</SelectItem>
-                      <SelectItem value="Rear End">Rear End</SelectItem>
-                      <SelectItem value="Side">Side</SelectItem>
-                      <SelectItem value="All Over">All Over</SelectItem>
-                      <SelectItem value="Minor Dent/Scratches">Minor Dent/Scratches</SelectItem>
-                      <SelectItem value="Hail">Hail</SelectItem>
-                      <SelectItem value="Water/Flood">Water/Flood</SelectItem>
-                      <SelectItem value="Fire">Fire</SelectItem>
-                      <SelectItem value="Vandalism">Vandalism</SelectItem>
-                      <SelectItem value="Theft">Theft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Price Min</label>
-                  <Input
-                    placeholder="e.g., 1000"
-                    value={filters.price_new}
-                    onChange={(e) => setFilters({...filters, price_new: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Price Max</label>
-                  <Input
-                    placeholder="e.g., 50000"
-                    value={filters.price_future}
-                    onChange={(e) => setFilters({...filters, price_future: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Mileage Min</label>
-                  <Input
-                    placeholder="e.g., 10000"
-                    value={filters.odometer}
-                    onChange={(e) => setFilters({...filters, odometer: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Secondary Damage</label>
-                  <Input
-                    placeholder="e.g., Hail, Side"
-                    value={filters.damage_sec}
-                    onChange={(e) => setFilters({...filters, damage_sec: e.target.value})}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Transmission</label>
-                  <Select value={filters.transmission} onValueChange={(value) => setFilters({...filters, transmission: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select transmission" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="Automatic">Automatic</SelectItem>
-                      <SelectItem value="Manual">Manual</SelectItem>
-                      <SelectItem value="CVT">CVT</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-          {/* Search Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button onClick={clearAllFilters} variant="outline" className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Clear All
-            </Button>
-            <Button onClick={() => searchActiveLots(true)} disabled={isLoading} className="flex items-center gap-2">
-              <Search className="h-4 w-4" />
-              {isLoading ? 'Searching...' : 'Search Vehicles'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Error Display */}
-      {error && (
-        <div className="flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
-          <AlertCircle className="h-4 w-4" />
-          <span className="text-sm">{error}</span>
-        </div>
-      )}
+          {error && (
+            <div className="flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
 
       {/* Results */}
       {lots.length > 0 && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">
-              Found {totalResults.toLocaleString()} vehicles
+              Found {totalCount.toLocaleString()} active lots on {selectedPlatform.toUpperCase()}
             </h2>
             <div className="flex items-center justify-between sm:justify-end gap-2">
               <span className="text-sm text-muted-foreground">Page {page}</span>
@@ -1314,20 +1005,20 @@ export default function ActiveLotsPage() {
                   onClick={() => {
                     const newPage = Math.max(1, page - 1);
                     setPage(newPage);
-                    
+
                     // Search with correct page number
                     const queryParams = new URLSearchParams({
                       site: selectedPlatform === 'copart' ? '1' : '2',
                       page: newPage.toString(),
                       size: '25'
                     });
-                    
+
                     Object.entries(filters).forEach(([key, value]) => {
                       if (value && value.toString().trim()) {
                         queryParams.append(key, value.toString().trim());
                       }
                     });
-                    
+
                     setIsLoading(true);
                     fetch(`/api/cars?${queryParams}`)
                       .then(res => res.json())
@@ -1349,20 +1040,20 @@ export default function ActiveLotsPage() {
                   onClick={() => {
                     const newPage = page + 1;
                     setPage(newPage);
-                    
+
                     // Search with correct page number
                     const queryParams = new URLSearchParams({
                       site: selectedPlatform === 'copart' ? '1' : '2',
                       page: newPage.toString(),
                       size: '25'
                     });
-                    
+
                     Object.entries(filters).forEach(([key, value]) => {
                       if (value && value.toString().trim()) {
                         queryParams.append(key, value.toString().trim());
                       }
                     });
-                    
+
                     setIsLoading(true);
                     fetch(`/api/cars?${queryParams}`)
                       .then(res => res.json())
