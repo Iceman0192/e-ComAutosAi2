@@ -26,7 +26,8 @@ import {
   ExternalLink,
   Info,
   Play,
-  Pause
+  Pause,
+  AlertTriangle
 } from 'lucide-react';
 
 interface AnalysisResult {

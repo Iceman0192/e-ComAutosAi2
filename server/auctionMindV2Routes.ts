@@ -8,7 +8,7 @@ import OpenAI from "openai";
 import axios from 'axios';
 import { db } from './db';
 import { salesHistory } from '@shared/schema';
-import { and, between, ilike, isNotNull, sql } from 'drizzle-orm';
+import { and, between, ilike, isNotNull, sql, eq, gt, or } from 'drizzle-orm';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -129,32 +129,157 @@ async function searchAuctionHistory(vin: string): Promise<any[]> {
  */
 async function findComparableVehicles(vehicleInfo: any): Promise<any[]> {
   try {
-    console.log(`Finding comparables for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model}`);
+    const targetLocation = vehicleInfo.auction_location || vehicleInfo.location || '';
+    const targetState = extractStateFromLocation(targetLocation);
+    const targetMileage = parseInt(vehicleInfo.odometer_reading || vehicleInfo.odometer) || 0;
     
-    const yearRange = 2;
-    const mileage = vehicleInfo.odometer || 0;
-    const mileageRange = Math.max(mileage * 0.3, 10000);
+    console.log(`Finding exact specification matches for ${vehicleInfo.year} ${vehicleInfo.make} ${vehicleInfo.model} in ${targetState} region`);
     
-    const result = await db
-      .select()
-      .from(salesHistory)
-      .where(
-        and(
-          ilike(salesHistory.make, vehicleInfo.make),
-          ilike(salesHistory.model, vehicleInfo.model),
-          between(salesHistory.year, vehicleInfo.year - yearRange, vehicleInfo.year + yearRange),
-          isNotNull(salesHistory.purchase_price)
+    // Step 1: Exact specification matches in same location using raw SQL for precision
+    const exactMatchQuery = `
+      SELECT * FROM sales_history 
+      WHERE make = $1 
+      AND model = $2 
+      AND year = $3
+      AND purchase_price IS NOT NULL 
+      AND purchase_price::numeric > 0
+      AND sale_status = 'Sold'
+      AND (auction_location ILIKE $4 OR buyer_state = $5)
+      ORDER BY sale_date DESC
+      LIMIT 15
+    `;
+    
+    const exactMatchResult = await db.execute(sql.raw(exactMatchQuery, [
+      vehicleInfo.make,
+      vehicleInfo.model,
+      vehicleInfo.year,
+      `%${targetState}%`,
+      targetState
+    ]));
+    
+    let exactMatches = exactMatchResult.rows || [];
+
+    // Add specification filters if available
+    if (vehicleInfo.transmission && exactMatches.length > 0) {
+      exactMatches = exactMatches.filter(vehicle => 
+        vehicle.transmission?.toLowerCase().includes(vehicleInfo.transmission?.toLowerCase()) ||
+        !vehicle.transmission
+      );
+    }
+
+    if (vehicleInfo.engine && exactMatches.length > 0) {
+      exactMatches = exactMatches.filter(vehicle => 
+        vehicle.engine?.toLowerCase().includes(vehicleInfo.engine?.toLowerCase()) ||
+        !vehicle.engine
+      );
+    }
+
+    if (vehicleInfo.trim || vehicleInfo.series) {
+      const targetTrim = (vehicleInfo.trim || vehicleInfo.series).toLowerCase();
+      exactMatches = exactMatches.filter(vehicle => 
+        vehicle.trim?.toLowerCase().includes(targetTrim) ||
+        vehicle.series?.toLowerCase().includes(targetTrim) ||
+        (!vehicle.trim && !vehicle.series)
+      );
+    }
+
+    // Filter by similar mileage (±20,000 miles)
+    if (targetMileage > 0) {
+      exactMatches = exactMatches.filter(vehicle => {
+        const vehicleMileage = parseInt(vehicle.vehicle_mileage) || 0;
+        return Math.abs(vehicleMileage - targetMileage) <= 20000;
+      });
+    }
+
+    console.log(`Found ${exactMatches.length} exact specification matches in ${targetState}`);
+
+    // Step 2: If not enough exact matches, expand to nearby years in same location
+    if (exactMatches.length < 10) {
+      const nearbyYearMatches = await db
+        .select()
+        .from(salesHistory)
+        .where(
+          and(
+            eq(salesHistory.make, vehicleInfo.make),
+            eq(salesHistory.model, vehicleInfo.model),
+            between(salesHistory.year, vehicleInfo.year - 1, vehicleInfo.year + 1),
+            isNotNull(salesHistory.purchase_price),
+            gt(salesHistory.purchase_price, '0'),
+            eq(salesHistory.sale_status, 'Sold'),
+            or(
+              ilike(salesHistory.auction_location, `%${targetState}%`),
+              eq(salesHistory.buyer_state, targetState)
+            )
+          )
         )
-      )
-      .orderBy(salesHistory.sale_date)
-      .limit(20);
+        .orderBy(salesHistory.sale_date)
+        .limit(10 - exactMatches.length);
+
+      exactMatches = [...exactMatches, ...nearbyYearMatches];
+      console.log(`Added ${nearbyYearMatches.length} nearby year matches, total: ${exactMatches.length}`);
+    }
+
+    // Step 3: If still not enough, expand to regional/national but keep exact specifications
+    if (exactMatches.length < 8) {
+      const nationalMatches = await db
+        .select()
+        .from(salesHistory)
+        .where(
+          and(
+            eq(salesHistory.make, vehicleInfo.make),
+            eq(salesHistory.model, vehicleInfo.model),
+            eq(salesHistory.year, vehicleInfo.year),
+            isNotNull(salesHistory.purchase_price),
+            gt(salesHistory.purchase_price, '0'),
+            eq(salesHistory.sale_status, 'Sold')
+          )
+        )
+        .orderBy(salesHistory.sale_date)
+        .limit(8 - exactMatches.length);
+
+      exactMatches = [...exactMatches, ...nationalMatches];
+      console.log(`Added ${nationalMatches.length} national matches, total: ${exactMatches.length}`);
+    }
+
+    // Calculate location-based pricing insights
+    const locationMatches = exactMatches.filter(vehicle => 
+      vehicle.auction_location?.includes(targetState) || vehicle.buyer_state === targetState
+    );
     
-    console.log(`Found ${result.length} comparable vehicles`);
-    return result;
+    const locationAvgPrice = locationMatches.length > 0 
+      ? locationMatches.reduce((sum, v) => sum + parseFloat(v.purchase_price || '0'), 0) / locationMatches.length
+      : 0;
+
+    console.log(`Location-based average: $${Math.round(locationAvgPrice)} from ${locationMatches.length} local sales`);
+
+    return exactMatches;
   } catch (error: any) {
     console.error('Comparable search error:', error);
     return [];
   }
+}
+
+/**
+ * Extract state abbreviation from location string
+ */
+function extractStateFromLocation(location: string): string {
+  if (!location) return '';
+  
+  // Extract state patterns: "TX", "CA", "New York", etc.
+  const stateMatch = location.match(/\b([A-Z]{2})\b|, ([A-Z]{2})$/) || 
+                    location.match(/\b(California|Texas|Florida|New York|Illinois|Pennsylvania|Ohio|Georgia|North Carolina|Michigan|Virginia|Washington|Arizona|Massachusetts|Tennessee|Indiana|Missouri|Maryland|Wisconsin|Colorado|Minnesota|South Carolina|Alabama|Louisiana|Kentucky|Oregon|Oklahoma|Connecticut|Utah|Iowa|Nevada|Arkansas|Mississippi|Kansas|New Mexico|Nebraska|West Virginia|Idaho|Hawaii|New Hampshire|Maine|Montana|Rhode Island|Delaware|South Dakota|North Dakota|Alaska|Vermont|Wyoming)\b/i);
+  
+  if (stateMatch) {
+    const state = stateMatch[1] || stateMatch[2] || stateMatch[0];
+    // Convert full state names to abbreviations if needed
+    const stateAbbreviations: { [key: string]: string } = {
+      'California': 'CA', 'Texas': 'TX', 'Florida': 'FL', 'New York': 'NY',
+      'Illinois': 'IL', 'Pennsylvania': 'PA', 'Ohio': 'OH', 'Georgia': 'GA'
+    };
+    return stateAbbreviations[state] || state.toUpperCase();
+  }
+  
+  return location.split(',')[0].trim().toUpperCase().slice(0, 2);
 }
 
 /**
