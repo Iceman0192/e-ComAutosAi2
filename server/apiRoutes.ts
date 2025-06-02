@@ -840,7 +840,9 @@ export function setupApiRoutes(app: Express) {
       if (req.query.year_from) params.append('year_from', req.query.year_from as string);
       if (req.query.year_to) params.append('year_to', req.query.year_to as string);
       if (req.query.location) params.append('location', req.query.location as string);
-      if (req.query.damage) params.append('damage', req.query.damage as string);
+      // Map frontend filter names to correct API parameter names
+      if (req.query.damage_pr) params.append('damage_pr', req.query.damage_pr as string);
+      if (req.query.damage) params.append('damage_pr', req.query.damage as string);
       if (req.query.price_min) params.append('price_min', req.query.price_min as string);
       if (req.query.price_max) params.append('price_max', req.query.price_max as string);
       if (req.query.mileage_min) params.append('mileage_min', req.query.mileage_min as string);
@@ -849,10 +851,13 @@ export function setupApiRoutes(app: Express) {
       if (req.query.fuel) params.append('fuel', req.query.fuel as string);
       if (req.query.color) params.append('color', req.query.color as string);
       if (req.query.title_type) params.append('title_type', req.query.title_type as string);
-      if (req.query.status) params.append('status', req.query.status as string);
-      if (req.query.keys) params.append('keys', req.query.keys as string);
       if (req.query.document) params.append('document', req.query.document as string);
       if (req.query.drive) params.append('drive', req.query.drive as string);
+      
+      // Handle status mapping - only add if not 'all'
+      if (req.query.status && req.query.status !== 'all') {
+        params.append('status', req.query.status as string);
+      }
       if (req.query.auction_date) params.append('auction_date', req.query.auction_date as string);
       if (req.query.current_bid) params.append('current_bid', req.query.current_bid as string);
       if (req.query.lot_id) params.append('lot_id', req.query.lot_id as string);
@@ -885,6 +890,7 @@ export function setupApiRoutes(app: Express) {
       }
 
       console.log(`Active Lots Search: Site ${site}, Page ${page}, Query:`, req.query);
+      console.log(`API Parameters being sent:`, params.toString());
 
       // Make optimized request to APICAR API
       const response = await axios.get(`https://api.apicar.store/api/cars?${params}`, {
