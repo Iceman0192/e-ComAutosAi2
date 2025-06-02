@@ -1211,15 +1211,14 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      // Location filter - handle multiple auction location formats
+      // Location filter - handle multiple auction location formats precisely
       if (locationState && locationState !== 'any' && locationState.trim() !== '') {
         console.log('APPLYING LOCATION FILTER:', locationState);
-        // Match locations in formats: "VA - City", "City (VA)", or "VA"
-        whereConditions.push(`(auction_location ILIKE $${paramIndex} OR auction_location ILIKE $${paramIndex + 1} OR auction_location ILIKE $${paramIndex + 2})`);
-        params.push(`${locationState} -%`);     // "VA - City" format
-        params.push(`%(${locationState})%`);   // "City (VA)" format  
-        params.push(`%${locationState}%`);     // General match
-        paramIndex += 3;
+        // Match only proper state formats, not partial matches within city names
+        whereConditions.push(`(auction_location ILIKE $${paramIndex} OR auction_location ILIKE $${paramIndex + 1})`);
+        params.push(`${locationState} -%`);     // "AL - City" format
+        params.push(`%(${locationState})%`);   // "City (AL)" format  
+        paramIndex += 2;
       }
       
       // Drive type filter
