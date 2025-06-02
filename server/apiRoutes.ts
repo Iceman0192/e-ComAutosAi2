@@ -840,32 +840,12 @@ export function setupApiRoutes(app: Express) {
       if (req.query.year_from) params.append('year_from', req.query.year_from as string);
       if (req.query.year_to) params.append('year_to', req.query.year_to as string);
       
-      // Location mapping - based on actual API response format
-      if (req.query.location && req.query.location !== 'all') {
-        const locationCode = req.query.location as string;
-        
-        // Map state codes to formats that match actual API location patterns
-        // Based on API response showing formats like "Toronto North (ONTARIO)"
-        const locationSearchMap: { [key: string]: string } = {
-          'TX': 'TEXAS', 'CA': 'CALIFORNIA', 'FL': 'FLORIDA', 'NY': 'NEW YORK',
-          'IL': 'ILLINOIS', 'PA': 'PENNSYLVANIA', 'OH': 'OHIO', 'GA': 'GEORGIA',
-          'NC': 'NORTH CAROLINA', 'MI': 'MICHIGAN', 'NJ': 'NEW JERSEY', 'VA': 'VIRGINIA',
-          'WA': 'WASHINGTON', 'AZ': 'ARIZONA', 'MA': 'MASSACHUSETTS', 'TN': 'TENNESSEE',
-          'IN': 'INDIANA', 'MO': 'MISSOURI', 'MD': 'MARYLAND', 'WI': 'WISCONSIN',
-          'CO': 'COLORADO', 'MN': 'MINNESOTA', 'SC': 'SOUTH CAROLINA', 'AL': 'ALABAMA',
-          'LA': 'LOUISIANA', 'KY': 'KENTUCKY', 'OR': 'OREGON', 'OK': 'OKLAHOMA',
-          'CT': 'CONNECTICUT', 'UT': 'UTAH', 'IA': 'IOWA', 'NV': 'NEVADA',
-          'AR': 'ARKANSAS', 'MS': 'MISSISSIPPI', 'KS': 'KANSAS', 'NM': 'NEW MEXICO',
-          'NE': 'NEBRASKA', 'WV': 'WEST VIRGINIA', 'ID': 'IDAHO', 'HI': 'HAWAII',
-          'NH': 'NEW HAMPSHIRE', 'ME': 'MAINE', 'RI': 'RHODE ISLAND', 'MT': 'MONTANA',
-          'DE': 'DELAWARE', 'SD': 'SOUTH DAKOTA', 'ND': 'NORTH DAKOTA', 'AK': 'ALASKA',
-          'VT': 'VERMONT', 'WY': 'WYOMING'
-        };
-
-        // Use the mapped location format for both platforms
-        const mappedLocation = locationSearchMap[locationCode] || locationCode;
-        params.append('location', mappedLocation);
-      }
+      // Location filtering - API may not support this parameter
+      // Based on API response analysis, location filtering might need to be done client-side
+      // Commenting out until we confirm API supports location parameter
+      // if (req.query.location && req.query.location !== 'all') {
+      //   params.append('location', req.query.location as string);
+      // }
       
       // Damage mapping - use primary damage parameter
       if (req.query.damage_pr && req.query.damage_pr !== 'all') {
@@ -946,17 +926,55 @@ export function setupApiRoutes(app: Express) {
       });
 
       if (response.data) {
+        let filteredData = response.data.data || [];
+        
+        // Apply client-side location filtering if location parameter was provided
+        if (req.query.location && req.query.location !== 'all') {
+          const locationFilter = req.query.location as string;
+          
+          // Map state codes to state names for filtering
+          const stateNameMap: { [key: string]: string } = {
+            'TX': 'TEXAS', 'CA': 'CALIFORNIA', 'FL': 'FLORIDA', 'NY': 'NEW YORK',
+            'IL': 'ILLINOIS', 'PA': 'PENNSYLVANIA', 'OH': 'OHIO', 'GA': 'GEORGIA',
+            'NC': 'NORTH CAROLINA', 'MI': 'MICHIGAN', 'NJ': 'NEW JERSEY', 'VA': 'VIRGINIA',
+            'WA': 'WASHINGTON', 'AZ': 'ARIZONA', 'MA': 'MASSACHUSETTS', 'TN': 'TENNESSEE',
+            'IN': 'INDIANA', 'MO': 'MISSOURI', 'MD': 'MARYLAND', 'WI': 'WISCONSIN',
+            'CO': 'COLORADO', 'MN': 'MINNESOTA', 'SC': 'SOUTH CAROLINA', 'AL': 'ALABAMA',
+            'LA': 'LOUISIANA', 'KY': 'KENTUCKY', 'OR': 'OREGON', 'OK': 'OKLAHOMA',
+            'CT': 'CONNECTICUT', 'UT': 'UTAH', 'IA': 'IOWA', 'NV': 'NEVADA',
+            'AR': 'ARKANSAS', 'MS': 'MISSISSIPPI', 'KS': 'KANSAS', 'NM': 'NEW MEXICO',
+            'NE': 'NEBRASKA', 'WV': 'WEST VIRGINIA', 'ID': 'IDAHO', 'HI': 'HAWAII',
+            'NH': 'NEW HAMPSHIRE', 'ME': 'MAINE', 'RI': 'RHODE ISLAND', 'MT': 'MONTANA',
+            'DE': 'DELAWARE', 'SD': 'SOUTH DAKOTA', 'ND': 'NORTH DAKOTA', 'AK': 'ALASKA',
+            'VT': 'VERMONT', 'WY': 'WYOMING'
+          };
+          
+          const targetState = stateNameMap[locationFilter] || locationFilter;
+          
+          filteredData = filteredData.filter((item: any) => {
+            if (!item.location) return false;
+            
+            // Check if location contains the target state
+            const location = item.location.toUpperCase();
+            return location.includes(targetState) || 
+                   location.includes(`(${locationFilter})`) ||
+                   (item.state && item.state.toUpperCase() === locationFilter);
+          });
+        }
+        
         const responseData = {
           success: true,
-          count: response.data.count || 0,
-          pages: response.data.pages || 0,
-          size: response.data.size || size,
-          page: response.data.page || page,
-          data: response.data.data || []
+          count: filteredData.length,
+          pages: Math.ceil(filteredData.length / size),
+          size: size,
+          page: page,
+          data: filteredData.slice((page - 1) * size, page * size)
         };
         
-        // Cache the response
-        setCachedResponse(cacheKey, responseData);
+        // Cache the response (don't cache filtered results to avoid issues)
+        if (!req.query.location || req.query.location === 'all') {
+          setCachedResponse(cacheKey, responseData);
+        }
         
         return res.json(responseData);
       } else {
