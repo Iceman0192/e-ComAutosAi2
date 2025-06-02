@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, 
   Eye, 
@@ -123,6 +124,7 @@ interface SearchFilters {
 }
 
 export default function ActiveLotsPage() {
+  const { user, hasPermission } = useAuth();
   const [lots, setLots] = useState<AuctionLot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -330,6 +332,15 @@ export default function ActiveLotsPage() {
   };
 
   const analyzeLot = async (lot: AuctionLot) => {
+    // Check if user has premium membership (Gold/Platinum)
+    if (hasPermission('AI_ANALYSIS') && (user?.role === 'gold' || user?.role === 'platinum')) {
+      // Redirect premium members to AuctionMind v2 with auto-analysis
+      const auctionMindUrl = `/auction-mind-v2?lot_id=${lot.lot_id}&site=${lot.site}&auto_analyze=true`;
+      window.location.href = auctionMindUrl;
+      return;
+    }
+
+    // For non-premium users, use basic AI analysis
     setIsAnalyzing(true);
     setAnalysisResults(null);
     
