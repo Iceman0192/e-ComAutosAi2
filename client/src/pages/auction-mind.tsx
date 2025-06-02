@@ -21,6 +21,7 @@ import {
   Wrench,
   History,
   BarChart3,
+  Building,
   Image as ImageIcon,
   ChevronLeft,
   ChevronRight
@@ -639,54 +640,41 @@ export default function AuctionMind() {
           )}
 
           {/* Summary Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Records</p>
-                    <p className="text-2xl font-bold">{vinData.totalRecords}</p>
-                  </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Auction Summary</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div className="flex items-center justify-center mb-2">
+                  <BarChart3 className="h-6 w-6 text-blue-600" />
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Average Price</p>
-                    <p className="text-2xl font-bold">{formatPrice(vinData.priceHistory.averagePrice)}</p>
-                  </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Records</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{vinData.totalRecords}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div className="flex items-center justify-center mb-2">
+                  <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-orange-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Last Sale</p>
-                    <p className="text-2xl font-bold">{formatPrice(vinData.priceHistory.lastSalePrice)}</p>
-                  </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Average Price</p>
+                <p className="text-2xl font-bold text-green-600">{formatPrice(vinData.priceHistory.averagePrice)}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div className="flex items-center justify-center mb-2">
+                  <Clock className="h-6 w-6 text-orange-600" />
                 </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Platforms</p>
-                    <p className="text-lg font-bold">{vinData.platforms.join(', ')}</p>
-                  </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Last Sale</p>
+                <p className="text-2xl font-bold text-orange-600">{formatPrice(vinData.priceHistory.lastSalePrice)}</p>
+              </div>
+              
+              <div className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                <div className="flex items-center justify-center mb-2">
+                  <Building className="h-6 w-6 text-purple-600" />
                 </div>
-              </CardContent>
-            </Card>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Platforms</p>
+                <p className="text-2xl font-bold text-purple-600">{vinData.platforms?.join(', ') || 'N/A'}</p>
+              </div>
+            </div>
           </div>
 
 

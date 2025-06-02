@@ -559,6 +559,13 @@ async function searchVinHistory(vin: string): Promise<any> {
     // Sort by sale date (newest first)
     allResults.sort((a, b) => new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime());
     
+    // Debug: Log final vehicle image counts
+    console.log('Final allResults count:', allResults.length);
+    allResults.forEach((vehicle, index) => {
+      const processedImages = typeof vehicle.images === 'string' ? JSON.parse(vehicle.images || '[]') : vehicle.images || [];
+      console.log(`Vehicle ${index}: ${processedImages.length} images`);
+    });
+
     return {
       vin,
       totalRecords: allResults.length,
