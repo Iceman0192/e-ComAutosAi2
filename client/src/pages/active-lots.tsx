@@ -1276,96 +1276,34 @@ export default function ActiveLotsPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Fuel Type</label>
-                  <Select value={filters.fuel} onValueChange={(value) => setFilters({...filters, fuel: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select fuel type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="Gasoline">Gasoline</SelectItem>
-                      <SelectItem value="Hybrid">Hybrid</SelectItem>
-                      <SelectItem value="Electric">Electric</SelectItem>
-                      <SelectItem value="Diesel">Diesel</SelectItem>
-                      <SelectItem value="Flexible Fuel">Flexible Fuel</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center pt-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setFilters({
-                    site: '',
-                    lot_id: '',
-                    salvage_id: '',
-                    title: '',
-                    status: '',
-                    odometer: '',
-                    odobrand: '',
-                    drive: '',
-                    price_new: '',
-                    price_future: '',
-                    price_min: '',
-                    price_max: '',
-                    current_bid: '',
-                    auction_date: '',
-                    year: '',
-                    year_from: '',
-                    year_to: '',
-                    odometer_min: '',
-                    odometer_max: '',
-                    mileage_min: '',
-                    mileage_max: '',
-                    make: '',
-                    model: '',
-                    series: '',
-                    damage_pr: '',
-                    damage_sec: '',
-                    keys: '',
-                    fuel: '',
-                    transmission: '',
-                    color: '',
-                    document: '',
-                    vehicle_type: '',
-                    auction_type: '',
-                    is_buynow: '',
-                    buy_now: '',
-                    location: '',
-                    seller_type: '',
-                    body_type: '',
-                    cylinders: '',
-                    engine_size: ''
-                  })}
-                >
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Clear Filters
-                </Button>
-                <Button onClick={() => searchActiveLots(true)} disabled={isLoading}>
-                  {isLoading ? 'Searching...' : 'Apply Filters'}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
+          {/* Search Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+            <Button onClick={clearAllFilters} variant="outline" className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Clear All
+            </Button>
+            <Button onClick={() => searchActiveLots(true)} disabled={isLoading} className="flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              {isLoading ? 'Searching...' : 'Search Vehicles'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Error Display */}
+      {error && (
+        <div className="flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+          <AlertCircle className="h-4 w-4" />
+          <span className="text-sm">{error}</span>
+        </div>
+      )}
 
       {/* Results */}
       {lots.length > 0 && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">
-              Found {totalCount.toLocaleString()} active lots on {selectedPlatform.toUpperCase()}
+              Found {totalResults.toLocaleString()} vehicles
             </h2>
             <div className="flex items-center justify-between sm:justify-end gap-2">
               <span className="text-sm text-muted-foreground">Page {page}</span>
