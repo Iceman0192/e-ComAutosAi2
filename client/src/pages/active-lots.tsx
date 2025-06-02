@@ -1078,11 +1078,11 @@ export default function ActiveLotsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any Condition</SelectItem>
-                    <SelectItem value="Run and Drive">Run & Drive</SelectItem>
-                    <SelectItem value="Starts">Starts Only</SelectItem>
-                    <SelectItem value="Engine Start Program">Engine Start</SelectItem>
-                    <SelectItem value="Runs/Drives">Runs/Drives</SelectItem>
-                    <SelectItem value="Not Run/Drive">Won't Start</SelectItem>
+                    <SelectItem value="Run & Drive">Run & Drive</SelectItem>
+                    <SelectItem value="Starts">Starts</SelectItem>
+                    <SelectItem value="Stationary">Stationary</SelectItem>
+                    <SelectItem value="Can't test">Can't test</SelectItem>
+                    <SelectItem value="Unknown">Unknown</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1183,13 +1183,10 @@ export default function ActiveLotsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Any Title</SelectItem>
-                    <SelectItem value="Clear Title">Clear Title</SelectItem>
-                    <SelectItem value="Salvage Certificate">Salvage</SelectItem>
-                    <SelectItem value="Rebuilt Title">Rebuilt</SelectItem>
-                    <SelectItem value="Certificate of Title">Certificate of Title</SelectItem>
-                    <SelectItem value="Lemon Law Buyback">Lemon</SelectItem>
-                    <SelectItem value="Flood Title">Flood Title</SelectItem>
-                    <SelectItem value="Bill of Sale">Bill of Sale</SelectItem>
+                    <SelectItem value="Salvage">Salvage</SelectItem>
+                    <SelectItem value="Clean">Clean</SelectItem>
+                    <SelectItem value="Non repairable">Non repairable</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

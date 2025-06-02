@@ -901,11 +901,11 @@ export function setupApiRoutes(app: Express) {
       // Create cache key from search parameters
       const cacheKey = `cars_${params.toString()}`;
       
-      // Check cache first
-      const cachedResponse = getCachedResponse(cacheKey);
-      if (cachedResponse) {
-        return res.json(cachedResponse);
-      }
+      // Skip cache for now to ensure fresh results during filter testing
+      // const cachedResponse = getCachedResponse(cacheKey);
+      // if (cachedResponse) {
+      //   return res.json(cachedResponse);
+      // }
 
       console.log(`Active Lots Search: Site ${site}, Page ${page}, Query:`, req.query);
       console.log(`API Parameters being sent:`, params.toString());
