@@ -463,6 +463,16 @@ async function searchVinHistory(vin: string): Promise<any> {
     
     console.log(`Total external VIN history results: ${externalResults.length}`);
     
+    // Debug: Log image data for troubleshooting
+    if (externalResults.length > 0) {
+      console.log('Debug - First external result images:', JSON.stringify({
+        images: externalResults[0].images,
+        link_img_hd: externalResults[0].link_img_hd,
+        link_img_small: externalResults[0].link_img_small,
+        photo_links: externalResults[0].photo_links
+      }, null, 2));
+    }
+    
     // Combine and deduplicate results
     const allResults = [...internalResults];
     
@@ -511,7 +521,7 @@ async function searchVinHistory(vin: string): Promise<any> {
           fuel: extResult.fuel,
           color: extResult.color,
           vehicle_mileage: extResult.odometer || extResult.vehicle_mileage,
-          images: extResult.link_img_hd || [],
+          images: extResult.link_img_hd || extResult.images || extResult.photo_links || [],
           link: extResult.link,
           created_at: new Date(),
           vehicle_has_keys: null,
