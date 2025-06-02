@@ -526,6 +526,94 @@ export default function AuctionMind() {
             </div>
           )}
 
+          {/* Complete VIN History Records */}
+          {vinData.vehicles && vinData.vehicles.length > 1 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Complete Auction History</h2>
+              {vinData.vehicles.map((vehicle: any, index: number) => (
+                <Card key={index} className="overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>
+                        {formatDate(vehicle.sale_date)} - {getSiteIcon(vehicle.site)}
+                      </span>
+                      {getStatusBadge(vehicle.sale_status)}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Vehicle Images for this record */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
+                        {vehicle.images && vehicle.images.length > 0 ? (
+                          <div className="grid grid-cols-3 gap-2">
+                            {vehicle.images.slice(0, 6).map((imageUrl: string, imgIndex: number) => (
+                              <div key={imgIndex} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded overflow-hidden">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Vehicle photo ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                                  onClick={() => window.open(imageUrl, '_blank')}
+                                />
+                              </div>
+                            ))}
+                            {vehicle.images.length > 6 && (
+                              <div className="aspect-square bg-slate-200 dark:bg-slate-700 rounded flex items-center justify-center">
+                                <span className="text-sm text-slate-600 dark:text-slate-400">
+                                  +{vehicle.images.length - 6} more
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+                            <span className="text-slate-500">No images available</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Auction Details for this record */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Lot ID:</span>
+                            <p className="font-semibold">{vehicle.lot_id}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Sale Price:</span>
+                            <p className="font-semibold text-green-600">{formatPrice(vehicle.purchase_price)}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Damage:</span>
+                            <p className="font-semibold text-red-600">{vehicle.damage_pr || vehicle.vehicle_damage}</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Location:</span>
+                            <p className="font-semibold">{vehicle.location || vehicle.auction_location}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Mileage:</span>
+                            <p className="font-semibold">{vehicle.odometer?.toLocaleString() || 'Unknown'} mi</p>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Title:</span>
+                            <p className="font-semibold">{vehicle.document || vehicle.vehicle_title}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
           {/* Summary Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
