@@ -10,6 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '../components/ComparableSearchForm';
+import { LoadingState, TableLoadingState, CardLoadingState } from '@/components/ui/loading-spinner';
+import { ErrorState, EmptyState } from '@/components/ui/error-state';
 import { 
   Car, 
   Search, 
