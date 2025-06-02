@@ -36,7 +36,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'Sales History',
-      href: '/home',
+      href: '/',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
