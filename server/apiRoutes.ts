@@ -840,9 +840,37 @@ export function setupApiRoutes(app: Express) {
       if (req.query.year_from) params.append('year_from', req.query.year_from as string);
       if (req.query.year_to) params.append('year_to', req.query.year_to as string);
       
-      // Location mapping - use correct parameter name
+      // Location mapping - use correct parameter name and format for each platform
       if (req.query.location && req.query.location !== 'all') {
-        params.append('location', req.query.location as string);
+        const locationCode = req.query.location as string;
+        
+        // State code to full name mapping for IAAI (site 2)
+        const stateNameMap: { [key: string]: string } = {
+          'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas',
+          'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware',
+          'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii', 'ID': 'Idaho',
+          'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa', 'KS': 'Kansas',
+          'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+          'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi',
+          'MO': 'Missouri', 'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada',
+          'NH': 'New Hampshire', 'NJ': 'New Jersey', 'NM': 'New Mexico', 'NY': 'New York',
+          'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio', 'OK': 'Oklahoma',
+          'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+          'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah',
+          'VT': 'Vermont', 'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia',
+          'WI': 'Wisconsin', 'WY': 'Wyoming'
+        };
+
+        if (site === '2') {
+          // IAAI uses full state names
+          const stateName = stateNameMap[locationCode];
+          if (stateName) {
+            params.append('location', stateName);
+          }
+        } else {
+          // Copart uses state codes directly
+          params.append('location', locationCode);
+        }
       }
       
       // Damage mapping - use primary damage parameter
