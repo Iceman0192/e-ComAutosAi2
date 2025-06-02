@@ -260,10 +260,34 @@ export default function AuctionMind() {
         </DialogHeader>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Hero Carousel */}
+          {/* Vehicle Image Gallery */}
           <div className="col-span-full">
-            <h3 className="text-lg font-semibold mb-3">Vehicle Photos</h3>
-            <HeroCarousel images={vehicle.images || vehicle.link_img_hd || vehicle.link_img_small || []} />
+            <h3 className="text-lg font-semibold mb-4">Complete Vehicle Gallery ({vehicle.images?.length || 0} Photos)</h3>
+            {vehicle.images && vehicle.images.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+                {vehicle.images.map((imageUrl: string, index: number) => (
+                  <div key={index} className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden group">
+                    <img
+                      src={imageUrl}
+                      alt={`Vehicle photo ${index + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform cursor-pointer"
+                      onClick={() => window.open(imageUrl, '_blank')}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-6">
+                <span className="text-slate-500">No images available for this vehicle</span>
+              </div>
+            )}
+            
+            {/* Hero Carousel for main viewing */}
+            <div className="mt-4">
+              <h4 className="text-md font-medium mb-2">Large View</h4>
+              <HeroCarousel images={vehicle.images || []} />
+            </div>
           </div>
 
           {/* Vehicle Specifications */}
