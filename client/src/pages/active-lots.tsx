@@ -134,6 +134,11 @@ export default function ActiveLotsPage() {
   const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [selectedLot, setSelectedLot] = useState<AuctionLot | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [similarVehicles, setSimilarVehicles] = useState<AuctionLot[]>([]);
+  const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
 
   const [filters, setFilters] = useState<SearchFilters>({
     site: '',
@@ -317,91 +322,255 @@ export default function ActiveLotsPage() {
     });
   };
 
+  const analyzeLot = async (lot: AuctionLot) => {
+    setIsAnalyzing(true);
+    setAnalysisResults(null);
+    
+    try {
+      const response = await fetch('/api/analyze-lot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          lot_id: lot.lot_id,
+          vin: lot.vin,
+          year: lot.year,
+          make: lot.make,
+          model: lot.model,
+          series: lot.series,
+          odometer: lot.odometer,
+          current_bid: lot.current_bid,
+          damage_pr: lot.damage_pr,
+          damage_sec: lot.damage_sec,
+          document: lot.document,
+          location: lot.location,
+          auction_date: lot.auction_date,
+          status: lot.status,
+          transmission: lot.transmission,
+          fuel: lot.fuel,
+          drive: lot.drive,
+          color: lot.color,
+          engine: lot.engine,
+          images: lot.link_img_hd
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAnalysisResults(data);
+      } else {
+        console.error('Analysis failed:', response.status);
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const findSimilarVehicles = async (lot: AuctionLot) => {
+    setIsLoadingSimilar(true);
+    setSimilarVehicles([]);
+    
+    try {
+      const response = await fetch('/api/search-similar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          make: lot.make,
+          model: lot.model,
+          year_from: (lot.year - 2).toString(),
+          year_to: (lot.year + 2).toString(),
+          site: selectedSite,
+          exclude_lot_id: lot.lot_id
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSimilarVehicles(data.lots.slice(0, 6));
+        }
+      }
+    } catch (error) {
+      console.error('Similar vehicles search error:', error);
+    } finally {
+      setIsLoadingSimilar(false);
+    }
+  };
+
   const LotDetailDialog = ({ lot }: { lot: AuctionLot }) => (
-    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="text-xl font-bold">
           {lot.year} {lot.make} {lot.model} {lot.series}
         </DialogTitle>
       </DialogHeader>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Vehicle Images */}
-        <div className="space-y-4">
-          {lot.link_img_hd && lot.link_img_hd.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2">
-              {lot.link_img_hd.slice(0, 4).map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`${lot.make} ${lot.model} - Image ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-lg border"
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder-car.jpg';
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-              <Car className="h-16 w-16 text-gray-400" />
-            </div>
-          )}
-        </div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Vehicle Images */}
+          <div className="space-y-4">
+            {lot.link_img_hd && lot.link_img_hd.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2">
+                {lot.link_img_hd.slice(0, 4).map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`${lot.make} ${lot.model} - Image ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg border"
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder-car.jpg';
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="w-full h-64 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                <Car className="h-16 w-16 text-gray-400" />
+              </div>
+            )}
+          </div>
 
-        {/* Vehicle Details */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">VIN:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.vin}</p>
-            </div>
-            <div>
-              <span className="font-medium">Lot ID:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.lot_id}</p>
-            </div>
-            <div>
-              <span className="font-medium">Odometer:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.odometer?.toLocaleString()} mi</p>
-            </div>
-            <div>
-              <span className="font-medium">Current Bid:</span>
-              <p className="text-green-600 font-semibold">${lot.current_bid?.toLocaleString()}</p>
-            </div>
-            <div>
-              <span className="font-medium">Location:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.location}</p>
-            </div>
-            <div>
-              <span className="font-medium">Auction Date:</span>
-              <p className="text-gray-600 dark:text-gray-300">{new Date(lot.auction_date).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <span className="font-medium">Primary Damage:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.damage_pr}</p>
-            </div>
-            <div>
-              <span className="font-medium">Document Type:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.document}</p>
-            </div>
-            <div>
-              <span className="font-medium">Status:</span>
-              <Badge variant="outline">{lot.status}</Badge>
-            </div>
-            <div>
-              <span className="font-medium">Engine:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.engine}</p>
-            </div>
-            <div>
-              <span className="font-medium">Transmission:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.transmission}</p>
-            </div>
-            <div>
-              <span className="font-medium">Fuel:</span>
-              <p className="text-gray-600 dark:text-gray-300">{lot.fuel}</p>
+          {/* Vehicle Details */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium">VIN:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.vin}</p>
+              </div>
+              <div>
+                <span className="font-medium">Lot ID:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.lot_id}</p>
+              </div>
+              <div>
+                <span className="font-medium">Odometer:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.odometer?.toLocaleString()} mi</p>
+              </div>
+              <div>
+                <span className="font-medium">Current Bid:</span>
+                <p className="text-green-600 font-semibold">${lot.current_bid?.toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="font-medium">Location:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.location}</p>
+              </div>
+              <div>
+                <span className="font-medium">Auction Date:</span>
+                <p className="text-gray-600 dark:text-gray-300">{new Date(lot.auction_date).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <span className="font-medium">Primary Damage:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.damage_pr}</p>
+              </div>
+              <div>
+                <span className="font-medium">Document Type:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.document}</p>
+              </div>
+              <div>
+                <span className="font-medium">Status:</span>
+                <Badge variant="outline">{lot.status}</Badge>
+              </div>
+              <div>
+                <span className="font-medium">Engine:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.engine}</p>
+              </div>
+              <div>
+                <span className="font-medium">Transmission:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.transmission}</p>
+              </div>
+              <div>
+                <span className="font-medium">Fuel:</span>
+                <p className="text-gray-600 dark:text-gray-300">{lot.fuel}</p>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3">
+          <Button 
+            onClick={() => analyzeLot(lot)} 
+            disabled={isAnalyzing}
+            className="flex items-center gap-2"
+          >
+            {isAnalyzing ? 'Analyzing...' : 'AI Analysis'}
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => findSimilarVehicles(lot)}
+            disabled={isLoadingSimilar}
+            className="flex items-center gap-2"
+          >
+            {isLoadingSimilar ? 'Finding...' : 'Find Similar'}
+          </Button>
+          {lot.link && (
+            <Button variant="outline" asChild>
+              <a href={lot.link} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View on {selectedSite === 'copart' ? 'Copart' : 'IAAI'}
+              </a>
+            </Button>
+          )}
+        </div>
+
+        {/* AI Analysis Results */}
+        {analysisResults && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+            <h3 className="font-semibold mb-2">AI Analysis Results</h3>
+            <div className="space-y-2 text-sm">
+              {analysisResults.marketValue && (
+                <p><span className="font-medium">Market Value:</span> {analysisResults.marketValue}</p>
+              )}
+              {analysisResults.repairEstimate && (
+                <p><span className="font-medium">Repair Estimate:</span> {analysisResults.repairEstimate}</p>
+              )}
+              {analysisResults.recommendation && (
+                <p><span className="font-medium">Recommendation:</span> {analysisResults.recommendation}</p>
+              )}
+              {analysisResults.analysis && (
+                <p className="mt-2">{analysisResults.analysis}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Similar Vehicles */}
+        {similarVehicles.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-semibold">Similar Vehicles</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {similarVehicles.map((similar) => (
+                <Card key={similar.id} className="overflow-hidden">
+                  <div className="aspect-video bg-gray-100 dark:bg-gray-800 relative">
+                    {similar.link_img_hd && similar.link_img_hd.length > 0 ? (
+                      <img
+                        src={similar.link_img_hd[0]}
+                        alt={`${similar.year} ${similar.make} ${similar.model}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Car className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-3">
+                    <h4 className="font-medium text-sm">{similar.year} {similar.make} {similar.model}</h4>
+                    <div className="flex justify-between text-xs text-gray-600 dark:text-gray-300 mt-1">
+                      <span>${similar.current_bid?.toLocaleString()}</span>
+                      <span>{similar.odometer?.toLocaleString()} mi</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs mt-1">{similar.damage_pr}</Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </DialogContent>
   );
@@ -683,19 +852,49 @@ export default function ActiveLotsPage() {
                       </Badge>
                     </div>
 
-                    <div className="flex gap-2 mt-3">
+                    <div className="grid grid-cols-2 gap-2 mt-3">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => setSelectedLot(lot)}
+                          >
                             <Eye className="h-4 w-4 mr-1" />
                             Details
                           </Button>
                         </DialogTrigger>
-                        <LotDetailDialog lot={lot} />
+                        {selectedLot && <LotDetailDialog lot={selectedLot} />}
                       </Dialog>
                       
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setSelectedLot(lot);
+                          analyzeLot(lot);
+                        }}
+                        disabled={isAnalyzing}
+                        className="w-full"
+                      >
+                        {isAnalyzing && selectedLot?.id === lot.id ? 'Analyzing...' : 'AI Analysis'}
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedLot(lot);
+                          findSimilarVehicles(lot);
+                        }}
+                        disabled={isLoadingSimilar}
+                        className="w-full"
+                      >
+                        {isLoadingSimilar && selectedLot?.id === lot.id ? 'Finding...' : 'Similar Vehicles'}
+                      </Button>
+                      
                       {lot.link && (
-                        <Button size="sm" asChild className="flex-1">
+                        <Button size="sm" asChild className="w-full">
                           <a href={lot.link} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="h-4 w-4 mr-1" />
                             View Auction
