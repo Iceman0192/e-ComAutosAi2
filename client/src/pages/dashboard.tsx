@@ -373,7 +373,7 @@ export default function Dashboard() {
           <CardDescription className="text-blue-700 dark:text-blue-300">
             {user?.role === 'free' && "You have access to basic sales history search and VIN history."}
             {user?.role === 'basic' && "You have access to all basic features plus Active Lot Finder."}
-            {user?.role === 'gold' && "You have access to live analysis tools and AuctionMind Pro."}
+            {user?.role === 'gold' && "You have access to live analysis tools and import calculator."}
             {user?.role === 'platinum' && "You have access to all premium features including import calculator."}
             {user?.role === 'admin' && "You have full administrative access to all features."}
           </CardDescription>
@@ -395,9 +395,9 @@ export default function Dashboard() {
                   <h4 className="font-medium mb-2">Premium Features (Gold/Platinum)</h4>
                   <ul className="space-y-1 text-xs">
                     <li>• Live Copart & IAAI Analysis</li>
-                    <li>• AuctionMind Pro AI Analysis</li>
                     <li>• Advanced Comparable Search</li>
-                    {(user?.role === 'platinum' || user?.role === 'admin') && <li>• Import Duty Calculator</li>}
+                    <li>• Import Duty Calculator</li>
+                    {(user?.role === 'platinum' || user?.role === 'admin') && <li>• AuctionMind Pro AI Analysis</li>}
                   </ul>
                 </div>
               )}
