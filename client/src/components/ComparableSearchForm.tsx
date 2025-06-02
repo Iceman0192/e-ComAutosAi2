@@ -37,17 +37,17 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
   const [searchParams, setSearchParams] = useState({
     make: lotData.make || '',
     model: lotData.model || '',
-    series: lotData.series || lotData.trim || '',
+    series: '',
     yearFrom: lotData.year ? lotData.year - 1 : 2020,
     yearTo: lotData.year ? lotData.year + 1 : 2025,
-    damageType: lotData.damage_pr || lotData.damage_primary || lotData.vehicle_damage || '',
-    maxMileage: lotData.odometer ? Math.round(lotData.odometer * 1.2) : '',
+    damageType: 'all',
+    maxMileage: '',
     saleStatus: 'sold',
-    engineType: lotData.engine || 'any',
-    documentType: lotData.document || '',
-    driveType: lotData.drive || '',
-    vehicleStatus: lotData.status || '',
-    locationState: lotData.state || '',
+    engineType: 'any',
+    documentType: 'any',
+    driveType: 'any',
+    vehicleStatus: 'any',
+    locationState: 'any',
     sites: allowedSites
   });
 
