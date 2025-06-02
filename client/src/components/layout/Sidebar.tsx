@@ -36,7 +36,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'Sales History',
-      href: '/',
+      href: '/copart',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
@@ -111,6 +111,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
   const isActiveRoute = (href: string) => {
     if (href === '/dashboard') return location === '/dashboard';
     if (href === '/') return location === '/' && !location.includes('/dashboard');
+    if (href === '/copart') return location === '/copart';
     
     // Exact match for similar routes to prevent conflicts
     if (href === '/vin-history' && location === '/vin-history') return true;

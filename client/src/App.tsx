@@ -28,6 +28,7 @@ function Router() {
   return (
     <MainLayout>
       <Switch>
+        <Route path="/copart" component={Home} />
         <Route path="/" component={Home} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/active-lots" component={ActiveLots} />
