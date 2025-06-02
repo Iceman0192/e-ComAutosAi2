@@ -245,6 +245,19 @@ Examine all images now and provide complete damage documentation:`
 
   } catch (error: any) {
     console.error('AI vision analysis error:', error);
+    
+    // Handle specific image format errors
+    if (error.code === 'invalid_image_format' || error.message?.includes('unsupported image')) {
+      return { 
+        summary: 'Image analysis unavailable - auction platform images are in an unsupported format for AI processing. Analysis continues with available vehicle data.',
+        hasImages: true,
+        imageCount: lotData.link_img_hd?.length || 0,
+        error: 'Image format not supported by AI vision analysis',
+        damageAssessment: 'Unable to perform visual damage assessment due to image format limitations. Please refer to auction platform photos for visual inspection.',
+        recommendation: 'Manual inspection recommended'
+      };
+    }
+    
     return { 
       summary: 'AI vision analysis temporarily unavailable',
       hasImages: false,

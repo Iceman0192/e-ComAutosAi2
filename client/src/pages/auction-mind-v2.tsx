@@ -543,22 +543,40 @@ export default function AuctionMindV2() {
                     <div className="space-y-6">
                       <div>
                         <h4 className="font-semibold mb-3">Professional Damage Assessment</h4>
-                        <div className="text-sm text-muted-foreground mb-4">
-                          {typeof result.aiAnalysis.damageAssessment === 'string' 
-                            ? result.aiAnalysis.damageAssessment 
-                            : typeof result.aiAnalysis.damageAssessment === 'object' && result.aiAnalysis.damageAssessment
-                            ? (
-                                <div className="space-y-2">
-                                  {Object.entries(result.aiAnalysis.damageAssessment).map(([area, description]) => (
-                                    <div key={area} className="text-sm">
-                                      <span className="font-medium capitalize">{area.replace(/([A-Z])/g, ' $1').trim()}:</span>
-                                      <span className="ml-2">{String(description)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )
-                            : result.aiAnalysis.summary || 'Comprehensive AI analysis completed'}
-                        </div>
+                        
+                        {result.aiAnalysis.error && result.aiAnalysis.error.includes('format') ? (
+                          <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
+                            <div className="flex items-start gap-3">
+                              <AlertTriangle className="h-5 w-5 text-orange-600 mt-0.5" />
+                              <div>
+                                <h5 className="font-medium text-orange-800 dark:text-orange-200 mb-1">
+                                  Image Analysis Limitation
+                                </h5>
+                                <p className="text-sm text-orange-700 dark:text-orange-300">
+                                  The auction platform images are in a format that cannot be processed by AI vision analysis. 
+                                  Please review the {result.aiAnalysis.imageCount} available images manually on the auction platform.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground mb-4">
+                            {typeof result.aiAnalysis.damageAssessment === 'string' 
+                              ? result.aiAnalysis.damageAssessment 
+                              : typeof result.aiAnalysis.damageAssessment === 'object' && result.aiAnalysis.damageAssessment
+                              ? (
+                                  <div className="space-y-2">
+                                    {Object.entries(result.aiAnalysis.damageAssessment).map(([area, description]) => (
+                                      <div key={area} className="text-sm">
+                                        <span className="font-medium capitalize">{area.replace(/([A-Z])/g, ' $1').trim()}:</span>
+                                        <span className="ml-2">{String(description)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )
+                              : result.aiAnalysis.summary || 'Comprehensive AI analysis completed'}
+                          </div>
+                        )}
                         
                         {result.aiAnalysis.overallCondition && (
                           <div className="mb-4">
