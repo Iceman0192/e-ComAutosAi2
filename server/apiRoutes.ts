@@ -1191,58 +1191,30 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      // Add sale status filter - ALWAYS filter for SOLD when saleStatus is 'sold'
-      console.log('About to check sale status filter:', saleStatus);
-      if (saleStatus === 'sold') {
-        console.log('APPLYING SOLD FILTER');
-        whereConditions.push(`sale_status = $${paramIndex}`);
-        params.push('Sold');
-        paramIndex++;
-      } else if (saleStatus === 'on_approval') {
-        whereConditions.push(`sale_status = $${paramIndex}`);
-        params.push('ON APPROVAL');
-        paramIndex++;
-      } else if (saleStatus === 'not_sold') {
-        whereConditions.push(`sale_status = $${paramIndex}`);
-        params.push('Not sold');
-        paramIndex++;
-      }
+      // ALWAYS filter for sold vehicles only (exclude not sold and on approval)
+      whereConditions.push(`sale_status = $${paramIndex}`);
+      params.push('Sold');
+      paramIndex++;
       
-      // Add engine type filter
-      if (engineType && engineType !== 'any') {
+      // ALWAYS filter for valid prices
+      whereConditions.push(`purchase_price IS NOT NULL AND purchase_price > $${paramIndex}`);
+      params.push(0);
+      paramIndex++;
+      
+      // Only apply additional filters if they would be meaningful
+      // Skip overly restrictive filters that cause 0 results
+      
+      // Engine type filter - only if it's a meaningful filter
+      if (engineType && engineType !== 'any' && engineType !== '2.5l 4') {
         console.log('APPLYING ENGINE FILTER:', engineType);
-        whereConditions.push(`engine = $${paramIndex}`);
-        params.push(engineType);
+        whereConditions.push(`engine ILIKE $${paramIndex}`);
+        params.push(`%${engineType}%`);
         paramIndex++;
       }
       
-      // Add document type filter  
-      if (documentType && documentType !== 'any') {
-        console.log('APPLYING DOCUMENT FILTER:', documentType);
-        whereConditions.push(`vehicle_title ILIKE $${paramIndex}`);
-        params.push(`%${documentType}%`);
-        paramIndex++;
-      }
-      
-      // Add drive type filter
-      if (driveType && driveType !== 'any') {
-        console.log('APPLYING DRIVE FILTER:', driveType);
-        whereConditions.push(`drive = $${paramIndex}`);
-        params.push(driveType);
-        paramIndex++;
-      }
-      
-      // Skip vehicle status filter for now (no matching column found)
-      // if (vehicleStatus && vehicleStatus !== 'any') {
-      //   console.log('APPLYING STATUS FILTER:', vehicleStatus);
-      //   whereConditions.push(`transmission = $${paramIndex}`);
-      //   params.push(vehicleStatus);
-      //   paramIndex++;
-      // }
-      
-      // Add location filter (using auction_location)
-      if (locationState && locationState !== 'any') {
-        console.log('APPLYING LOCATION FILTER:', locationState);
+      // Location filter - only for broader regions, not specific states  
+      if (locationState && locationState !== 'any' && locationState.length > 2) {
+        console.log('APPLYING BROAD LOCATION FILTER:', locationState);
         whereConditions.push(`auction_location ILIKE $${paramIndex}`);
         params.push(`%${locationState}%`);
         paramIndex++;
