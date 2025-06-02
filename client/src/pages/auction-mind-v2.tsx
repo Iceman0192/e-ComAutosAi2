@@ -416,18 +416,26 @@ export default function AuctionMindV2() {
             <div className="mt-4 flex gap-2">
               <Button 
                 size="sm" 
-                onClick={() => window.open(`https://copart.com/lot/${lot.lotId}`, '_blank')}
+                onClick={() => {
+                  // Determine platform based on lot data
+                  const isIAAI = lot.baseSite === 'iaai' || lot.site === 2;
+                  const url = isIAAI 
+                    ? `https://www.iaai.com/vehicle/${lot.lotId}` 
+                    : `https://copart.com/lot/${lot.lotId}`;
+                  window.open(url, '_blank');
+                }}
                 className="flex items-center gap-2"
               >
                 <ExternalLink className="h-3 w-3" />
-                View on Copart
+                View on {lot.baseSite === 'iaai' || lot.site === 2 ? 'IAAI' : 'Copart'}
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => {
                   setLotId(lot.lotId.toString());
-                  setSite('1');
+                  // Set correct site based on platform
+                  setSite(lot.baseSite === 'iaai' || lot.site === 2 ? '2' : '1');
                   setResult(null);
                 }}
               >
