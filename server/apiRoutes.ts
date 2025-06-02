@@ -1230,22 +1230,21 @@ Be direct, specific, and focus exclusively on this vehicle.`;
         paramIndex++;
       }
       
-      // Document/Title type filter - search within vehicle title
+      // Document/Title type filter - search within vehicle title only
       if (documentType && documentType !== 'any') {
         console.log('APPLYING DOCUMENT TYPE FILTER:', documentType);
-        // For document types like "Clean", "Salvage", etc., search in the document field
-        whereConditions.push(`(document ILIKE $${paramIndex} OR vehicle_title ILIKE $${paramIndex})`);
+        whereConditions.push(`vehicle_title ILIKE $${paramIndex}`);
         params.push(`%${documentType}%`);
         paramIndex++;
       }
       
-      // Vehicle status filter - map to appropriate database field
-      if (vehicleStatus && vehicleStatus !== 'any') {
-        console.log('APPLYING VEHICLE STATUS FILTER:', vehicleStatus);
-        whereConditions.push(`status = $${paramIndex}`);
-        params.push(vehicleStatus);
-        paramIndex++;
-      }
+      // Skip vehicle status filter as there's no matching column in our database
+      // if (vehicleStatus && vehicleStatus !== 'any') {
+      //   console.log('APPLYING VEHICLE STATUS FILTER:', vehicleStatus);
+      //   whereConditions.push(`status = $${paramIndex}`);
+      //   params.push(vehicleStatus);
+      //   paramIndex++;
+      // }
       
       const whereClause = whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1';
       
