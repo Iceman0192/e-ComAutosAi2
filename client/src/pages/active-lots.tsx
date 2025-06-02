@@ -393,7 +393,7 @@ export default function ActiveLotsPage() {
     setFilters(newFilters);
     
     // Trigger new search with similar vehicle parameters
-    await searchActiveLots(true, lot.make, lot.model, newFilters);
+    await searchActiveLots(true);
   };
 
   const LotDetailDialog = ({ lot }: { lot: AuctionLot }) => (
@@ -1281,51 +1281,54 @@ export default function ActiveLotsPage() {
                       </Badge>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mt-3">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => setSelectedLot(lot)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Details
-                          </Button>
-                        </DialogTrigger>
-                        {selectedLot && <LotDetailDialog lot={selectedLot} />}
-                      </Dialog>
-                      
-                      <Button 
-                        size="sm" 
-                        onClick={() => {
-                          setSelectedLot(lot);
-                          analyzeLot(lot);
-                        }}
-                        disabled={isAnalyzing}
-                        className={`w-full ${brandColors.primary} ${brandColors.primaryHover} text-white`}
-                      >
-                        {isAnalyzing && selectedLot?.id === lot.id ? 'Analyzing...' : 'AI Analysis'}
-                      </Button>
+                    <div className="flex flex-col gap-2 mt-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full text-xs"
+                              onClick={() => setSelectedLot(lot)}
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              Details
+                            </Button>
+                          </DialogTrigger>
+                          {selectedLot && <LotDetailDialog lot={selectedLot} />}
+                        </Dialog>
+                        
+                        <Button 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLot(lot);
+                            analyzeLot(lot);
+                          }}
+                          disabled={isAnalyzing}
+                          className={`w-full text-xs ${brandColors.primary} ${brandColors.primaryHover} text-white`}
+                        >
+                          {isAnalyzing && selectedLot?.id === lot.id ? 'Analyzing...' : 'AI Analysis'}
+                        </Button>
+                      </div>
                       
                       <Button 
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setSelectedLot(lot);
+                        onClick={(e) => {
+                          e.stopPropagation();
                           findSimilarVehicles(lot);
                         }}
                         disabled={isLoadingSimilar}
-                        className={`w-full border-2 ${brandColors.border} ${brandColors.text} ${brandColors.primaryHover}`}
+                        className={`w-full text-xs border-2 ${brandColors.border} ${brandColors.text} ${brandColors.primaryHover}`}
                       >
-                        {isLoadingSimilar && selectedLot?.id === lot.id ? 'Finding...' : 'Similar Vehicles'}
+                        {isLoadingSimilar ? 'Finding...' : 'Similar Vehicles'}
                       </Button>
                       
                       {lot.link && (
-                        <Button size="sm" asChild className="w-full">
+                        <Button size="sm" asChild className="w-full text-xs">
                           <a href={lot.link} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-1" />
+                            <ExternalLink className="h-3 w-3 mr-1" />
                             View Auction
                           </a>
                         </Button>
