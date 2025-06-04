@@ -9,6 +9,7 @@ import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupAuthRoutes } from "./authRoutes";
 import { setupAdminRoutes } from "./adminRoutes";
 import { registerUsageRoutes } from "./usageRoutes";
+import { registerDatasetRoutes } from "./datasetRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
@@ -77,6 +78,9 @@ app.use((req, res, next) => {
   
   // Set up usage tracking routes
   registerUsageRoutes(app);
+  
+  // Set up dataset management routes
+  registerDatasetRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
