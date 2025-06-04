@@ -28,7 +28,16 @@ export function setupAuthRoutes(app: Express) {
       
       // Get user from database
       const dbUser = await storage.getUserByEmail(email);
-      if (!dbUser || !await bcrypt.compare(password, dbUser.passwordHash)) {
+      if (!dbUser) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials'
+        });
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, dbUser.password);
+      if (!isValidPassword) {
         return res.status(401).json({
           success: false,
           message: 'Invalid credentials'
