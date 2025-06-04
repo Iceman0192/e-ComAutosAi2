@@ -5,7 +5,7 @@ import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UsageProvider } from "./contexts/UsageContext";
-import RoleSwitcher from "./components/auth/RoleSwitcher";
+
 import { MainLayout } from "./components/layout/MainLayout";
 
 // Pages
@@ -76,7 +76,6 @@ function App() {
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               <Router />
               <Toaster />
-              <RoleSwitcher />
             </div>
           </QueryClientProvider>
         </UsageProvider>
