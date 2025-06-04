@@ -58,6 +58,28 @@ export const aiAnalysisCache = pgTable("ai_analysis_cache", {
   accessCount: integer("access_count").default(1).notNull(),
 });
 
+export const aiPatterns = pgTable("ai_patterns", {
+  id: serial("id").primaryKey(),
+  patternType: text("pattern_type").notNull(), // 'vehicle_segment', 'temporal', 'market_trend'
+  description: text("description").notNull(),
+  patternData: text("pattern_data").notNull(), // JSON of pattern details
+  confidence: numeric("confidence").notNull(),
+  frequency: integer("frequency").default(1).notNull(),
+  lastSeen: timestamp("last_seen").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const analysisHistory = pgTable("analysis_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  analysisType: text("analysis_type").notNull(), // 'standard', 'comprehensive'
+  recordCount: integer("record_count").notNull(),
+  duration: integer("duration").notNull(), // milliseconds
+  cached: boolean("cached").default(false).notNull(),
+  filters: text("filters"), // JSON of applied filters
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
 export const aiLearningMetrics = pgTable("ai_learning_metrics", {
   id: serial("id").primaryKey(),
   analysisType: text("analysis_type").notNull(),
