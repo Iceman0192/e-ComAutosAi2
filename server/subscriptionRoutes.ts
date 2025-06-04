@@ -66,6 +66,38 @@ export function registerSubscriptionRoutes(app: Express) {
     }
   });
 
+  // Test checkout session (bypasses auth for testing)
+  app.post("/api/subscription/test-checkout", async (req, res) => {
+    try {
+      const { planRole = 'basic' } = req.body;
+      
+      // Create test checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${planRole.charAt(0).toUpperCase() + planRole.slice(1)} Plan`,
+                description: `Monthly subscription to ${planRole} plan`,
+              },
+              unit_amount: planRole === 'basic' ? 2900 : planRole === 'gold' ? 7900 : 14900,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: `${req.headers.origin}/billing?success=true`,
+        cancel_url: `${req.headers.origin}/billing?canceled=true`,
+      });
+
+      res.json({ success: true, sessionUrl: session.url });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  });
+
   // Create subscription checkout session
   app.post("/api/subscription/create-checkout", async (req, res) => {
     if (!req.isAuthenticated()) {
