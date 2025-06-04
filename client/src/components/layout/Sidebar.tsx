@@ -37,7 +37,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Sales History',
+      title: 'Sales History Search',
       href: '/home',
       icon: Search,
       permission: 'BASIC_SEARCH'
@@ -55,7 +55,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Active Lots',
+      title: 'Active Lots Finder',
       href: '/active-lots',
       icon: Search,
       permission: 'BASIC_SEARCH'
@@ -67,16 +67,16 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'AuctionMind',
+      title: 'AuctionMind Pro',
       href: '/auction-mind',
       icon: Brain,
-      permission: 'BASIC_SEARCH'
+      permission: 'AI_ANALYSIS'
     },
     {
       title: 'AuctionMind V2',
       href: '/auction-mind-v2',
       icon: Brain,
-      permission: 'BASIC_SEARCH'
+      permission: 'AI_ANALYSIS'
     },
     {
       title: 'Import Calculator',
@@ -85,10 +85,10 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Datasets',
+      title: 'Data Export',
       href: '/datasets',
       icon: Database,
-      permission: 'ADMIN'
+      permission: 'EXPORT_DATA'
     }
   ];
 
@@ -274,7 +274,16 @@ export function Sidebar({ className = '' }: SidebarProps) {
         <Button
           variant="ghost"
           className="w-full justify-start gap-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={logout}
+          onClick={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+              await logout();
+              window.location.href = '/';
+            } catch (error) {
+              console.error('Logout failed:', error);
+            }
+          }}
         >
           <LogOut className="h-4 w-4" />
           Sign Out
