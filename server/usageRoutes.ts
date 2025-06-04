@@ -1,17 +1,14 @@
-import { Express, Request, Response } from 'express';
+import { Express } from 'express';
 import { db } from './db';
 import { userUsage, users } from '@shared/schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
 import { TIER_LIMITS, checkUsageLimit } from '@shared/usage-limits';
-
-interface AuthenticatedRequest extends Request {
-  user?: any;
-}
+import type { Request, Response } from 'express';
 
 export function registerUsageRoutes(app: Express) {
   // Get current user's usage stats
-  app.get('/api/usage/stats', async (req: AuthenticatedRequest, res: Response) => {
-    if (!req.isAuthenticated()) {
+  app.get('/api/usage/stats', async (req: Request, res: Response) => {
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
 
