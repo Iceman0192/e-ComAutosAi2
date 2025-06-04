@@ -5,7 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
-import { setupSubscriptionRoutes } from "./subscriptionRoutes";
+import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupAuthRoutes } from "./authRoutes";
 import { setupAdminRoutes } from "./adminRoutes";
 import { freshDataManager } from "./freshDataManager";

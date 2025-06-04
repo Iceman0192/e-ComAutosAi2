@@ -1,20 +1,81 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const userRoleEnum = pgEnum('user_role', ['freemium', 'basic', 'gold', 'platinum', 'admin']);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull(),
+  role: userRoleEnum('role').default('freemium').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  lastLoginAt: timestamp('last_login_at'),
+  isActive: boolean('is_active').default(true).notNull(),
+  stripeCustomerId: text('stripe_customer_id'),
+  stripeSubscriptionId: text('stripe_subscription_id'),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  email: true,
+  name: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type UserRole = typeof users.role.enumValues[number];
+
+// Usage tracking tables
+export const userUsage = pgTable("user_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  date: timestamp("date").defaultNow().notNull(),
+  searches: integer("searches").default(0).notNull(),
+  aiAnalyses: integer("ai_analyses").default(0).notNull(),
+  vinSearches: integer("vin_searches").default(0).notNull(),
+  exports: integer("exports").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  role: userRoleEnum('role').notNull(),
+  monthlyPrice: numeric("monthly_price").notNull(),
+  yearlyPrice: numeric("yearly_price"),
+  stripePriceId: text("stripe_price_id"),
+  stripeYearlyPriceId: text("stripe_yearly_price_id"),
+  features: text("features"), // JSON string
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  planId: integer("plan_id").notNull(),
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  status: text("status").notNull(), // active, canceled, past_due, etc.
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserUsageSchema = createInsertSchema(userUsage);
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans);
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions);
+
+export type InsertUserUsage = z.infer<typeof insertUserUsageSchema>;
+export type UserUsage = typeof userUsage.$inferSelect;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
 
 // Sales history schema
 export const salesHistory = pgTable("sales_history", {
