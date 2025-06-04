@@ -22,6 +22,7 @@ import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
 import UsagePage from "./pages/usage";
+import LoginPage from "./pages/login";
 import AdminDashboard from "./pages/admin";
 import NotFound from "./pages/not-found";
 
@@ -43,6 +44,7 @@ function Router() {
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
         <Route path="/usage" component={UsagePage} />
+        <Route path="/login" component={LoginPage} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>

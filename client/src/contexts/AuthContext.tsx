@@ -36,10 +36,11 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  loading: boolean;
   isLoggedIn: boolean;
   hasPermission: (permission: Permission) => boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateUserRole: (role: UserRole) => void;
 }
 
@@ -56,7 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchCurrentUser = async () => {
     try {
-      const response = await apiRequest('GET', '/api/auth/me');
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
       const data = await response.json();
       if (data.success && data.user) {
         setUser({
@@ -76,7 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string): Promise<void> => {
-    const response = await apiRequest('POST', '/api/auth/login', { email, password });
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ email, password })
+    });
+    
     const data = await response.json();
     if (data.success) {
       await fetchCurrentUser();
@@ -87,7 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (): Promise<void> => {
     try {
-      await apiRequest('POST', '/api/auth/logout');
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -107,6 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user,
+    loading,
     isLoggedIn: !!user,
     hasPermission,
     login,
