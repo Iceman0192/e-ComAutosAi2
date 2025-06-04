@@ -38,33 +38,45 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'Sales History',
-      href: '/copart',
+      href: '/home',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Active Lot Finder',
-      href: '/active-lots',
-      icon: Car,
-      permission: 'BASIC_SEARCH'
-    },
-    {
-      title: 'Live Lot Analysis',
+      title: 'Live Copart',
       href: '/live-copart',
       icon: Car,
-      permission: 'FULL_ANALYTICS'
-    },
-    {
-      title: 'VIN History Search',
-      href: '/vin-history',
-      icon: History,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'AuctionMind Pro',
+      title: 'Live IAAI',
+      href: '/live-iaai',
+      icon: Car,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'Active Lots',
+      href: '/active-lots',
+      icon: Search,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'IAAI Search',
+      href: '/iaai',
+      icon: Search,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'AuctionMind',
+      href: '/auction-mind',
+      icon: Brain,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'AuctionMind V2',
       href: '/auction-mind-v2',
       icon: Brain,
-      permission: 'CROSS_PLATFORM_SEARCH'
+      permission: 'BASIC_SEARCH'
     },
     {
       title: 'Import Calculator',
@@ -76,12 +88,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Datasets',
       href: '/datasets',
       icon: Database,
-      permission: 'ADMIN'
-    },
-    {
-      title: 'Team Management',
-      href: '/team',
-      icon: Users,
       permission: 'ADMIN'
     }
   ];
@@ -174,10 +180,14 @@ export function Sidebar({ className = '' }: SidebarProps) {
             Main Navigation
           </h3>
           {navigationItems.map((item) => {
-            // Check for admin-only features
-            if (item.permission === 'ADMIN' && user?.role !== 'admin') return null;
-            // Check other permissions
-            if (item.permission !== 'ADMIN' && !hasPermission(item.permission as any)) return null;
+            // Always show basic navigation items for authenticated users
+            if (item.permission === 'BASIC_SEARCH') {
+              // Show for all authenticated users
+            } else if (item.permission === 'ADMIN' && user?.role !== 'admin') {
+              return null;
+            } else if (!hasPermission(item.permission as any)) {
+              return null;
+            }
             
             const Icon = item.icon;
             const isActive = isActiveRoute(item.href);
@@ -195,11 +205,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.title}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
                 </Button>
               </Link>
             );
