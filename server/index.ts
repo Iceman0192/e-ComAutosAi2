@@ -8,6 +8,7 @@ import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupAuthRoutes } from "./authRoutes";
 import { setupAdminRoutes } from "./adminRoutes";
+import { registerUsageRoutes } from "./usageRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
@@ -73,6 +74,9 @@ app.use((req, res, next) => {
   
   // Set up admin routes
   setupAdminRoutes(app);
+  
+  // Set up usage tracking routes
+  registerUsageRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
