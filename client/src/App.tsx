@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UsageProvider } from "./contexts/UsageContext";
 import RoleSwitcher from "./components/auth/RoleSwitcher";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -27,24 +27,39 @@ import AdminDashboard from "./pages/admin";
 import NotFound from "./pages/not-found";
 
 function Router() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  // Show login page for unauthenticated users
+  if (!user) {
+    return <LoginPage />;
+  }
+
   return (
     <MainLayout>
       <Switch>
         <Route path="/copart" component={Home} />
-        <Route path="/" component={Home} />
+        <Route path="/home" component={Home} />
+        <Route path="/" component={Dashboard} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/iaai" component={IAAIPage} />
-        <Route path="/vin-history" component={AuctionMind} />
+        <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={ImportCalculator} />
         <Route path="/datasets" component={Datasets} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
         <Route path="/usage" component={UsagePage} />
-        <Route path="/login" component={LoginPage} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
