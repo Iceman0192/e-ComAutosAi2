@@ -62,7 +62,7 @@ app.use((req, res, next) => {
   setupAuthRoutes(app);
   
   // Set up subscription and billing routes
-  setupSubscriptionRoutes(app);
+  registerSubscriptionRoutes(app);
   
   // Set up admin routes
   setupAdminRoutes(app);
