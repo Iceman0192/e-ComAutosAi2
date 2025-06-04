@@ -71,19 +71,28 @@ export function registerSubscriptionRoutes(app: Express) {
     try {
       const { planRole = 'basic' } = req.body;
       
-      // Create test checkout session
+      // First create or get a product for the subscription
+      const product = await stripe.products.create({
+        name: `${planRole.charAt(0).toUpperCase() + planRole.slice(1)} Plan`,
+        description: `Monthly subscription to ${planRole} plan`,
+      });
+
+      // Create a price for the product
+      const price = await stripe.prices.create({
+        currency: 'usd',
+        product: product.id,
+        unit_amount: planRole === 'basic' ? 2900 : planRole === 'gold' ? 7900 : 14900,
+        recurring: {
+          interval: 'month',
+        },
+      });
+
+      // Create checkout session using the price ID
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
           {
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: `${planRole.charAt(0).toUpperCase() + planRole.slice(1)} Plan`,
-                description: `Monthly subscription to ${planRole} plan`,
-              },
-              unit_amount: planRole === 'basic' ? 2900 : planRole === 'gold' ? 7900 : 14900,
-            },
+            price: price.id,
             quantity: 1,
           },
         ],
