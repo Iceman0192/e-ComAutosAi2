@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   Calculator,
-  History
+  History,
+  BarChart3
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
@@ -90,6 +91,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Account Settings',
       href: '/account',
       icon: Settings,
+      permission: 'BASIC_SEARCH'
+    },
+    {
+      title: 'Usage Dashboard',
+      href: '/usage',
+      icon: BarChart3,
       permission: 'BASIC_SEARCH'
     },
     {
