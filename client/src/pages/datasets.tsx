@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,11 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { apiRequest } from '@/lib/queryClient';
 import { 
   Brain, 
@@ -20,7 +25,14 @@ import {
   Database,
   Shield,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Settings,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Play,
+  Clock,
+  Zap
 } from 'lucide-react';
 
 interface OpportunityInsight {
@@ -133,25 +145,88 @@ function OpportunityCard({ opportunity }: { opportunity: OpportunityInsight }) {
   );
 }
 
+interface AnalysisFilters {
+  datasetSize: number;
+  makes: string[];
+  models: string[];
+  yearFrom: number;
+  yearTo: number;
+  priceFrom: number;
+  priceTo: number;
+  sites: string[];
+  damageTypes: string[];
+}
+
 export default function MarketOpportunitiesPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isComprehensiveMode, setIsComprehensiveMode] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [useCache, setUseCache] = useState(true);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  
+  const [filters, setFilters] = useState<AnalysisFilters>({
+    datasetSize: 15000,
+    makes: [],
+    models: [],
+    yearFrom: 2010,
+    yearTo: 2024,
+    priceFrom: 0,
+    priceTo: 100000,
+    sites: [],
+    damageTypes: []
+  });
+
+  // Available filter options
+  const dataSizeOptions = [
+    { value: 15000, label: '15K Records', description: 'Fast analysis (3-5 min)' },
+    { value: 25000, label: '25K Records', description: 'Detailed analysis (5-8 min)' },
+    { value: 50000, label: '50K Records', description: 'Full analysis (8-12 min)' }
+  ];
+
+  const availableMakes = ['TOYOTA', 'HONDA', 'FORD', 'CHEVROLET', 'NISSAN', 'BMW', 'MERCEDES-BENZ', 'AUDI', 'LEXUS', 'HYUNDAI'];
+  const availableSites = ['COPART', 'IAAI'];
+  const availableDamageTypes = ['MINOR DENT/SCRATCHES', 'FRONT END', 'REAR END', 'SIDE', 'ROLLOVER', 'FLOOD', 'FIRE', 'VANDALISM'];
 
   const { data: analysis, isLoading, refetch } = useQuery({
-    queryKey: [isComprehensiveMode ? '/api/opportunities/comprehensive' : '/api/opportunities/analyze'],
+    queryKey: [
+      isComprehensiveMode ? '/api/opportunities/comprehensive' : '/api/opportunities/analyze',
+      filters,
+      useCache
+    ],
     queryFn: async () => {
       const endpoint = isComprehensiveMode ? '/api/opportunities/comprehensive' : '/api/opportunities/analyze';
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), isComprehensiveMode ? 300000 : 180000); // 5min for comprehensive, 3min for standard
+      
+      // Dynamic timeout based on data size
+      const timeoutMap = {
+        15000: isComprehensiveMode ? 300000 : 180000, // 5min/3min
+        25000: isComprehensiveMode ? 480000 : 300000, // 8min/5min
+        50000: isComprehensiveMode ? 720000 : 480000  // 12min/8min
+      };
+      const timeout = timeoutMap[filters.datasetSize as keyof typeof timeoutMap] || 300000;
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
       
       try {
+        setAnalysisProgress(0);
+        const progressInterval = setInterval(() => {
+          setAnalysisProgress(prev => Math.min(prev + 2, 90));
+        }, 1000);
+
         const response = await fetch(endpoint, {
+          method: 'POST',
           signal: controller.signal,
           headers: {
             'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            filters,
+            useCache
+          }),
         });
+        
         clearTimeout(timeoutId);
+        clearInterval(progressInterval);
+        setAnalysisProgress(100);
         
         if (!response.ok) {
           throw new Error(`Analysis failed: ${response.status}`);
@@ -160,12 +235,14 @@ export default function MarketOpportunitiesPage() {
         return await response.json();
       } catch (error) {
         clearTimeout(timeoutId);
+        setAnalysisProgress(0);
         if (error.name === 'AbortError') {
-          throw new Error('Analysis timed out - processing large dataset');
+          throw new Error('Analysis timed out - try reducing dataset size');
         }
         throw error;
       }
     },
+    enabled: false, // Don't auto-run, require manual trigger
     retry: 1,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000
@@ -245,9 +322,31 @@ export default function MarketOpportunitiesPage() {
               Comprehensive
             </Button>
           </div>
-          <Button onClick={handleRefresh} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Analysis
+          <Button 
+            onClick={() => setShowFilters(!showFilters)} 
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filters
+            {showFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isLoading || isAnalyzing}
+            className="flex items-center gap-2"
+          >
+            {isLoading || isAnalyzing ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" />
+                Start Analysis
+              </>
+            )}
           </Button>
         </div>
       </div>
