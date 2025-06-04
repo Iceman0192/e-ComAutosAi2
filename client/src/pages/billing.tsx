@@ -94,6 +94,36 @@ export default function Billing() {
     }
   };
 
+  const testStripeConnection = async () => {
+    setTestingStripe(true);
+    try {
+      const response = await fetch('/api/subscription/test-stripe');
+      const result = await response.json();
+      setStripeTest(result);
+      
+      if (result.success) {
+        toast({
+          title: "Stripe Connection Test",
+          description: "Stripe API connection successful",
+        });
+      } else {
+        toast({
+          title: "Stripe Connection Failed",
+          description: result.error || "Unknown error",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Test Failed",
+        description: "Could not test Stripe connection",
+        variant: "destructive"
+      });
+    } finally {
+      setTestingStripe(false);
+    }
+  };
+
   const plans = plansData?.plans || [];
   
   // If user is admin, create a special admin plan object for display
@@ -159,6 +189,21 @@ export default function Billing() {
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage your subscription and billing information
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            onClick={testStripeConnection}
+            disabled={testingStripe}
+            variant="outline"
+            size="sm"
+          >
+            {testingStripe ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Zap className="h-4 w-4 mr-2" />
+            )}
+            Test Stripe Connection
+          </Button>
         </div>
       </div>
 
