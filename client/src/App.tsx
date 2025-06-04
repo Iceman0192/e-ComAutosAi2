@@ -19,6 +19,7 @@ import AuctionMind from "./pages/auction-mind";
 import AuctionMindV2 from "./pages/auction-mind-v2";
 import ImportCalculator from "./pages/import-calculator";
 import Datasets from "./pages/datasets";
+import Opportunities from "./pages/opportunities";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
 import UsagePage from "./pages/usage";
@@ -57,6 +58,7 @@ function Router() {
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={ImportCalculator} />
         <Route path="/datasets" component={Datasets} />
+        <Route path="/opportunities" component={Opportunities} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
         <Route path="/usage" component={UsagePage} />

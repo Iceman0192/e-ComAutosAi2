@@ -10,6 +10,7 @@ import { setupAuthRoutes } from "./authRoutes";
 import { setupAdminRoutes } from "./adminRoutes";
 import { registerUsageRoutes } from "./usageRoutes";
 import { registerDatasetRoutes } from "./datasetRoutes";
+import { registerOpportunityRoutes } from "./opportunityRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
@@ -81,6 +82,9 @@ app.use((req, res, next) => {
   
   // Set up dataset management routes
   registerDatasetRoutes(app);
+  
+  // Set up opportunity analysis routes
+  registerOpportunityRoutes(app);
   
   // Start 3-day migration scheduler
   setInterval(async () => {
