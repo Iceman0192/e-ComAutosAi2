@@ -55,14 +55,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'IAAI Search',
-      href: '/iaai',
-      icon: Search,
-      permission: 'BASIC_SEARCH'
-    },
-    {
-      title: 'AuctionMind Pro',
-      href: '/auction-mind',
+      title: 'VIN Search History',
+      href: '/vin-search',
       icon: Brain,
       permission: 'AI_ANALYSIS'
     },
