@@ -50,8 +50,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/active-lots" component={ActiveLots} />
-        <Route path="/live-copart" component={LiveCopart} />
-        <Route path="/live-iaai" component={LiveIAAI} />
+        <Route path="/live-lots" component={LiveCopart} />
         <Route path="/iaai" component={IAAIPage} />
         <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />

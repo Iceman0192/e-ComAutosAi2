@@ -43,14 +43,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Live Copart',
-      href: '/live-copart',
-      icon: Car,
-      permission: 'BASIC_SEARCH'
-    },
-    {
-      title: 'Live IAAI',
-      href: '/live-iaai',
+      title: 'Live Lot Lookup',
+      href: '/live-lots',
       icon: Car,
       permission: 'BASIC_SEARCH'
     },
