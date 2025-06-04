@@ -64,6 +64,13 @@ app.use((req, res, next) => {
   // Set up subscription and billing routes
   registerSubscriptionRoutes(app);
   
+  // Initialize database with subscription plans
+  import('./dbInit').then(({ initializeDatabase, createIndexes }) => {
+    initializeDatabase().then(() => {
+      createIndexes();
+    });
+  });
+  
   // Set up admin routes
   setupAdminRoutes(app);
   

@@ -1,8 +1,9 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import Stripe from "stripe";
 import { db } from "./db";
 import { users, subscriptionPlans, userSubscriptions } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import type { AuthenticatedRequest } from "./authTypes";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
