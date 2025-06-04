@@ -42,12 +42,12 @@ interface MarketAnalysis {
 export class OpportunityAnalysisService {
   async analyzeMarketOpportunities(): Promise<MarketAnalysis> {
     try {
-      // Get comprehensive sales data for analysis - analyze recent 1000 records for performance
+      // Get comprehensive sales data for analysis - analyze recent 5000+ records for deep insights
       const salesData = await db
         .select()
         .from(salesHistory)
         .orderBy(desc(salesHistory.sale_date))
-        .limit(1000);
+        .limit(5000);
 
       if (salesData.length === 0) {
         throw new Error('No sales data available for analysis');
