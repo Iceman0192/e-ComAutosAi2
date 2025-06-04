@@ -1,288 +1,328 @@
-import type { Express, Request, Response } from "express";
+import type { Express } from "express";
 import Stripe from "stripe";
+import { db } from "./db";
+import { users, subscriptionPlans, userSubscriptions } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
 
-// Subscription plans configuration
-export const SUBSCRIPTION_PLANS = {
-  free: {
-    name: 'Free',
-    price: 0,
-    priceId: null,
-    features: ['Basic search', '50 searches/month', 'Standard support'],
-    limits: {
-      searches: 50,
-      exports: 0,
-      platforms: 1
-    }
-  },
-  gold: {
-    name: 'Gold',
-    price: 49,
-    priceId: process.env.STRIPE_GOLD_PRICE_ID || 'price_gold_monthly',
-    features: ['Advanced filters', 'Both platforms', '500 searches/month', 'Priority support'],
-    limits: {
-      searches: 500,
-      exports: 10,
-      platforms: 2
-    }
-  },
-  platinum: {
-    name: 'Platinum',
-    price: 99,
-    priceId: process.env.STRIPE_PLATINUM_PRICE_ID || 'price_platinum_monthly',
-    features: ['Cross-platform analysis', 'AI insights', 'Unlimited searches', 'Data export'],
-    limits: {
-      searches: -1, // unlimited
-      exports: -1,
-      platforms: 2
-    }
-  },
-  enterprise: {
-    name: 'Enterprise',
-    price: 199,
-    priceId: process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_enterprise_monthly',
-    features: ['All features', 'Team management', 'Admin tools', 'White-label'],
-    limits: {
-      searches: -1,
-      exports: -1,
-      platforms: 2
-    }
-  }
-};
+export function registerSubscriptionRoutes(app: Express) {
+  // Get available subscription plans
+  app.get("/api/subscription/plans", async (req, res) => {
+    try {
+      const plans = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.isActive, true));
 
-export function setupSubscriptionRoutes(app: Express) {
-  
-  // Get subscription plans
-  app.get('/api/subscription/plans', (req: Request, res: Response) => {
-    res.json({
-      success: true,
-      data: SUBSCRIPTION_PLANS
-    });
+      const formattedPlans = plans.map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        role: plan.role,
+        monthlyPrice: parseFloat(plan.monthlyPrice),
+        yearlyPrice: plan.yearlyPrice ? parseFloat(plan.yearlyPrice) : null,
+        features: plan.features ? JSON.parse(plan.features) : [],
+        stripePriceId: plan.stripePriceId,
+        stripeYearlyPriceId: plan.stripeYearlyPriceId,
+      }));
+
+      res.json({ success: true, plans: formattedPlans });
+    } catch (error) {
+      console.error('Error fetching subscription plans:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subscription plans' });
+    }
   });
 
-  // Create checkout session for subscription
-  app.post('/api/subscription/create-checkout', async (req: Request, res: Response) => {
+  // Create subscription checkout session
+  app.post("/api/subscription/create-checkout", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
     try {
-      const { planId, userId } = req.body;
-      
-      if (!planId || planId === 'free') {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid plan selected'
-        });
+      const { planId, billing = 'monthly' } = req.body;
+      const user = req.user;
+
+      // Get plan details
+      const [plan] = await db
+        .select()
+        .from(subscriptionPlans)
+        .where(eq(subscriptionPlans.id, planId))
+        .limit(1);
+
+      if (!plan) {
+        return res.status(404).json({ success: false, message: 'Plan not found' });
       }
 
-      const plan = SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS];
-      if (!plan || !plan.priceId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Plan not found'
-        });
+      const priceId = billing === 'yearly' ? plan.stripeYearlyPriceId : plan.stripePriceId;
+      if (!priceId) {
+        return res.status(400).json({ success: false, message: 'Price ID not configured for this billing cycle' });
       }
 
-      // Create Stripe checkout session
+      // Create or get Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: user.name,
+          metadata: {
+            userId: user.id.toString(),
+          },
+        });
+        stripeCustomerId = customer.id;
+
+        // Update user with customer ID
+        await db
+          .update(users)
+          .set({ stripeCustomerId })
+          .where(eq(users.id, user.id));
+      }
+
+      // Create checkout session
       const session = await stripe.checkout.sessions.create({
+        customer: stripeCustomerId,
         payment_method_types: ['card'],
         line_items: [
           {
-            price: plan.priceId,
+            price: priceId,
             quantity: 1,
           },
         ],
         mode: 'subscription',
-        success_url: `https://${req.headers.host}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `https://${req.headers.host}/billing?canceled=true`,
-        customer_email: (req as any).user?.email,
+        success_url: `${req.headers.origin}/dashboard?subscription=success`,
+        cancel_url: `${req.headers.origin}/billing?subscription=cancelled`,
         metadata: {
-          userId: userId || (req as any).user?.id || 'demo-user',
-          planId: planId
+          userId: user.id.toString(),
+          planId: planId.toString(),
         },
       });
 
-      res.json({
-        success: true,
-        data: {
-          sessionId: session.id,
-          url: session.url
-        }
-      });
-
-    } catch (error: any) {
-      console.error('Checkout session creation error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create checkout session',
-        error: error.message
-      });
+      res.json({ success: true, sessionUrl: session.url });
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      res.status(500).json({ success: false, message: 'Failed to create checkout session' });
     }
   });
 
-  // Get customer subscription status
-  app.get('/api/subscription/status', async (req: Request, res: Response) => {
+  // Get user's current subscription
+  app.get("/api/subscription/current", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
     try {
-      // For demo purposes, return current user subscription
-      // In production, this would query the database for the user's Stripe customer ID
-      const userId = (req as any).user?.id || 'demo-user';
-      
+      const user = req.user;
+
+      const [subscription] = await db
+        .select({
+          subscription: userSubscriptions,
+          plan: subscriptionPlans,
+        })
+        .from(userSubscriptions)
+        .leftJoin(subscriptionPlans, eq(userSubscriptions.planId, subscriptionPlans.id))
+        .where(eq(userSubscriptions.userId, user.id))
+        .orderBy(userSubscriptions.createdAt)
+        .limit(1);
+
+      if (!subscription) {
+        return res.json({ success: true, subscription: null });
+      }
+
+      // Get Stripe subscription details if available
+      let stripeSubscription = null;
+      if (subscription.subscription.stripeSubscriptionId) {
+        try {
+          stripeSubscription = await stripe.subscriptions.retrieve(
+            subscription.subscription.stripeSubscriptionId
+          );
+        } catch (error) {
+          console.error('Error fetching Stripe subscription:', error);
+        }
+      }
+
       res.json({
         success: true,
-        data: {
-          plan: 'free',
-          status: 'active',
-          nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          usage: {
-            searches: 127,
-            searchLimit: 500,
-            exports: 3,
-            exportLimit: 10
-          }
-        }
+        subscription: {
+          id: subscription.subscription.id,
+          planName: subscription.plan?.name,
+          status: subscription.subscription.status,
+          currentPeriodStart: subscription.subscription.currentPeriodStart,
+          currentPeriodEnd: subscription.subscription.currentPeriodEnd,
+          cancelAtPeriodEnd: subscription.subscription.cancelAtPeriodEnd,
+          stripeSubscription,
+        },
       });
-
-    } catch (error: any) {
-      console.error('Subscription status error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to get subscription status',
-        error: error.message
-      });
+    } catch (error) {
+      console.error('Error fetching current subscription:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch subscription' });
     }
   });
 
   // Cancel subscription
-  app.post('/api/subscription/cancel', async (req: Request, res: Response) => {
+  app.post("/api/subscription/cancel", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
     try {
-      const { subscriptionId } = req.body;
-      
-      if (!subscriptionId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Subscription ID required'
-        });
+      const user = req.user;
+
+      const [subscription] = await db
+        .select()
+        .from(userSubscriptions)
+        .where(eq(userSubscriptions.userId, user.id))
+        .limit(1);
+
+      if (!subscription || !subscription.stripeSubscriptionId) {
+        return res.status(404).json({ success: false, message: 'No active subscription found' });
       }
 
-      // Cancel the subscription at period end
-      const subscription = await stripe.subscriptions.update(subscriptionId, {
+      // Cancel at period end in Stripe
+      await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
         cancel_at_period_end: true,
       });
 
-      res.json({
-        success: true,
-        data: {
-          subscription: {
-            id: subscription.id,
-            status: subscription.status,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            currentPeriodEnd: subscription.current_period_end
-          }
-        }
-      });
+      // Update local record
+      await db
+        .update(userSubscriptions)
+        .set({ cancelAtPeriodEnd: true })
+        .where(eq(userSubscriptions.id, subscription.id));
 
-    } catch (error: any) {
-      console.error('Subscription cancellation error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to cancel subscription',
-        error: error.message
-      });
+      res.json({ success: true, message: 'Subscription will be cancelled at the end of the current period' });
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      res.status(500).json({ success: false, message: 'Failed to cancel subscription' });
     }
   });
 
-  // Reactivate subscription
-  app.post('/api/subscription/reactivate', async (req: Request, res: Response) => {
-    try {
-      const { subscriptionId } = req.body;
-      
-      if (!subscriptionId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Subscription ID required'
-        });
-      }
-
-      // Reactivate the subscription
-      const subscription = await stripe.subscriptions.update(subscriptionId, {
-        cancel_at_period_end: false,
-      });
-
-      res.json({
-        success: true,
-        data: {
-          subscription: {
-            id: subscription.id,
-            status: subscription.status,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end
-          }
-        }
-      });
-
-    } catch (error: any) {
-      console.error('Subscription reactivation error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to reactivate subscription',
-        error: error.message
-      });
-    }
-  });
-
-  // Webhook handler for Stripe events
-  app.post('/api/webhooks/stripe', async (req: Request, res: Response) => {
+  // Stripe webhook handler
+  app.post("/api/subscription/webhook", async (req, res) => {
     const sig = req.headers['stripe-signature'];
-    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-    if (!sig || !endpointSecret) {
-      return res.status(400).send('Missing signature or webhook secret');
-    }
-
     let event;
 
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } catch (err: any) {
-      console.error('Webhook signature verification failed:', err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
+      event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET!);
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err);
+      return res.status(400).send('Webhook signature verification failed');
     }
 
-    // Handle the event
-    switch (event.type) {
-      case 'checkout.session.completed':
-        const session = event.data.object;
-        console.log('Checkout session completed:', session.id);
-        // Update user subscription in database
-        break;
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await handleCheckoutCompleted(event.data.object);
+          break;
+        case 'customer.subscription.updated':
+          await handleSubscriptionUpdated(event.data.object);
+          break;
+        case 'customer.subscription.deleted':
+          await handleSubscriptionDeleted(event.data.object);
+          break;
+        case 'invoice.payment_succeeded':
+          await handlePaymentSucceeded(event.data.object);
+          break;
+        case 'invoice.payment_failed':
+          await handlePaymentFailed(event.data.object);
+          break;
+      }
 
-      case 'customer.subscription.updated':
-        const subscription = event.data.object;
-        console.log('Subscription updated:', subscription.id);
-        // Update subscription status in database
-        break;
-
-      case 'customer.subscription.deleted':
-        const deletedSubscription = event.data.object;
-        console.log('Subscription deleted:', deletedSubscription.id);
-        // Handle subscription cancellation
-        break;
-
-      case 'invoice.payment_succeeded':
-        const invoice = event.data.object;
-        console.log('Payment succeeded:', invoice.id);
-        // Handle successful payment
-        break;
-
-      case 'invoice.payment_failed':
-        const failedInvoice = event.data.object;
-        console.log('Payment failed:', failedInvoice.id);
-        // Handle failed payment
-        break;
-
-      default:
-        console.log(`Unhandled event type ${event.type}`);
+      res.json({ received: true });
+    } catch (error) {
+      console.error('Error processing webhook:', error);
+      res.status(500).json({ error: 'Webhook processing failed' });
     }
-
-    res.json({ received: true });
   });
+}
+
+async function handleCheckoutCompleted(session: any) {
+  const userId = parseInt(session.metadata.userId);
+  const planId = parseInt(session.metadata.planId);
+
+  // Get plan details to determine role
+  const [plan] = await db
+    .select()
+    .from(subscriptionPlans)
+    .where(eq(subscriptionPlans.id, planId))
+    .limit(1);
+
+  if (!plan) {
+    console.error('Plan not found for checkout session:', planId);
+    return;
+  }
+
+  // Update user role
+  await db
+    .update(users)
+    .set({ 
+      role: plan.role,
+      stripeSubscriptionId: session.subscription,
+    })
+    .where(eq(users.id, userId));
+
+  // Create subscription record
+  await db.insert(userSubscriptions).values({
+    userId,
+    planId,
+    stripeSubscriptionId: session.subscription,
+    status: 'active',
+  });
+}
+
+async function handleSubscriptionUpdated(subscription: any) {
+  await db
+    .update(userSubscriptions)
+    .set({
+      status: subscription.status,
+      currentPeriodStart: new Date(subscription.current_period_start * 1000),
+      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    })
+    .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id));
+}
+
+async function handleSubscriptionDeleted(subscription: any) {
+  // Downgrade user to freemium
+  const [userSub] = await db
+    .select()
+    .from(userSubscriptions)
+    .where(eq(userSubscriptions.stripeSubscriptionId, subscription.id))
+    .limit(1);
+
+  if (userSub) {
+    await db
+      .update(users)
+      .set({ role: 'freemium' })
+      .where(eq(users.id, userSub.userId));
+
+    await db
+      .update(userSubscriptions)
+      .set({ status: 'cancelled' })
+      .where(eq(userSubscriptions.id, userSub.id));
+  }
+}
+
+async function handlePaymentSucceeded(invoice: any) {
+  // Update subscription status if needed
+  if (invoice.subscription) {
+    await db
+      .update(userSubscriptions)
+      .set({ status: 'active' })
+      .where(eq(userSubscriptions.stripeSubscriptionId, invoice.subscription));
+  }
+}
+
+async function handlePaymentFailed(invoice: any) {
+  // Update subscription status
+  if (invoice.subscription) {
+    await db
+      .update(userSubscriptions)
+      .set({ status: 'past_due' })
+      .where(eq(userSubscriptions.stripeSubscriptionId, invoice.subscription));
+  }
 }
