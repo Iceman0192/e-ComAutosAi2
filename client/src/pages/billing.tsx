@@ -27,6 +27,8 @@ export default function Billing() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [stripeTest, setStripeTest] = useState<any>(null);
+  const [testingStripe, setTestingStripe] = useState(false);
 
   // Fetch subscription plans
   const { data: plansData, isLoading: plansLoading } = useQuery({
