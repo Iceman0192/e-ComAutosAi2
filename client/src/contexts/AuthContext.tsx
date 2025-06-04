@@ -62,11 +62,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const data = await response.json();
       if (data.success && data.data?.user) {
+        // Ensure role mapping is correct
+        const userRole = data.data.user.role === 'admin' ? UserRole.ADMIN : 
+                        data.data.user.role === 'platinum' ? UserRole.PLATINUM :
+                        data.data.user.role === 'gold' ? UserRole.GOLD :
+                        data.data.user.role === 'basic' ? UserRole.BASIC :
+                        UserRole.FREEMIUM;
+        
         setUser({
           id: data.data.user.id.toString(),
           email: data.data.user.email,
-          name: data.data.user.name,
-          role: data.data.user.role as UserRole,
+          name: data.data.user.username || data.data.user.email,
+          role: userRole,
           subscriptionStatus: 'active',
           joinDate: data.data.user.createdAt || new Date().toISOString()
         });
