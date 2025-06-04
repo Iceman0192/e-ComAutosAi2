@@ -197,7 +197,7 @@ export default function MarketOpportunitiesPage() {
 
   const marketData: MarketAnalysis = analysis?.data;
 
-  if (!marketData) {
+  if (!marketData || !marketData.overview) {
     return (
       <div className="p-6">
         <Alert>
@@ -257,36 +257,36 @@ export default function MarketOpportunitiesPage() {
         <Card>
           <CardContent className="p-4 text-center">
             <BarChart3 className="h-8 w-8 mx-auto text-blue-500 mb-2" />
-            <div className="text-2xl font-bold">{marketData.overview.totalRecords.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{(marketData.overview?.totalRecords || 0).toLocaleString()}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Records Analyzed</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <DollarSign className="h-8 w-8 mx-auto text-green-500 mb-2" />
-            <div className="text-2xl font-bold">${marketData.overview.avgPrice.toLocaleString()}</div>
+            <div className="text-2xl font-bold">${(marketData.overview?.avgPrice || 0).toLocaleString()}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Average Price</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Car className="h-8 w-8 mx-auto text-purple-500 mb-2" />
-            <div className="text-2xl font-bold">{marketData.overview.topPerformingMakes.length}</div>
+            <div className="text-2xl font-bold">{(marketData.overview?.topPerformingMakes || []).length}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Top Makes</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Target className="h-8 w-8 mx-auto text-orange-500 mb-2" />
-            <div className="text-2xl font-bold">{marketData.opportunities.length}</div>
+            <div className="text-2xl font-bold">{(marketData.opportunities || []).length}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Opportunities Found</div>
           </CardContent>
         </Card>
       </div>
 
       <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
-        <strong>Data Range:</strong> {marketData.overview.dateRange} | 
-        <strong> Top Performing Makes:</strong> {marketData.overview.topPerformingMakes.join(', ')}
+        <strong>Data Range:</strong> {marketData.overview?.dateRange || 'Full dataset'} | 
+        <strong> Top Performing Makes:</strong> {(marketData.overview?.topPerformingMakes || []).join(', ')}
       </div>
 
       <Tabs defaultValue="opportunities" className="w-full">
