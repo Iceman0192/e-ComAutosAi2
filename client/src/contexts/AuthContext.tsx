@@ -47,7 +47,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 const DEMO_USER: User = {
   id: 'demo-admin-1',
   email: 'admin@ecomautos.com',
-  name: 'Admin User',
+  name: 'God Level Admin',
   role: UserRole.ADMIN,
   subscriptionStatus: 'active',
   joinDate: '2025-01-01'

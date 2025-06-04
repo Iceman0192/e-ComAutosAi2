@@ -104,11 +104,13 @@ export default function Billing() {
     icon: plan.role === 'freemium' ? CheckCircle : 
           plan.role === 'basic' ? Users :
           plan.role === 'gold' ? Star : 
-          plan.role === 'platinum' ? Crown : Users,
+          plan.role === 'platinum' ? Crown : 
+          plan.role === 'admin' ? AlertCircle : Users,
     description: plan.role === 'freemium' ? 'Perfect for getting started' :
                  plan.role === 'basic' ? 'Essential features for regular users' :
                  plan.role === 'gold' ? 'For serious vehicle exporters' :
                  plan.role === 'platinum' ? 'Maximum insights and flexibility' :
+                 plan.role === 'admin' ? 'God Level - Complete platform control' :
                  'For teams and organizations',
     features: plan.features,
     buttonText: user?.role === plan.role ? 'Current Plan' : 

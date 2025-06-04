@@ -76,6 +76,25 @@ export async function initializeDatabase() {
       ]),
       isActive: true,
     },
+    {
+      name: 'God Level Admin',
+      role: 'admin' as const,
+      monthlyPrice: '0',
+      yearlyPrice: '0',
+      stripePriceId: null,
+      stripeYearlyPriceId: null,
+      features: JSON.stringify([
+        'Unlimited everything',
+        'Full platform access',
+        'Admin dashboard',
+        'User management',
+        'System analytics',
+        'Database access',
+        'Revenue insights',
+        'Platform control'
+      ]),
+      isActive: true,
+    },
   ];
 
   try {
