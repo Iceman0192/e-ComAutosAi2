@@ -549,7 +549,11 @@ export default function MarketOpportunitiesPage() {
             {/* Quick Actions */}
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Estimated time: {Math.ceil((timeoutMap[filters.datasetSize as keyof typeof timeoutMap] || 300000) / 60000)} minutes
+                Estimated time: {Math.ceil((
+                  filters.datasetSize === 15000 ? (isComprehensiveMode ? 300000 : 180000) :
+                  filters.datasetSize === 25000 ? (isComprehensiveMode ? 480000 : 300000) :
+                  filters.datasetSize === 50000 ? (isComprehensiveMode ? 720000 : 480000) : 300000
+                ) / 60000)} minutes
               </div>
               <div className="flex gap-2">
                 <Button 
