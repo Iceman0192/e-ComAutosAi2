@@ -25,6 +25,8 @@ interface OpportunityInsight {
 interface MarketAnalysis {
   overview: {
     totalRecords: number;
+    totalDatabaseRecords: number;
+    coveragePercentage: number;
     dateRange: string;
     avgPrice: number;
     topPerformingMakes: string[];
@@ -40,20 +42,26 @@ interface MarketAnalysis {
 }
 
 export class OpportunityAnalysisService {
-  async analyzeMarketOpportunities(): Promise<MarketAnalysis> {
+  async analyzeMarketOpportunities(batchSize: number = 15000): Promise<MarketAnalysis> {
     try {
-      // Get comprehensive sales data for analysis - analyze recent 5000+ records for deep insights
+      // Get total record count first to show progress
+      const totalCountResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(salesHistory);
+      const totalRecords = totalCountResult[0]?.count || 0;
+
+      // Get comprehensive sales data for analysis - configurable batch size
       const salesData = await db
         .select()
         .from(salesHistory)
         .orderBy(desc(salesHistory.sale_date))
-        .limit(5000);
+        .limit(batchSize);
 
       if (salesData.length === 0) {
         throw new Error('No sales data available for analysis');
       }
 
-      console.log(`Analyzing ${salesData.length} sales records for market opportunities`);
+      console.log(`Analyzing ${salesData.length} of ${totalRecords.toLocaleString()} total records (${Math.round((salesData.length / totalRecords) * 100)}% coverage) for market opportunities`);
 
       // Calculate comprehensive market statistics
       const marketStats = await this.calculateMarketStatistics(salesData);
@@ -87,6 +95,8 @@ export class OpportunityAnalysisService {
       return {
         overview: {
           totalRecords: salesData.length,
+          totalDatabaseRecords: totalRecords,
+          coveragePercentage: Math.round((salesData.length / totalRecords) * 100),
           dateRange: this.getDateRange(salesData),
           avgPrice: marketStats.avgPrice,
           topPerformingMakes: marketStats.topMakes
