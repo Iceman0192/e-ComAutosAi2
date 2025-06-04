@@ -61,14 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         credentials: 'include'
       });
       const data = await response.json();
-      if (data.success && data.user) {
+      if (data.success && data.data?.user) {
         setUser({
-          id: data.user.id.toString(),
-          email: data.user.email,
-          name: data.user.name,
-          role: data.user.role as UserRole,
+          id: data.data.user.id.toString(),
+          email: data.data.user.email,
+          name: data.data.user.name,
+          role: data.data.user.role as UserRole,
           subscriptionStatus: 'active',
-          joinDate: data.user.createdAt
+          joinDate: data.data.user.createdAt || new Date().toISOString()
         });
       }
     } catch (error) {
