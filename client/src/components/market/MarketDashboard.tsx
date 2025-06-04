@@ -122,7 +122,11 @@ export default function MarketDashboard() {
   // Analysis mutations
   const standardAnalysisMutation = useMutation({
     mutationFn: async (filters: AnalysisFilters) => {
-      const response = await apiRequest('POST', '/api/opportunities/analyze', filters);
+      const response = await fetch('/api/opportunities/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filters)
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -136,7 +140,11 @@ export default function MarketDashboard() {
 
   const comprehensiveAnalysisMutation = useMutation({
     mutationFn: async (filters: AnalysisFilters) => {
-      const response = await apiRequest('POST', '/api/opportunities/comprehensive', filters);
+      const response = await fetch('/api/opportunities/comprehensive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filters)
+      });
       return response.json();
     },
     onSuccess: () => {
