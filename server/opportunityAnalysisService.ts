@@ -42,25 +42,47 @@ interface MarketAnalysis {
 export class OpportunityAnalysisService {
   async analyzeMarketOpportunities(): Promise<MarketAnalysis> {
     try {
-      // Get comprehensive sales data for analysis
+      // Get comprehensive sales data for analysis - analyze recent 1000 records for performance
       const salesData = await db
         .select()
         .from(salesHistory)
         .orderBy(desc(salesHistory.sale_date))
-        .limit(5000); // Analyze more records for better insights
+        .limit(1000);
 
       if (salesData.length === 0) {
         throw new Error('No sales data available for analysis');
       }
 
-      // Calculate market statistics
+      console.log(`Analyzing ${salesData.length} sales records for market opportunities`);
+
+      // Calculate comprehensive market statistics
       const marketStats = await this.calculateMarketStatistics(salesData);
       
-      // Find profitable patterns
+      // Analyze data quality and completeness
+      const dataQuality = await this.assessDataQuality(salesData);
+      
+      // Find profitable patterns across multiple dimensions
       const profitablePatterns = await this.identifyProfitablePatterns(salesData);
+      
+      // Analyze auction site performance (Copart vs IAAI)
+      const sitePerformance = await this.analyzeSitePerformance(salesData);
+      
+      // Analyze vehicle year distributions
+      const yearDistribution = await this.analyzeYearDistribution(salesData);
+      
+      // Analyze sale status patterns
+      const saleStatusPatterns = await this.analyzeSaleStatusPatterns(salesData);
 
-      // Use AI to generate advanced insights
-      const aiAnalysis = await this.generateAIInsights(salesData, marketStats, profitablePatterns);
+      // Use AI to generate advanced insights with all analysis data
+      const aiAnalysis = await this.generateAIInsights(
+        salesData, 
+        marketStats, 
+        profitablePatterns,
+        dataQuality,
+        sitePerformance,
+        yearDistribution,
+        saleStatusPatterns
+      );
 
       return {
         overview: {
@@ -205,14 +227,185 @@ export class OpportunityAnalysisService {
     return siteGroups;
   }
 
-  private async generateAIInsights(salesData: any[], marketStats: any, patterns: any) {
-    const prompt = `Analyze this automotive auction market data and identify profitable buying opportunities:
+  private async assessDataQuality(salesData: any[]) {
+    const totalRecords = salesData.length;
+    let qualityMetrics = {
+      completenessScore: 0,
+      consistencyScore: 0,
+      fieldsAnalysis: {} as Record<string, { completeness: number, uniqueValues: number }>
+    };
+
+    const criticalFields = ['make', 'model', 'year', 'purchase_price', 'base_site', 'sale_date', 'vehicle_damage'];
+    
+    criticalFields.forEach(field => {
+      const nonNullCount = salesData.filter(record => 
+        record[field] && record[field] !== '' && record[field] !== null
+      ).length;
+      
+      const uniqueValues = new Set(salesData.map(record => record[field])).size;
+      
+      qualityMetrics.fieldsAnalysis[field] = {
+        completeness: Math.round((nonNullCount / totalRecords) * 100),
+        uniqueValues
+      };
+    });
+
+    // Calculate overall completeness score
+    const completenessScores = Object.values(qualityMetrics.fieldsAnalysis).map(f => f.completeness);
+    qualityMetrics.completenessScore = Math.round(
+      completenessScores.reduce((a, b) => a + b, 0) / completenessScores.length
+    );
+
+    return qualityMetrics;
+  }
+
+  private async analyzeSitePerformance(salesData: any[]) {
+    const siteGroups: Record<string, any[]> = {};
+    salesData.forEach(record => {
+      if (record.base_site) {
+        const site = record.base_site.toLowerCase();
+        if (!siteGroups[site]) siteGroups[site] = [];
+        siteGroups[site].push(record);
+      }
+    });
+
+    const siteAnalysis: Record<string, any> = {};
+    Object.entries(siteGroups).forEach(([site, records]) => {
+      const prices = records
+        .filter(r => r.purchase_price && !isNaN(parseFloat(r.purchase_price)))
+        .map(r => parseFloat(r.purchase_price));
+      
+      const soldRecords = records.filter(r => r.sale_status && r.sale_status.toLowerCase().includes('sold'));
+      
+      siteAnalysis[site] = {
+        totalVolume: records.length,
+        avgPrice: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0,
+        soldRate: Math.round((soldRecords.length / records.length) * 100),
+        priceRange: prices.length > 0 ? {
+          min: Math.min(...prices),
+          max: Math.max(...prices)
+        } : { min: 0, max: 0 }
+      };
+    });
+
+    return siteAnalysis;
+  }
+
+  private async analyzeYearDistribution(salesData: any[]) {
+    const yearGroups: Record<string, any[]> = {};
+    salesData.forEach(record => {
+      if (record.year) {
+        const year = record.year.toString();
+        if (!yearGroups[year]) yearGroups[year] = [];
+        yearGroups[year].push(record);
+      }
+    });
+
+    const yearAnalysis: Record<string, any> = {};
+    Object.entries(yearGroups).forEach(([year, records]) => {
+      const prices = records
+        .filter(r => r.purchase_price && !isNaN(parseFloat(r.purchase_price)))
+        .map(r => parseFloat(r.purchase_price));
+      
+      yearAnalysis[year] = {
+        volume: records.length,
+        avgPrice: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0,
+        topMakes: this.getTopItems(records.map(r => r.make).filter(Boolean), 3)
+      };
+    });
+
+    return yearAnalysis;
+  }
+
+  private async analyzeSaleStatusPatterns(salesData: any[]) {
+    const statusGroups: Record<string, any[]> = {};
+    salesData.forEach(record => {
+      if (record.sale_status) {
+        const status = record.sale_status.toLowerCase();
+        if (!statusGroups[status]) statusGroups[status] = [];
+        statusGroups[status].push(record);
+      }
+    });
+
+    const statusAnalysis: Record<string, any> = {};
+    Object.entries(statusGroups).forEach(([status, records]) => {
+      const prices = records
+        .filter(r => r.purchase_price && !isNaN(parseFloat(r.purchase_price)))
+        .map(r => parseFloat(r.purchase_price));
+      
+      statusAnalysis[status] = {
+        volume: records.length,
+        percentage: Math.round((records.length / salesData.length) * 100),
+        avgPrice: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0
+      };
+    });
+
+    return statusAnalysis;
+  }
+
+  private getTopItems(items: string[], count: number): string[] {
+    const frequency: Record<string, number> = {};
+    items.forEach(item => {
+      frequency[item] = (frequency[item] || 0) + 1;
+    });
+    
+    return Object.entries(frequency)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, count)
+      .map(([item]) => item);
+  }
+
+  private async generateAIInsights(
+    salesData: any[], 
+    marketStats: any, 
+    patterns: any,
+    dataQuality: any,
+    sitePerformance: any,
+    yearDistribution: any,
+    saleStatusPatterns: any
+  ) {
+    const prompt = `Analyze this comprehensive automotive auction market data and identify profitable buying opportunities:
 
 MARKET OVERVIEW:
-- Total Records: ${salesData.length}
+- Total Records Analyzed: ${salesData.length}
 - Average Price: $${marketStats.avgPrice}
 - Price Range: $${marketStats.priceRange.min} - $${marketStats.priceRange.max}
 - Top Performing Makes: ${marketStats.topMakes.join(', ')}
+
+DATA QUALITY ASSESSMENT:
+- Overall Data Completeness: ${dataQuality.completenessScore}%
+- Field Completeness Analysis:
+${Object.entries(dataQuality.fieldsAnalysis).map(([field, data]: [string, any]) => 
+  `  • ${field}: ${data.completeness}% complete (${data.uniqueValues} unique values)`
+).join('\n')}
+
+AUCTION SITE PERFORMANCE (Copart vs IAAI):
+${Object.entries(sitePerformance).map(([site, data]: [string, any]) => 
+  `- ${site.toUpperCase()}: ${data.totalVolume} vehicles, $${data.avgPrice} avg price, ${data.soldRate}% sold rate`
+).join('\n')}
+
+VEHICLE YEAR DISTRIBUTION:
+${Object.entries(yearDistribution).slice(0, 10).map(([year, data]: [string, any]) => 
+  `- ${year}: ${data.volume} vehicles, $${data.avgPrice} avg price, top makes: ${data.topMakes.join(', ')}`
+).join('\n')}
+
+SALE STATUS PATTERNS:
+${Object.entries(saleStatusPatterns).map(([status, data]: [string, any]) => 
+  `- ${status}: ${data.percentage}% of sales (${data.volume} vehicles), $${data.avgPrice} avg price`
+).join('\n')}
+
+PRICING PATTERNS BY MAKE:
+${Object.entries(patterns.byMake).slice(0, 15).map(([make, records]: [string, any[]]) => {
+  const prices = records.filter(r => r.purchase_price && !isNaN(parseFloat(r.purchase_price)))
+    .map(r => parseFloat(r.purchase_price));
+  const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
+  return `- ${make}: ${records.length} vehicles, $${avgPrice} avg price`;
+}).join('\n')}
+
+SAMPLE RECENT RECORDS:
+${JSON.stringify(salesData.slice(0, 5), null, 2)}
+
+Based on this comprehensive real automotive auction data analysis, identify:
 
 SAMPLE DATA:
 ${JSON.stringify(salesData.slice(0, 10), null, 2)}
