@@ -88,8 +88,8 @@ export function registerSubscriptionRoutes(app: Express) {
           },
         ],
         mode: 'subscription',
-        success_url: `${req.headers.origin}/billing?success=true`,
-        cancel_url: `${req.headers.origin}/billing?canceled=true`,
+        success_url: `http://localhost:5000/billing?success=true`,
+        cancel_url: `http://localhost:5000/billing?canceled=true`,
       });
 
       res.json({ success: true, sessionUrl: session.url });
