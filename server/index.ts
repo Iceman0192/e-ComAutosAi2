@@ -11,6 +11,7 @@ import { setupAdminRoutes } from "./adminRoutes";
 import { registerUsageRoutes } from "./usageRoutes";
 import { registerDatasetRoutes } from "./datasetRoutes";
 import { registerOpportunityRoutes } from "./opportunityRoutes";
+import { registerAIInsightsRoutes } from "./aiInsightsRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();

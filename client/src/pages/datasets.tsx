@@ -187,6 +187,28 @@ export default function MarketOpportunitiesPage() {
   const availableSites = ['COPART', 'IAAI'];
   const availableDamageTypes = ['MINOR DENT/SCRATCHES', 'FRONT END', 'REAR END', 'SIDE', 'ROLLOVER', 'FLOOD', 'FIRE', 'VANDALISM'];
 
+  // Fetch AI learning insights
+  const { data: aiInsights } = useQuery({
+    queryKey: ['/api/ai/insights'],
+    queryFn: async () => {
+      const response = await fetch('/api/ai/insights');
+      if (!response.ok) throw new Error('Failed to fetch AI insights');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Fetch analysis history
+  const { data: analysisHistory } = useQuery({
+    queryKey: ['/api/ai/history'],
+    queryFn: async () => {
+      const response = await fetch('/api/ai/history');
+      if (!response.ok) throw new Error('Failed to fetch analysis history');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000
+  });
+
   const { data: analysis, isLoading, refetch } = useQuery({
     queryKey: [
       isComprehensiveMode ? '/api/opportunities/comprehensive' : '/api/opportunities/analyze',
@@ -598,11 +620,12 @@ export default function MarketOpportunitiesPage() {
       </div>
 
       <Tabs defaultValue="opportunities" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
           <TabsTrigger value="trends">Market Trends</TabsTrigger>
           <TabsTrigger value="risks">Risk Factors</TabsTrigger>
           <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+          <TabsTrigger value="ai-insights">AI Insights</TabsTrigger>
         </TabsList>
 
         <TabsContent value="opportunities" className="space-y-4">
@@ -654,6 +677,223 @@ export default function MarketOpportunitiesPage() {
               </Alert>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="ai-insights" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* AI Learning Overview */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-500" />
+                  AI Learning Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Patterns Discovered</span>
+                    <span className="font-semibold">{aiInsights?.data?.totalPatterns || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Analyses Completed</span>
+                    <span className="font-semibold">{analysisHistory?.data?.totalAnalyses || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Cache Hit Rate</span>
+                    <span className="font-semibold">{aiInsights?.data?.cacheHitRate || 0}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Learning Accuracy</span>
+                    <span className="font-semibold text-green-600">{aiInsights?.data?.averageConfidence || 0}%</span>
+                  </div>
+                </div>
+                <Progress value={aiInsights?.data?.learningProgress || 0} className="w-full" />
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  AI system learning progress since deployment
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Top Discovered Patterns */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  Top Patterns
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(aiInsights?.data?.topPatterns || []).slice(0, 5).map((pattern: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{pattern.type}</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">{pattern.description}</div>
+                      </div>
+                      <Badge variant={pattern.confidence > 80 ? "default" : "secondary"}>
+                        {pattern.confidence}% confident
+                      </Badge>
+                    </div>
+                  ))}
+                  {(!aiInsights?.data?.topPatterns || aiInsights.data.topPatterns.length === 0) && (
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      No patterns discovered yet. Run more analyses to build AI intelligence.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Learning Timeline */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-orange-500" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(analysisHistory?.data?.recentAnalyses || []).slice(0, 5).map((analysis: any, index: number) => (
+                    <div key={index} className="flex items-start gap-3 p-2 border-l-2 border-blue-200 dark:border-blue-800">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{analysis.type} Analysis</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
+                          {analysis.recordCount?.toLocaleString()} records • {analysis.duration}ms
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(analysis.timestamp).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <Badge variant={analysis.cached ? "default" : "outline"}>
+                        {analysis.cached ? "Cached" : "Fresh"}
+                      </Badge>
+                    </div>
+                  ))}
+                  {(!analysisHistory?.data?.recentAnalyses || analysisHistory.data.recentAnalyses.length === 0) && (
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      No analysis history yet. Start analyzing to build learning data.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Detailed Pattern Analysis */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-yellow-500" />
+                Pattern Discovery Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Market Segment Patterns */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Vehicle Segment Insights
+                  </h4>
+                  <div className="space-y-2">
+                    {(aiInsights?.data?.vehiclePatterns || []).map((pattern: any, index: number) => (
+                      <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{pattern.segment}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              Avg Profit: ${pattern.avgProfit?.toLocaleString()}
+                            </div>
+                          </div>
+                          <Badge variant={pattern.trendDirection === 'up' ? 'default' : 'secondary'}>
+                            {pattern.trendDirection === 'up' ? '↗' : '↘'} {pattern.trendStrength}%
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Temporal Patterns */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Temporal Patterns
+                  </h4>
+                  <div className="space-y-2">
+                    {(aiInsights?.data?.temporalPatterns || []).map((pattern: any, index: number) => (
+                      <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">{pattern.period}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {pattern.description}
+                            </div>
+                          </div>
+                          <Badge variant="outline">
+                            {pattern.frequency} times
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Performance Metrics */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-green-500" />
+                System Performance & Learning
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{aiInsights?.data?.learningMetrics?.accuracyImprovement || 0}%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy Improvement</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{aiInsights?.data?.learningMetrics?.speedImprovement || 0}%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Speed Improvement</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{aiInsights?.data?.learningMetrics?.patternQuality || 0}%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Pattern Quality Score</div>
+                </div>
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="space-y-4">
+                <h4 className="font-semibold">Learning Progress Over Time</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Pattern Recognition</span>
+                    <span>{aiInsights?.data?.learningMetrics?.patternRecognition || 0}%</span>
+                  </div>
+                  <Progress value={aiInsights?.data?.learningMetrics?.patternRecognition || 0} />
+                  
+                  <div className="flex justify-between text-sm">
+                    <span>Market Prediction</span>
+                    <span>{aiInsights?.data?.learningMetrics?.marketPrediction || 0}%</span>
+                  </div>
+                  <Progress value={aiInsights?.data?.learningMetrics?.marketPrediction || 0} />
+                  
+                  <div className="flex justify-between text-sm">
+                    <span>Risk Assessment</span>
+                    <span>{aiInsights?.data?.learningMetrics?.riskAssessment || 0}%</span>
+                  </div>
+                  <Progress value={aiInsights?.data?.learningMetrics?.riskAssessment || 0} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
