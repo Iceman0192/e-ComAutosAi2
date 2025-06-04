@@ -135,9 +135,34 @@ export default function MarketOpportunitiesPage() {
   const { data: analysis, isLoading, refetch } = useQuery({
     queryKey: ['/api/opportunities/analyze'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/opportunities/analyze');
-      return response.json();
-    }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout for large datasets
+      
+      try {
+        const response = await fetch('/api/opportunities/analyze', {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`Analysis failed: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          throw new Error('Analysis timed out - try smaller batch size');
+        }
+        throw error;
+      }
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
   });
 
   const handleRefresh = async () => {

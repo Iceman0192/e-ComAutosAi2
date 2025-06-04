@@ -61,7 +61,7 @@ export class OpportunityAnalysisService {
         throw new Error('No sales data available for analysis');
       }
 
-      console.log(`Analyzing ${salesData.length} of ${totalRecords.toLocaleString()} total records (${Math.round((salesData.length / totalRecords) * 100)}% coverage) for market opportunities`);
+      console.log(`Starting analysis of ${salesData.length} of ${totalRecords.toLocaleString()} total records (${Math.round((salesData.length / totalRecords) * 100)}% coverage)`);
 
       // Calculate comprehensive market statistics
       const marketStats = await this.calculateMarketStatistics(salesData);
