@@ -174,6 +174,43 @@ export const insertFreshSalesHistorySchema = createInsertSchema(freshSalesHistor
 export type InsertFreshSalesHistory = z.infer<typeof insertFreshSalesHistorySchema>;
 export type FreshSalesHistory = typeof freshSalesHistory.$inferSelect;
 
+// Datasets table for admin data management
+export const datasets = pgTable("datasets", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdBy: integer("created_by").notNull(),
+  recordCount: integer("record_count").default(0).notNull(),
+  tags: text("tags").array(),
+  isPublic: boolean("is_public").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const datasetRecords = pgTable("dataset_records", {
+  id: serial("id").primaryKey(),
+  datasetId: integer("dataset_id").notNull(),
+  recordData: text("record_data").notNull(), // JSON string of vehicle/sale data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertDatasetSchema = createInsertSchema(datasets).pick({
+  name: true,
+  description: true,
+  tags: true,
+  isPublic: true,
+});
+
+export const insertDatasetRecordSchema = createInsertSchema(datasetRecords).pick({
+  datasetId: true,
+  recordData: true,
+});
+
+export type InsertDataset = z.infer<typeof insertDatasetSchema>;
+export type Dataset = typeof datasets.$inferSelect;
+export type InsertDatasetRecord = z.infer<typeof insertDatasetRecordSchema>;
+export type DatasetRecord = typeof datasetRecords.$inferSelect;
+
 // API schemas for APICAR
 // Updated schema based on actual APICAR API response format
 export const SaleHistoryResponseSchema = z.object({
