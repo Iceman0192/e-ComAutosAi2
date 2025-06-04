@@ -135,15 +135,17 @@ function OpportunityCard({ opportunity }: { opportunity: OpportunityInsight }) {
 
 export default function MarketOpportunitiesPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isComprehensiveMode, setIsComprehensiveMode] = useState(false);
 
   const { data: analysis, isLoading, refetch } = useQuery({
-    queryKey: ['/api/opportunities/analyze'],
+    queryKey: [isComprehensiveMode ? '/api/opportunities/comprehensive' : '/api/opportunities/analyze'],
     queryFn: async () => {
+      const endpoint = isComprehensiveMode ? '/api/opportunities/comprehensive' : '/api/opportunities/analyze';
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout for large datasets
+      const timeoutId = setTimeout(() => controller.abort(), isComprehensiveMode ? 300000 : 180000); // 5min for comprehensive, 3min for standard
       
       try {
-        const response = await fetch('/api/opportunities/analyze', {
+        const response = await fetch(endpoint, {
           signal: controller.signal,
           headers: {
             'Content-Type': 'application/json',
@@ -159,7 +161,7 @@ export default function MarketOpportunitiesPage() {
       } catch (error) {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
-          throw new Error('Analysis timed out - try smaller batch size');
+          throw new Error('Analysis timed out - processing large dataset');
         }
         throw error;
       }
@@ -212,13 +214,42 @@ export default function MarketOpportunitiesPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Market Opportunities</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">AI-powered buying recommendations based on your sales history</p>
+          <h1 className="text-3xl font-bold">
+            {isComprehensiveMode ? 'Comprehensive Market Intelligence' : 'Market Opportunities'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            {isComprehensiveMode 
+              ? 'Deep AI analysis extracting maximum insights from your complete automotive auction database'
+              : 'AI-powered buying recommendations based on your sales history'
+            }
+          </p>
         </div>
-        <Button onClick={handleRefresh} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh Analysis
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <Button
+              variant={!isComprehensiveMode ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setIsComprehensiveMode(false)}
+              className="relative"
+            >
+              <Target className="h-4 w-4 mr-2" />
+              Standard
+            </Button>
+            <Button
+              variant={isComprehensiveMode ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setIsComprehensiveMode(true)}
+              className="relative"
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              Comprehensive
+            </Button>
+          </div>
+          <Button onClick={handleRefresh} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh Analysis
+          </Button>
+        </div>
       </div>
 
       {/* Market Overview */}
