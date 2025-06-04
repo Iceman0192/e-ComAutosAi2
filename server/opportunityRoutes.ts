@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { opportunityAnalysisService } from "./opportunityAnalysisService";
+import { comprehensiveAnalysisService } from "./comprehensiveAnalysisService";
 
 export function registerOpportunityRoutes(app: Express): void {
   // Analyze market opportunities from real sales data with configurable batch size
@@ -69,6 +70,33 @@ export function registerOpportunityRoutes(app: Express): void {
       res.status(500).json({ 
         success: false, 
         message: "Failed to perform full database analysis" 
+      });
+    }
+  });
+
+  // Comprehensive deep analysis endpoint for maximum data extraction
+  app.get("/api/opportunities/comprehensive", async (req, res) => {
+    try {
+      console.log('Starting comprehensive market intelligence analysis...');
+      
+      const analysis = await comprehensiveAnalysisService.performDeepMarketAnalysis();
+      
+      res.json({ 
+        success: true, 
+        data: analysis,
+        meta: {
+          analysisType: 'comprehensive',
+          totalRecords: analysis.marketIntelligence.totalRecords,
+          coveragePercentage: analysis.marketIntelligence.coveragePercentage,
+          insights: analysis.actionableInsights.length,
+          opportunities: analysis.opportunitySegments.length
+        }
+      });
+    } catch (error) {
+      console.error('Error in comprehensive analysis:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to perform comprehensive market analysis" 
       });
     }
   });
