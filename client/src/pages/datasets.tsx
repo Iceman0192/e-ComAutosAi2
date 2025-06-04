@@ -16,7 +16,11 @@ import {
   Car, 
   BarChart3,
   Lightbulb,
-  RefreshCw
+  RefreshCw,
+  Database,
+  Shield,
+  ToggleLeft,
+  ToggleRight
 } from 'lucide-react';
 
 interface OpportunityInsight {
