@@ -92,29 +92,31 @@ export default function Billing() {
     }
   };
 
-  const plans = plansData?.data || {};
-  const currentPlan = plans[user?.role as keyof typeof plans] || plans.free;
+  const plans = plansData?.plans || [];
+  const currentPlan = plans.find((plan: any) => plan.role === user?.role) || plans.find((plan: any) => plan.role === 'freemium');
   const subscription = statusData?.data;
 
-  const pricingPlans = Object.entries(plans).map(([planId, plan]: [string, any]) => ({
-    id: planId,
+  const pricingPlans = plans.map((plan: any) => ({
+    id: plan.role,
     name: plan.name,
-    price: plan.price,
-    icon: planId === 'free' ? CheckCircle : 
-          planId === 'gold' ? Star : 
-          planId === 'platinum' ? Crown : Users,
-    description: planId === 'free' ? 'Perfect for getting started' :
-                 planId === 'gold' ? 'For serious vehicle exporters' :
-                 planId === 'platinum' ? 'Maximum insights and flexibility' :
+    price: plan.monthlyPrice,
+    yearlyPrice: plan.yearlyPrice,
+    icon: plan.role === 'freemium' ? CheckCircle : 
+          plan.role === 'basic' ? Users :
+          plan.role === 'gold' ? Star : 
+          plan.role === 'platinum' ? Crown : Users,
+    description: plan.role === 'freemium' ? 'Perfect for getting started' :
+                 plan.role === 'basic' ? 'Essential features for regular users' :
+                 plan.role === 'gold' ? 'For serious vehicle exporters' :
+                 plan.role === 'platinum' ? 'Maximum insights and flexibility' :
                  'For teams and organizations',
     features: plan.features,
-    buttonText: user?.role === planId ? 'Current Plan' : 
-                planId === 'free' ? 'Downgrade' :
-                planId === 'enterprise' ? 'Contact Sales' :
+    buttonText: user?.role === plan.role ? 'Current Plan' : 
+                plan.role === 'freemium' ? 'Downgrade' :
                 `Upgrade to ${plan.name}`,
-    disabled: user?.role === planId,
-    popular: planId === 'gold',
-    limits: plan.limits
+    disabled: user?.role === plan.role,
+    popular: plan.role === 'gold',
+    stripePriceId: plan.stripePriceId
   }));
 
   const billingHistory = [
