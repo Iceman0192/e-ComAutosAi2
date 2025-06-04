@@ -9,7 +9,7 @@ export function registerDatasetRoutes(app: Express): void {
   // Get all datasets for admin
   app.get("/api/datasets", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+      if (!(req as any).user || (req as any).user.role !== 'admin') {
         return res.status(403).json({ success: false, message: "Admin access required" });
       }
 
@@ -31,7 +31,7 @@ export function registerDatasetRoutes(app: Express): void {
   // Create new dataset
   app.post("/api/datasets", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+      if (!(req as any).user || (req as any).user.role !== 'admin') {
         return res.status(403).json({ success: false, message: "Admin access required" });
       }
 
@@ -39,7 +39,7 @@ export function registerDatasetRoutes(app: Express): void {
       
       const [newDataset] = await db.insert(datasets).values({
         ...validatedData,
-        createdBy: req.user.id
+        createdBy: parseInt((req as any).user.id)
       }).returning();
 
       res.json({ 
