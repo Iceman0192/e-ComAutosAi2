@@ -351,6 +351,215 @@ export default function MarketOpportunitiesPage() {
         </div>
       </div>
 
+      {/* Advanced Filters Panel */}
+      {showFilters && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Analysis Configuration
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Dataset Size Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {dataSizeOptions.map((option) => (
+                <Card 
+                  key={option.value}
+                  className={`cursor-pointer transition-all ${
+                    filters.datasetSize === option.value 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950' 
+                      : 'hover:border-gray-300'
+                  }`}
+                  onClick={() => setFilters({...filters, datasetSize: option.value})}
+                >
+                  <CardContent className="p-4 text-center">
+                    <Database className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                    <div className="font-semibold">{option.label}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{option.description}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Separator />
+
+            {/* Smart Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Vehicle Makes */}
+              <div className="space-y-2">
+                <Label>Vehicle Makes</Label>
+                <Select 
+                  value={filters.makes.length > 0 ? filters.makes[0] : ""}
+                  onValueChange={(value) => {
+                    if (value && !filters.makes.includes(value)) {
+                      setFilters({...filters, makes: [...filters.makes, value]});
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select makes..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableMakes.map(make => (
+                      <SelectItem key={make} value={make}>{make}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {filters.makes.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {filters.makes.map(make => (
+                      <Badge 
+                        key={make} 
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => setFilters({
+                          ...filters, 
+                          makes: filters.makes.filter(m => m !== make)
+                        })}
+                      >
+                        {make} ×
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Year Range */}
+              <div className="space-y-2">
+                <Label>Year Range</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input 
+                    type="number"
+                    placeholder="From"
+                    value={filters.yearFrom}
+                    onChange={(e) => setFilters({...filters, yearFrom: parseInt(e.target.value) || 2010})}
+                  />
+                  <Input 
+                    type="number"
+                    placeholder="To"
+                    value={filters.yearTo}
+                    onChange={(e) => setFilters({...filters, yearTo: parseInt(e.target.value) || 2024})}
+                  />
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div className="space-y-2">
+                <Label>Price Range ($)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input 
+                    type="number"
+                    placeholder="Min"
+                    value={filters.priceFrom}
+                    onChange={(e) => setFilters({...filters, priceFrom: parseInt(e.target.value) || 0})}
+                  />
+                  <Input 
+                    type="number"
+                    placeholder="Max"
+                    value={filters.priceTo}
+                    onChange={(e) => setFilters({...filters, priceTo: parseInt(e.target.value) || 100000})}
+                  />
+                </div>
+              </div>
+
+              {/* Auction Sites */}
+              <div className="space-y-2">
+                <Label>Auction Sites</Label>
+                <div className="flex gap-2">
+                  {availableSites.map(site => (
+                    <Button
+                      key={site}
+                      variant={filters.sites.includes(site) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        const newSites = filters.sites.includes(site)
+                          ? filters.sites.filter(s => s !== site)
+                          : [...filters.sites, site];
+                        setFilters({...filters, sites: newSites});
+                      }}
+                    >
+                      {site}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* AI Caching */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  AI Learning & Cache
+                </Label>
+                <Button
+                  variant={useCache ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setUseCache(!useCache)}
+                  className="w-full"
+                >
+                  {useCache ? "Cache Enabled" : "Cache Disabled"}
+                </Button>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  {useCache ? "AI learns from patterns and caches results" : "Fresh analysis every time"}
+                </div>
+              </div>
+
+              {/* Analysis Progress */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Analysis Progress
+                </Label>
+                {(isLoading || isAnalyzing) && (
+                  <div className="space-y-2">
+                    <Progress value={analysisProgress} className="w-full" />
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      Processing {filters.datasetSize.toLocaleString()} records...
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Quick Actions */}
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Estimated time: {Math.ceil((timeoutMap[filters.datasetSize as keyof typeof timeoutMap] || 300000) / 60000)} minutes
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setFilters({
+                      datasetSize: 15000,
+                      makes: [],
+                      models: [],
+                      yearFrom: 2010,
+                      yearTo: 2024,
+                      priceFrom: 0,
+                      priceTo: 100000,
+                      sites: [],
+                      damageTypes: []
+                    });
+                  }}
+                >
+                  Reset Filters
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setShowFilters(false)}
+                >
+                  Apply & Close
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Market Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
