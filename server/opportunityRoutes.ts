@@ -4,9 +4,12 @@ import { comprehensiveAnalysisService } from "./comprehensiveAnalysisService";
 
 export function registerOpportunityRoutes(app: Express): void {
   // Analyze market opportunities from real sales data with configurable batch size
-  app.get("/api/opportunities/analyze", async (req, res) => {
+  app.post("/api/opportunities/analyze", async (req, res) => {
     try {
-      const batchSize = parseInt(req.query.batchSize as string) || 15000;
+      const { filters } = req.body;
+      const batchSize = filters?.datasetSize || 15000;
+      
+      console.log(`Starting market analysis with ${batchSize} records...`);
       const analysis = await opportunityAnalysisService.analyzeMarketOpportunities(batchSize);
       
       res.json({ 
@@ -75,7 +78,7 @@ export function registerOpportunityRoutes(app: Express): void {
   });
 
   // Comprehensive deep analysis endpoint for maximum data extraction
-  app.get("/api/opportunities/comprehensive", async (req, res) => {
+  app.post("/api/opportunities/comprehensive", async (req, res) => {
     try {
       console.log('Starting comprehensive market intelligence analysis...');
       
