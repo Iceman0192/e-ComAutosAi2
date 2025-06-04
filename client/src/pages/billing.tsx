@@ -54,18 +54,21 @@ export default function Billing() {
     }
   });
 
-  // Checkout mutation
-  const checkoutMutation = useMutation({
-    mutationFn: async (planId: string) => {
-      const response = await apiRequest('POST', '/api/subscription/create-checkout', {
-        planId,
-        userId: user?.id
+  // Test checkout mutation for Stripe integration testing
+  const testCheckoutMutation = useMutation({
+    mutationFn: async (planRole: string) => {
+      const response = await fetch('/api/subscription/test-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ planRole }),
       });
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.success && data.data.url) {
-        window.location.href = data.data.url;
+      if (data.success && data.sessionUrl) {
+        window.location.href = data.sessionUrl;
       } else {
         toast({
           title: "Error",
@@ -84,11 +87,11 @@ export default function Billing() {
   });
 
   const handleUpgrade = async (planId: string) => {
-    if (planId === 'free' || planId === user?.role) return;
+    if (planId === 'freemium' || planId === user?.role) return;
     
     setLoadingPlan(planId);
     try {
-      await checkoutMutation.mutateAsync(planId);
+      await testCheckoutMutation.mutateAsync(planId);
     } finally {
       setLoadingPlan(null);
     }
