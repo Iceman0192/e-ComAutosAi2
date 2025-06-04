@@ -279,7 +279,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
             e.stopPropagation();
             try {
               await logout();
-              window.location.href = '/';
             } catch (error) {
               console.error('Logout failed:', error);
             }
