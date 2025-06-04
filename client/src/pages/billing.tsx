@@ -93,9 +93,29 @@ export default function Billing() {
   };
 
   const plans = plansData?.plans || [];
-  const currentPlan = plans.find((plan: any) => plan.role === user?.role) || plans.find((plan: any) => plan.role === 'freemium');
+  
+  // If user is admin, create a special admin plan object for display
+  const adminPlan = user?.role === 'admin' ? {
+    role: 'admin',
+    name: 'God Level Admin',
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    features: [
+      'Unlimited everything',
+      'Full platform access',
+      'Admin dashboard',
+      'User management',
+      'System analytics',
+      'Database access',
+      'Revenue insights',
+      'Platform control'
+    ]
+  } : null;
+  
+  const currentPlan = adminPlan || plans.find((plan: any) => plan.role === user?.role) || plans.find((plan: any) => plan.role === 'freemium');
   const subscription = statusData?.data;
 
+  // Only show public plans in upgrade options
   const pricingPlans = plans.map((plan: any) => ({
     id: plan.role,
     name: plan.name,

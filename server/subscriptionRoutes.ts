@@ -20,7 +20,10 @@ export function registerSubscriptionRoutes(app: Express) {
         .from(subscriptionPlans)
         .where(eq(subscriptionPlans.isActive, true));
 
-      const formattedPlans = plans.map(plan => ({
+      // Filter out admin plans from public view
+      const publicPlans = plans.filter(plan => plan.role !== 'admin');
+      
+      const formattedPlans = publicPlans.map(plan => ({
         id: plan.id,
         name: plan.name,
         role: plan.role,
