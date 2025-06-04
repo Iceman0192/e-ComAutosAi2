@@ -642,30 +642,46 @@ export default function MarketOpportunitiesPage() {
 
         <TabsContent value="opportunities" className="space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {marketData.opportunities.map((opportunity, index) => (
-              <OpportunityCard key={index} opportunity={opportunity} />
-            ))}
+            {marketData.opportunities && marketData.opportunities.length > 0 ? (
+              marketData.opportunities.map((opportunity, index) => (
+                <OpportunityCard key={index} opportunity={opportunity} />
+              ))
+            ) : (
+              <div className="col-span-2 text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No opportunities identified in this analysis
+                </p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="trends" className="space-y-4">
           <div className="grid gap-4">
-            {marketData.marketTrends.map((trend, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-blue-500" />
-                    {trend.trend}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 dark:text-gray-300 mb-2">{trend.description}</p>
-                  <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                    Impact: {trend.impact}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {marketData.marketTrends && marketData.marketTrends.length > 0 ? (
+              marketData.marketTrends.map((trend, index) => (
+                <Card key={index}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-blue-500" />
+                      {trend.trend}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700 dark:text-gray-300 mb-2">{trend.description}</p>
+                    <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                      Impact: {trend.impact}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No market trends identified in this analysis
+                </p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
