@@ -211,6 +211,29 @@ export type Dataset = typeof datasets.$inferSelect;
 export type InsertDatasetRecord = z.infer<typeof insertDatasetRecordSchema>;
 export type DatasetRecord = typeof datasetRecords.$inferSelect;
 
+// Dataset analysis results table
+export const datasetAnalysis = pgTable("dataset_analysis", {
+  id: serial("id").primaryKey(),
+  datasetId: integer("dataset_id").notNull(),
+  overallScore: integer("overall_score").notNull(),
+  completenessScore: integer("completeness_score").notNull(),
+  consistencyScore: integer("consistency_score").notNull(),
+  diversityScore: integer("diversity_score").notNull(),
+  recommendations: text("recommendations").array(),
+  issues: text("issues").array(),
+  strengths: text("strengths").array(),
+  insights: text("insights").array(),
+  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
+});
+
+export const insertDatasetAnalysisSchema = createInsertSchema(datasetAnalysis).omit({
+  id: true,
+  analyzedAt: true
+});
+
+export type InsertDatasetAnalysis = z.infer<typeof insertDatasetAnalysisSchema>;
+export type DatasetAnalysis = typeof datasetAnalysis.$inferSelect;
+
 // API schemas for APICAR
 // Updated schema based on actual APICAR API response format
 export const SaleHistoryResponseSchema = z.object({

@@ -24,7 +24,10 @@ function CreateDatasetDialog({ onSuccess }: { onSuccess: () => void }) {
   const { toast } = useToast();
 
   const createMutation = useMutation({
-    mutationFn: (data: InsertDataset) => apiRequest('POST', '/api/datasets', data),
+    mutationFn: async (data: InsertDataset) => {
+      const response = await apiRequest('POST', '/api/datasets', data);
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Success",
@@ -34,10 +37,11 @@ function CreateDatasetDialog({ onSuccess }: { onSuccess: () => void }) {
       setFormData({ name: '', description: '', tags: [], isPublic: false });
       onSuccess();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Dataset creation error:', error);
       toast({
         title: "Error",
-        description: "Failed to create dataset",
+        description: error?.message || "Failed to create dataset",
         variant: "destructive"
       });
     }
@@ -228,11 +232,17 @@ export default function Datasets() {
 
   const { data: datasets, isLoading } = useQuery({
     queryKey: ['/api/datasets'],
-    queryFn: () => apiRequest('GET', '/api/datasets').then(res => res.json())
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/datasets');
+      return response.json();
+    }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/datasets/${id}`),
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/datasets/${id}`);
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Success",
