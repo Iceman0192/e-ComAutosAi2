@@ -1,597 +1,291 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Database, Plus, BarChart3, Download, Edit, Trash2, Calendar, User, Brain, Target, CheckCircle, AlertTriangle, TrendingUp, Lightbulb } from 'lucide-react';
-import type { Dataset, InsertDataset, DatasetAnalysis } from '@shared/schema';
+import { 
+  Brain, 
+  TrendingUp, 
+  DollarSign, 
+  Target, 
+  AlertTriangle, 
+  Car, 
+  BarChart3,
+  Lightbulb,
+  RefreshCw
+} from 'lucide-react';
 
-function CreateDatasetDialog({ onSuccess }: { onSuccess: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<InsertDataset>({
-    name: '',
-    description: '',
-    tags: [],
-    isPublic: false
-  });
-  const { toast } = useToast();
-
-  const createMutation = useMutation({
-    mutationFn: async (data: InsertDataset) => {
-      const response = await apiRequest('POST', '/api/datasets', data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Dataset created successfully"
-      });
-      setOpen(false);
-      setFormData({ name: '', description: '', tags: [], isPublic: false });
-      onSuccess();
-    },
-    onError: (error: any) => {
-      console.error('Dataset creation error:', error);
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to create dataset",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.name.trim()) {
-      createMutation.mutate(formData);
-    }
+interface OpportunityInsight {
+  category: string;
+  title: string;
+  description: string;
+  confidence: number;
+  potentialProfit: number;
+  riskLevel: 'Low' | 'Medium' | 'High';
+  actionableSteps: string[];
+  dataPoints: {
+    avgBuyPrice: number;
+    avgSellPrice: number;
+    volume: number;
+    successRate: number;
   };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create Dataset
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create New Dataset</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Dataset Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter dataset name"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe your dataset"
-              rows={3}
-            />
-          </div>
-          <div>
-            <Label htmlFor="tags">Tags (comma separated)</Label>
-            <Input
-              id="tags"
-              value={formData.tags?.join(', ') || ''}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
-              }))}
-              placeholder="luxury, sedan, analysis"
-            />
-          </div>
-          <div className="flex gap-4 justify-end">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create Dataset'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
-function DatasetAnalysisDialog({ dataset }: { dataset: Dataset }) {
-  const [open, setOpen] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const analyzeMutation = useMutation({
-    mutationFn: async (datasetId: number) => {
-      const response = await apiRequest('POST', `/api/datasets/${datasetId}/analyze`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Analysis Complete",
-        description: "AI quality analysis finished successfully"
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/datasets/${dataset.id}/analysis`] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Analysis Failed",
-        description: error?.message || "Failed to analyze dataset",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const { data: analysis } = useQuery({
-    queryKey: [`/api/datasets/${dataset.id}/analysis`],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/datasets/${dataset.id}/analysis`);
-      return response.json();
-    },
-    enabled: open
-  });
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+interface MarketAnalysis {
+  overview: {
+    totalRecords: number;
+    dateRange: string;
+    avgPrice: number;
+    topPerformingMakes: string[];
   };
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Fair';
-    return 'Poor';
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          <Brain className="h-4 w-4 mr-1" />
-          AI Analysis
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            AI Quality Analysis - {dataset.name}
-          </DialogTitle>
-        </DialogHeader>
-
-        {!analysis?.data ? (
-          <div className="text-center py-8">
-            <Brain className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Analysis Available</h3>
-            <p className="text-gray-600 mb-4">
-              Run an AI analysis to get quality scores and recommendations for this dataset.
-            </p>
-            <Button 
-              onClick={() => analyzeMutation.mutate(dataset.id)}
-              disabled={analyzeMutation.isPending}
-            >
-              {analyzeMutation.isPending ? 'Analyzing...' : 'Start AI Analysis'}
-            </Button>
-          </div>
-        ) : (
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-              <TabsTrigger value="insights">Insights</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.overallScore)}`}>
-                      {analysis.data.overallScore}%
-                    </div>
-                    <div className="text-sm text-gray-600">Overall Quality</div>
-                    <div className="text-xs font-medium mt-1">
-                      {getScoreLabel(analysis.data.overallScore)}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.completenessScore)}`}>
-                      {analysis.data.completenessScore}%
-                    </div>
-                    <div className="text-sm text-gray-600">Completeness</div>
-                    <Progress value={analysis.data.completenessScore} className="mt-2 h-2" />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.consistencyScore)}`}>
-                      {analysis.data.consistencyScore}%
-                    </div>
-                    <div className="text-sm text-gray-600">Consistency</div>
-                    <Progress value={analysis.data.consistencyScore} className="mt-2 h-2" />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.diversityScore)}`}>
-                      {analysis.data.diversityScore}%
-                    </div>
-                    <div className="text-sm text-gray-600">Diversity</div>
-                    <Progress value={analysis.data.diversityScore} className="mt-2 h-2" />
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-600">
-                      <CheckCircle className="h-5 w-5" />
-                      Strengths
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {analysis.data.strengths?.length > 0 ? (
-                      <ul className="space-y-2">
-                        {analysis.data.strengths.map((strength: string, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{strength}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-gray-500 text-sm">No specific strengths identified</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-red-600">
-                      <AlertTriangle className="h-5 w-5" />
-                      Issues
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {analysis.data.issues?.length > 0 ? (
-                      <ul className="space-y-2">
-                        {analysis.data.issues.map((issue: string, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm">{issue}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-gray-500 text-sm">No critical issues found</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="recommendations" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    AI Recommendations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {analysis.data.recommendations?.length > 0 ? (
-                    <div className="space-y-3">
-                      {analysis.data.recommendations.map((recommendation: string, index: number) => (
-                        <Alert key={index}>
-                          <Target className="h-4 w-4" />
-                          <AlertDescription>{recommendation}</AlertDescription>
-                        </Alert>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No specific recommendations available</p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="insights" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5" />
-                    Business Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {analysis.data.insights?.length > 0 ? (
-                    <div className="space-y-3">
-                      {analysis.data.insights.map((insight: string, index: number) => (
-                        <Alert key={index}>
-                          <TrendingUp className="h-4 w-4" />
-                          <AlertDescription>{insight}</AlertDescription>
-                        </Alert>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No business insights generated</p>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="history">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analysis History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-500">Analysis history coming soon</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
+  opportunities: OpportunityInsight[];
+  marketTrends: {
+    trend: string;
+    description: string;
+    impact: string;
+  }[];
+  riskFactors: string[];
+  recommendations: string[];
 }
 
-function DatasetCard({ dataset, onDelete, onExport }: { 
-  dataset: Dataset; 
-  onDelete: (id: number) => void;
-  onExport: (id: number) => void;
-}) {
-  const { toast } = useToast();
-
-  const handleExport = async () => {
-    try {
-      const response = await fetch(`/api/datasets/${dataset.id}/export`, {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${dataset.name}_export.csv`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        toast({
-          title: "Success",
-          description: "Dataset exported successfully"
-        });
-      } else {
-        throw new Error('Export failed');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to export dataset",
-        variant: "destructive"
-      });
+function OpportunityCard({ opportunity }: { opportunity: OpportunityInsight }) {
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'Low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'High': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return 'text-green-600 dark:text-green-400';
+    if (confidence >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
+  };
+
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            {dataset.name}
-          </span>
-          <Badge variant="secondary">{dataset.recordCount} records</Badge>
-        </CardTitle>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{opportunity.title}</CardTitle>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{opportunity.category}</p>
+          </div>
+          <Badge className={getRiskColor(opportunity.riskLevel)}>
+            {opportunity.riskLevel} Risk
+          </Badge>
+        </div>
+        <div className="flex items-center gap-4 mt-2">
+          <div className={`text-sm font-medium ${getConfidenceColor(opportunity.confidence)}`}>
+            {opportunity.confidence}% Confidence
+          </div>
+          <div className="text-green-600 dark:text-green-400 font-semibold">
+            ${opportunity.potentialProfit.toLocaleString()} Potential Profit
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {dataset.description || 'No description'}
-        </p>
+        <p className="text-gray-700 dark:text-gray-300 mb-4">{opportunity.description}</p>
         
-        {dataset.tags && dataset.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
-            {dataset.tags.map((tag, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
-                {tag}
-              </Badge>
-            ))}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Avg Buy Price</div>
+            <div className="font-semibold">${opportunity.dataPoints.avgBuyPrice.toLocaleString()}</div>
           </div>
-        )}
-
-        <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
-          <Calendar className="h-3 w-3" />
-          Created {new Date(dataset.createdAt).toLocaleDateString()}
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Avg Sell Price</div>
+            <div className="font-semibold">${opportunity.dataPoints.avgSellPrice.toLocaleString()}</div>
+          </div>
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Market Volume</div>
+            <div className="font-semibold">{opportunity.dataPoints.volume}</div>
+          </div>
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded">
+            <div className="text-sm text-gray-600 dark:text-gray-400">Success Rate</div>
+            <div className="font-semibold">{opportunity.dataPoints.successRate}%</div>
+          </div>
         </div>
 
-        <div className="flex gap-2 flex-wrap">
-          <DatasetAnalysisDialog dataset={dataset} />
-          <Button size="sm" variant="outline" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => onDelete(dataset.id)}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
+        <div>
+          <h4 className="font-medium mb-2">Action Steps:</h4>
+          <ul className="space-y-1">
+            {opportunity.actionableSteps.map((step, index) => (
+              <li key={index} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                <span className="text-blue-500 mt-1">•</span>
+                {step}
+              </li>
+            ))}
+          </ul>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-export default function Datasets() {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+export default function MarketOpportunitiesPage() {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  if (user?.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Datasets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              This feature is restricted to admin users only.
-            </p>
-            <Badge variant="outline">Admin Access Required</Badge>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const { data: datasets, isLoading } = useQuery({
-    queryKey: ['/api/datasets'],
+  const { data: analysis, isLoading, refetch } = useQuery({
+    queryKey: ['/api/opportunities/analyze'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/datasets');
+      const response = await apiRequest('GET', '/api/opportunities/analyze');
       return response.json();
     }
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `/api/datasets/${id}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Dataset deleted successfully"
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/datasets'] });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete dataset",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['/api/datasets'] });
+  const handleRefresh = async () => {
+    setIsAnalyzing(true);
+    await refetch();
+    setIsAnalyzing(false);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this dataset? This action cannot be undone.')) {
-      deleteMutation.mutate(id);
-    }
-  };
-
-  const handleExport = (id: number) => {
-    // Export functionality is handled within DatasetCard component
-  };
-
-  if (isLoading) {
+  if (isLoading || isAnalyzing) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Brain className="h-12 w-12 mx-auto text-blue-500 mb-4 animate-pulse" />
+            <h3 className="text-lg font-medium mb-2">Analyzing Market Opportunities</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">AI is analyzing your sales history data to identify profitable opportunities...</p>
+            <div className="flex items-center gap-2 justify-center">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Processing thousands of records</span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const datasetList = datasets?.data || [];
+  const marketData: MarketAnalysis = analysis?.data;
+
+  if (!marketData) {
+    return (
+      <div className="p-6">
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Unable to analyze market opportunities. Please ensure you have sales history data available.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Datasets
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your vehicle data collections and analysis
-          </p>
+          <h1 className="text-3xl font-bold">Market Opportunities</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">AI-powered buying recommendations based on your sales history</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="default" className="bg-red-600">
-            ADMIN ONLY
-          </Badge>
-          <CreateDatasetDialog onSuccess={handleRefresh} />
-        </div>
+        <Button onClick={handleRefresh} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh Analysis
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-              <Plus className="h-5 w-5" />
-              Create New Dataset
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
-              Start building a custom dataset from your search results
-            </p>
-            <CreateDatasetDialog onSuccess={handleRefresh} />
+      {/* Market Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <BarChart3 className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+            <div className="text-2xl font-bold">{marketData.overview.totalRecords.toLocaleString()}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Records Analyzed</div>
           </CardContent>
         </Card>
-
-        {datasetList.map((dataset: Dataset) => (
-          <DatasetCard
-            key={dataset.id}
-            dataset={dataset}
-            onDelete={handleDelete}
-            onExport={handleExport}
-          />
-        ))}
+        <Card>
+          <CardContent className="p-4 text-center">
+            <DollarSign className="h-8 w-8 mx-auto text-green-500 mb-2" />
+            <div className="text-2xl font-bold">${marketData.overview.avgPrice.toLocaleString()}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Average Price</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Car className="h-8 w-8 mx-auto text-purple-500 mb-2" />
+            <div className="text-2xl font-bold">{marketData.overview.topPerformingMakes.length}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Top Makes</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Target className="h-8 w-8 mx-auto text-orange-500 mb-2" />
+            <div className="text-2xl font-bold">{marketData.opportunities.length}</div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Opportunities Found</div>
+          </CardContent>
+        </Card>
       </div>
 
-      {datasetList.length === 0 && (
-        <div className="text-center py-12">
-          <Database className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No datasets yet
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Create your first dataset to start managing vehicle data collections
-          </p>
-          <CreateDatasetDialog onSuccess={handleRefresh} />
-        </div>
-      )}
+      <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded">
+        <strong>Data Range:</strong> {marketData.overview.dateRange} | 
+        <strong> Top Performing Makes:</strong> {marketData.overview.topPerformingMakes.join(', ')}
+      </div>
+
+      <Tabs defaultValue="opportunities" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
+          <TabsTrigger value="trends">Market Trends</TabsTrigger>
+          <TabsTrigger value="risks">Risk Factors</TabsTrigger>
+          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="opportunities" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {marketData.opportunities.map((opportunity, index) => (
+              <OpportunityCard key={index} opportunity={opportunity} />
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trends" className="space-y-4">
+          <div className="grid gap-4">
+            {marketData.marketTrends.map((trend, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-500" />
+                    {trend.trend}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-700 dark:text-gray-300 mb-2">{trend.description}</p>
+                  <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                    Impact: {trend.impact}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="risks" className="space-y-4">
+          <div className="grid gap-3">
+            {marketData.riskFactors.map((risk, index) => (
+              <Alert key={index}>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{risk}</AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="recommendations" className="space-y-4">
+          <div className="grid gap-3">
+            {marketData.recommendations.map((recommendation, index) => (
+              <Alert key={index}>
+                <Lightbulb className="h-4 w-4" />
+                <AlertDescription>{recommendation}</AlertDescription>
+              </Alert>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
