@@ -12,6 +12,31 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export function registerSubscriptionRoutes(app: Express) {
+  // Test Stripe connection
+  app.get("/api/subscription/test-stripe", async (req, res) => {
+    try {
+      // Test basic Stripe API connection
+      const products = await stripe.products.list({ limit: 1 });
+      
+      res.json({
+        success: true,
+        message: "Stripe connection successful",
+        stripeConnected: true,
+        testData: {
+          productsCount: products.data.length,
+          apiVersion: "Latest"
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: "Stripe connection failed",
+        error: error.message,
+        stripeConnected: false
+      });
+    }
+  });
+
   // Get available subscription plans
   app.get("/api/subscription/plans", async (req, res) => {
     try {
