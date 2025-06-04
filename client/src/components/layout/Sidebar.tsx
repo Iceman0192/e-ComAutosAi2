@@ -44,7 +44,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'Live Lot Lookup',
-      href: '/live-lots',
+      href: '/live-copart',
       icon: Car,
       permission: 'BASIC_SEARCH'
     },
