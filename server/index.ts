@@ -87,6 +87,9 @@ app.use((req, res, next) => {
   // Set up opportunity analysis routes
   registerOpportunityRoutes(app);
   
+  // Set up AI insights routes
+  registerAIInsightsRoutes(app);
+  
   // Start 3-day migration scheduler
   setInterval(async () => {
     try {

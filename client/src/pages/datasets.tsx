@@ -32,7 +32,8 @@ import {
   ChevronUp,
   Play,
   Clock,
-  Zap
+  Zap,
+  Calendar
 } from 'lucide-react';
 
 interface OpportunityInsight {
