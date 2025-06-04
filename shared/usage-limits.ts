@@ -12,11 +12,11 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<string, TierLimits> = {
   freemium: {
-    dailySearches: 10,
+    dailySearches: 3,
     monthlySearches: 100,
     aiAnalysisLimit: 0,
-    vinSearchLimit: 5,
-    exportLimit: 10,
+    vinSearchLimit: 2,
+    exportLimit: 1,
     crossPlatformAccess: false,
     prioritySupport: false,
     apiAccess: false,

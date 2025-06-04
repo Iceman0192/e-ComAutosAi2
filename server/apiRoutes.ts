@@ -10,6 +10,7 @@ import { freshDataManager } from './freshDataManager';
 import { pool } from './db';
 import axios from 'axios';
 import OpenAI from 'openai';
+import { trackUsage } from './usageTracking';
 
 // Simple response cache for live lots (30 second TTL)
 const responseCache = new Map<string, { data: any; timestamp: number }>();
