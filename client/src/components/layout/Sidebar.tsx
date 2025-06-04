@@ -73,10 +73,10 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Data Export',
+      title: 'Market Opportunities',
       href: '/datasets',
-      icon: Database,
-      permission: 'EXPORT_DATA'
+      icon: Brain,
+      permission: 'AI_ANALYSIS'
     }
   ];
 
