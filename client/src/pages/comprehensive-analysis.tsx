@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -16,7 +17,11 @@ import {
   Shield,
   RefreshCw,
   Brain,
-  Database
+  Database,
+  Zap,
+  PieChart,
+  Activity,
+  Gauge
 } from 'lucide-react';
 
 interface ComprehensiveAnalysis {
