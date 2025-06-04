@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { db } from "./db";
-import { datasets, datasetRecords, insertDatasetSchema, insertDatasetRecordSchema } from "@shared/schema";
+import { datasets, datasetRecords, datasetAnalysis, insertDatasetSchema, insertDatasetRecordSchema } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import { z } from "zod";
+import { datasetAnalysisService } from "./datasetAnalysisService";
 
 export function registerDatasetRoutes(app: Express): void {
   // Get all datasets for admin
@@ -240,6 +241,123 @@ export function registerDatasetRoutes(app: Express): void {
       res.status(500).json({ 
         success: false, 
         message: "Failed to export dataset" 
+      });
+    }
+  });
+
+  // Analyze dataset quality using AI
+  app.post("/api/datasets/:id/analyze", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+        return res.status(403).json({ success: false, message: "Admin access required" });
+      }
+
+      const datasetId = parseInt(req.params.id);
+
+      // Check if dataset exists
+      const [dataset] = await db.select().from(datasets).where(eq(datasets.id, datasetId));
+      if (!dataset) {
+        return res.status(404).json({ success: false, message: "Dataset not found" });
+      }
+
+      // Run AI analysis
+      const qualityScore = await datasetAnalysisService.analyzeDatasetQuality(datasetId);
+      const insights = await datasetAnalysisService.generateDatasetInsights(datasetId);
+
+      // Store analysis results
+      const [analysisResult] = await db.insert(datasetAnalysis).values({
+        datasetId,
+        overallScore: qualityScore.overallScore,
+        completenessScore: qualityScore.completenessScore,
+        consistencyScore: qualityScore.consistencyScore,
+        diversityScore: qualityScore.diversityScore,
+        recommendations: qualityScore.recommendations,
+        issues: qualityScore.issues,
+        strengths: qualityScore.strengths,
+        insights: insights
+      }).returning();
+
+      res.json({ 
+        success: true, 
+        data: {
+          ...qualityScore,
+          insights,
+          analysisId: analysisResult.id,
+          analyzedAt: analysisResult.analyzedAt
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Dataset analysis error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Failed to analyze dataset" 
+      });
+    }
+  });
+
+  // Get latest analysis for a dataset
+  app.get("/api/datasets/:id/analysis", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+        return res.status(403).json({ success: false, message: "Admin access required" });
+      }
+
+      const datasetId = parseInt(req.params.id);
+
+      const [analysis] = await db
+        .select()
+        .from(datasetAnalysis)
+        .where(eq(datasetAnalysis.datasetId, datasetId))
+        .orderBy(desc(datasetAnalysis.analyzedAt))
+        .limit(1);
+
+      if (!analysis) {
+        return res.status(404).json({ 
+          success: false, 
+          message: "No analysis found for this dataset" 
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        data: analysis 
+      });
+
+    } catch (error) {
+      console.error('Error fetching dataset analysis:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch analysis" 
+      });
+    }
+  });
+
+  // Get analysis history for a dataset
+  app.get("/api/datasets/:id/analysis/history", async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+        return res.status(403).json({ success: false, message: "Admin access required" });
+      }
+
+      const datasetId = parseInt(req.params.id);
+
+      const analysisHistory = await db
+        .select()
+        .from(datasetAnalysis)
+        .where(eq(datasetAnalysis.datasetId, datasetId))
+        .orderBy(desc(datasetAnalysis.analyzedAt));
+
+      res.json({ 
+        success: true, 
+        data: analysisHistory 
+      });
+
+    } catch (error) {
+      console.error('Error fetching analysis history:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to fetch analysis history" 
       });
     }
   });
