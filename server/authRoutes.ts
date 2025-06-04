@@ -36,6 +36,7 @@ export function setupAuthRoutes(app: Express) {
       }
 
       // Verify password
+      console.log('Password verification:', { email, hasPassword: !!password, hasHash: !!dbUser.password });
       const isValidPassword = await bcrypt.compare(password, dbUser.password);
       if (!isValidPassword) {
         return res.status(401).json({
