@@ -1,68 +1,94 @@
 import type { Express } from "express";
+import { db } from "./db";
+import { aiPatterns, analysisHistory, salesHistory } from "@shared/schema";
+import { sql, desc, count } from "drizzle-orm";
 
 export function registerAIInsightsRoutes(app: Express) {
-  // Get AI insights and learning metrics
+  // Get AI insights and learning metrics from real database
   app.get("/api/ai/insights", async (req, res) => {
     try {
-      // Generate realistic AI learning metrics based on system usage
-      const totalPatterns = Math.floor(Math.random() * 50) + 25; // 25-75 patterns
-      const averageConfidence = Math.floor(Math.random() * 20) + 75; // 75-95%
-      const cacheHitRate = Math.floor(Math.random() * 30) + 60; // 60-90%
+      // Get real AI patterns from database
+      const totalPatternsResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(aiPatterns);
+      const totalPatterns = totalPatternsResult[0]?.count || 0;
+      
+      // Calculate average confidence from real patterns
+      const avgConfidenceResult = await db
+        .select({ avgConfidence: sql<number>`avg(confidence)` })
+        .from(aiPatterns);
+      const averageConfidence = Math.round(Number(avgConfidenceResult[0]?.avgConfidence || 85));
+      
+      // Get analysis history for cache hit rate calculation
+      const totalAnalysesResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(analysisHistory);
+      const totalAnalyses = totalAnalysesResult[0]?.count || 0;
+      
+      const cachedAnalysesResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(analysisHistory)
+        .where(sql`cached = true`);
+      const cachedAnalyses = cachedAnalysesResult[0]?.count || 0;
+      
+      const cacheHitRate = totalAnalyses > 0 ? Math.round((cachedAnalyses / totalAnalyses) * 100) : 0;
       const learningProgress = Math.min(100, Math.round(
         (totalPatterns * 1.2) + (averageConfidence * 0.8)
       ));
 
-      // Generate top discovered patterns
-      const topPatterns = [
-        {
-          type: 'vehicle_segment',
-          description: 'Toyota sedans 2018-2020 show 15% higher profit margins in flood damage category',
-          confidence: 92,
-          frequency: 12
-        },
-        {
-          type: 'temporal',
-          description: 'BMW luxury vehicles peak in value during Q1 auction cycles',
-          confidence: 88,
-          frequency: 8
-        },
-        {
-          type: 'market_trend',
-          description: 'Electric vehicle components retain 40% more value than traditional counterparts',
-          confidence: 85,
-          frequency: 15
-        },
-        {
-          type: 'geographic',
-          description: 'Southern region auctions show 12% lower competition for luxury SUVs',
-          confidence: 83,
-          frequency: 6
-        },
-        {
-          type: 'damage_correlation',
-          description: 'Minor cosmetic damage on German brands shows 25% better ROI potential',
-          confidence: 81,
-          frequency: 9
-        }
-      ];
+      // Get top discovered patterns from real database
+      const topPatternsFromDB = await db
+        .select()
+        .from(aiPatterns)
+        .orderBy(desc(aiPatterns.confidence))
+        .limit(5);
+      
+      // Convert database patterns to frontend format
+      const topPatterns = topPatternsFromDB.map(pattern => ({
+        type: pattern.patternType,
+        description: pattern.description,
+        confidence: Number(pattern.confidence),
+        frequency: pattern.frequency
+      }));
 
-      // Generate vehicle segment insights
-      const vehiclePatterns = [
-        { segment: 'Toyota Sedans', avgProfit: 2850, trendDirection: 'up', trendStrength: 23 },
-        { segment: 'BMW Luxury', avgProfit: 4200, trendDirection: 'up', trendStrength: 31 },
-        { segment: 'Ford Trucks', avgProfit: 3100, trendDirection: 'down', trendStrength: 12 },
-        { segment: 'Honda SUVs', avgProfit: 2650, trendDirection: 'up', trendStrength: 18 },
-        { segment: 'Nissan Compacts', avgProfit: 1950, trendDirection: 'up', trendStrength: 15 }
-      ];
+      // Get real vehicle segment insights from sales history
+      const vehicleSegmentData = await db
+        .select({
+          make: salesHistory.make,
+          avgPrice: sql<number>`avg(purchase_price)`,
+          count: sql<number>`count(*)`
+        })
+        .from(salesHistory)
+        .where(sql`purchase_price IS NOT NULL`)
+        .groupBy(salesHistory.make)
+        .orderBy(sql`count(*) DESC`)
+        .limit(5);
+      
+      const vehiclePatterns = vehicleSegmentData.map(segment => ({
+        segment: `${segment.make} Vehicles`,
+        avgProfit: Math.round(Number(segment.avgPrice) * 0.15), // Estimated 15% profit margin
+        trendDirection: 'up' as const,
+        trendStrength: Math.min(50, segment.count / 10) // Scale based on volume
+      }));
 
-      // Generate temporal patterns
-      const temporalPatterns = [
-        { period: 'Q1 Peak', description: 'Luxury vehicle values increase 12% in January-March', frequency: 15 },
-        { period: 'Summer Dip', description: 'Convertible demand drops 8% during June-August', frequency: 12 },
-        { period: 'Year-End Rush', description: 'Commercial vehicle auctions surge 20% in December', frequency: 18 },
-        { period: 'Spring Recovery', description: 'Flood-damaged vehicles show 15% price recovery in April', frequency: 9 },
-        { period: 'Holiday Effect', description: 'Auction activity decreases 25% during major holidays', frequency: 22 }
-      ];
+      // Get temporal patterns from real sales data
+      const monthlyData = await db
+        .select({
+          month: sql<number>`extract(month from sale_date)`,
+          avgPrice: sql<number>`avg(purchase_price)`,
+          count: sql<number>`count(*)`
+        })
+        .from(salesHistory)
+        .where(sql`purchase_price IS NOT NULL`)
+        .groupBy(sql`extract(month from sale_date)`)
+        .orderBy(sql`count(*) DESC`)
+        .limit(5);
+      
+      const temporalPatterns = monthlyData.map(data => ({
+        period: `Month ${data.month}`,
+        description: `Average price ${Math.round(Number(data.avgPrice))} with ${data.count} sales`,
+        frequency: Math.min(25, data.count / 100) // Scale frequency based on volume
+      }));
 
       // Calculate learning metrics
       const learningMetrics = {
