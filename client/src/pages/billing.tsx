@@ -129,7 +129,7 @@ export default function Billing() {
   // If user is admin, create a special admin plan object for display
   const adminPlan = user?.role === 'admin' ? {
     role: 'admin',
-    name: 'God Level Admin',
+    name: 'Admin',
     monthlyPrice: 0,
     yearlyPrice: 0,
     features: [
