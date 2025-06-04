@@ -687,23 +687,39 @@ export default function MarketOpportunitiesPage() {
 
         <TabsContent value="risks" className="space-y-4">
           <div className="grid gap-3">
-            {marketData.riskFactors.map((risk, index) => (
-              <Alert key={index}>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{risk}</AlertDescription>
-              </Alert>
-            ))}
+            {marketData.riskFactors && marketData.riskFactors.length > 0 ? (
+              marketData.riskFactors.map((risk, index) => (
+                <Alert key={index}>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{risk}</AlertDescription>
+                </Alert>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No risk factors identified in this analysis
+                </p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="recommendations" className="space-y-4">
           <div className="grid gap-3">
-            {marketData.recommendations.map((recommendation, index) => (
-              <Alert key={index}>
-                <Lightbulb className="h-4 w-4" />
-                <AlertDescription>{recommendation}</AlertDescription>
-              </Alert>
-            ))}
+            {marketData.recommendations && marketData.recommendations.length > 0 ? (
+              marketData.recommendations.map((recommendation, index) => (
+                <Alert key={index}>
+                  <Lightbulb className="h-4 w-4" />
+                  <AlertDescription>{recommendation}</AlertDescription>
+                </Alert>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No recommendations available for this analysis
+                </p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
