@@ -38,6 +38,8 @@ interface OpportunityInsight {
 interface MarketAnalysis {
   overview: {
     totalRecords: number;
+    totalDatabaseRecords: number;
+    coveragePercentage: number;
     dateRange: string;
     avgPrice: number;
     topPerformingMakes: string[];
