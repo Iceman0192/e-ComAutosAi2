@@ -65,7 +65,7 @@ export function registerDatasetRoutes(app: Express): void {
   // Update dataset
   app.put("/api/datasets/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+      if (!(req as any).user || (req as any).user.role !== 'admin') {
         return res.status(403).json({ success: false, message: "Admin access required" });
       }
 
@@ -101,7 +101,7 @@ export function registerDatasetRoutes(app: Express): void {
   // Delete dataset
   app.delete("/api/datasets/:id", async (req, res) => {
     try {
-      if (!req.isAuthenticated() || req.user?.role !== 'admin') {
+      if (!(req as any).user || (req as any).user.role !== 'admin') {
         return res.status(403).json({ success: false, message: "Admin access required" });
       }
 
