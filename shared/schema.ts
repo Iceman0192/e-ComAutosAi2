@@ -42,6 +42,33 @@ export const userUsage = pgTable("user_usage", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// AI Analysis caching and learning system
+export const aiAnalysisCache = pgTable("ai_analysis_cache", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  analysisType: text("analysis_type").notNull(), // 'standard' | 'comprehensive'
+  filters: text("filters").notNull(), // JSON string of applied filters
+  datasetSize: integer("dataset_size").notNull(),
+  resultsHash: text("results_hash").notNull(), // Hash of the analysis results
+  results: text("results").notNull(), // JSON string of analysis results
+  insights: text("insights"), // AI-generated insights for learning
+  performance: text("performance"), // Performance metrics
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastAccessed: timestamp("last_accessed").defaultNow().notNull(),
+  accessCount: integer("access_count").default(1).notNull(),
+});
+
+export const aiLearningMetrics = pgTable("ai_learning_metrics", {
+  id: serial("id").primaryKey(),
+  analysisType: text("analysis_type").notNull(),
+  patternType: text("pattern_type").notNull(), // 'opportunity', 'trend', 'risk'
+  pattern: text("pattern").notNull(), // JSON of discovered pattern
+  confidence: numeric("confidence").notNull(),
+  frequency: integer("frequency").default(1).notNull(),
+  lastSeen: timestamp("last_seen").defaultNow().notNull(),
+  effectiveness: numeric("effectiveness"), // User feedback on pattern usefulness
+});
+
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
