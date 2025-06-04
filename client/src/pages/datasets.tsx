@@ -8,10 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { Database, Plus, BarChart3, Download, Edit, Trash2, Calendar, User } from 'lucide-react';
-import type { Dataset, InsertDataset } from '@shared/schema';
+import { Database, Plus, BarChart3, Download, Edit, Trash2, Calendar, User, Brain, Target, CheckCircle, AlertTriangle, TrendingUp, Lightbulb } from 'lucide-react';
+import type { Dataset, InsertDataset, DatasetAnalysis } from '@shared/schema';
 
 function CreateDatasetDialog({ onSuccess }: { onSuccess: () => void }) {
   const [open, setOpen] = useState(false);
@@ -113,6 +116,254 @@ function CreateDatasetDialog({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
+function DatasetAnalysisDialog({ dataset }: { dataset: Dataset }) {
+  const [open, setOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const analyzeMutation = useMutation({
+    mutationFn: async (datasetId: number) => {
+      const response = await apiRequest('POST', `/api/datasets/${datasetId}/analyze`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Analysis Complete",
+        description: "AI quality analysis finished successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/datasets/${dataset.id}/analysis`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Analysis Failed",
+        description: error?.message || "Failed to analyze dataset",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const { data: analysis } = useQuery({
+    queryKey: [`/api/datasets/${dataset.id}/analysis`],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/datasets/${dataset.id}/analysis`);
+      return response.json();
+    },
+    enabled: open
+  });
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getScoreLabel = (score: number) => {
+    if (score >= 80) return 'Excellent';
+    if (score >= 60) return 'Good';
+    if (score >= 40) return 'Fair';
+    return 'Poor';
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline">
+          <Brain className="h-4 w-4 mr-1" />
+          AI Analysis
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            AI Quality Analysis - {dataset.name}
+          </DialogTitle>
+        </DialogHeader>
+
+        {!analysis?.data ? (
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Analysis Available</h3>
+            <p className="text-gray-600 mb-4">
+              Run an AI analysis to get quality scores and recommendations for this dataset.
+            </p>
+            <Button 
+              onClick={() => analyzeMutation.mutate(dataset.id)}
+              disabled={analyzeMutation.isPending}
+            >
+              {analyzeMutation.isPending ? 'Analyzing...' : 'Start AI Analysis'}
+            </Button>
+          </div>
+        ) : (
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+              <TabsTrigger value="insights">Insights</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.overallScore)}`}>
+                      {analysis.data.overallScore}%
+                    </div>
+                    <div className="text-sm text-gray-600">Overall Quality</div>
+                    <div className="text-xs font-medium mt-1">
+                      {getScoreLabel(analysis.data.overallScore)}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.completenessScore)}`}>
+                      {analysis.data.completenessScore}%
+                    </div>
+                    <div className="text-sm text-gray-600">Completeness</div>
+                    <Progress value={analysis.data.completenessScore} className="mt-2 h-2" />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.consistencyScore)}`}>
+                      {analysis.data.consistencyScore}%
+                    </div>
+                    <div className="text-sm text-gray-600">Consistency</div>
+                    <Progress value={analysis.data.consistencyScore} className="mt-2 h-2" />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className={`text-2xl font-bold ${getScoreColor(analysis.data.diversityScore)}`}>
+                      {analysis.data.diversityScore}%
+                    </div>
+                    <div className="text-sm text-gray-600">Diversity</div>
+                    <Progress value={analysis.data.diversityScore} className="mt-2 h-2" />
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                      Strengths
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analysis.data.strengths?.length > 0 ? (
+                      <ul className="space-y-2">
+                        {analysis.data.strengths.map((strength: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{strength}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 text-sm">No specific strengths identified</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-red-600">
+                      <AlertTriangle className="h-5 w-5" />
+                      Issues
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {analysis.data.issues?.length > 0 ? (
+                      <ul className="space-y-2">
+                        {analysis.data.issues.map((issue: string, index: number) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm">{issue}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-500 text-sm">No critical issues found</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="recommendations" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    AI Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysis.data.recommendations?.length > 0 ? (
+                    <div className="space-y-3">
+                      {analysis.data.recommendations.map((recommendation: string, index: number) => (
+                        <Alert key={index}>
+                          <Target className="h-4 w-4" />
+                          <AlertDescription>{recommendation}</AlertDescription>
+                        </Alert>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No specific recommendations available</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="insights" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    Business Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {analysis.data.insights?.length > 0 ? (
+                    <div className="space-y-3">
+                      {analysis.data.insights.map((insight: string, index: number) => (
+                        <Alert key={index}>
+                          <TrendingUp className="h-4 w-4" />
+                          <AlertDescription>{insight}</AlertDescription>
+                        </Alert>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">No business insights generated</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="history">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Analysis History</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-500">Analysis history coming soon</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function DatasetCard({ dataset, onDelete, onExport }: { 
   dataset: Dataset; 
   onDelete: (id: number) => void;
@@ -184,7 +435,8 @@ function DatasetCard({ dataset, onDelete, onExport }: {
           Created {new Date(dataset.createdAt).toLocaleDateString()}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <DatasetAnalysisDialog dataset={dataset} />
           <Button size="sm" variant="outline" onClick={handleExport}>
             <Download className="h-4 w-4 mr-1" />
             Export
