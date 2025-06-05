@@ -451,6 +451,64 @@ export default function DataCollectionPage() {
         </Card>
       )}
 
+      {/* Active Collection Status Bar */}
+      {status?.isRunning && (
+        <Card className="mt-6 border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <Activity className="w-5 h-5 animate-pulse" />
+              Active Collections Status
+            </CardTitle>
+            <CardDescription className="text-blue-700">
+              Real-time progress of currently running data collections
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {status?.availableJobs?.filter(job => job.lastCollected).map((job) => {
+                const progress = Math.min(100, ((job.lastCopartPage || 0) / 400) * 100);
+                const isActive = Date.now() - new Date(job.lastCollected!).getTime() < 60000; // Active in last minute
+                
+                return (
+                  <div key={job.id} className="p-4 bg-white rounded-lg border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                        <span className="font-semibold">{job.make} {job.model || 'All Models'}</span>
+                      </div>
+                      <Badge variant={isActive ? "default" : "secondary"}>
+                        {isActive ? "Active" : "Paused"}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-gray-600 mb-3">
+                      Copart: Page {job.lastCopartPage || 0} • IAAI: {job.iaaiCompleted ? 'Complete' : 'Pending'}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span>Progress</span>
+                        <span>{Math.round(progress)}% Complete</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {(!status?.availableJobs?.some(job => job.lastCollected)) && (
+                <div className="p-4 bg-white rounded-lg border text-center text-gray-500">
+                  No active collections running. Use manual selection to start collecting specific vehicle makes.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Vehicle Collection Summary */}
       {vehicleProgress.length > 0 && (
         <Card className="mt-6">
@@ -502,6 +560,41 @@ export default function DataCollectionPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Background Operation Guide */}
+      <Card className="mt-6 bg-green-50 border-green-200">
+        <CardHeader>
+          <CardTitle className="text-green-900">Keep Collections Running 24/7</CardTitle>
+          <CardDescription className="text-green-700">
+            How to maintain continuous data collection even when you close the browser
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-green-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold mb-2">Browser Options:</h4>
+              <ul className="space-y-1 text-sm">
+                <li>• Keep browser tab open and pinned</li>
+                <li>• Use browser "keep tab active" extensions</li>
+                <li>• Enable browser notifications for completion alerts</li>
+                <li>• Consider using a dedicated browser window</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2">Server Benefits:</h4>
+              <ul className="space-y-1 text-sm">
+                <li>• Collections run on cloud servers (not your computer)</li>
+                <li>• Persistent state saves progress automatically</li>
+                <li>• System resumes from last page after restarts</li>
+                <li>• Multiple collections can run simultaneously</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-green-100 rounded-lg">
+            <p className="text-sm font-medium">Current Status: Your 3 active collections will continue running as long as this browser tab remains open. Progress is automatically saved to prevent data loss.</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Information Card */}
       <Card className="mt-6 bg-blue-50 border-blue-200">
