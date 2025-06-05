@@ -139,7 +139,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       {/* Logo and User Info */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-          VehicleIntel
+          e-ComAutos
         </h2>
         <div className="flex items-center gap-2 mb-2">
           <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">

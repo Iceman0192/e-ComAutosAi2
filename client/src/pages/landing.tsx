@@ -27,7 +27,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Car className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">AuctionIntel</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">e-ComAutos</span>
           </div>
           <Button onClick={handleLogin} className="bg-blue-600 hover:bg-blue-700">
             Sign In
@@ -39,17 +39,17 @@ export default function LandingPage() {
       <section className="relative py-20 lg:py-32">
         <div className="container mx-auto px-4 text-center">
           <Badge className="mb-6 bg-blue-100 text-blue-800 hover:bg-blue-100">
-            Trusted by 10,000+ Vehicle Dealers
+            Click. Win. Export.
           </Badge>
           
           <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6">
-            Master Vehicle
-            <span className="text-blue-600 block">Auction Intelligence</span>
+            The Amazon of
+            <span className="text-blue-600 block">Vehicle Auctions</span>
           </h1>
           
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Get deep insights into vehicle auctions with AI-powered analysis, comprehensive market data, 
-            and real-time bidding intelligence across Copart and IAAI platforms.
+            Quick, easy, data-driven vehicle buying with shipping all in one place. 
+            AI-powered analysis, comprehensive market data, and seamless auction intelligence.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -93,10 +93,10 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Everything You Need to Win at Auctions
+              Click. Win. Export. - All in One Platform
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Comprehensive tools and insights to make informed bidding decisions and maximize your ROI.
+              The fastest way to buy vehicles online with data-driven insights, seamless bidding, and integrated shipping solutions.
             </p>
           </div>
 
@@ -104,12 +104,12 @@ export default function LandingPage() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
                 <Search className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>Advanced Search & Analytics</CardTitle>
+                <CardTitle>Click - Smart Search</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Search millions of auction records with powerful filters. Get detailed analytics, 
-                  price trends, and market insights for any vehicle.
+                  One-click access to millions of vehicles with AI-powered filters, instant market comparisons, 
+                  and real-time availability across all major auction platforms.
                 </p>
               </CardContent>
             </Card>
@@ -117,12 +117,12 @@ export default function LandingPage() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
                 <Brain className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>AI-Powered Analysis</CardTitle>
+                <CardTitle>Win - Data-Driven Bidding</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Get instant damage assessments, repair cost estimates, and market value predictions 
-                  using advanced computer vision AI.
+                  AI analysis provides damage assessments, repair cost estimates, and optimal bid recommendations 
+                  to maximize your winning potential and ROI.
                 </p>
               </CardContent>
             </Card>
@@ -130,12 +130,12 @@ export default function LandingPage() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
                 <TrendingUp className="h-12 w-12 text-blue-600 mb-4" />
-                <CardTitle>Real-time Market Data</CardTitle>
+                <CardTitle>Export - Seamless Delivery</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Access live auction data, price comparisons, and bidding patterns 
-                  across Copart and IAAI platforms.
+                  Integrated shipping solutions with real-time tracking, customs handling, 
+                  and door-to-door delivery anywhere in the world.
                 </p>
               </CardContent>
             </Card>
@@ -306,17 +306,17 @@ export default function LandingPage() {
       <section className="py-20 bg-blue-600">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Auction Strategy?
+            Ready to Become the Amazon of Vehicle Buying?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of dealers who use our platform to make smarter bidding decisions.
+            Join thousands of dealers and buyers who use e-ComAutos to Click. Win. Export.
           </p>
           <Button 
             onClick={handleLogin}
             size="lg" 
             className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3"
           >
-            Start Your Free Trial Today
+            Start Buying Vehicles Today
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
@@ -329,10 +329,10 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Car className="h-6 w-6" />
-                <span className="text-xl font-bold">AuctionIntel</span>
+                <span className="text-xl font-bold">e-ComAutos</span>
               </div>
               <p className="text-gray-400">
-                The most comprehensive vehicle auction intelligence platform.
+                Click. Win. Export. - The Amazon of Vehicle Auctions.
               </p>
             </div>
             
@@ -368,7 +368,7 @@ export default function LandingPage() {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 AuctionIntel. All rights reserved.</p>
+            <p>&copy; 2024 e-ComAutos. All rights reserved. Click. Win. Export.</p>
           </div>
         </div>
       </footer>
