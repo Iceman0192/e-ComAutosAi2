@@ -50,8 +50,8 @@ export default function AuthPage() {
           title: isLogin ? "Login Successful" : "Account Created",
           description: data.message,
         });
-        // Redirect to dashboard
-        setLocation('/');
+        // Force a page reload to refresh auth state
+        window.location.href = '/';
       } else {
         toast({
           title: "Authentication Failed",
