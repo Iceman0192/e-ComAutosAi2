@@ -177,16 +177,20 @@ export class DataCollectionService {
         
         if (!data.success || !data.data) {
           console.log('No more data available from API');
-          // Try to get existing data from database
-          const existingRecords = await this.getExistingRecordsFromDB(job, page);
-          if (existingRecords.length > 0) {
-            console.log(`Found ${existingRecords.length} existing records for ${job.make} on page ${page}`);
-            totalCollected += existingRecords.length;
-          }
           break;
         }
 
-        const records = data.data;
+        // Handle different response structures
+        let records = [];
+        if (data.data.salesHistory) {
+          records = data.data.salesHistory;
+        } else if (Array.isArray(data.data)) {
+          records = data.data;
+        } else {
+          console.log('Unexpected data structure:', Object.keys(data.data));
+          break;
+        }
+
         if (!records || records.length === 0) {
           hasMoreData = false;
           break;
