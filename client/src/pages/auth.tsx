@@ -1,0 +1,170 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Car, Check, ArrowRight, Shield, Globe, Zap } from 'lucide-react';
+
+export default function AuthPage() {
+  const [isLogin, setIsLogin] = useState(true);
+
+  const handleAuth = () => {
+    // Redirect to Replit authentication
+    window.location.href = '/api/login';
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Header */}
+      <header className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Car className="h-8 w-8 text-blue-600" />
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">e-ComAutos</span>
+          </div>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+            Click. Win. Export.
+          </Badge>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Side - Auth Card */}
+          <div className="space-y-6">
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+                Welcome to the Future of
+                <span className="text-blue-600 block">Vehicle Auctions</span>
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
+                Join thousands who use e-ComAutos to Click. Win. Export vehicles worldwide.
+              </p>
+            </div>
+
+            <Card className="shadow-2xl border-0">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl">
+                  {isLogin ? 'Sign In to e-ComAutos' : 'Join e-ComAutos Today'}
+                </CardTitle>
+                <CardDescription>
+                  {isLogin 
+                    ? 'Access your vehicle auction dashboard' 
+                    : 'Start your 7-day free trial - no credit card required'
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {!isLogin && (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
+                      <Check className="h-5 w-5" />
+                      <span className="font-semibold">7-Day Free Trial Included</span>
+                    </div>
+                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                      Full access to all premium features. Cancel anytime.
+                    </p>
+                  </div>
+                )}
+
+                <Button 
+                  onClick={handleAuth}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
+                  size="lg"
+                >
+                  {isLogin ? 'Sign In with Replit' : 'Start Free Trial'}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+
+                <div className="text-center">
+                  <button
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    {isLogin 
+                      ? "New to e-ComAutos? Start your free trial" 
+                      : "Already have an account? Sign in"
+                    }
+                  </button>
+                </div>
+
+                <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  By continuing, you agree to our Terms of Service and Privacy Policy
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Side - Benefits */}
+          <div className="space-y-8">
+            <div className="text-center lg:text-left">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Why Choose e-ComAutos?
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-300">
+                The most comprehensive vehicle auction platform designed for modern buyers.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-3">
+                  <Zap className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Click - Instant Search
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Access millions of vehicles across Copart and IAAI with AI-powered search filters 
+                    and real-time availability updates.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3">
+                  <Shield className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Win - Smart Bidding
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    AI damage assessment, repair cost estimates, and market value predictions 
+                    to maximize your winning potential and ROI.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-4">
+                <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3">
+                  <Globe className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Export - Global Shipping
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Integrated shipping solutions with customs handling, tracking, 
+                    and door-to-door delivery anywhere in the world.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+              <h3 className="text-xl font-bold mb-2">Start Your Free Trial Today</h3>
+              <p className="text-blue-100 mb-4">
+                7 days of full access to all premium features. No credit card required.
+              </p>
+              <div className="flex items-center space-x-2 text-sm">
+                <Check className="h-4 w-4" />
+                <span>Cancel anytime during trial</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
