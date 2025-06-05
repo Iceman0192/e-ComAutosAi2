@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 // User roles for tier-based access
 export enum UserRole {
@@ -35,6 +36,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
+  isLoading: boolean;
   hasPermission: (permission: Permission) => boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -54,22 +56,105 @@ const DEMO_USER: User = {
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // For now, start with demo admin user - replace with real auth system later
-  const [user, setUser] = useState<User | null>(DEMO_USER);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [, setLocation] = useLocation();
+
+  // Check if user is authenticated on app load
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.user) {
+            // Map backend user data to frontend User interface
+            setUser({
+              id: data.user.id.toString(),
+              email: data.user.email,
+              name: data.user.name || data.user.username,
+              role: mapBackendRoleToUserRole(data.user.role),
+              subscriptionStatus: 'active', // Default for now
+              joinDate: new Date().toISOString()
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const mapBackendRoleToUserRole = (backendRole: string): UserRole => {
+    switch (backendRole) {
+      case 'admin':
+        return UserRole.ADMIN;
+      case 'gold':
+        return UserRole.GOLD;
+      case 'platinum':
+        return UserRole.PLATINUM;
+      default:
+        return UserRole.FREE;
+    }
+  };
 
   const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
-    return PERMISSIONS[permission].includes(user.role);
+    return (PERMISSIONS[permission] as UserRole[]).includes(user.role);
   };
 
   const login = async (email: string, password: string): Promise<void> => {
-    // Placeholder for real authentication
-    console.log('Login attempt:', email);
-    setUser(DEMO_USER);
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Login failed');
+    }
+
+    // Update user state with logged in user
+    setUser({
+      id: data.user.id.toString(),
+      email: data.user.email,
+      name: data.user.name || data.user.username,
+      role: mapBackendRoleToUserRole(data.user.role),
+      subscriptionStatus: 'active',
+      joinDate: new Date().toISOString()
+    });
   };
 
-  const logout = (): void => {
-    setUser(null);
+  const logout = async (): Promise<void> => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      // Clear user state
+      setUser(null);
+      
+      // Redirect to auth page
+      setLocation('/auth');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Clear user state even if logout fails
+      setUser(null);
+      setLocation('/auth');
+    }
   };
 
   const updateUserRole = (role: UserRole): void => {
@@ -81,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     isLoggedIn: !!user,
+    isLoading,
     hasPermission,
     login,
     logout,
