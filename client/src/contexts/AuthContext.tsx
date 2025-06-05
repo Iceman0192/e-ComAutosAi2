@@ -80,10 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               subscriptionStatus: 'active', // Default for now
               joinDate: new Date().toISOString()
             });
+          } else {
+            setUser(null);
           }
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
