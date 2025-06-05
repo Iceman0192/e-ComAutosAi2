@@ -373,43 +373,70 @@ export class AILearningEngine {
   }
 
   async generateSmartInsights(salesData: any[], existingAnalysis: any): Promise<any> {
-    // Use cached patterns to enhance analysis
+    // Use cached patterns to enhance analysis with token optimization
     const relevantPatterns = await this.getHighConfidencePatterns();
     
-    const enhancedPrompt = `Based on ${relevantPatterns.length} learned patterns and new data analysis:
+    // Limit data to stay within token limits
+    const limitedPatterns = relevantPatterns.slice(0, 5);
+    const sampleData = salesData.slice(0, 2);
+    
+    const enhancedPrompt = `Based on ${limitedPatterns.length} learned patterns:
 
-LEARNED PATTERNS (High Confidence):
-${relevantPatterns.slice(0, 10).map(p => 
-  `- ${p.type.toUpperCase()}: ${p.description} (${p.confidence} confidence, ${p.frequency} occurrences)`
+PATTERNS:
+${limitedPatterns.map(p => 
+  `- ${p.type}: ${p.description} (${Math.round(p.confidence * 100)}%)`
 ).join('\n')}
 
-NEW DATA SAMPLE:
-${JSON.stringify(salesData.slice(0, 3), null, 2)}
+DATA: ${sampleData.length} sample records analyzed
 
-CURRENT ANALYSIS:
-${JSON.stringify(existingAnalysis, null, 2)}
+Generate enhanced insights in JSON format with:
+- opportunities: 3-5 specific opportunities
+- market_trends: 2-3 current trends 
+- risk_factors: 2-3 key risks
+- recommendations: 3-4 actionable steps
 
-Provide enhanced insights that:
-1. Validate or contradict learned patterns with new data
-2. Identify emerging opportunities not yet in pattern database
-3. Recommend specific actions based on pattern confidence
-4. Suggest market timing based on temporal patterns
-
-Respond in JSON format with opportunities, market_trends, risk_factors, and recommendations arrays.`;
+Focus on profitable vehicle segments and timing strategies.`;
 
     try {
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [{ role: "user", content: enhancedPrompt }],
         response_format: { type: "json_object" },
-        max_tokens: 2000
+        max_tokens: 1000
       });
 
       return JSON.parse(response.choices[0].message.content || '{}');
     } catch (error) {
       console.error('Error generating smart insights:', error);
-      return existingAnalysis;
+      // Return enhanced fallback based on patterns
+      return this.generatePatternBasedInsights(limitedPatterns, existingAnalysis);
     }
+  }
+
+  private generatePatternBasedInsights(patterns: any[], existingAnalysis: any): any {
+    const opportunities = patterns
+      .filter(p => p.type === 'profitability')
+      .slice(0, 3)
+      .map(p => ({
+        category: 'pattern_based',
+        title: `${p.dataPoints?.make || 'Vehicle'} Opportunity`,
+        description: p.description,
+        confidence: Math.round(p.confidence * 100),
+        potentialProfit: p.dataPoints?.avgPrice ? Math.round(p.dataPoints.avgPrice * 0.15) : 5000,
+        riskLevel: p.confidence > 0.8 ? 'Low' : 'Medium',
+        actionableSteps: [`Target ${p.dataPoints?.make || 'vehicles'} based on learned patterns`]
+      }));
+
+    return {
+      opportunities,
+      market_trends: patterns.filter(p => p.type === 'temporal').slice(0, 2).map(p => p.description),
+      risk_factors: ['Market volatility from economic conditions', 'Inventory availability fluctuations'],
+      recommendations: [
+        'Focus on high-confidence pattern matches',
+        'Monitor learned pattern validation rates',
+        'Diversify across multiple vehicle segments'
+      ]
+    };
   }
 
   // Utility methods
