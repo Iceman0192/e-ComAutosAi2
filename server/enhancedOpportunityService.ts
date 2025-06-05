@@ -326,7 +326,7 @@ Focus on authentic patterns from the data and learned insights.`;
           .from(aiPatterns)
           .where(and(
             eq(aiPatterns.patternType, 'profitability'),
-            sql`pattern_data ->> 'make' = ${pattern.make}`
+            sql`pattern_data::text LIKE ${'%"make":"' + pattern.make + '"%'}`
           ))
           .limit(1);
 

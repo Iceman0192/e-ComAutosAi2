@@ -672,7 +672,7 @@ function OpportunitiesPanel({
     );
   }
 
-  if (!data?.success || !data?.data?.opportunitySegments) {
+  if (!data?.success || !data?.data) {
     return (
       <div className="text-center py-12">
         <Target className="h-16 w-16 mx-auto text-gray-400 mb-4" />
@@ -684,18 +684,51 @@ function OpportunitiesPanel({
     );
   }
 
-  const opportunities = data.data.opportunitySegments;
+  // Handle different response structures
+  const opportunities = data.data.opportunities || data.data.opportunitySegments || [];
 
   return (
     <div className="space-y-6">
+      {/* Analysis Summary */}
+      {data.data.overview && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2" />
+              Analysis Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{data.data.overview.totalRecords?.toLocaleString()}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Records Analyzed</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">${data.data.overview.avgPrice?.toLocaleString()}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Avg Price</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{data.data.learnedPatternsApplied || 0}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">AI Patterns</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{data.cached ? 'CACHED' : 'FRESH'}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Data Source</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {opportunities.map((opportunity: OpportunitySegment, index: number) => (
+        {opportunities.map((opportunity: any, index: number) => (
           <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader>
               <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{opportunity.segment}</CardTitle>
-                <Badge className={getRiskColor(opportunity.riskLevel)}>
-                  {opportunity.riskLevel} Risk
+                <CardTitle className="text-lg">{opportunity.title || opportunity.segment}</CardTitle>
+                <Badge className={getRiskColor(opportunity.riskLevel || 'Medium')}>
+                  {opportunity.riskLevel || 'Medium'} Risk
                 </Badge>
               </div>
             </CardHeader>
@@ -707,34 +740,36 @@ function OpportunitiesPanel({
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                    ${opportunity.expectedProfit?.toLocaleString() || 'N/A'}
+                    ${(opportunity.potentialProfit || opportunity.expectedProfit || 0).toLocaleString()}
                   </div>
                   <div className="text-xs text-green-700 dark:text-green-300">Expected Profit</div>
                 </div>
                 <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                    {opportunity.volumeOpportunity || 'N/A'}
+                    {opportunity.confidence || opportunity.volumeOpportunity || 'N/A'}%
                   </div>
-                  <div className="text-xs text-blue-700 dark:text-blue-300">Volume</div>
+                  <div className="text-xs text-blue-700 dark:text-blue-300">Confidence</div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-sm font-medium mb-2">Criteria:</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {opportunity.criteria}
-                </p>
-              </div>
-
-              {opportunity.examples && opportunity.examples.length > 0 && (
+              {opportunity.actionableSteps && opportunity.actionableSteps.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Examples:</p>
+                  <p className="text-sm font-medium mb-2">Action Steps:</p>
                   <div className="space-y-1">
-                    {opportunity.examples.slice(0, 3).map((example, idx) => (
-                      <div key={idx} className="text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded">
-                        {example.year} {example.make} {example.model} - ${example.estimatedProfit?.toLocaleString()}
+                    {opportunity.actionableSteps.slice(0, 2).map((step: string, idx: number) => (
+                      <div key={idx} className="text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                        {step}
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {opportunity.dataPoints && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 border-t pt-2">
+                  <div className="flex justify-between">
+                    <span>Avg Buy: ${opportunity.dataPoints.avgBuyPrice?.toLocaleString()}</span>
+                    <span>Success: {opportunity.dataPoints.successRate || 85}%</span>
                   </div>
                 </div>
               )}
@@ -742,6 +777,49 @@ function OpportunitiesPanel({
           </Card>
         ))}
       </div>
+
+      {/* Market Trends */}
+      {data.data.marketTrends && data.data.marketTrends.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="h-5 w-5 mr-2" />
+              Market Trends
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.data.marketTrends.map((trend: string, index: number) => (
+                <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm">{trend}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recommendations */}
+      {data.data.recommendations && data.data.recommendations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Lightbulb className="h-5 w-5 mr-2" />
+              AI Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.data.recommendations.map((rec: string, index: number) => (
+                <div key={index} className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm">{rec}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
