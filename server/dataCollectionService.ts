@@ -1,5 +1,5 @@
 import { db } from './db';
-import { salesHistory } from '../shared/schema';
+import { salesHistory, collectionProgress } from '../shared/schema';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 
 interface CollectionJob {
@@ -10,6 +10,10 @@ interface CollectionJob {
   yearTo: number;
   priority: number;
   lastCollected?: Date;
+  copartCompleted?: boolean;
+  iaaiCompleted?: boolean;
+  lastCopartPage?: number;
+  lastIaaiPage?: number;
 }
 
 export class DataCollectionService {
@@ -21,6 +25,59 @@ export class DataCollectionService {
 
   constructor() {
     this.initializeCollectionQueue();
+  }
+
+  private async loadCollectionState(): Promise<void> {
+    try {
+      const existingProgress = await db.select().from(collectionProgress);
+      
+      for (const progress of existingProgress) {
+        const jobIndex = this.collectionQueue.findIndex(job => job.id === progress.jobId);
+        if (jobIndex !== -1) {
+          this.collectionQueue[jobIndex] = {
+            ...this.collectionQueue[jobIndex],
+            copartCompleted: progress.copartCompleted,
+            iaaiCompleted: progress.iaaiCompleted,
+            lastCopartPage: progress.lastCopartPage,
+            lastIaaiPage: progress.lastIaaiPage,
+            lastCollected: progress.lastCollected,
+          };
+        }
+      }
+      console.log('Collection state loaded from database');
+    } catch (error) {
+      console.log('No existing collection state found, starting fresh');
+    }
+  }
+
+  private async saveCollectionState(job: CollectionJob): Promise<void> {
+    try {
+      await db.insert(collectionProgress).values({
+        jobId: job.id,
+        make: job.make,
+        model: job.model || null,
+        yearFrom: job.yearFrom,
+        yearTo: job.yearTo,
+        priority: job.priority,
+        copartCompleted: job.copartCompleted || false,
+        iaaiCompleted: job.iaaiCompleted || false,
+        lastCopartPage: job.lastCopartPage || 0,
+        lastIaaiPage: job.lastIaaiPage || 0,
+        lastCollected: job.lastCollected || null,
+      }).onConflictDoUpdate({
+        target: collectionProgress.jobId,
+        set: {
+          copartCompleted: job.copartCompleted || false,
+          iaaiCompleted: job.iaaiCompleted || false,
+          lastCopartPage: job.lastCopartPage || 0,
+          lastIaaiPage: job.lastIaaiPage || 0,
+          lastCollected: job.lastCollected || null,
+          updatedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      console.error('Failed to save collection state:', error);
+    }
   }
 
   private initializeCollectionQueue() {
