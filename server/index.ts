@@ -15,6 +15,7 @@ import { registerUsageRoutes } from "./usageRoutes";
 import { registerDatasetRoutes } from "./datasetRoutes";
 // Removed AI analysis routes for production launch
 import { freshDataManager } from "./freshDataManager";
+import { productionMonitor } from "./productionMonitor";
 
 const app = express();
 
@@ -129,6 +130,30 @@ app.use((req, res, next) => {
   // Set up dataset management routes
   registerDatasetRoutes(app);
   
+  // Health monitoring endpoints
+  app.get('/health', async (_req, res) => {
+    try {
+      const health = await productionMonitor.checkDatabaseHealth();
+      const metrics = await productionMonitor.getMetrics();
+      const memory = productionMonitor.getMemoryUsage();
+      
+      res.json({
+        status: health.healthy ? 'healthy' : 'unhealthy',
+        timestamp: new Date().toISOString(),
+        database: health,
+        performance: metrics,
+        memory,
+        uptime: metrics.uptime
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: 'Health check failed',
+        error: process.env.NODE_ENV === 'production' ? 'Internal error' : error
+      });
+    }
+  });
+
   // Removed AI analysis routes for production launch
   
   // Start 3-day migration scheduler
