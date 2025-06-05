@@ -91,6 +91,9 @@ app.use((req, res, next) => {
   // Set up AI insights routes
   registerAIInsightsRoutes(app);
   
+  // Set up core analysis routes
+  registerCoreAnalysisRoutes(app);
+  
   // Start 3-day migration scheduler
   setInterval(async () => {
     try {
