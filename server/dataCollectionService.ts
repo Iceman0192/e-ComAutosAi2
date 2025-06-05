@@ -133,8 +133,8 @@ export class DataCollectionService {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 90);
 
-    // Collect from both Copart (site=1) and IAAI (site=2) for priority 1 vehicles
-    const sitesToCollect = job.priority === 1 ? [1, 2] : [1]; // Priority 1 gets both sites
+    // Collect from both Copart (site=1) and IAAI (site=2) for ALL vehicles
+    const sitesToCollect = [1, 2]; // All vehicles get both sites
     
     for (const site of sitesToCollect) {
       console.log(`Collecting ${job.make} data from ${site === 1 ? 'Copart' : 'IAAI'}`);
