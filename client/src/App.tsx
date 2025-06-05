@@ -22,6 +22,7 @@ import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
 import LandingPage from "./pages/landing";
+import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
 import NotFound from "./pages/not-found";
 
@@ -33,6 +34,9 @@ function Router() {
     return (
       <Switch>
         <Route path="/" component={LandingPage} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/login" component={AuthPage} />
+        <Route path="/signup" component={AuthPage} />
         <Route component={LandingPage} />
       </Switch>
     );

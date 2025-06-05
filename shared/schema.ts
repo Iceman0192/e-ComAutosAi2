@@ -17,6 +17,10 @@ export const users = pgTable("users", {
   isActive: boolean('is_active').default(true).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
   stripeSubscriptionId: text('stripe_subscription_id'),
+  trialStartDate: timestamp('trial_start_date'),
+  trialEndDate: timestamp('trial_end_date'),
+  isTrialActive: boolean('is_trial_active').default(false).notNull(),
+  hasUsedTrial: boolean('has_used_trial').default(false).notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
