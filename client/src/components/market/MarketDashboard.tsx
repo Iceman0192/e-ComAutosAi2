@@ -356,6 +356,21 @@ export default function MarketDashboard() {
         </TabsContent>
 
         <TabsContent value="opportunities">
+          {/* Debug: Show raw data */}
+          {(standardAnalysisMutation.data || comprehensiveAnalysisMutation.data) && (
+            <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <h3 className="font-bold mb-2">Analysis Results:</h3>
+              <pre className="text-sm overflow-auto max-h-40">
+                {JSON.stringify(
+                  analysisMode === 'comprehensive' 
+                    ? comprehensiveAnalysisMutation.data 
+                    : standardAnalysisMutation.data, 
+                  null, 2
+                )}
+              </pre>
+            </div>
+          )}
+          
           <OpportunitiesPanel 
             analysisMode={analysisMode}
             standardData={standardAnalysisMutation.data}
