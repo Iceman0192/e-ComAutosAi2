@@ -77,9 +77,7 @@ export function setupAuthRoutes(app: Express) {
         trialStartDate,
         trialEndDate,
         isTrialActive: true,
-        hasUsedTrial: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        hasUsedTrial: true
       }).returning();
 
       // Create session
@@ -161,7 +159,10 @@ export function setupAuthRoutes(app: Express) {
 
       // Update last login
       await db.update(users)
-        .set({ lastLoginAt: new Date() })
+        .set({ 
+          lastLoginAt: new Date(),
+          updatedAt: new Date()
+        })
         .where(eq(users.id, user.id));
 
       // Create session
@@ -268,9 +269,7 @@ export function setupAuthRoutes(app: Express) {
         trialStartDate: null,
         trialEndDate: null,
         isTrialActive: false,
-        hasUsedTrial: false,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        hasUsedTrial: false
       }).returning();
 
       res.json({
