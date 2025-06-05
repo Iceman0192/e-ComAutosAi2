@@ -1,6 +1,6 @@
 import { db } from './db';
 import { salesHistory, collectionProgress } from '../shared/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 
 interface CollectionJob {
   id: string;
@@ -40,7 +40,7 @@ export class DataCollectionService {
             iaaiCompleted: progress.iaaiCompleted,
             lastCopartPage: progress.lastCopartPage,
             lastIaaiPage: progress.lastIaaiPage,
-            lastCollected: progress.lastCollected,
+            lastCollected: progress.lastCollected ? new Date(progress.lastCollected) : undefined,
           };
         }
       }
@@ -320,6 +320,59 @@ export class DataCollectionService {
     }
   }
 
+  async getVehicleProgress() {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          make,
+          COUNT(*)::int as "totalRecords",
+          COUNT(CASE WHEN site = '1' THEN 1 END)::int as "copartRecords",
+          COUNT(CASE WHEN site = '2' THEN 1 END)::int as "iaaiRecords"
+        FROM ${salesHistory}
+        GROUP BY make
+        ORDER BY COUNT(*) DESC
+      `);
+
+      return result.rows.map((vehicle: any) => ({
+        make: vehicle.make,
+        totalRecords: vehicle.totalRecords,
+        copartRecords: vehicle.copartRecords,
+        iaaiRecords: vehicle.iaaiRecords,
+        completed: vehicle.totalRecords > 1000
+      }));
+    } catch (error) {
+      console.error('Error getting vehicle progress:', error);
+      return [];
+    }
+  }
+
+  async startMakeCollection(make: string) {
+    // Find jobs for the specific make
+    const makeJobs = this.collectionQueue.filter(job => job.make === make);
+    
+    if (makeJobs.length === 0) {
+      throw new Error(`No collection jobs found for make: ${make}`);
+    }
+
+    // Start collection for this make
+    this.isRunning = true;
+    
+    // Process the first incomplete job for this make
+    const incompleteJob = makeJobs.find(job => 
+      !job.copartCompleted || !job.iaaiCompleted
+    );
+
+    if (incompleteJob) {
+      await this.processCollectionJob(incompleteJob);
+    }
+
+    return {
+      make,
+      jobsFound: makeJobs.length,
+      started: true
+    };
+  }
+
   getCollectionStatus() {
     return {
       isRunning: this.isRunning,
@@ -333,7 +386,8 @@ export class DataCollectionService {
                })[0],
       lastProcessed: this.collectionQueue
         .filter(job => job.lastCollected)
-        .sort((a, b) => (b.lastCollected?.getTime() || 0) - (a.lastCollected?.getTime() || 0))[0]
+        .sort((a, b) => (b.lastCollected?.getTime() || 0) - (a.lastCollected?.getTime() || 0))[0],
+      availableJobs: this.collectionQueue
     };
   }
 }
