@@ -42,55 +42,6 @@ export const userUsage = pgTable("user_usage", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// AI Analysis caching and learning system
-export const aiAnalysisCache = pgTable("ai_analysis_cache", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  analysisType: text("analysis_type").notNull(), // 'standard' | 'comprehensive'
-  filters: text("filters").notNull(), // JSON string of applied filters
-  datasetSize: integer("dataset_size").notNull(),
-  resultsHash: text("results_hash").notNull(), // Hash of the analysis results
-  results: text("results").notNull(), // JSON string of analysis results
-  insights: text("insights"), // AI-generated insights for learning
-  performance: text("performance"), // Performance metrics
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastAccessed: timestamp("last_accessed").defaultNow().notNull(),
-  accessCount: integer("access_count").default(1).notNull(),
-});
-
-export const aiPatterns = pgTable("ai_patterns", {
-  id: serial("id").primaryKey(),
-  patternType: text("pattern_type").notNull(), // 'vehicle_segment', 'temporal', 'market_trend'
-  description: text("description").notNull(),
-  patternData: text("pattern_data").notNull(), // JSON of pattern details
-  confidence: numeric("confidence").notNull(),
-  frequency: integer("frequency").default(1).notNull(),
-  lastSeen: timestamp("last_seen").defaultNow().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const analysisHistory = pgTable("analysis_history", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  analysisType: text("analysis_type").notNull(), // 'standard', 'comprehensive'
-  recordCount: integer("record_count").notNull(),
-  duration: integer("duration").notNull(), // milliseconds
-  cached: boolean("cached").default(false).notNull(),
-  filters: text("filters"), // JSON of applied filters
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
-});
-
-export const aiLearningMetrics = pgTable("ai_learning_metrics", {
-  id: serial("id").primaryKey(),
-  analysisType: text("analysis_type").notNull(),
-  patternType: text("pattern_type").notNull(), // 'opportunity', 'trend', 'risk'
-  pattern: text("pattern").notNull(), // JSON of discovered pattern
-  confidence: numeric("confidence").notNull(),
-  frequency: integer("frequency").default(1).notNull(),
-  lastSeen: timestamp("last_seen").defaultNow().notNull(),
-  effectiveness: numeric("effectiveness"), // User feedback on pattern usefulness
-});
-
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -222,66 +173,6 @@ export const freshSalesHistory = pgTable("fresh_sales_history", {
 export const insertFreshSalesHistorySchema = createInsertSchema(freshSalesHistory);
 export type InsertFreshSalesHistory = z.infer<typeof insertFreshSalesHistorySchema>;
 export type FreshSalesHistory = typeof freshSalesHistory.$inferSelect;
-
-// Datasets table for admin data management
-export const datasets = pgTable("datasets", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  createdBy: integer("created_by").notNull(),
-  recordCount: integer("record_count").default(0).notNull(),
-  tags: text("tags").array(),
-  isPublic: boolean("is_public").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const datasetRecords = pgTable("dataset_records", {
-  id: serial("id").primaryKey(),
-  datasetId: integer("dataset_id").notNull(),
-  recordData: text("record_data").notNull(), // JSON string of vehicle/sale data
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertDatasetSchema = createInsertSchema(datasets).pick({
-  name: true,
-  description: true,
-  tags: true,
-  isPublic: true,
-});
-
-export const insertDatasetRecordSchema = createInsertSchema(datasetRecords).pick({
-  datasetId: true,
-  recordData: true,
-});
-
-export type InsertDataset = z.infer<typeof insertDatasetSchema>;
-export type Dataset = typeof datasets.$inferSelect;
-export type InsertDatasetRecord = z.infer<typeof insertDatasetRecordSchema>;
-export type DatasetRecord = typeof datasetRecords.$inferSelect;
-
-// Dataset analysis results table
-export const datasetAnalysis = pgTable("dataset_analysis", {
-  id: serial("id").primaryKey(),
-  datasetId: integer("dataset_id").notNull(),
-  overallScore: integer("overall_score").notNull(),
-  completenessScore: integer("completeness_score").notNull(),
-  consistencyScore: integer("consistency_score").notNull(),
-  diversityScore: integer("diversity_score").notNull(),
-  recommendations: text("recommendations").array(),
-  issues: text("issues").array(),
-  strengths: text("strengths").array(),
-  insights: text("insights").array(),
-  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
-});
-
-export const insertDatasetAnalysisSchema = createInsertSchema(datasetAnalysis).omit({
-  id: true,
-  analyzedAt: true
-});
-
-export type InsertDatasetAnalysis = z.infer<typeof insertDatasetAnalysisSchema>;
-export type DatasetAnalysis = typeof datasetAnalysis.$inferSelect;
 
 // API schemas for APICAR
 // Updated schema based on actual APICAR API response format

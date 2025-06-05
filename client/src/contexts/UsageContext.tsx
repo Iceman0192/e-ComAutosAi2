@@ -3,17 +3,11 @@ import { useAuth, UserRole } from './AuthContext';
 
 // Usage limits per tier
 const USAGE_LIMITS = {
-  [UserRole.FREEMIUM]: {
+  [UserRole.FREE]: {
     monthlySearches: 5,
     apiCallsPerSearch: 10, // 10 pages max
     resultsPerPage: 25,
     cachedPageCredit: 2 // 2 cached pages = 1 API call credit
-  },
-  [UserRole.BASIC]: {
-    monthlySearches: 50,
-    apiCallsPerSearch: 10, // 10 pages per search
-    resultsPerPage: 25,
-    cachedPageCredit: 1 // better rate for paid users
   },
   [UserRole.GOLD]: {
     monthlySearches: 75, // 75 vehicle searches monthly
@@ -67,20 +61,20 @@ export function UsageProvider({ children }: { children: ReactNode }) {
     lastResetDate: new Date().toISOString().substring(0, 7) // current month
   });
 
-  const limits = user ? USAGE_LIMITS[user.role] || USAGE_LIMITS[UserRole.FREEMIUM] : USAGE_LIMITS[UserRole.FREEMIUM];
+  const limits = user ? USAGE_LIMITS[user.role] : USAGE_LIMITS[UserRole.FREE];
   
   // Calculate remaining usage
-  const remainingSearches = limits?.monthlySearches === -1 
+  const remainingSearches = limits.monthlySearches === -1 
     ? -1 
-    : Math.max(0, (limits?.monthlySearches || 0) - usageStats.searchesThisMonth);
+    : Math.max(0, limits.monthlySearches - usageStats.searchesThisMonth);
     
-  const remainingAPICalls = limits?.apiCallsPerSearch === -1 
+  const remainingAPICalls = limits.apiCallsPerSearch === -1 
     ? -1 
-    : Math.max(0, ((limits?.monthlySearches || 0) * (limits?.apiCallsPerSearch || 0)) - usageStats.apiCallsThisMonth);
+    : Math.max(0, (limits.monthlySearches * limits.apiCallsPerSearch) - usageStats.apiCallsThisMonth);
 
   // Check if user can perform actions
-  const canMakeSearch = limits?.monthlySearches === -1 || usageStats.searchesThisMonth < (limits?.monthlySearches || 0);
-  const canMakeAPICall = limits?.apiCallsPerSearch === -1 || remainingAPICalls > 0;
+  const canMakeSearch = limits.monthlySearches === -1 || usageStats.searchesThisMonth < limits.monthlySearches;
+  const canMakeAPICall = limits.apiCallsPerSearch === -1 || remainingAPICalls > 0;
 
   const trackSearch = (isNewAPICall: boolean) => {
     setUsageStats(prev => ({

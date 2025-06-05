@@ -37,34 +37,34 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Sales History Search',
-      href: '/home',
+      title: 'Sales History',
+      href: '/copart',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Live Lot Lookup',
-      href: '/live-copart',
+      title: 'Active Lot Finder',
+      href: '/active-lots',
       icon: Car,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Active Lots Finder',
-      href: '/active-lots',
-      icon: Search,
+      title: 'Live Lot Analysis',
+      href: '/live-copart',
+      icon: Car,
+      permission: 'FULL_ANALYTICS'
+    },
+    {
+      title: 'VIN History Search',
+      href: '/vin-history',
+      icon: History,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'VIN Search History',
-      href: '/vin-search',
-      icon: Brain,
-      permission: 'AI_ANALYSIS'
-    },
-    {
-      title: 'AuctionMind V2',
+      title: 'AuctionMind Pro',
       href: '/auction-mind-v2',
       icon: Brain,
-      permission: 'AI_ANALYSIS'
+      permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
       title: 'Import Calculator',
@@ -72,7 +72,18 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Calculator,
       permission: 'BASIC_SEARCH'
     },
-
+    {
+      title: 'Datasets',
+      href: '/datasets',
+      icon: Database,
+      permission: 'ADMIN'
+    },
+    {
+      title: 'Team Management',
+      href: '/team',
+      icon: Users,
+      permission: 'ADMIN'
+    }
   ];
 
   const accountItems = [
@@ -163,14 +174,10 @@ export function Sidebar({ className = '' }: SidebarProps) {
             Main Navigation
           </h3>
           {navigationItems.map((item) => {
-            // Always show basic navigation items for authenticated users
-            if (item.permission === 'BASIC_SEARCH') {
-              // Show for all authenticated users
-            } else if (item.permission === 'ADMIN' && user?.role !== 'admin') {
-              return null;
-            } else if (!hasPermission(item.permission as any)) {
-              return null;
-            }
+            // Check for admin-only features
+            if (item.permission === 'ADMIN' && user?.role !== 'admin') return null;
+            // Check other permissions
+            if (item.permission !== 'ADMIN' && !hasPermission(item.permission as any)) return null;
             
             const Icon = item.icon;
             const isActive = isActiveRoute(item.href);
@@ -188,6 +195,11 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.title}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
             );
@@ -257,15 +269,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
         <Button
           variant="ghost"
           className="w-full justify-start gap-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            try {
-              await logout();
-            } catch (error) {
-              console.error('Logout failed:', error);
-            }
-          }}
+          onClick={logout}
         >
           <LogOut className="h-4 w-4" />
           Sign Out
