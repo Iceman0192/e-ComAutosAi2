@@ -72,12 +72,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Calculator,
       permission: 'BASIC_SEARCH'
     },
-    {
-      title: 'Market Opportunities',
-      href: '/datasets',
-      icon: Brain,
-      permission: 'AI_ANALYSIS'
-    }
+
   ];
 
   const accountItems = [
