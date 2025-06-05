@@ -38,7 +38,8 @@ import {
   Search,
   BookOpen,
   Timer,
-  TrendingDown
+  TrendingDown,
+  CheckCircle
 } from 'lucide-react';
 
 interface MarketIntelligence {
