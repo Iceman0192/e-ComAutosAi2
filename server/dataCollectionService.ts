@@ -82,40 +82,31 @@ export class DataCollectionService {
   }
 
   private initializeCollectionQueue() {
-    // High-priority vehicles (popular, high-value, frequently searched)
-    const highPriorityVehicles: Omit<CollectionJob, 'id' | 'lastCollected'>[] = [
-      // Luxury vehicles - 2012 to present
+    // Make-based collection (all models per make)
+    const makeBasedCollection: Omit<CollectionJob, 'id' | 'lastCollected'>[] = [
+      // Priority 1: Luxury vehicles - all models
       { make: 'BMW', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Mercedes-Benz', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Audi', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Lexus', priority: 1, yearFrom: 2012, yearTo: 2025 },
-      
-      // Popular mainstream vehicles - 2012 to present
-      { make: 'Honda', model: 'Civic', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Honda', model: 'Accord', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Toyota', model: 'Camry', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Toyota', model: 'Corolla', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Nissan', model: 'Altima', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      
-      // SUVs and Trucks - 2012 to present
-      { make: 'Honda', model: 'CR-V', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Toyota', model: 'RAV4', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Ford', model: 'F-150', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Chevrolet', model: 'Silverado', priority: 2, yearFrom: 2012, yearTo: 2025 },
-      
-      // Electric vehicles - 2012 to present
       { make: 'Tesla', priority: 1, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Nissan', model: 'Leaf', priority: 2, yearFrom: 2012, yearTo: 2025 },
       
-      // Medium priority - complete make collections from 2012
-      { make: 'Ford', priority: 3, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Chevrolet', priority: 3, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Nissan', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      // Priority 2: Popular mainstream makes - all models
+      { make: 'Honda', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Toyota', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Ford', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Chevrolet', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Nissan', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      
+      // Priority 3: Additional makes - all models
       { make: 'Hyundai', priority: 3, yearFrom: 2012, yearTo: 2025 },
       { make: 'Kia', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Volkswagen', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Subaru', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Mazda', priority: 3, yearFrom: 2012, yearTo: 2025 },
     ];
 
-    this.collectionQueue = highPriorityVehicles.map((job, index) => ({
+    this.collectionQueue = makeBasedCollection.map((job, index) => ({
       ...job,
       id: `job_${index}_${job.make}_${job.model || 'all'}`,
     }));
