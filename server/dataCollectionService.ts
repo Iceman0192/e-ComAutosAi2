@@ -25,6 +25,7 @@ export class DataCollectionService {
 
   constructor() {
     this.initializeCollectionQueue();
+    this.loadCollectionState();
   }
 
   private async loadCollectionState(): Promise<void> {
@@ -363,7 +364,14 @@ export class DataCollectionService {
     );
 
     if (incompleteJob) {
-      await this.processCollectionJob(incompleteJob);
+      // Mark the job as being processed
+      incompleteJob.lastCollected = new Date();
+      await this.saveCollectionState(incompleteJob);
+      
+      // Start background collection for this make
+      this.collectDataForJob(incompleteJob).catch(error => {
+        console.error(`Error collecting data for ${make}:`, error);
+      });
     }
 
     return {
