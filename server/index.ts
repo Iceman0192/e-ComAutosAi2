@@ -12,6 +12,7 @@ import { registerUsageRoutes } from "./usageRoutes";
 import { registerDatasetRoutes } from "./datasetRoutes";
 import { registerOpportunityRoutes } from "./opportunityRoutes";
 import { registerAIInsightsRoutes } from "./aiInsightsRoutes";
+import { registerCoreAnalysisRoutes } from "./coreAnalysisRoutes";
 import { freshDataManager } from "./freshDataManager";
 
 const app = express();
