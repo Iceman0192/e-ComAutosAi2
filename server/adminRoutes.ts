@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { db } from './db';
 import { users, userUsage, subscriptionPlans } from '../shared/schema';
 import { eq, desc, count, like, and, gte, lte, sql } from 'drizzle-orm';
-import { requireAuth, requireAdmin } from './authRoutes';
+import { requireAuth, requireAdmin } from './simpleAuth';
 
 export function setupAdminRoutes(app: Express) {
   
