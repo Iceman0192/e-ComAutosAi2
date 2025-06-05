@@ -3,7 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Users, 
   DollarSign, 
@@ -16,11 +22,28 @@ import {
   Download,
   Settings,
   Search,
-  Eye
+  Eye,
+  UserCheck,
+  UserX,
+  Shield,
+  Calendar,
+  RefreshCw,
+  Clock,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // State for user management
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
   // Fetch admin analytics
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
@@ -32,12 +55,27 @@ export default function AdminDashboard() {
     }
   });
 
-  // Fetch user management data
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['/api/admin/users'],
+  // Fetch user management data with filters
+  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useQuery({
+    queryKey: ['/api/admin/control/users', { search: searchTerm, role: roleFilter, status: statusFilter }],
     queryFn: async () => {
-      const response = await fetch('/api/admin/users');
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (roleFilter !== 'all') params.append('role', roleFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      
+      const response = await fetch(`/api/admin/control/users?${params}`);
       if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    }
+  });
+
+  // Fetch platform statistics
+  const { data: platformStats } = useQuery({
+    queryKey: ['/api/admin/control/stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/control/stats');
+      if (!response.ok) throw new Error('Failed to fetch platform stats');
       return response.json();
     }
   });
