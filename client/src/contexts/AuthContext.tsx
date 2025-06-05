@@ -137,6 +137,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // Add refresh function to re-fetch user data
+  const refreshUser = async (): Promise<void> => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.user) {
+          setUser({
+            id: data.user.id.toString(),
+            email: data.user.email,
+            name: data.user.name || data.user.username,
+            role: mapBackendRoleToUserRole(data.user.role),
+            subscriptionStatus: 'active',
+            joinDate: new Date().toISOString()
+          });
+        }
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Refresh user failed:', error);
+      setUser(null);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       const response = await fetch('/api/auth/logout', {
