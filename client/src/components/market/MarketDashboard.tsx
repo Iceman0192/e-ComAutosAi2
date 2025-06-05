@@ -811,10 +811,17 @@ function OpportunitiesPanel({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data.data.recommendations.map((rec: string, index: number) => (
+              {data.data.recommendations.map((rec: any, index: number) => (
                 <div key={index} className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm">{rec}</p>
+                  <div className="text-sm">
+                    {typeof rec === 'string' ? rec : (
+                      <div>
+                        <p className="font-medium">{rec.recommendation || rec.title}</p>
+                        {rec.detail && <p className="text-gray-600 dark:text-gray-400 mt-1">{rec.detail}</p>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
