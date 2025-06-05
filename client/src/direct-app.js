@@ -103,14 +103,23 @@ class VehicleAuctionApp {
             <h2 class="text-3xl font-bold text-gray-900">Vehicle Auction Intelligence</h2>
             <p class="mt-2 text-gray-600">Sign in to access your account</p>
           </div>
+          
+          <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <h3 class="text-sm font-medium text-blue-800 mb-2">Test Credentials:</h3>
+            <div class="text-xs text-blue-700 space-y-1">
+              <div><strong>Admin:</strong> testadmin / password</div>
+              <div><strong>User:</strong> testuser / password</div>
+            </div>
+          </div>
+
           <form onsubmit="app.handleLogin(event)" class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700">Username</label>
-              <input type="text" name="username" required class="input-field" placeholder="Enter username">
+              <input type="text" name="username" required class="input-field" placeholder="Enter username" value="testuser">
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Password</label>
-              <input type="password" name="password" required class="input-field" placeholder="Enter password">
+              <input type="password" name="password" required class="input-field" placeholder="Enter password" value="password">
             </div>
             <button type="submit" class="btn-primary w-full">Sign In</button>
           </form>
@@ -339,14 +348,19 @@ class VehicleAuctionApp {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: formData.get('username'),
+          email: formData.get('username') + '@test.com',
           password: formData.get('password')
         })
       });
 
       if (response.ok) {
-        this.user = await response.json();
-        this.render();
+        const result = await response.json();
+        if (result.success) {
+          this.user = result.user;
+          this.render();
+        } else {
+          alert('Login failed: ' + result.message);
+        }
       } else {
         alert('Login failed. Please check your credentials.');
       }
@@ -357,7 +371,7 @@ class VehicleAuctionApp {
 
   async logout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/users/logout', { method: 'POST' });
       this.user = null;
       this.render();
     } catch (error) {
