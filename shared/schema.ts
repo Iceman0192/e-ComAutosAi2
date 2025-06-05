@@ -82,6 +82,24 @@ export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 
 // Sales history schema
+// Data collection progress tracking
+export const collectionProgress = pgTable("collection_progress", {
+  id: serial("id").primaryKey(),
+  jobId: text("job_id").notNull().unique(),
+  make: text("make").notNull(),
+  model: text("model"),
+  yearFrom: integer("year_from").notNull(),
+  yearTo: integer("year_to").notNull(),
+  priority: integer("priority").notNull(),
+  copartCompleted: boolean("copart_completed").default(false).notNull(),
+  iaaiCompleted: boolean("iaai_completed").default(false).notNull(),
+  lastCopartPage: integer("last_copart_page").default(0).notNull(),
+  lastIaaiPage: integer("last_iaai_page").default(0).notNull(),
+  lastCollected: timestamp("last_collected"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const salesHistory = pgTable("sales_history", {
   id: text("id").primaryKey(),
   lot_id: integer("lot_id").notNull(),
