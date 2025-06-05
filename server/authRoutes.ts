@@ -62,22 +62,14 @@ export function setupAuthRoutes(app: Express) {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create new user with 7-day trial
-      const trialStartDate = new Date();
-      const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 7);
-
+      // Create new user
       const [newUser] = await db.insert(users).values({
         email,
         username,
         name: name || username,
         password: hashedPassword,
-        role: 'gold', // Start with gold during trial
-        isActive: true,
-        trialStartDate,
-        trialEndDate,
-        isTrialActive: true,
-        hasUsedTrial: true
+        role: 'freemium',
+        isActive: true
       }).returning();
 
       // Create session
@@ -88,8 +80,7 @@ export function setupAuthRoutes(app: Express) {
         username: newUser.username,
         name: newUser.name,
         role: newUser.role,
-        isTrialActive: newUser.isTrialActive,
-        trialEndDate: newUser.trialEndDate
+        isActive: newUser.isActive
       };
       sessions.set(sessionId, userSession);
       
@@ -173,8 +164,7 @@ export function setupAuthRoutes(app: Express) {
         username: user.username,
         name: user.name,
         role: user.role,
-        isTrialActive: user.isTrialActive,
-        trialEndDate: user.trialEndDate
+        isActive: user.isActive
       };
       sessions.set(sessionId, userSession);
       
