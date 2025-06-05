@@ -33,6 +33,89 @@ export function requireAdmin(req: any, res: Response, next: any) {
 
 export function setupSimpleAuth(app: Express) {
   
+  // Signup endpoint
+  app.post('/api/auth/signup', async (req: Request, res: Response) => {
+    try {
+      const { email, password, username, name } = req.body;
+      
+      if (!email || !password || !username) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email, password, and username are required'
+        });
+      }
+
+      // Check if user already exists
+      const [existingUser] = await db.select({
+        id: users.id,
+        email: users.email,
+        username: users.username
+      })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email'
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user
+      const [newUser] = await db.insert(users).values({
+        email,
+        username,
+        name: name || username,
+        password: hashedPassword,
+        role: 'freemium',
+        isActive: true
+      }).returning({
+        id: users.id,
+        email: users.email,
+        username: users.username,
+        name: users.name,
+        role: users.role,
+        isActive: users.isActive
+      });
+
+      // Create session
+      const sessionId = `session_${Date.now()}_${Math.random()}`;
+      const userSession = {
+        id: newUser.id,
+        email: newUser.email,
+        username: newUser.username,
+        name: newUser.name,
+        role: newUser.role,
+        isActive: newUser.isActive
+      };
+      sessions.set(sessionId, userSession);
+      
+      // Set session cookie
+      res.cookie('sessionId', sessionId, { 
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      });
+
+      res.json({
+        success: true,
+        message: 'Account created successfully! Welcome to e-ComAutos.',
+        user: userSession
+      });
+
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create account'
+      });
+    }
+  });
+
   // Login endpoint
   app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
@@ -154,7 +237,8 @@ export function setupSimpleAuth(app: Express) {
     res.clearCookie('sessionId');
     res.json({
       success: true,
-      message: 'Logged out successfully'
+      message: 'Logged out successfully',
+      redirect: '/auth'
     });
   });
 }
