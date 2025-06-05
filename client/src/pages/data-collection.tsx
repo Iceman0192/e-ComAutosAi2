@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { PlayCircle, StopCircle, Database, TrendingUp, Clock, Activity } from "lucide-react";
+import { PlayCircle, StopCircle, Database, TrendingUp, Clock, Activity, Car, Target } from "lucide-react";
 
 interface CollectionJob {
   id: string;
@@ -13,6 +15,10 @@ interface CollectionJob {
   yearTo: number;
   priority: number;
   lastCollected?: string;
+  copartCompleted?: boolean;
+  iaaiCompleted?: boolean;
+  lastCopartPage?: number;
+  lastIaaiPage?: number;
 }
 
 interface CollectionStatus {
@@ -20,10 +26,21 @@ interface CollectionStatus {
   queueLength: number;
   nextJob?: CollectionJob;
   lastProcessed?: CollectionJob;
+  availableJobs?: CollectionJob[];
+}
+
+interface VehicleMake {
+  make: string;
+  totalRecords: number;
+  copartRecords: number;
+  iaaiRecords: number;
+  completed: boolean;
 }
 
 export default function DataCollectionPage() {
   const [status, setStatus] = useState<CollectionStatus | null>(null);
+  const [vehicleProgress, setVehicleProgress] = useState<VehicleMake[]>([]);
+  const [selectedMake, setSelectedMake] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
