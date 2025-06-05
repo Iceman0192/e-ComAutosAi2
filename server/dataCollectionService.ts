@@ -127,33 +127,39 @@ export class DataCollectionService {
 
   private async collectDataForJob(job: CollectionJob): Promise<number> {
     let totalCollected = 0;
-    let page = 1;
-    let hasMoreData = true;
 
     // Calculate 90-day date range
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 90);
 
-    // Use the existing internal sales history API
-    const baseUrl = 'http://localhost:5000/api/sales-history';
+    // Collect from both Copart (site=1) and IAAI (site=2) for priority 1 vehicles
+    const sitesToCollect = job.priority === 1 ? [1, 2] : [1]; // Priority 1 gets both sites
     
-    while (hasMoreData && page <= this.MAX_PAGES_PER_JOB) {
-      try {
-        // Build query parameters for internal API
-        const params = new URLSearchParams({
-          make: job.make,
-          year_from: job.yearFrom.toString(),
-          year_to: job.yearTo.toString(),
-          sale_date_from: startDate.toISOString().split('T')[0],
-          sale_date_to: endDate.toISOString().split('T')[0],
-          page: page.toString(),
-          limit: this.BATCH_SIZE.toString(),
-        });
+    for (const site of sitesToCollect) {
+      console.log(`Collecting ${job.make} data from ${site === 1 ? 'Copart' : 'IAAI'}`);
+      
+      let page = 1;
+      let hasMoreData = true;
+      const baseUrl = 'http://localhost:5000/api/sales-history';
+      
+      while (hasMoreData && page <= this.MAX_PAGES_PER_JOB) {
+        try {
+          // Build query parameters for internal API
+          const params = new URLSearchParams({
+            make: job.make,
+            year_from: job.yearFrom.toString(),
+            year_to: job.yearTo.toString(),
+            sale_date_from: startDate.toISOString().split('T')[0],
+            sale_date_to: endDate.toISOString().split('T')[0],
+            page: page.toString(),
+            limit: this.BATCH_SIZE.toString(),
+            site: site.toString(), // Add site parameter
+          });
 
-        if (job.model) {
-          params.append('model', job.model);
-        }
+          if (job.model) {
+            params.append('model', job.model);
+          }
 
         const response = await fetch(`${baseUrl}?${params.toString()}`, {
           headers: {
@@ -204,15 +210,18 @@ export class DataCollectionService {
           hasMoreData = false;
         }
 
-        page++;
+          page++;
 
-        // Rate limiting - wait between requests
-        await new Promise(resolve => setTimeout(resolve, 2000));
+          // Rate limiting - wait between requests
+          await new Promise(resolve => setTimeout(resolve, 2000));
 
-      } catch (error) {
-        console.error(`Error fetching page ${page}:`, error);
-        break;
+        } catch (error) {
+          console.error(`Error fetching page ${page}:`, error);
+          break;
+        }
       }
+      
+      console.log(`Completed ${site === 1 ? 'Copart' : 'IAAI'} collection for ${job.make}: ${totalCollected} total records`);
     }
 
     return totalCollected;
