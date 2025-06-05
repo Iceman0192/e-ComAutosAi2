@@ -16,7 +16,7 @@ export class DataCollectionService {
   private isRunning = false;
   private collectionQueue: CollectionJob[] = [];
   private readonly BATCH_SIZE = 50;
-  private readonly MAX_PAGES_PER_JOB = 1000; // Increased to exhaust all pages
+  private readonly MAX_PAGES_PER_JOB = 200; // Limit to 90 days max data
   private readonly COLLECTION_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
   constructor() {
