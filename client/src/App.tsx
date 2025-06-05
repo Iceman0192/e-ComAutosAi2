@@ -24,6 +24,7 @@ import Billing from "./pages/billing";
 import LandingPage from "./pages/landing";
 import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
+import DataCollectionPage from "./pages/data-collection";
 import NotFound from "./pages/not-found";
 
 function Router() {
@@ -72,6 +73,7 @@ function Router() {
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/data-collection" component={DataCollectionPage} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>
