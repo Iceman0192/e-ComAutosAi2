@@ -1,8 +1,11 @@
 import type { Express, Request, Response } from "express";
+import { db } from './db';
+import { users, userUsage, subscriptionPlans } from '../shared/schema';
+import { eq, desc, count, like, and, gte, lte, sql } from 'drizzle-orm';
 
 export function setupAdminRoutes(app: Express) {
   
-  // Admin analytics endpoint
+  // Admin analytics endpoint with real database data
   app.get('/api/admin/analytics', async (req: Request, res: Response) => {
     try {
       // Check admin privileges
@@ -14,16 +17,36 @@ export function setupAdminRoutes(app: Express) {
         });
       }
 
-      // In production, this would query your database for real metrics
+      // Get real metrics from database
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [
+        totalUsersResult,
+        activeUsersResult,
+        trialUsersResult,
+        newUsersResult,
+        roleDistribution
+      ] = await Promise.all([
+        db.select({ count: count() }).from(users),
+        db.select({ count: count() }).from(users).where(eq(users.isActive, true)),
+        db.select({ count: count() }).from(users).where(eq(users.isTrialActive, true)),
+        db.select({ count: count() }).from(users).where(gte(users.createdAt, thirtyDaysAgo)),
+        db.select({
+          role: users.role,
+          count: count()
+        }).from(users).groupBy(users.role)
+      ]);
+
       const analytics = {
-        totalUsers: 1247,
-        monthlyRevenue: 24750,
-        activeSubscriptions: 342,
-        dailySearches: 8234,
-        newUsersThisMonth: 89,
-        revenueGrowth: 8.2,
-        churnRate: 2.1,
-        avgRevenuePerUser: 72
+        totalUsers: totalUsersResult[0]?.count || 0,
+        activeUsers: activeUsersResult[0]?.count || 0,
+        trialUsers: trialUsersResult[0]?.count || 0,
+        newUsersThisMonth: newUsersResult[0]?.count || 0,
+        roleDistribution,
+        monthlyRevenue: 0, // Would integrate with Stripe for real revenue data
+        revenueGrowth: 0,
+        churnRate: 0
       };
 
       res.json({
@@ -51,46 +74,76 @@ export function setupAdminRoutes(app: Express) {
         });
       }
 
-      // In production, query your users table
-      const users = [
-        {
-          id: 'demo-user',
-          email: 'demo@example.com',
-          username: 'demo',
-          role: 'free',
-          subscriptionStatus: 'active',
-          searchesUsed: 45,
-          searchLimit: 50,
-          joinDate: '2024-01-15',
-          lastActive: '2025-06-01'
-        },
-        {
-          id: 'user-2',
-          email: 'john@example.com',
-          username: 'john',
-          role: 'gold',
-          subscriptionStatus: 'active',
-          searchesUsed: 234,
-          searchLimit: 500,
-          joinDate: '2024-02-20',
-          lastActive: '2025-05-31'
-        },
-        {
-          id: 'user-3',
-          email: 'sarah@example.com',
-          username: 'sarah',
-          role: 'platinum',
-          subscriptionStatus: 'active',
-          searchesUsed: 567,
-          searchLimit: -1, // unlimited
-          joinDate: '2024-01-10',
-          lastActive: '2025-06-01'
+      // Query real users from database
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const search = req.query.search as string;
+      const role = req.query.role as string;
+      const status = req.query.status as string;
+      
+      const offset = (page - 1) * limit;
+      
+      let whereConditions: any[] = [];
+      
+      if (search) {
+        whereConditions.push(like(users.username, `%${search}%`));
+        whereConditions.push(like(users.email, `%${search}%`));
+        whereConditions.push(like(users.name, `%${search}%`));
+      }
+      
+      if (role && role !== 'all') {
+        whereConditions.push(eq(users.role, role as any));
+      }
+      
+      if (status === 'active') {
+        whereConditions.push(eq(users.isActive, true));
+      } else if (status === 'inactive') {
+        whereConditions.push(eq(users.isActive, false));
+      }
+
+      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+      const [usersList, totalCount] = await Promise.all([
+        db.select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          name: users.name,
+          role: users.role,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+          lastLoginAt: users.lastLoginAt,
+          trialStartDate: users.trialStartDate,
+          trialEndDate: users.trialEndDate,
+          isTrialActive: users.isTrialActive,
+          hasUsedTrial: users.hasUsedTrial,
+          stripeCustomerId: users.stripeCustomerId,
+          stripeSubscriptionId: users.stripeSubscriptionId
+        })
+        .from(users)
+        .where(whereClause)
+        .orderBy(desc(users.createdAt))
+        .limit(limit)
+        .offset(offset),
+        
+        db.select({ count: count() })
+        .from(users)
+        .where(whereClause)
+      ]);
+
+      const usersData = {
+        users: usersList,
+        pagination: {
+          page,
+          limit,
+          total: totalCount[0].count,
+          totalPages: Math.ceil(totalCount[0].count / limit)
         }
-      ];
+      };
 
       res.json({
         success: true,
-        data: users
+        data: usersData
       });
 
     } catch (error: any) {
