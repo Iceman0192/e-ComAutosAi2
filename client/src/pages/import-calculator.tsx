@@ -204,7 +204,7 @@ const TAX_RULES = {
   }
 };
 
-function ImportCalculatorContent({ vehicle }: DutyTaxCalculatorTabProps) {
+export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>("honduras");
   const [vehiclePrice, setVehiclePrice] = useState<number>(0);
   const [freight, setFreight] = useState<number>(1500);
@@ -800,9 +800,4 @@ function ImportCalculatorContent({ vehicle }: DutyTaxCalculatorTabProps) {
       </div>
     </div>
   );
-}
-
-// Route wrapper component
-export default function ImportCalculator() {
-  return <ImportCalculatorContent />;
 }

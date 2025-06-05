@@ -1,12 +1,11 @@
-import React from "react";
 import { Route, Switch } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { UsageProvider } from "./contexts/UsageContext";
-
+import RoleSwitcher from "./components/auth/RoleSwitcher";
 import { MainLayout } from "./components/layout/MainLayout";
 
 // Pages
@@ -23,38 +22,21 @@ import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
 import UsagePage from "./pages/usage";
-import LoginPage from "./pages/login";
 import AdminDashboard from "./pages/admin";
 import NotFound from "./pages/not-found";
 
 function Router() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  // Show login page for unauthenticated users
-  if (!user) {
-    return <LoginPage />;
-  }
-
   return (
     <MainLayout>
       <Switch>
         <Route path="/copart" component={Home} />
-        <Route path="/home" component={Home} />
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={Home} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/iaai" component={IAAIPage} />
-        <Route path="/vin-search" component={AuctionMind} />
+        <Route path="/vin-history" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={ImportCalculator} />
         <Route path="/datasets" component={Datasets} />
@@ -77,6 +59,7 @@ function App() {
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
               <Router />
               <Toaster />
+              <RoleSwitcher />
             </div>
           </QueryClientProvider>
         </UsageProvider>

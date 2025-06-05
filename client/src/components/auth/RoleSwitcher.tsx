@@ -1,9 +1,11 @@
-import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../ui/button';
-import { LogOut, User } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth, UserRole } from '../../contexts/AuthContext';
+import { ChevronDown, ChevronUp, Minimize2 } from 'lucide-react';
 
-export default function UserMenu() {
-  const { user, logout } = useAuth();
+export default function RoleSwitcher() {
+  const { user, updateUserRole } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   if (!user) return null;
 

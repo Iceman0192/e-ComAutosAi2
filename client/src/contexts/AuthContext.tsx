@@ -1,10 +1,8 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiRequest } from '@/lib/queryClient';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 // User roles for tier-based access
 export enum UserRole {
-  FREEMIUM = 'freemium',
-  BASIC = 'basic',
+  FREE = 'free',
   GOLD = 'gold',
   PLATINUM = 'platinum',
   ADMIN = 'admin'
@@ -12,8 +10,8 @@ export enum UserRole {
 
 // Feature permissions mapping
 export const PERMISSIONS = {
-  BASIC_SEARCH: [UserRole.FREEMIUM, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  ADVANCED_FILTERS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
+  BASIC_SEARCH: [UserRole.FREE, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
+  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
   UNLIMITED_RESULTS: [UserRole.PLATINUM, UserRole.ADMIN],
   FULL_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
   EXPORT_DATA: [UserRole.PLATINUM, UserRole.ADMIN],
@@ -36,84 +34,42 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
   isLoggedIn: boolean;
   hasPermission: (permission: Permission) => boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
   updateUserRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Demo user for development - replace with real auth later
+const DEMO_USER: User = {
+  id: 'demo-admin-1',
+  email: 'admin@ecomautos.com',
+  name: 'God Level Admin',
+  role: UserRole.ADMIN,
+  subscriptionStatus: 'active',
+  joinDate: '2025-01-01'
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // For now, start with demo admin user - replace with real auth system later
+  const [user, setUser] = useState<User | null>(DEMO_USER);
 
   const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
     return PERMISSIONS[permission].includes(user.role);
   };
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success && data.data?.user) {
-        // Ensure role mapping is correct
-        const userRole = data.data.user.role === 'admin' ? UserRole.ADMIN : 
-                        data.data.user.role === 'platinum' ? UserRole.PLATINUM :
-                        data.data.user.role === 'gold' ? UserRole.GOLD :
-                        data.data.user.role === 'basic' ? UserRole.BASIC :
-                        UserRole.FREEMIUM;
-        
-        setUser({
-          id: data.data.user.id.toString(),
-          email: data.data.user.email,
-          name: data.data.user.username || data.data.user.email,
-          role: userRole,
-          subscriptionStatus: 'active',
-          joinDate: data.data.user.createdAt || new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.error('Failed to fetch current user:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const login = async (email: string, password: string): Promise<void> => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ email, password })
-    });
-    
-    const data = await response.json();
-    if (data.success) {
-      await fetchCurrentUser();
-    } else {
-      throw new Error(data.message || 'Login failed');
-    }
+    // Placeholder for real authentication
+    console.log('Login attempt:', email);
+    setUser(DEMO_USER);
   };
 
-  const logout = async (): Promise<void> => {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-    }
+  const logout = (): void => {
+    setUser(null);
   };
 
   const updateUserRole = (role: UserRole): void => {
@@ -122,13 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
-
   const value: AuthContextType = {
     user,
-    loading,
     isLoggedIn: !!user,
     hasPermission,
     login,
