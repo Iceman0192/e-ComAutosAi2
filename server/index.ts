@@ -75,14 +75,6 @@ app.use((req, res, next) => {
   // Set up admin routes
   setupAdminRoutes(app);
   
-  // Set up trial routes
-  import trialRoutes from './trialRoutes';
-  app.use('/api/trial', trialRoutes);
-  
-  // Set up admin control routes
-  import adminControlRoutes from './adminControlRoutes';
-  app.use('/api/admin/control', adminControlRoutes);
-  
   // Set up usage tracking routes
   registerUsageRoutes(app);
   
