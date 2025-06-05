@@ -276,4 +276,246 @@ export function setupAdminRoutes(app: Express) {
       });
     }
   });
+
+  // Update user role endpoint
+  app.put('/api/admin/control/users/:userId/role', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const { role } = req.body;
+      
+      if (!['freemium', 'basic', 'gold', 'platinum', 'admin'].includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid role'
+        });
+      }
+
+      await db.update(users)
+        .set({ 
+          role: role as any,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({
+        success: true,
+        message: `User role updated to ${role}`
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update user role'
+      });
+    }
+  });
+
+  // Activate/Deactivate user account endpoint
+  app.put('/api/admin/control/users/:userId/status', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const { isActive } = req.body;
+      
+      await db.update(users)
+        .set({ 
+          isActive: Boolean(isActive),
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({
+        success: true,
+        message: `User account ${isActive ? 'activated' : 'deactivated'}`
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update user status'
+      });
+    }
+  });
+
+  // Reset trial endpoint
+  app.post('/api/admin/control/users/:userId/reset-trial', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      const userId = parseInt(req.params.userId);
+      
+      await db.update(users)
+        .set({
+          trialStartDate: null,
+          trialEndDate: null,
+          isTrialActive: false,
+          hasUsedTrial: false,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({
+        success: true,
+        message: 'Trial reset successfully'
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to reset trial'
+      });
+    }
+  });
+
+  // Extend trial endpoint
+  app.post('/api/admin/control/users/:userId/extend-trial', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      const userId = parseInt(req.params.userId);
+      const { days } = req.body;
+      
+      if (!days || days < 1 || days > 365) {
+        return res.status(400).json({
+          success: false,
+          message: 'Days must be between 1 and 365'
+        });
+      }
+
+      const newTrialStart = new Date();
+      const newTrialEnd = new Date();
+      newTrialEnd.setDate(newTrialEnd.getDate() + days);
+
+      await db.update(users)
+        .set({
+          trialStartDate: newTrialStart,
+          trialEndDate: newTrialEnd,
+          isTrialActive: true,
+          role: 'gold',
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({
+        success: true,
+        message: `Trial extended for ${days} days`
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to extend trial'
+      });
+    }
+  });
+
+  // User management endpoint for control interface
+  app.get('/api/admin/control/users', async (req: Request, res: Response) => {
+    try {
+      const user = (req as any).user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Admin access required'
+        });
+      }
+
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const search = req.query.search as string;
+      const role = req.query.role as string;
+      const status = req.query.status as string;
+      
+      const offset = (page - 1) * limit;
+      
+      let whereConditions: any[] = [];
+      
+      if (search) {
+        whereConditions.push(like(users.username, `%${search}%`));
+        whereConditions.push(like(users.email, `%${search}%`));
+        whereConditions.push(like(users.name, `%${search}%`));
+      }
+      
+      if (role && role !== 'all') {
+        whereConditions.push(eq(users.role, role as any));
+      }
+      
+      if (status === 'active') {
+        whereConditions.push(eq(users.isActive, true));
+      } else if (status === 'inactive') {
+        whereConditions.push(eq(users.isActive, false));
+      }
+
+      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+      const [usersList, totalCount] = await Promise.all([
+        db.select({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          name: users.name,
+          role: users.role,
+          isActive: users.isActive,
+          createdAt: users.createdAt,
+          lastLoginAt: users.lastLoginAt,
+          trialStartDate: users.trialStartDate,
+          trialEndDate: users.trialEndDate,
+          isTrialActive: users.isTrialActive,
+          hasUsedTrial: users.hasUsedTrial,
+          stripeCustomerId: users.stripeCustomerId,
+          stripeSubscriptionId: users.stripeSubscriptionId
+        })
+        .from(users)
+        .where(whereClause)
+        .orderBy(desc(users.createdAt))
+        .limit(limit)
+        .offset(offset),
+        
+        db.select({ count: count() })
+        .from(users)
+        .where(whereClause)
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          users: usersList,
+          pagination: {
+            page,
+            limit,
+            total: totalCount[0].count,
+            totalPages: Math.ceil(totalCount[0].count / limit)
+          }
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch users'
+      });
+    }
+  });
 }
