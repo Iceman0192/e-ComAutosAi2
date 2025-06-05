@@ -434,15 +434,8 @@ export function setupAdminRoutes(app: Express) {
   });
 
   // User management endpoint for control interface
-  app.get('/api/admin/control/users', async (req: Request, res: Response) => {
+  app.get('/api/admin/control/users', requireAdmin, async (req: Request, res: Response) => {
     try {
-      const user = (req as any).user;
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({
-          success: false,
-          message: 'Admin access required'
-        });
-      }
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
