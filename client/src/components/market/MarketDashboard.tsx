@@ -800,9 +800,14 @@ function OpportunitiesPanel({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data.data.marketTrends.map((trend: string, index: number) => (
+              {data.data.marketTrends.map((trend: any, index: number) => (
                 <div key={index} className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm">{trend}</p>
+                  <p className="text-sm">
+                    {typeof trend === 'string' ? trend : trend.description}
+                  </p>
+                  {trend.reference && (
+                    <p className="text-xs text-gray-500 mt-1">{trend.reference}</p>
+                  )}
                 </div>
               ))}
             </div>
