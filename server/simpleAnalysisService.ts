@@ -36,14 +36,14 @@ export class SimpleAnalysisService {
       SELECT 
         make, 
         year, 
-        purchase_price::float as price,
+        CAST(purchase_price AS NUMERIC) as price,
         vehicle_damage as damage,
         auction_location as location,
         vehicle_has_keys as has_keys,
         sale_date
       FROM sales_history 
       WHERE purchase_price IS NOT NULL 
-        AND purchase_price > 0
+        AND CAST(purchase_price AS NUMERIC) > 0
         AND make IS NOT NULL
       ORDER BY sale_date DESC 
       LIMIT 15000
