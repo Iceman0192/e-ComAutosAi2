@@ -1,6 +1,8 @@
 import type { Express } from "express";
-import { opportunityAnalysisService } from "./opportunityAnalysisService";
+import { EnhancedOpportunityService } from "./enhancedOpportunityService";
 import { comprehensiveAnalysisService } from "./comprehensiveAnalysisService";
+
+const enhancedService = new EnhancedOpportunityService();
 
 export function registerOpportunityRoutes(app: Express): void {
   // Analyze market opportunities from real sales data with configurable batch size
@@ -8,9 +10,14 @@ export function registerOpportunityRoutes(app: Express): void {
     try {
       const { filters } = req.body;
       const batchSize = filters?.datasetSize || 15000;
+      const userId = (req as any).user?.id || 1;
       
-      console.log(`Starting market analysis with ${batchSize} records...`);
-      const analysis = await opportunityAnalysisService.analyzeMarketOpportunities(batchSize);
+      console.log(`Starting enhanced market analysis with ${batchSize} records...`);
+      const analysis = await enhancedService.analyzeWithEnhancements(
+        userId,
+        'standard',
+        { ...filters, datasetSize: batchSize }
+      );
       
       res.json({ 
         success: true, 
@@ -29,7 +36,13 @@ export function registerOpportunityRoutes(app: Express): void {
   app.get("/api/opportunities/analyze-progressive", async (req, res) => {
     try {
       const batchSize = parseInt(req.query.batchSize as string) || 25000;
-      const analysis = await opportunityAnalysisService.analyzeMarketOpportunities(batchSize);
+      const userId = (req as any).user?.id || 1;
+      
+      const analysis = await enhancedService.analyzeWithEnhancements(
+        userId,
+        'standard',
+        { datasetSize: batchSize }
+      );
       
       res.json({ 
         success: true, 
@@ -53,9 +66,15 @@ export function registerOpportunityRoutes(app: Express): void {
   app.get("/api/opportunities/analyze-full", async (req, res) => {
     try {
       const batchSize = parseInt(req.query.batchSize as string) || 50000;
+      const userId = (req as any).user?.id || 1;
+      
       console.log(`Starting full database analysis with batch size: ${batchSize.toLocaleString()}`);
       
-      const analysis = await opportunityAnalysisService.analyzeMarketOpportunities(batchSize);
+      const analysis = await enhancedService.analyzeWithEnhancements(
+        userId,
+        'comprehensive',
+        { datasetSize: batchSize }
+      );
       
       res.json({ 
         success: true, 
