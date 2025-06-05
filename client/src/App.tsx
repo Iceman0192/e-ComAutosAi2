@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { UsageProvider } from "./contexts/UsageContext";
 import RoleSwitcher from "./components/auth/RoleSwitcher";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -21,16 +21,29 @@ import ImportCalculator from "./pages/import-calculator";
 import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
-import UsagePage from "./pages/usage";
+import LandingPage from "./pages/landing";
 import AdminDashboard from "./pages/admin";
 import NotFound from "./pages/not-found";
 
 function Router() {
+  const { user, isLoading } = useAuth();
+
+  // Show landing page for non-authenticated users
+  if (!isLoading && !user) {
+    return (
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route component={LandingPage} />
+      </Switch>
+    );
+  }
+
+  // Show main application for authenticated users
   return (
     <MainLayout>
       <Switch>
         <Route path="/copart" component={Home} />
-        <Route path="/" component={Home} />
+        <Route path="/" component={Dashboard} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
@@ -42,7 +55,6 @@ function Router() {
         <Route path="/datasets" component={Datasets} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
-        <Route path="/usage" component={UsagePage} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
