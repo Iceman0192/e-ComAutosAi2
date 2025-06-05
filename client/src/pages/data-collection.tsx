@@ -73,6 +73,21 @@ export default function DataCollectionPage() {
     }
   };
 
+  const fetchVehicleProgress = async () => {
+    try {
+      const response = await fetch('/api/admin/data-collection/vehicle-progress', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setVehicleProgress(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching vehicle progress:', error);
+    }
+  };
+
   const startCollection = async () => {
     setActionLoading(true);
     try {
@@ -143,11 +158,64 @@ export default function DataCollectionPage() {
     }
   };
 
+  const startSelectedMakeCollection = async () => {
+    if (!selectedMake) {
+      toast({
+        title: "Error",
+        description: "Please select a vehicle make first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/admin/data-collection/start-make', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ make: selectedMake })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: `Started collecting ${selectedMake} vehicles`,
+        });
+        await fetchStatus();
+        await fetchVehicleProgress();
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to start collection",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error starting collection:', error);
+      toast({
+        title: "Error",
+        description: "Network error while starting collection",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchStatus();
+    fetchVehicleProgress();
     
     // Refresh status every 30 seconds
-    const interval = setInterval(fetchStatus, 30000);
+    const interval = setInterval(() => {
+      fetchStatus();
+      fetchVehicleProgress();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -168,15 +236,62 @@ export default function DataCollectionPage() {
         </p>
       </div>
 
+      {/* Manual Vehicle Selection */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Manual Collection
+          </CardTitle>
+          <CardDescription>
+            Select specific vehicle makes to collect instead of sequential processing
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex-1 max-w-xs">
+              <Select value={selectedMake} onValueChange={setSelectedMake}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vehicle make..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BMW">BMW</SelectItem>
+                  <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
+                  <SelectItem value="Audi">Audi</SelectItem>
+                  <SelectItem value="Toyota">Toyota</SelectItem>
+                  <SelectItem value="Honda">Honda</SelectItem>
+                  <SelectItem value="Ford">Ford</SelectItem>
+                  <SelectItem value="Chevrolet">Chevrolet</SelectItem>
+                  <SelectItem value="Nissan">Nissan</SelectItem>
+                  <SelectItem value="Hyundai">Hyundai</SelectItem>
+                  <SelectItem value="Kia">Kia</SelectItem>
+                  <SelectItem value="Volkswagen">Volkswagen</SelectItem>
+                  <SelectItem value="Subaru">Subaru</SelectItem>
+                  <SelectItem value="Mazda">Mazda</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={startSelectedMakeCollection} 
+              disabled={actionLoading || !selectedMake}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Car className="w-4 h-4 mr-2" />
+              Collect {selectedMake || 'Selected'} Vehicles
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Control Panel */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="w-5 h-5" />
-            Collection Control
+            Auto Collection Control
           </CardTitle>
           <CardDescription>
-            Start or stop the automated data collection service
+            Start or stop the sequential automated data collection service
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -196,7 +311,7 @@ export default function DataCollectionPage() {
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <PlayCircle className="w-4 h-4 mr-2" />
-                  Start Collection
+                  Start Auto Collection
                 </Button>
               ) : (
                 <Button 
@@ -331,6 +446,58 @@ export default function DataCollectionPage() {
                   }
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vehicle Collection Summary */}
+      {vehicleProgress.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5" />
+              Collection Summary
+            </CardTitle>
+            <CardDescription>
+              Vehicle records collected by make (clean, organized view)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {vehicleProgress.map((vehicle) => (
+                <div key={vehicle.make} className="p-4 border rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{vehicle.make}</h3>
+                    <Badge variant={vehicle.completed ? "default" : "secondary"}>
+                      {vehicle.completed ? "Complete" : "Collecting"}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Total Records:</span>
+                      <span className="font-medium">{vehicle.totalRecords.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Copart:</span>
+                      <span className="text-blue-600">{vehicle.copartRecords.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">IAAI:</span>
+                      <span className="text-green-600">{vehicle.iaaiRecords.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ 
+                        width: vehicle.completed ? '100%' : 
+                               vehicle.totalRecords > 0 ? '75%' : '25%'
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>

@@ -73,4 +73,47 @@ export function registerDataCollectionRoutes(app: Express) {
       });
     }
   });
+
+  // Get vehicle progress summary
+  app.get('/api/admin/data-collection/vehicle-progress', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const vehicleProgress = await dataCollectionService.getVehicleProgress();
+      res.json({
+        success: true,
+        data: vehicleProgress
+      });
+    } catch (error: any) {
+      console.error('Error getting vehicle progress:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get vehicle progress'
+      });
+    }
+  });
+
+  // Start collection for specific make
+  app.post('/api/admin/data-collection/start-make', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { make } = req.body;
+      if (!make) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vehicle make is required'
+        });
+      }
+
+      const result = await dataCollectionService.startMakeCollection(make);
+      res.json({
+        success: true,
+        message: `Started collecting ${make} vehicles`,
+        data: result
+      });
+    } catch (error: any) {
+      console.error('Error starting make collection:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to start make collection'
+      });
+    }
+  });
 }
