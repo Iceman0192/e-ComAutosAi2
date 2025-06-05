@@ -97,7 +97,8 @@ export function setupSimpleAuth(app: Express) {
       // Set session cookie
       res.cookie('sessionId', sessionId, { 
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Allow HTTP in development
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       });
 
@@ -190,7 +191,8 @@ export function setupSimpleAuth(app: Express) {
       // Set session cookie
       res.cookie('sessionId', sessionId, { 
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Allow HTTP in development
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
       });
       
