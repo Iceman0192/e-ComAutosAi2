@@ -356,7 +356,7 @@ class VehicleAuctionApp {
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
-          this.user = result.user;
+          this.user = result.data.user;
           this.render();
         } else {
           alert('Login failed: ' + result.message);
