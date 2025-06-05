@@ -164,6 +164,7 @@ export class DataCollectionService {
         const response = await fetch(`https://api.apicar.store/api/history-cars?${params.toString()}`, {
           headers: {
             'Accept': 'application/json',
+            'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
             'User-Agent': 'e-ComAutos Data Collection Service'
           }
         });
@@ -221,6 +222,7 @@ export class DataCollectionService {
           const response = await fetch(`https://api.apicar.store/api/history-cars?${params.toString()}`, {
             headers: {
               'Accept': 'application/json',
+              'Authorization': `Bearer ${process.env.APICAR_API_KEY}`,
               'User-Agent': 'e-ComAutos Data Collection Service'
             }
           });
