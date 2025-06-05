@@ -123,18 +123,28 @@ export default function MarketDashboard() {
   // Analysis mutations
   const standardAnalysisMutation = useMutation({
     mutationFn: async (filters: AnalysisFilters) => {
+      console.log('Sending analysis request with filters:', filters);
       const response = await fetch('/api/opportunities/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(filters)
+        body: JSON.stringify({ filters })
       });
-      return response.json();
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Analysis response:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Analysis successful:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/ai/history'] });
       setIsAnalyzing(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Analysis failed:', error);
       setIsAnalyzing(false);
     }
   });
