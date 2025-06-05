@@ -120,6 +120,13 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            onClick={() => window.location.href = '/admin/data-collection'}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Activity className="h-4 w-4 mr-2" />
+            Data Collection
+          </Button>
           <Button variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export Report
