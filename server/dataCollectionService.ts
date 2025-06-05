@@ -16,7 +16,7 @@ export class DataCollectionService {
   private isRunning = false;
   private collectionQueue: CollectionJob[] = [];
   private readonly BATCH_SIZE = 50;
-  private readonly MAX_PAGES_PER_JOB = 100;
+  private readonly MAX_PAGES_PER_JOB = 1000; // Increased to exhaust all pages
   private readonly COLLECTION_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
   constructor() {
@@ -161,62 +161,62 @@ export class DataCollectionService {
             params.append('model', job.model);
           }
 
-        const response = await fetch(`${baseUrl}?${params.toString()}`, {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'e-ComAutos Data Collection Service'
+          const response = await fetch(`${baseUrl}?${params.toString()}`, {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'e-ComAutos Data Collection Service'
+            }
+          });
+
+          if (!response.ok) {
+            console.error(`Internal API request failed with status ${response.status}`);
+            hasMoreData = false;
+            break;
           }
-        });
 
-        if (!response.ok) {
-          console.error(`Internal API request failed with status ${response.status}`);
-          // Try to get some fresh data from existing database for this make
-          const existingRecords = await this.getExistingRecordsFromDB(job, page);
-          if (existingRecords.length > 0) {
-            console.log(`Found ${existingRecords.length} existing records for ${job.make} on page ${page}`);
-            totalCollected += existingRecords.length;
+          const data = await response.json();
+          
+          if (!data.success || !data.data) {
+            console.log(`No more data available from ${site === 1 ? 'Copart' : 'IAAI'} API for ${job.make}`);
+            hasMoreData = false;
+            break;
           }
-          break;
-        }
 
-        const data = await response.json();
-        
-        if (!data.success || !data.data) {
-          console.log('No more data available from API');
-          break;
-        }
+          // Handle different response structures
+          let records = [];
+          if (data.data.salesHistory) {
+            records = data.data.salesHistory;
+          } else if (Array.isArray(data.data)) {
+            records = data.data;
+          } else {
+            console.log('Unexpected data structure:', Object.keys(data.data));
+            hasMoreData = false;
+            break;
+          }
 
-        // Handle different response structures
-        let records = [];
-        if (data.data.salesHistory) {
-          records = data.data.salesHistory;
-        } else if (Array.isArray(data.data)) {
-          records = data.data;
-        } else {
-          console.log('Unexpected data structure:', Object.keys(data.data));
-          break;
-        }
+          if (!records || records.length === 0) {
+            console.log(`Page ${page}: No more records for ${job.make} from ${site === 1 ? 'Copart' : 'IAAI'}`);
+            hasMoreData = false;
+            break;
+          }
 
-        if (!records || records.length === 0) {
-          hasMoreData = false;
-          break;
-        }
+          console.log(`Page ${page}: found ${records.length} records for ${job.make} ${job.model || ''} from ${site === 1 ? 'Copart' : 'IAAI'}`);
+          totalCollected += records.length;
 
-        console.log(`Page ${page}: found ${records.length} records for ${job.make} ${job.model || ''}`);
-        totalCollected += records.length;
-
-        // Check if we have fewer records than requested (indicates last page)
-        if (records.length < this.BATCH_SIZE) {
-          hasMoreData = false;
-        }
+          // Check if we have fewer records than requested (indicates last page)
+          if (records.length < 25) { // Using 25 as the API returns 25 per page
+            console.log(`Last page reached for ${job.make} from ${site === 1 ? 'Copart' : 'IAAI'} (${records.length} records)`);
+            hasMoreData = false;
+          }
 
           page++;
 
           // Rate limiting - wait between requests
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 3000));
 
         } catch (error) {
           console.error(`Error fetching page ${page}:`, error);
+          hasMoreData = false;
           break;
         }
       }
