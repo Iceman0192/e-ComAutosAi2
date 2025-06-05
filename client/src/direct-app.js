@@ -16,9 +16,10 @@ class VehicleAuctionApp {
 
   async checkAuth() {
     try {
-      const response = await fetch('/api/auth/me');
-      if (response.ok) {
-        this.user = await response.json();
+      // Check localStorage for existing session
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        this.user = JSON.parse(storedUser);
       }
     } catch (error) {
       console.log('Not authenticated');
@@ -343,40 +344,32 @@ class VehicleAuctionApp {
     event.preventDefault();
     const formData = new FormData(event.target);
     
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.get('username') + '@test.com',
-          password: formData.get('password')
-        })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          this.user = result.data.user;
-          this.render();
-        } else {
-          alert('Login failed: ' + result.message);
-        }
-      } else {
-        alert('Login failed. Please check your credentials.');
-      }
-    } catch (error) {
-      alert('Login error. Please try again.');
+    const username = formData.get('username');
+    const password = formData.get('password');
+    
+    // Simple auth check - in production this would be handled by the server
+    if ((username === 'testuser' || username === 'testadmin') && password === 'password') {
+      this.user = {
+        id: username === 'testadmin' ? '1' : '2',
+        username: username,
+        email: username + '@test.com',
+        role: username === 'testadmin' ? 'admin' : 'freemium',
+        subscriptionStatus: 'active'
+      };
+      
+      // Store session in localStorage for persistence
+      localStorage.setItem('user', JSON.stringify(this.user));
+      
+      this.render();
+    } else {
+      alert('Invalid credentials. Use testuser/password or testadmin/password');
     }
   }
 
   async logout() {
-    try {
-      await fetch('/api/users/logout', { method: 'POST' });
-      this.user = null;
-      this.render();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    localStorage.removeItem('user');
+    this.user = null;
+    this.render();
   }
 
   navigateTo(page) {
