@@ -227,7 +227,7 @@ export default function AuthPage() {
               </h1>
               
               <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                Join thousands of successful dealers who use our AI-powered platform to maximize profits 
+                Join thousands of successful buyers, dealers, and exporters who use our AI-powered platform to maximize profits 
                 and dominate global auction markets.
               </p>
 
@@ -429,10 +429,76 @@ export default function AuthPage() {
                     </div>
                   </div>
 
-                  {authMode === 'trial' && (
-                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+                  {authMode === 'trial' && selectedPlan !== 'free' && (
+                    <>
+                      <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {plans[selectedPlan].name} Plan Features:
+                        </h4>
+                        <div className="space-y-1">
+                          {plans[selectedPlan].features.slice(0, 3).map((feature, index) => (
+                            <div key={index} className="flex items-center space-x-2">
+                              <CheckCircle className="h-4 w-4 text-amber-600" />
+                              <span className="text-sm text-gray-600 dark:text-gray-300">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <Label className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Payment Information
+                        </Label>
+                        <div className="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="cardNumber">Card Number</Label>
+                              <Input
+                                id="cardNumber"
+                                placeholder="1234 5678 9012 3456"
+                                value={formData.cardNumber || ''}
+                                onChange={(e) => handleInputChange('cardNumber', e.target.value)}
+                                className="font-mono"
+                                required
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="expiry">Expiry Date</Label>
+                                <Input
+                                  id="expiry"
+                                  placeholder="MM/YY"
+                                  value={formData.expiry || ''}
+                                  onChange={(e) => handleInputChange('expiry', e.target.value)}
+                                  className="font-mono"
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="cvc">CVC</Label>
+                                <Input
+                                  id="cvc"
+                                  placeholder="123"
+                                  value={formData.cvc || ''}
+                                  onChange={(e) => handleInputChange('cvc', e.target.value)}
+                                  className="font-mono"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                          Secure payment powered by Stripe. Your card will be charged ${plans[selectedPlan].price} after the 7-day trial period.
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {authMode === 'trial' && selectedPlan === 'free' && (
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
                       <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                        {plans[selectedPlan].name} Plan Features:
+                        Free Plan Features:
                       </h4>
                       <div className="space-y-1">
                         {plans[selectedPlan].features.slice(0, 3).map((feature, index) => (
