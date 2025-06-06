@@ -5,13 +5,26 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Car, Check, ArrowRight, Shield, Globe, Zap, Eye, EyeOff, CreditCard, Home } from 'lucide-react';
+import { EcomautosLogo } from '@/components/ui/ecomautos-logo';
+import { 
+  ArrowRight, 
+  Shield, 
+  Globe, 
+  Eye, 
+  EyeOff, 
+  CreditCard, 
+  Home,
+  Star,
+  Sparkles,
+  Brain,
+  BarChart3,
+  CheckCircle
+} from 'lucide-react';
 import { useLocation } from 'wouter';
-import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum'>('gold');
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum' | 'enterprise'>('gold');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,92 +40,146 @@ export default function AuthPage() {
     basic: { 
       name: 'Basic', 
       price: 19, 
+      originalPrice: 49,
+      description: 'Essential features for small traders',
       features: [
         '100 daily searches',
         '50 VIN lookups per month', 
         '200 data exports per month',
-        'Advanced search filters',
-        'Email support'
-      ] 
+        'Basic search filters',
+        'Email support',
+        'Mobile app access'
+      ],
+      highlight: false
     },
     gold: { 
       name: 'Gold', 
       price: 39, 
+      originalPrice: 89,
+      description: 'Most popular for serious traders',
       features: [
         '500 daily searches',
         '200 VIN lookups per month',
         '1000 data exports per month', 
+        'Advanced search filters',
         'Cross-platform search',
-        'Advanced analytics',
-        'Priority support'
-      ] 
+        'Priority support',
+        'API access',
+        'Advanced analytics'
+      ],
+      highlight: true
     },
     platinum: { 
       name: 'Platinum', 
       price: 79, 
+      originalPrice: 149,
+      description: 'Premium features for professionals',
+      features: [
+        '2000 daily searches',
+        '500 VIN lookups per month',
+        '5000 data exports per month',
+        'Premium analytics',
+        'Custom reports',
+        'Priority support',
+        'API access',
+        'Advanced integrations'
+      ],
+      highlight: false
+    },
+    enterprise: { 
+      name: 'Enterprise', 
+      price: 199, 
+      originalPrice: 399,
+      description: 'Unlimited access for large operations',
       features: [
         'Unlimited searches',
         'Unlimited VIN lookups',
-        'Unlimited exports',
-        'API access',
-        'Custom reports',
-        'White-label options'
-      ] 
+        'Unlimited data exports',
+        'White-label options',
+        'Dedicated support',
+        'Custom integrations',
+        'Team collaboration',
+        'Enterprise security'
+      ],
+      highlight: false
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const benefits = [
+    {
+      icon: Brain,
+      title: "AI-Powered Intelligence",
+      description: "Advanced algorithms analyze market trends in real-time"
+    },
+    {
+      icon: BarChart3,
+      title: "Comprehensive Analytics",
+      description: "Deep insights into vehicle auction markets worldwide"
+    },
+    {
+      icon: Shield,
+      title: "Enterprise Security",
+      description: "Bank-level encryption and data protection"
+    },
+    {
+      icon: Globe,
+      title: "Global Coverage",
+      description: "Access to 50+ international auction platforms"
+    }
+  ];
 
-  const handleTrialSuccess = () => {
-    setLocation('/');
-  };
+  const testimonials = [
+    {
+      name: "Marcus Chen",
+      role: "International Dealer",
+      content: "Increased our profit margins by 40% in just 3 months. The AI insights are incredible.",
+      rating: 5
+    }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // For trial signup, redirect to trial flow
-    if (authMode === 'trial') {
-      return; // Trial form is handled separately
-    }
-
     setIsLoading(true);
 
     try {
       const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const payload = authMode === 'login' 
+        ? { email: formData.email, password: formData.password }
+        : { 
+            email: formData.email, 
+            password: formData.password, 
+            username: formData.username,
+            name: formData.name,
+            subscriptionPlan: authMode === 'trial' ? selectedPlan : 'freemium'
+          };
+
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        credentials: 'include'
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok) {
         toast({
-          title: "Login Successful",
-          description: data.message,
+          title: authMode === 'login' ? "Welcome back!" : "Account created successfully!",
+          description: authMode === 'login' ? "You've been logged in." : "Welcome to ECOMAUTOS",
         });
         
-        window.location.href = '/';
+        if (authMode === 'trial') {
+          setLocation('/checkout');
+        } else {
+          window.location.reload();
+        }
       } else {
-        toast({
-          title: "Authentication Failed",
-          description: data.message,
-          variant: "destructive",
-        });
+        throw new Error(data.message || 'Authentication failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Authentication Error",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -120,345 +187,357 @@ export default function AuthPage() {
     }
   };
 
-  const renderTrialFlow = () => (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-center">Choose Your Plan</h3>
-        <div className="grid gap-4">
-          {Object.entries(plans).map(([key, plan]) => (
-            <div 
-              key={key}
-              className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                selectedPlan === key 
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-              }`}
-              onClick={() => setSelectedPlan(key as any)}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold">{plan.name}</h4>
-                    {key === 'gold' && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Most Popular
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-2xl font-bold text-blue-600">${plan.price}/month</p>
-                  <ul className="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <Check className="h-3 w-3 text-green-500" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className={`w-4 h-4 rounded-full border-2 ${
-                  selectedPlan === key 
-                    ? 'border-blue-500 bg-blue-500' 
-                    : 'border-gray-300'
-                }`}>
-                  {selectedPlan === key && (
-                    <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-        <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-          <Check className="h-5 w-5" />
-          <span className="font-semibold">7-Day Free Trial</span>
-        </div>
-        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-          Trial {plans[selectedPlan].name} plan free for 7 days, then ${plans[selectedPlan].price}/month. Cancel anytime.
-        </p>
-      </div>
-
-      <StripeWrapper onSuccess={handleTrialSuccess} />
-    </div>
-  );
-
-  const renderAuthForm = () => (
-    <div className="space-y-6">
-      {authMode === 'signup' && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <div className="flex items-center space-x-2 text-blue-800 dark:text-blue-200">
-            <Check className="h-5 w-5" />
-            <span className="font-semibold">Free Account - Limited Access</span>
-          </div>
-          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-            Basic search features only. Upgrade anytime for full access.
-          </p>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {authMode === 'signup' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Choose a username"
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </>
-        )}
-        
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </div>
-
-        <Button 
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
-          size="lg"
-        >
-          {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Create Free Account')}
-          {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
-        </Button>
-      </form>
-
-      <div className="text-center space-y-2">
-        {authMode === 'login' && (
-          <>
-            <button
-              onClick={() => setAuthMode('signup')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
-            >
-              New user? Create free account
-            </button>
-            <button
-              onClick={() => setAuthMode('trial')}
-              className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center justify-center mx-auto"
-            >
-              <CreditCard className="mr-1 h-4 w-4" />
-              Start premium trial instead
-            </button>
-          </>
-        )}
-        
-        {authMode === 'signup' && (
-          <>
-            <button
-              onClick={() => setAuthMode('login')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
-            >
-              Already have an account? Sign in
-            </button>
-            <button
-              onClick={() => setAuthMode('trial')}
-              className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center justify-center mx-auto"
-            >
-              <CreditCard className="mr-1 h-4 w-4" />
-              Want premium trial instead?
-            </button>
-          </>
-        )}
-        
-        {authMode === 'trial' && (
-          <>
-            <button
-              onClick={() => setAuthMode('login')}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
-            >
-              Already have an account? Sign in
-            </button>
-            <button
-              onClick={() => setAuthMode('signup')}
-              className="text-gray-600 hover:text-gray-700 text-sm font-medium block mx-auto"
-            >
-              Prefer free account instead?
-            </button>
-          </>
-        )}
-      </div>
-
-      <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-        By continuing, you agree to our Terms of Service and Privacy Policy
-      </div>
-    </div>
-  );
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <header className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Car className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">e-ComAutos</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLocation('/')}
-              className="flex items-center space-x-2"
-            >
-              <Home className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Button>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Click. Win. Export.
-            </Badge>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+      {/* Navigation Bar */}
+      <nav className="border-b border-white/20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <EcomautosLogo size="md" />
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => setLocation('/')}
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </div>
           </div>
         </div>
-      </header>
+      </nav>
 
-      <div className="container mx-auto px-4 py-12 max-w-6xl">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        {/* Left Side - Hero Content */}
+        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"7\" cy=\"7\" r=\"7\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+          
+          <div className="relative z-10 flex flex-col justify-center px-12 py-20 text-white">
+            <div className="max-w-lg">
+              <Badge className="bg-white/20 text-white border-white/30 mb-6 px-4 py-2">
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI-Powered Platform
+              </Badge>
+              
+              <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
                 Welcome to the Future of
-                <span className="text-blue-600 block">Vehicle Auctions</span>
+                <span className="block text-yellow-300">Vehicle Intelligence</span>
               </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
-                Join thousands who use e-ComAutos to Click. Win. Export vehicles worldwide.
+              
+              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                Join thousands of successful dealers who use our AI-powered platform to maximize profits 
+                and dominate global auction markets.
               </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-yellow-300">136,997+</div>
+                  <div className="text-sm text-blue-100">Auction Records</div>
+                </div>
+                <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+                  <div className="text-2xl font-bold text-yellow-300">50+</div>
+                  <div className="text-sm text-blue-100">Countries Served</div>
+                </div>
+              </div>
+
+              {/* Benefits */}
+              <div className="space-y-4">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="flex items-start space-x-3">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <benefit.icon className="h-5 w-5 text-yellow-300" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white">{benefit.title}</h4>
+                      <p className="text-blue-100 text-sm">{benefit.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Testimonial */}
+              <div className="mt-12 p-6 bg-white/10 rounded-xl backdrop-blur-sm">
+                <div className="flex mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-yellow-300 fill-current" />
+                  ))}
+                </div>
+                <p className="text-blue-100 italic mb-3">
+                  "{testimonials[0].content}"
+                </p>
+                <div className="text-white font-semibold">{testimonials[0].name}</div>
+                <div className="text-blue-200 text-sm">{testimonials[0].role}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side - Auth Forms */}
+        <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-8">
+          <div className="w-full max-w-md space-y-8">
+            {/* Logo for mobile */}
+            <div className="lg:hidden text-center mb-8">
+              <EcomautosLogo size="lg" className="justify-center mx-auto" />
             </div>
 
-            <Card className="shadow-2xl border-0">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">
-                  {authMode === 'login' ? 'Sign In to e-ComAutos' : 
-                   authMode === 'trial' ? 'Start Your Premium Trial' :
-                   'Create Free Account'}
+            {/* Auth Mode Selector */}
+            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+              <button
+                onClick={() => setAuthMode('login')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                  authMode === 'login'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => setAuthMode('signup')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                  authMode === 'signup'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Free Signup
+              </button>
+              <button
+                onClick={() => setAuthMode('trial')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                  authMode === 'trial'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Start Trial
+              </button>
+            </div>
+
+            {/* Auth Form */}
+            <Card className="border-0 shadow-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl">
+              <CardHeader className="text-center space-y-2 pb-6">
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {authMode === 'login' && 'Welcome Back'}
+                  {authMode === 'signup' && 'Start Free Today'}
+                  {authMode === 'trial' && 'Start Your 7-Day Trial'}
                 </CardTitle>
-                <CardDescription>
-                  {authMode === 'login' 
-                    ? 'Access your vehicle auction dashboard' 
-                    : authMode === 'trial'
-                    ? `7 days free, then $${plans[selectedPlan].price}/month. Card required but not charged during trial.`
-                    : 'Free access with basic search features. Upgrade anytime for full functionality.'
-                  }
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  {authMode === 'login' && 'Sign in to access your dashboard'}
+                  {authMode === 'signup' && 'Join thousands of successful dealers'}
+                  {authMode === 'trial' && 'Access premium features with no commitment'}
                 </CardDescription>
               </CardHeader>
+
               <CardContent className="space-y-6">
-                {authMode === 'trial' ? renderTrialFlow() : renderAuthForm()}
+                {/* Plan Selection for Trial */}
+                {authMode === 'trial' && (
+                  <div className="space-y-4">
+                    <Label className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Choose Your Plan
+                    </Label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {Object.entries(plans).map(([key, plan]) => (
+                        <div
+                          key={key}
+                          onClick={() => setSelectedPlan(key as any)}
+                          className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                            selectedPlan === key
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                          } ${plan.highlight ? 'ring-2 ring-purple-500 ring-opacity-50' : ''}`}
+                        >
+                          {plan.highlight && (
+                            <Badge className="absolute -top-2 left-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                              Most Popular
+                            </Badge>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 dark:text-white">{plan.name}</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">{plan.description}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-2xl font-bold text-gray-900 dark:text-white">${plan.price}</span>
+                                <span className="text-sm text-gray-500 line-through">${plan.originalPrice}</span>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-300">/month</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Auth Form */}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {authMode !== 'login' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            placeholder="Enter your name"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="username">Username</Label>
+                          <Input
+                            id="username"
+                            value={formData.username}
+                            onChange={(e) => handleInputChange('username', e.target.value)}
+                            placeholder="Choose username"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        placeholder="Enter your password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Features Preview for Trial */}
+                  {authMode === 'trial' && (
+                    <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                        {plans[selectedPlan].name} Plan Features:
+                      </h4>
+                      <div className="space-y-1">
+                        {plans[selectedPlan].features.slice(0, 3).map((feature, index) => (
+                          <div key={index} className="flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <span className="text-sm text-gray-600 dark:text-gray-300">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300"
+                    size="lg"
+                  >
+                    {isLoading ? 'Processing...' : (
+                      <>
+                        {authMode === 'trial' ? (
+                          <>
+                            <CreditCard className="mr-2 h-5 w-5" />
+                            Start 7-Day Trial - ${plans[selectedPlan].price}/mo
+                          </>
+                        ) : (
+                          <>
+                            {authMode === 'login' ? 'Sign In' : 'Create Free Account'}
+                            <ArrowRight className="ml-2 h-5 w-5" />
+                          </>
+                        )}
+                      </>
+                    )}
+                  </Button>
+                </form>
+
+                {/* Footer */}
+                <div className="text-center space-y-4">
+                  {authMode !== 'login' && (
+                    <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>No credit card required</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Cancel anytime</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {authMode === 'login' ? (
+                      <>
+                        Don't have an account?{' '}
+                        <button
+                          onClick={() => setAuthMode('signup')}
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                        >
+                          Sign up free
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        Already have an account?{' '}
+                        <button
+                          onClick={() => setAuthMode('login')}
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                        >
+                          Sign in
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      By continuing, you agree to our{' '}
+                      <a href="/company/terms" className="text-blue-600 dark:text-blue-400 hover:underline">
+                        Terms of Service
+                      </a>{' '}
+                      and{' '}
+                      <a href="/company/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
+                        Privacy Policy
+                      </a>
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
-
-          <div className="space-y-8">
-            <div className="text-center lg:text-left">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Why Choose e-ComAutos?
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300">
-                The most comprehensive vehicle auction platform designed for modern buyers.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-lg">
-                  <Globe className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    Global Access
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Access auction data from Copart and IAAI with real-time updates and comprehensive vehicle histories.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-green-100 dark:bg-green-900/30 p-3 rounded-lg">
-                  <Zap className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    AI-Powered Analysis
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Get intelligent insights with our advanced AI analysis of vehicle conditions, market trends, and investment opportunities.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-3 rounded-lg">
-                  <Shield className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    Secure & Reliable
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Bank-level security with 99.9% uptime. Your data and transactions are always protected.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-2">Ready to get started?</h3>
-              <p className="mb-4">
-                Join over 10,000+ dealers and exporters who trust e-ComAutos for their vehicle sourcing needs.
-              </p>
-              <div className="flex items-center space-x-2 text-sm">
-                <Check className="h-4 w-4" />
-                <span>Cancel anytime during trial</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
