@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Car, Check, ArrowRight, Shield, Globe, Zap, Eye, EyeOff, CreditCard } from 'lucide-react';
+import { Car, Check, ArrowRight, Shield, Globe, Zap, Eye, EyeOff, CreditCard, Home } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { StripeWrapper } from '@/components/StripeWrapper';
 
@@ -343,9 +343,20 @@ export default function AuthPage() {
             <Car className="h-8 w-8 text-blue-600" />
             <span className="text-2xl font-bold text-gray-900 dark:text-white">e-ComAutos</span>
           </div>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Click. Win. Export.
-          </Badge>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation('/')}
+              className="flex items-center space-x-2"
+            >
+              <Home className="h-4 w-4" />
+              <span>Back to Home</span>
+            </Button>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              Click. Win. Export.
+            </Badge>
+          </div>
         </div>
       </header>
 
