@@ -21,6 +21,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
@@ -38,6 +39,7 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { login } = useAuth();
 
   const plans = {
     free: {
@@ -150,39 +152,51 @@ export default function AuthPage() {
     setIsLoading(true);
 
     try {
-      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const payload = authMode === 'login' 
-        ? { email: formData.email, password: formData.password }
-        : { 
-            email: formData.email, 
-            password: formData.password, 
-            username: formData.username,
-            name: formData.name,
-            subscriptionPlan: authMode === 'trial' ? selectedPlan : 'free'
-          };
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      if (authMode === 'login') {
+        // Use AuthContext login for proper state management
+        await login(formData.email, formData.password);
+        
         toast({
-          title: authMode === 'login' ? "Welcome back!" : "Account created successfully!",
-          description: authMode === 'login' ? "You've been logged in." : "Welcome to ECOMAUTOS",
+          title: "Welcome back!",
+          description: "You've been logged in.",
         });
         
-        if (authMode === 'trial') {
-          setLocation('/checkout');
-        } else {
-          window.location.reload();
-        }
+        // Redirect to dashboard after successful login
+        setLocation('/dashboard');
       } else {
-        throw new Error(data.message || 'Authentication failed');
+        // Handle signup/registration
+        const endpoint = '/api/auth/register';
+        const payload = { 
+          email: formData.email, 
+          password: formData.password, 
+          username: formData.username,
+          name: formData.name,
+          subscriptionPlan: authMode === 'trial' ? selectedPlan : 'free'
+        };
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          toast({
+            title: "Account created successfully!",
+            description: "Welcome to ECOMAUTOS",
+          });
+          
+          if (authMode === 'trial') {
+            setLocation('/checkout');
+          } else {
+            setLocation('/dashboard');
+          }
+        } else {
+          throw new Error(data.message || 'Registration failed');
+        }
       }
     } catch (error: any) {
       toast({
