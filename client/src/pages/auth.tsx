@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Car, Check, ArrowRight, Shield, Globe, Zap, Eye, EyeOff } from 'lucide-react';
+import { Car, Check, ArrowRight, Shield, Globe, Zap, Eye, EyeOff, CreditCard } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
