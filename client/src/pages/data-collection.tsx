@@ -255,9 +255,19 @@ export default function DataCollectionPage() {
                   <SelectValue placeholder="Select vehicle make..." />
                 </SelectTrigger>
                 <SelectContent>
+                  {/* Priority 1: Luxury and Premium brands */}
                   <SelectItem value="BMW">BMW</SelectItem>
                   <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
                   <SelectItem value="Audi">Audi</SelectItem>
+                  <SelectItem value="Lexus">Lexus</SelectItem>
+                  <SelectItem value="Tesla">Tesla</SelectItem>
+                  <SelectItem value="Acura">Acura</SelectItem>
+                  <SelectItem value="Infiniti">Infiniti</SelectItem>
+                  <SelectItem value="Cadillac">Cadillac</SelectItem>
+                  <SelectItem value="Lincoln">Lincoln</SelectItem>
+                  <SelectItem value="Genesis">Genesis</SelectItem>
+                  
+                  {/* Priority 2: Major mainstream manufacturers */}
                   <SelectItem value="Toyota">Toyota</SelectItem>
                   <SelectItem value="Honda">Honda</SelectItem>
                   <SelectItem value="Ford">Ford</SelectItem>
@@ -268,6 +278,77 @@ export default function DataCollectionPage() {
                   <SelectItem value="Volkswagen">Volkswagen</SelectItem>
                   <SelectItem value="Subaru">Subaru</SelectItem>
                   <SelectItem value="Mazda">Mazda</SelectItem>
+                  
+                  {/* Priority 3: American brands and popular imports */}
+                  <SelectItem value="Jeep">Jeep</SelectItem>
+                  <SelectItem value="Ram">Ram</SelectItem>
+                  <SelectItem value="Dodge">Dodge</SelectItem>
+                  <SelectItem value="Chrysler">Chrysler</SelectItem>
+                  <SelectItem value="GMC">GMC</SelectItem>
+                  <SelectItem value="Buick">Buick</SelectItem>
+                  <SelectItem value="Volvo">Volvo</SelectItem>
+                  <SelectItem value="Mitsubishi">Mitsubishi</SelectItem>
+                  <SelectItem value="Land Rover">Land Rover</SelectItem>
+                  <SelectItem value="Jaguar">Jaguar</SelectItem>
+                  
+                  {/* Priority 4: Luxury and exotic brands */}
+                  <SelectItem value="Porsche">Porsche</SelectItem>
+                  <SelectItem value="Ferrari">Ferrari</SelectItem>
+                  <SelectItem value="Lamborghini">Lamborghini</SelectItem>
+                  <SelectItem value="Maserati">Maserati</SelectItem>
+                  <SelectItem value="Bentley">Bentley</SelectItem>
+                  <SelectItem value="Rolls-Royce">Rolls-Royce</SelectItem>
+                  <SelectItem value="Aston Martin">Aston Martin</SelectItem>
+                  <SelectItem value="McLaren">McLaren</SelectItem>
+                  <SelectItem value="Alfa Romeo">Alfa Romeo</SelectItem>
+                  
+                  {/* Priority 5: Additional manufacturers */}
+                  <SelectItem value="Mini">Mini</SelectItem>
+                  <SelectItem value="Smart">Smart</SelectItem>
+                  <SelectItem value="Fiat">Fiat</SelectItem>
+                  <SelectItem value="Scion">Scion</SelectItem>
+                  <SelectItem value="Saab">Saab</SelectItem>
+                  <SelectItem value="Suzuki">Suzuki</SelectItem>
+                  <SelectItem value="Isuzu">Isuzu</SelectItem>
+                  <SelectItem value="Hummer">Hummer</SelectItem>
+                  <SelectItem value="Pontiac">Pontiac</SelectItem>
+                  <SelectItem value="Saturn">Saturn</SelectItem>
+                  <SelectItem value="Mercury">Mercury</SelectItem>
+                  
+                  {/* Priority 6: Commercial vehicles */}
+                  <SelectItem value="Freightliner">Freightliner</SelectItem>
+                  <SelectItem value="Peterbilt">Peterbilt</SelectItem>
+                  <SelectItem value="Kenworth">Kenworth</SelectItem>
+                  <SelectItem value="Mack">Mack</SelectItem>
+                  <SelectItem value="International">International</SelectItem>
+                  <SelectItem value="Western Star">Western Star</SelectItem>
+                  <SelectItem value="Volvo Trucks">Volvo Trucks</SelectItem>
+                  
+                  {/* Priority 7: Electric and emerging brands */}
+                  <SelectItem value="Rivian">Rivian</SelectItem>
+                  <SelectItem value="Lucid">Lucid</SelectItem>
+                  <SelectItem value="Polestar">Polestar</SelectItem>
+                  <SelectItem value="Fisker">Fisker</SelectItem>
+                  <SelectItem value="Canoo">Canoo</SelectItem>
+                  <SelectItem value="VinFast">VinFast</SelectItem>
+                  
+                  {/* Priority 8: Motorcycles */}
+                  <SelectItem value="Harley-Davidson">Harley-Davidson</SelectItem>
+                  <SelectItem value="Indian">Indian</SelectItem>
+                  <SelectItem value="Can-Am">Can-Am</SelectItem>
+                  <SelectItem value="Polaris">Polaris</SelectItem>
+                  <SelectItem value="Victory">Victory</SelectItem>
+                  
+                  {/* Priority 9: RVs */}
+                  <SelectItem value="Winnebago">Winnebago</SelectItem>
+                  <SelectItem value="Thor">Thor</SelectItem>
+                  <SelectItem value="Forest River">Forest River</SelectItem>
+                  <SelectItem value="Keystone">Keystone</SelectItem>
+                  <SelectItem value="Jayco">Jayco</SelectItem>
+                  
+                  {/* Other */}
+                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="Unknown">Unknown</SelectItem>
                 </SelectContent>
               </Select>
             </div>

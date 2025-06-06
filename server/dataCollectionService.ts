@@ -82,28 +82,102 @@ export class DataCollectionService {
   }
 
   private initializeCollectionQueue() {
-    // Make-based collection (all models per make)
+    // Comprehensive make-based collection (all models per make)
     const makeBasedCollection: Omit<CollectionJob, 'id' | 'lastCollected'>[] = [
-      // Priority 1: Luxury vehicles - all models
+      // Priority 1: Luxury and Premium brands
       { make: 'BMW', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Mercedes-Benz', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Audi', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Lexus', priority: 1, yearFrom: 2012, yearTo: 2025 },
       { make: 'Tesla', priority: 1, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Acura', priority: 1, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Infiniti', priority: 1, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Cadillac', priority: 1, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Lincoln', priority: 1, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Genesis', priority: 1, yearFrom: 2015, yearTo: 2025 },
       
-      // Priority 2: Popular mainstream makes - all models
-      { make: 'Honda', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      // Priority 2: Major mainstream manufacturers
       { make: 'Toyota', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Honda', priority: 2, yearFrom: 2012, yearTo: 2025 },
       { make: 'Ford', priority: 2, yearFrom: 2012, yearTo: 2025 },
       { make: 'Chevrolet', priority: 2, yearFrom: 2012, yearTo: 2025 },
       { make: 'Nissan', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Hyundai', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Kia', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Volkswagen', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Subaru', priority: 2, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Mazda', priority: 2, yearFrom: 2012, yearTo: 2025 },
       
-      // Priority 3: Additional makes - all models
-      { make: 'Hyundai', priority: 3, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Kia', priority: 3, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Volkswagen', priority: 3, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Subaru', priority: 3, yearFrom: 2012, yearTo: 2025 },
-      { make: 'Mazda', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      // Priority 3: American brands and popular imports
+      { make: 'Jeep', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Ram', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Dodge', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Chrysler', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'GMC', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Buick', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Volvo', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Mitsubishi', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Land Rover', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Jaguar', priority: 3, yearFrom: 2012, yearTo: 2025 },
+      
+      // Priority 4: Luxury and exotic brands
+      { make: 'Porsche', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Ferrari', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Lamborghini', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Maserati', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Bentley', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Rolls-Royce', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Aston Martin', priority: 4, yearFrom: 2012, yearTo: 2025 },
+      { make: 'McLaren', priority: 4, yearFrom: 2014, yearTo: 2025 },
+      { make: 'Alfa Romeo', priority: 4, yearFrom: 2014, yearTo: 2025 },
+      
+      // Priority 5: Additional manufacturers and specialty brands
+      { make: 'Mini', priority: 5, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Smart', priority: 5, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Fiat', priority: 5, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Scion', priority: 5, yearFrom: 2012, yearTo: 2016 },
+      { make: 'Saab', priority: 5, yearFrom: 2012, yearTo: 2012 },
+      { make: 'Suzuki', priority: 5, yearFrom: 2012, yearTo: 2013 },
+      { make: 'Isuzu', priority: 5, yearFrom: 2012, yearTo: 2016 },
+      { make: 'Hummer', priority: 5, yearFrom: 2012, yearTo: 2012 },
+      { make: 'Pontiac', priority: 5, yearFrom: 2012, yearTo: 2012 },
+      { make: 'Saturn', priority: 5, yearFrom: 2012, yearTo: 2012 },
+      { make: 'Mercury', priority: 5, yearFrom: 2012, yearTo: 2012 },
+      
+      // Priority 6: Commercial and truck manufacturers
+      { make: 'Freightliner', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Peterbilt', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Kenworth', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Mack', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      { make: 'International', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Western Star', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Volvo Trucks', priority: 6, yearFrom: 2012, yearTo: 2025 },
+      
+      // Priority 7: Electric and emerging brands
+      { make: 'Rivian', priority: 7, yearFrom: 2021, yearTo: 2025 },
+      { make: 'Lucid', priority: 7, yearFrom: 2021, yearTo: 2025 },
+      { make: 'Polestar', priority: 7, yearFrom: 2019, yearTo: 2025 },
+      { make: 'Fisker', priority: 7, yearFrom: 2022, yearTo: 2025 },
+      { make: 'Canoo', priority: 7, yearFrom: 2023, yearTo: 2025 },
+      { make: 'VinFast', priority: 7, yearFrom: 2022, yearTo: 2025 },
+      
+      // Priority 8: Motorcycles and specialty vehicles
+      { make: 'Harley-Davidson', priority: 8, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Indian', priority: 8, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Can-Am', priority: 8, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Polaris', priority: 8, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Victory', priority: 8, yearFrom: 2012, yearTo: 2017 },
+      
+      // Priority 9: RVs and recreational vehicles
+      { make: 'Winnebago', priority: 9, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Thor', priority: 9, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Forest River', priority: 9, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Keystone', priority: 9, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Jayco', priority: 9, yearFrom: 2012, yearTo: 2025 },
+      
+      // Priority 10: Other and miscellaneous manufacturers
+      { make: 'Other', priority: 10, yearFrom: 2012, yearTo: 2025 },
+      { make: 'Unknown', priority: 10, yearFrom: 2012, yearTo: 2025 },
     ];
 
     this.collectionQueue = makeBasedCollection.map((job, index) => ({
