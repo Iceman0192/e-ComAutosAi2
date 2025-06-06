@@ -21,7 +21,7 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     xl: 'text-4xl'
   };
 
-  // High-quality SVG recreation of your authentic ECOMAUTOS logo
+  // Exact recreation of your authentic ECOMAUTOS logo
   const LogoSvg = () => (
     <div className={`flex items-center ${className}`}>
       <svg 
@@ -30,69 +30,123 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
         style={{ maxWidth: size === 'sm' ? '140px' : size === 'md' ? '180px' : size === 'lg' ? '240px' : '300px' }}
       >
         <defs>
-          <linearGradient id="silverCarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#E2E8F0" />
-            <stop offset="50%" stopColor="#F8FAFC" />
+          <linearGradient id="silverCarBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F1F5F9" />
+            <stop offset="50%" stopColor="#E2E8F0" />
             <stop offset="100%" stopColor="#CBD5E1" />
           </linearGradient>
-          <linearGradient id="goldCarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#FEF3C7" />
-            <stop offset="30%" stopColor="#FACC15" />
-            <stop offset="70%" stopColor="#F59E0B" />
+          <linearGradient id="goldCarBody" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FBBF24" />
+            <stop offset="50%" stopColor="#F59E0B" />
             <stop offset="100%" stopColor="#D97706" />
           </linearGradient>
-          <linearGradient id="orangeAccentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="orangeStripe" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#FB923C" />
-            <stop offset="50%" stopColor="#F97316" />
             <stop offset="100%" stopColor="#EA580C" />
           </linearGradient>
         </defs>
         
-        {/* Silver car silhouette - background */}
+        {/* Silver/White Car - Left side, more rounded modern shape */}
         <path 
-          d="M20 70 C15 65 18 58 28 55 C40 50 65 48 95 52 C120 55 140 60 150 70 C155 75 152 82 142 85 C130 88 115 87 100 85 L85 83 C70 80 55 78 40 76 C30 75 22 73 20 70 Z" 
-          fill="url(#silverCarGrad)" 
-          stroke="#CBD5E1" 
-          strokeWidth="1"
-          opacity="0.85"
+          d="M30 75 
+             C25 70 30 60 45 55 
+             C65 50 90 48 115 50 
+             C135 52 150 58 155 70 
+             C158 75 155 80 145 82 
+             C130 85 110 84 95 82 
+             C80 80 65 78 50 77 
+             C40 76 32 75 30 75 Z" 
+          fill="url(#silverCarBody)" 
+          stroke="#D1D5DB" 
+          strokeWidth="1.5"
         />
         
-        {/* Silver car window */}
-        <ellipse cx="65" cy="67" rx="25" ry="8" fill="#1E293B" opacity="0.6" />
-        <ellipse cx="110" cy="67" rx="20" ry="6" fill="#1E293B" opacity="0.6" />
-        
-        {/* Gold car silhouette - foreground */}
+        {/* Silver car windshield */}
         <path 
-          d="M80 60 C75 55 78 48 88 45 C100 40 125 38 155 42 C180 45 200 50 210 60 C215 65 212 72 202 75 C190 78 175 77 160 75 L145 73 C130 70 115 68 100 66 C90 65 82 63 80 60 Z" 
-          fill="url(#goldCarGrad)" 
-          stroke="#F59E0B" 
-          strokeWidth="1"
-          opacity="0.95"
+          d="M45 65 
+             C50 60 65 58 85 60 
+             C100 62 110 65 115 70 
+             C112 72 100 73 85 72 
+             C70 71 55 69 50 67 
+             C47 66 45 65 45 65 Z" 
+          fill="#1F2937" 
+          opacity="0.7"
         />
         
-        {/* Gold car window */}
-        <ellipse cx="125" cy="57" rx="25" ry="8" fill="#1E293B" opacity="0.7" />
-        <ellipse cx="170" cy="57" rx="20" ry="6" fill="#1E293B" opacity="0.7" />
-        
-        {/* Orange accent curve */}
+        {/* Orange accent stripe on silver car */}
         <path 
-          d="M90 55 Q120 50 150 53 Q170 55 185 60" 
+          d="M40 58 C60 55 85 56 110 60" 
           fill="none" 
-          stroke="url(#orangeAccentGrad)" 
+          stroke="url(#orangeStripe)" 
           strokeWidth="3" 
           opacity="0.8"
         />
         
-        {/* Highlight effects */}
-        <ellipse cx="75" cy="62" rx="8" ry="3" fill="#FFFFFF" opacity="0.4" />
-        <ellipse cx="135" cy="52" rx="8" ry="3" fill="#FFFFFF" opacity="0.4" />
+        {/* Gold/Yellow Car - Right side, sleeker profile */}
+        <path 
+          d="M120 65 
+             C115 58 125 50 145 47 
+             C170 44 200 46 225 50 
+             C245 54 255 62 258 70 
+             C260 75 255 78 245 80 
+             C230 82 210 81 190 79 
+             C170 77 150 75 135 73 
+             C125 72 118 68 120 65 Z" 
+          fill="url(#goldCarBody)" 
+          stroke="#D97706" 
+          strokeWidth="1.5"
+        />
         
-        {/* ECOMAUTOS Text */}
-        <text x="240" y="65" fill="#FFFFFF" fontSize="48" fontWeight="900" fontFamily="Arial Black, sans-serif" letterSpacing="2">ECOM</text>
-        <text x="380" y="65" fill="#FACC15" fontSize="48" fontWeight="900" fontFamily="Arial Black, sans-serif" letterSpacing="2">AUTOS</text>
+        {/* Gold car windshield */}
+        <path 
+          d="M140 58 
+             C148 54 168 53 190 55 
+             C210 57 225 60 230 65 
+             C225 67 210 68 190 67 
+             C170 66 155 64 148 62 
+             C143 60 140 58 140 58 Z" 
+          fill="#1F2937" 
+          opacity="0.8"
+        />
         
-        {/* Tagline */}
-        <text x="240" y="95" fill="#94A3B8" fontSize="14" fontWeight="600" fontFamily="Arial, sans-serif" letterSpacing="6">CLIC . GANA . EXPORTA .</text>
+        {/* Curved arrow/swoosh connecting the cars */}
+        <path 
+          d="M200 55 
+             C210 50 220 52 235 57 
+             C245 60 250 65 255 70" 
+          fill="none" 
+          stroke="#FBBF24" 
+          strokeWidth="2.5" 
+          opacity="0.9"
+        />
+        
+        {/* ECOMAUTOS Text - exact positioning */}
+        <text x="280" y="70" 
+              fill="#F8FAFC" 
+              fontSize="42" 
+              fontWeight="900" 
+              fontFamily="Arial Black, sans-serif" 
+              letterSpacing="1">
+          ECOM
+        </text>
+        <text x="410" y="70" 
+              fill="#FBBF24" 
+              fontSize="42" 
+              fontWeight="900" 
+              fontFamily="Arial Black, sans-serif" 
+              letterSpacing="1">
+          AUTOS
+        </text>
+        
+        {/* Tagline with proper spacing */}
+        <text x="280" y="95" 
+              fill="#9CA3AF" 
+              fontSize="12" 
+              fontWeight="600" 
+              fontFamily="Arial, sans-serif" 
+              letterSpacing="4">
+          C L I C . G A N A . E X P O R T A .
+        </text>
       </svg>
     </div>
   );
