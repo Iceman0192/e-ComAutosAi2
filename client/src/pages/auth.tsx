@@ -24,12 +24,15 @@ import { useLocation } from 'wouter';
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum' | 'enterprise'>('gold');
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'basic' | 'gold' | 'platinum' | 'enterprise'>('gold');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     username: '',
-    name: ''
+    name: '',
+    cardNumber: '',
+    expiry: '',
+    cvc: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +40,25 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
 
   const plans = {
+    free: {
+      name: 'Free',
+      price: 0,
+      originalPrice: 0,
+      description: 'Perfect for getting started',
+      features: [
+        '10 daily searches',
+        '5 VIN lookups per month',
+        '10 data exports per month',
+        'Basic search filters',
+        'Community support'
+      ],
+      highlight: false
+    },
     basic: { 
       name: 'Basic', 
       price: 19, 
       originalPrice: 49,
-      description: 'Essential features for small traders',
+      description: 'Essential features for buyers',
       features: [
         '100 daily searches',
         '50 VIN lookups per month', 
@@ -56,7 +73,7 @@ export default function AuthPage() {
       name: 'Gold', 
       price: 39, 
       originalPrice: 89,
-      description: 'Most popular for serious traders',
+      description: 'Most popular for serious dealers',
       features: [
         '500 daily searches',
         '200 VIN lookups per month',
@@ -539,11 +556,11 @@ export default function AuthPage() {
                   {authMode !== 'login' && (
                     <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>No credit card required</span>
+                        <CheckCircle className="h-4 w-4 text-amber-500" />
+                        <span>{selectedPlan === 'free' ? 'Completely free' : 'No credit card required for free tier'}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <CheckCircle className="h-4 w-4 text-amber-500" />
                         <span>Cancel anytime</span>
                       </div>
                     </div>
