@@ -1,4 +1,4 @@
-import logoSvg from '../../assets/ecomautos-logo.svg';
+// Using inline SVG for better compatibility
 
 interface EcomautosLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
@@ -21,102 +21,45 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     xl: 'text-4xl'
   };
 
-  // Option 1: Use optimized SVG file for better performance
-  const OptimizedLogo = () => (
-    <img 
-      src={logoSvg} 
-      alt="ECOMAUTOS - CLIC. GANA. EXPORTA." 
-      className={`${sizeClasses[size]} ${className}`}
-    />
-  );
-
-  // Option 2: Simplified inline SVG for better control
+  // Reliable ECOMAUTOS logo using CSS-based car shapes
   const LogoSvg = () => (
-    <svg 
-      viewBox="0 0 400 120" 
-      className={`${sizeClasses[size]} ${className}`}
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        {/* Exact gradients from your authentic logo */}
-        <linearGradient id="silverCarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#F8FAFC" />
-          <stop offset="30%" stopColor="#E2E8F0" />
-          <stop offset="70%" stopColor="#CBD5E1" />
-          <stop offset="100%" stopColor="#94A3B8" />
-        </linearGradient>
-        <linearGradient id="goldCarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#FEF3C7" />
-          <stop offset="30%" stopColor="#FDE047" />
-          <stop offset="70%" stopColor="#FACC15" />
-          <stop offset="100%" stopColor="#EAB308" />
-        </linearGradient>
-        <linearGradient id="orangeAccent" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#FB923C" />
-          <stop offset="50%" stopColor="#F97316" />
-          <stop offset="100%" stopColor="#EA580C" />
-        </linearGradient>
-        {/* Premium 3D shadow effects */}
-        <filter id="carShadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="2" dy="4" stdDeviation="3" floodColor="#000000" floodOpacity="0.3"/>
-          <feDropShadow dx="1" dy="2" stdDeviation="1" floodColor="#000000" floodOpacity="0.15"/>
-        </filter>
-        <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="2" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.4"/>
-        </filter>
-      </defs>
+    <div className={`flex items-center space-x-2 ${className}`}>
+      {/* Car silhouettes using CSS shapes */}
+      <div className="relative flex items-center space-x-1">
+        {/* Silver car */}
+        <div className="relative">
+          <div className="w-8 h-4 bg-gradient-to-r from-slate-100 to-slate-300 rounded-full opacity-80"></div>
+          <div className="absolute top-1 left-1 w-6 h-2 bg-gradient-to-r from-slate-200 to-slate-400 rounded-full opacity-60"></div>
+          <div className="absolute top-2 left-2 w-2 h-2 bg-slate-700 rounded-full opacity-50"></div>
+          <div className="absolute top-2 right-2 w-2 h-2 bg-slate-700 rounded-full opacity-50"></div>
+        </div>
+        
+        {/* Gold car */}
+        <div className="relative">
+          <div className="w-7 h-3.5 bg-gradient-to-r from-yellow-300 to-orange-400 rounded-full opacity-90"></div>
+          <div className="absolute top-0.5 left-0.5 w-5 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full opacity-70"></div>
+          <div className="absolute top-1.5 left-1.5 w-1.5 h-1.5 bg-slate-700 rounded-full opacity-50"></div>
+          <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-slate-700 rounded-full opacity-50"></div>
+        </div>
+      </div>
       
-      {/* Main silver/white car silhouette - exact shape from your logo */}
-      <path
-        d="M20 70C18 62 25 55 40 52C65 48 95 46 130 50C160 52 185 58 190 68C192 75 188 82 175 85C165 87 155 86 145 84L135 82C120 79 105 77 90 75C75 73 60 71 45 69C35 68 25 67 20 70Z"
-        fill="url(#silverCarGradient)"
-        stroke="#E2E8F0"
-        strokeWidth="1.5"
-        filter="url(#carShadow)"
-      />
-      
-      {/* Golden/yellow car silhouette - overlapping design from your logo */}
-      <path
-        d="M30 58C28 55 32 52 42 50C58 47 82 46 110 49C135 51 155 55 158 62C160 66 157 70 150 72C145 73 140 73 135 72L128 71C118 69 108 68 98 67C88 66 78 65 68 64C58 63 48 62 38 61C33 60 30 59 30 58Z"
-        fill="url(#goldCarGradient)"
-        stroke="#FACC15"
-        strokeWidth="1"
-        opacity="0.95"
-      />
-      
-      {/* Orange accent curves - matching your logo design */}
-      <path
-        d="M15 65C20 60 35 58 55 60C75 62 95 65 115 67C125 68 135 69 140 65C145 61 150 60 155 62"
-        fill="none"
-        stroke="url(#orangeAccent)"
-        strokeWidth="3"
-        opacity="0.8"
-      />
-      
-      {/* Car window details */}
-      <ellipse cx="70" cy="62" rx="15" ry="8" fill="#1E293B" opacity="0.6" />
-      <ellipse cx="110" cy="59" rx="18" ry="9" fill="#1E293B" opacity="0.6" />
-      <ellipse cx="145" cy="57" rx="12" ry="6" fill="#1E293B" opacity="0.6" />
-
-      {/* ECOMAUTOS text - exact from your logo */}
-      <text x="210" y="62" fill="#FFFFFF" fontSize="48" fontWeight="900" fontFamily="Arial Black, sans-serif" letterSpacing="1" filter="url(#textShadow)">
-        ECOM
-      </text>
-      <text x="340" y="62" fill="#FACC15" fontSize="48" fontWeight="900" fontFamily="Arial Black, sans-serif" letterSpacing="1" filter="url(#textShadow)">
-        AUTOS
-      </text>
-      
-      {/* Authentic tagline - exact spacing and style */}
-      <text x="210" y="90" fill="#94A3B8" fontSize="12" fontWeight="600" fontFamily="Arial, sans-serif" letterSpacing="8">
-        C L I C .   G A N A .   E X P O R T A .
-      </text>
-      
-      {/* Subtle highlight effects from your design */}
-      <circle cx="55" cy="55" r="2.5" fill="#FACC15" opacity="0.9" />
-      <circle cx="125" cy="52" r="2" fill="#FFFFFF" opacity="0.8" />
-      <ellipse cx="85" cy="58" rx="3" ry="1.5" fill="#FB923C" opacity="0.7" />
-    </svg>
+      {/* ECOMAUTOS text */}
+      <div className="flex flex-col">
+        <div className="flex items-baseline">
+          <span className={`font-black tracking-tight ${textSizeClasses[size]} text-foreground dark:text-silver`}>
+            ECOM
+          </span>
+          <span className={`font-black tracking-tight ${textSizeClasses[size]} text-primary`}>
+            AUTOS
+          </span>
+        </div>
+        {size !== 'sm' && (
+          <div className="text-xs text-muted-foreground tracking-widest font-medium mt-0.5">
+            CLIC · GANA · EXPORTA
+          </div>
+        )}
+      </div>
+    </div>
   );
 
   if (variant === 'icon') {
@@ -182,6 +125,6 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     );
   }
 
-  // Use optimized SVG file for better performance and crisp rendering
-  return <OptimizedLogo />;
+  // Use inline SVG for better performance and crisp rendering
+  return <LogoSvg />;
 }
