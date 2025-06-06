@@ -122,7 +122,7 @@ export default function AuthPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {!isLogin && (
+                {authMode !== 'login' && (
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                     <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
                       <Check className="h-5 w-5" />
@@ -135,7 +135,7 @@ export default function AuthPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {!isLogin && (
+                  {authMode !== 'login' && (
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
@@ -146,7 +146,7 @@ export default function AuthPage() {
                           placeholder="Enter your full name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          required={!isLogin}
+                          required={authMode !== 'login'}
                         />
                       </div>
                       <div className="space-y-2">
@@ -158,7 +158,7 @@ export default function AuthPage() {
                           placeholder="Choose a username"
                           value={formData.username}
                           onChange={handleInputChange}
-                          required={!isLogin}
+                          required={authMode !== 'login'}
                         />
                       </div>
                     </>
@@ -211,21 +211,31 @@ export default function AuthPage() {
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
                     size="lg"
                   >
-                    {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Start Free Trial')}
+                    {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Start Free Trial')}
                     {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
                   </Button>
                 </form>
 
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <button
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
                   >
-                    {isLogin 
+                    {authMode === 'login' 
                       ? "New to e-ComAutos? Start your free trial" 
                       : "Already have an account? Sign in"
                     }
                   </button>
+                  
+                  {authMode !== 'trial' && (
+                    <button
+                      onClick={() => setAuthMode('trial')}
+                      className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center justify-center mx-auto"
+                    >
+                      <CreditCard className="mr-1 h-4 w-4" />
+                      Start Premium Trial (Card Required)
+                    </button>
+                  )}
                 </div>
 
                 <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
