@@ -10,7 +10,7 @@ import { useLocation } from 'wouter';
 import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function AuthPage() {
-  const [authMode, setAuthMode] = useState<'login' | 'trial'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum'>('gold');
   const [formData, setFormData] = useState({
     email: '',
@@ -26,22 +26,22 @@ export default function AuthPage() {
   const plans = {
     basic: { 
       name: 'Basic', 
-      price: 29, 
+      price: 19, 
       features: [
-        '50 daily searches',
-        '25 VIN lookups per month', 
-        '100 data exports per month',
+        '100 daily searches',
+        '50 VIN lookups per month', 
+        '200 data exports per month',
         'Advanced search filters',
         'Email support'
       ] 
     },
     gold: { 
       name: 'Gold', 
-      price: 79, 
+      price: 39, 
       features: [
-        '200 daily searches',
-        '100 VIN lookups per month',
-        '500 data exports per month', 
+        '500 daily searches',
+        '200 VIN lookups per month',
+        '1000 data exports per month', 
         'Cross-platform search',
         'Advanced analytics',
         'Priority support'
@@ -49,7 +49,7 @@ export default function AuthPage() {
     },
     platinum: { 
       name: 'Platinum', 
-      price: 149, 
+      price: 79, 
       features: [
         'Unlimited searches',
         'Unlimited VIN lookups',
@@ -74,10 +74,16 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // For trial signup, redirect to trial flow
+    if (authMode === 'trial') {
+      return; // Trial form is handled separately
+    }
+
     setIsLoading(true);
 
     try {
-      const endpoint = '/api/auth/login';
+      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/register';
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -180,7 +186,47 @@ export default function AuthPage() {
 
   const renderAuthForm = () => (
     <div className="space-y-6">
+      {authMode === 'signup' && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-blue-800 dark:text-blue-200">
+            <Check className="h-5 w-5" />
+            <span className="font-semibold">Free Account - Limited Access</span>
+          </div>
+          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+            Basic search features only. Upgrade anytime for full access.
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
+        {authMode === 'signup' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Enter your full name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Choose a username"
+                value={formData.username}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </>
+        )}
         
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -223,21 +269,64 @@ export default function AuthPage() {
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
           size="lg"
         >
-          {isLoading ? 'Please wait...' : 'Sign In'}
+          {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Create Free Account')}
           {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
         </Button>
       </form>
 
       <div className="text-center space-y-2">
-        <button
-          onClick={() => setAuthMode(authMode === 'login' ? 'trial' : 'login')}
-          className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
-        >
-          {authMode === 'login' 
-            ? "New to e-ComAutos? Start your 7-day trial" 
-            : "Already have an account? Sign in"
-          }
-        </button>
+        {authMode === 'login' && (
+          <>
+            <button
+              onClick={() => setAuthMode('signup')}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
+            >
+              New user? Create free account
+            </button>
+            <button
+              onClick={() => setAuthMode('trial')}
+              className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center justify-center mx-auto"
+            >
+              <CreditCard className="mr-1 h-4 w-4" />
+              Start premium trial instead
+            </button>
+          </>
+        )}
+        
+        {authMode === 'signup' && (
+          <>
+            <button
+              onClick={() => setAuthMode('login')}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
+            >
+              Already have an account? Sign in
+            </button>
+            <button
+              onClick={() => setAuthMode('trial')}
+              className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center justify-center mx-auto"
+            >
+              <CreditCard className="mr-1 h-4 w-4" />
+              Want premium trial instead?
+            </button>
+          </>
+        )}
+        
+        {authMode === 'trial' && (
+          <>
+            <button
+              onClick={() => setAuthMode('login')}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
+            >
+              Already have an account? Sign in
+            </button>
+            <button
+              onClick={() => setAuthMode('signup')}
+              className="text-gray-600 hover:text-gray-700 text-sm font-medium block mx-auto"
+            >
+              Prefer free account instead?
+            </button>
+          </>
+        )}
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
@@ -276,12 +365,16 @@ export default function AuthPage() {
             <Card className="shadow-2xl border-0">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">
-                  {authMode === 'login' ? 'Sign In to e-ComAutos' : 'Start Your Premium Trial'}
+                  {authMode === 'login' ? 'Sign In to e-ComAutos' : 
+                   authMode === 'trial' ? 'Start Your Premium Trial' :
+                   'Create Free Account'}
                 </CardTitle>
                 <CardDescription>
                   {authMode === 'login' 
                     ? 'Access your vehicle auction dashboard' 
-                    : `7 days free, then $${plans[selectedPlan].price}/month. Card required but not charged during trial.`
+                    : authMode === 'trial'
+                    ? `7 days free, then $${plans[selectedPlan].price}/month. Card required but not charged during trial.`
+                    : 'Free access with basic search features. Upgrade anytime for full functionality.'
                   }
                 </CardDescription>
               </CardHeader>
