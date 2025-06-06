@@ -1,3 +1,5 @@
+import logoSvg from '../../assets/ecomautos-logo.svg';
+
 interface EcomautosLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'full' | 'icon' | 'text';
@@ -19,10 +21,19 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     xl: 'text-4xl'
   };
 
-  // Authentic ECOMAUTOS logo recreated from your exact brand design
+  // Option 1: Use optimized SVG file for better performance
+  const OptimizedLogo = () => (
+    <img 
+      src={logoSvg} 
+      alt="ECOMAUTOS - CLIC. GANA. EXPORTA." 
+      className={`${sizeClasses[size]} ${className}`}
+    />
+  );
+
+  // Option 2: Simplified inline SVG for better control
   const LogoSvg = () => (
     <svg 
-      viewBox="0 0 600 140" 
+      viewBox="0 0 400 120" 
       className={`${sizeClasses[size]} ${className}`}
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
