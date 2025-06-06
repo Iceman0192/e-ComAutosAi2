@@ -135,7 +135,7 @@ export default function AuthPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {authMode !== 'login' && (
+                  {authMode === 'signup' && (
                     <>
                       <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
@@ -146,7 +146,7 @@ export default function AuthPage() {
                           placeholder="Enter your full name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          required={authMode !== 'login'}
+                          required
                         />
                       </div>
                       <div className="space-y-2">
@@ -158,7 +158,7 @@ export default function AuthPage() {
                           placeholder="Choose a username"
                           value={formData.username}
                           onChange={handleInputChange}
-                          required={authMode !== 'login'}
+                          required
                         />
                       </div>
                     </>
