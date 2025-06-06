@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { EcomautosLogo } from '@/components/ui/ecomautos-logo';
+import { Logo } from '@/components/ui/logo';
 import { 
   ArrowRight, 
   Shield, 
@@ -204,7 +204,7 @@ export default function AuthPage() {
       <nav className="border-b border-white/20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <EcomautosLogo size="md" />
+            <Logo size="md" />
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -292,7 +292,7 @@ export default function AuthPage() {
         <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-8">
           <div className="w-full max-w-md space-y-8">
             <div className="lg:hidden text-center mb-8">
-              <EcomautosLogo size="lg" className="justify-center mx-auto" />
+              <Logo size="lg" className="justify-center mx-auto" />
             </div>
 
             <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
