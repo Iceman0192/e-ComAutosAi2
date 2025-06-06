@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { trialPaymentService } from "./trialPaymentService";
 
 // Simple in-memory session store
 const sessions = new Map();
@@ -242,5 +243,128 @@ export function setupSimpleAuth(app: Express) {
       message: 'Logged out successfully',
       redirect: '/auth'
     });
+  });
+
+  // Trial setup endpoint - creates Stripe setup intent for card collection
+  app.post('/api/auth/trial-setup', async (req: Request, res: Response) => {
+    try {
+      const { email, name } = req.body;
+      
+      if (!email || !name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email and name are required'
+        });
+      }
+
+      const result = await trialPaymentService.createTrialSetupIntent(email, name);
+      
+      res.json({
+        success: true,
+        clientSecret: result.clientSecret,
+        customerId: result.customer.id
+      });
+      
+    } catch (error: any) {
+      console.error('Trial setup error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to initialize trial setup'
+      });
+    }
+  });
+
+  // Trial signup endpoint - creates account with trial and saved payment method
+  app.post('/api/auth/trial-signup', async (req: Request, res: Response) => {
+    try {
+      const { email, password, username, name, setupIntentId } = req.body;
+      
+      if (!email || !password || !username || !setupIntentId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email, password, username, and payment setup are required'
+        });
+      }
+
+      // Check if user already exists
+      const [existingUser] = await db.select({
+        id: users.id,
+        email: users.email,
+        username: users.username
+      })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email'
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create new user with trial
+      const [newUser] = await db.insert(users).values({
+        email,
+        username,
+        name: name || username,
+        password: hashedPassword,
+        role: 'freemium', // Start as freemium during trial
+        isActive: true,
+        trialStartDate: new Date(),
+        trialEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        isTrialActive: true,
+        hasUsedTrial: true
+      }).returning({
+        id: users.id,
+        email: users.email,
+        username: users.username,
+        name: users.name,
+        role: users.role,
+        isActive: users.isActive,
+        trialStartDate: users.trialStartDate,
+        trialEndDate: users.trialEndDate
+      });
+
+      // Confirm setup intent and save payment method
+      await trialPaymentService.confirmTrialSetupIntent(setupIntentId, newUser.id);
+
+      // Create session
+      const sessionId = `session_${Date.now()}_${Math.random()}`;
+      const userSession = {
+        id: newUser.id,
+        email: newUser.email,
+        username: newUser.username,
+        name: newUser.name,
+        role: newUser.role,
+        isActive: newUser.isActive,
+        isTrialActive: true,
+        trialEndDate: newUser.trialEndDate
+      };
+      sessions.set(sessionId, userSession);
+      
+      // Set session cookie
+      res.cookie('sessionId', sessionId, { 
+        httpOnly: true,
+        secure: false, // Allow HTTP in development
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      });
+
+      res.json({
+        success: true,
+        message: 'Trial account created successfully! No charges until trial ends.',
+        user: userSession
+      });
+      
+    } catch (error: any) {
+      console.error('Trial signup error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create trial account'
+      });
+    }
   });
 }

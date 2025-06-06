@@ -7,6 +7,7 @@ import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupSimpleAuth } from "./simpleAuth";
+import { trialScheduler } from "./trialScheduler";
 import { setupAdminRoutes } from "./adminRoutes";
 import { registerUsageRoutes } from "./usageRoutes";
 import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
@@ -90,6 +91,9 @@ app.use((req, res, next) => {
       console.error('Migration cycle error:', error);
     }
   }, 24 * 60 * 60 * 1000); // Run every 24 hours
+  
+  // Start trial monitoring scheduler
+  trialScheduler.start();
   
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
