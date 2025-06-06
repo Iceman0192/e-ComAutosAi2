@@ -200,8 +200,8 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
-      <nav className="border-b border-white/20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
+    <div className="min-h-screen purple-gradient">
+      <nav className="border-b border-white/20 backdrop-blur-sm bg-slateDark/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <EcomautosLogo size="md" />
@@ -209,7 +209,7 @@ export default function AuthPage() {
               <Button
                 variant="ghost"
                 onClick={() => setLocation('/')}
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                className="ecomautos-nav-link"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Back to Home
@@ -220,7 +220,7 @@ export default function AuthPage() {
       </nav>
 
       <div className="flex min-h-[calc(100vh-4rem)]">
-        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-slate-800 via-slate-700 to-amber-600 relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 ecomautos-gradient relative overflow-hidden">
           <div className="absolute inset-0 opacity-20">
             <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
               <g fill="none" fillRule="evenodd">
@@ -240,7 +240,7 @@ export default function AuthPage() {
               
               <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
                 Welcome to the Future of
-                <span className="block text-amber-400">Vehicle Intelligence</span>
+                <span className="block ecomautos-gradient-text">Vehicle Intelligence</span>
               </h1>
               
               <p className="text-xl text-slate-100 mb-8 leading-relaxed">
