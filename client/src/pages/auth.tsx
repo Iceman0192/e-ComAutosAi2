@@ -200,7 +200,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen purple-gradient">
+    <div className="min-h-screen ecomautos-gradient">
       <nav className="border-b border-white/20 backdrop-blur-sm bg-slateDark/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -355,9 +355,9 @@ export default function AuthPage() {
                           onClick={() => setSelectedPlan(key as any)}
                           className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             selectedPlan === key
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              ? 'border-gold bg-gold/10 dark:bg-gold/20'
                               : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                          } ${plan.highlight ? 'ring-2 ring-purple-500 ring-opacity-50' : ''}`}
+                          } ${plan.highlight ? 'ring-2 ring-gold ring-opacity-50' : ''}`}
                         >
                           {plan.highlight && (
                             <Badge className="absolute -top-2 left-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
