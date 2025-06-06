@@ -3,7 +3,8 @@ import { useLocation } from 'wouter';
 
 // User roles for tier-based access
 export enum UserRole {
-  FREE = 'free',
+  FREEMIUM = 'freemium',
+  BASIC = 'basic',
   GOLD = 'gold',
   PLATINUM = 'platinum',
   ADMIN = 'admin'
@@ -11,14 +12,14 @@ export enum UserRole {
 
 // Feature permissions mapping
 export const PERMISSIONS = {
-  BASIC_SEARCH: [UserRole.FREE, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
+  BASIC_SEARCH: [UserRole.FREEMIUM, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
+  ADVANCED_FILTERS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
   UNLIMITED_RESULTS: [UserRole.PLATINUM, UserRole.ADMIN],
   FULL_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  EXPORT_DATA: [UserRole.PLATINUM, UserRole.ADMIN],
+  EXPORT_DATA: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
   ADMIN_TOOLS: [UserRole.ADMIN],
   MULTIPLE_DAMAGE_TYPES: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  CROSS_PLATFORM_SEARCH: [UserRole.PLATINUM, UserRole.ADMIN],
+  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
   AI_ANALYSIS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN]
 } as const;
 
@@ -105,8 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return UserRole.GOLD;
       case 'platinum':
         return UserRole.PLATINUM;
+      case 'basic':
+        return UserRole.BASIC;
+      case 'freemium':
       default:
-        return UserRole.FREE;
+        return UserRole.FREEMIUM;
     }
   };
 

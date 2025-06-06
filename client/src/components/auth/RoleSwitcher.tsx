@@ -37,7 +37,7 @@ export default function RoleSwitcher() {
       {/* Header with minimize button */}
       <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700">
         <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Demo Mode
+          Admin Controls
         </div>
         <div className="flex items-center gap-1">
           <button
