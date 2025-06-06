@@ -182,5 +182,6 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     );
   }
 
-  return <LogoSvg />;
+  // Use optimized SVG file for better performance and crisp rendering
+  return <OptimizedLogo />;
 }
