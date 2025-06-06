@@ -19,7 +19,7 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     xl: 'text-4xl'
   };
 
-  // SVG representation of the ECOMAUTOS logo based on the design
+  // Authentic ECOMAUTOS logo based on the provided design
   const LogoSvg = () => (
     <svg 
       viewBox="0 0 400 120" 
@@ -27,41 +27,44 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Car silhouette with gradient */}
       <defs>
+        {/* Authentic ECOMAUTOS color gradients */}
         <linearGradient id="carGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#3B82F6" />
-          <stop offset="50%" stopColor="#8B5CF6" />
+          <stop offset="0%" stopColor="#F8FAFC" />
+          <stop offset="50%" stopColor="#E5E7EB" />
           <stop offset="100%" stopColor="#F59E0B" />
         </linearGradient>
-        <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#1F2937" />
-          <stop offset="100%" stopColor="#374151" />
+        <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#FBB040" />
         </linearGradient>
       </defs>
       
-      {/* Car silhouette */}
+      {/* Main car silhouette - larger, more prominent */}
       <path
-        d="M20 45C15 40 25 35 40 35C60 30 80 32 100 35C115 35 125 40 120 45C125 50 120 55 110 55H30C25 55 15 50 20 45Z"
+        d="M15 50C10 45 20 40 35 40C55 35 75 37 95 40C110 40 120 45 115 50C120 55 115 60 105 60H25C20 60 10 55 15 50Z"
         fill="url(#carGradient)"
-        opacity="0.9"
+        stroke="#F59E0B"
+        strokeWidth="1"
       />
+      
+      {/* Accent car silhouette - smaller, overlapping */}
       <path
-        d="M25 40C20 38 30 36 45 36C65 34 85 36 105 38C115 38 120 40 118 42C120 44 118 46 115 46H28C23 46 20 42 25 40Z"
-        fill="url(#carGradient)"
-        opacity="0.7"
+        d="M25 45C20 43 30 41 45 41C65 39 85 41 105 43C115 43 120 45 118 47C120 49 118 51 115 51H28C23 51 20 47 25 45Z"
+        fill="url(#accentGradient)"
+        opacity="0.8"
       />
 
-      {/* ECOMAUTOS text */}
-      <text x="140" y="35" className="fill-current text-gray-800 dark:text-white" fontSize="28" fontWeight="bold" fontFamily="Arial, sans-serif">
+      {/* ECOMAUTOS text with authentic styling */}
+      <text x="140" y="40" fill="#F8FAFC" fontSize="32" fontWeight="bold" fontFamily="Arial, sans-serif">
         ECOM
       </text>
-      <text x="240" y="35" className="fill-current" fontSize="28" fontWeight="bold" fontFamily="Arial, sans-serif" fill="#F59E0B">
+      <text x="240" y="40" fill="#F59E0B" fontSize="32" fontWeight="bold" fontFamily="Arial, sans-serif">
         AUTOS
       </text>
       
-      {/* Tagline */}
-      <text x="140" y="55" className="fill-current text-gray-600 dark:text-gray-300" fontSize="12" fontWeight="300" fontFamily="Arial, sans-serif" letterSpacing="2">
+      {/* Authentic tagline */}
+      <text x="140" y="65" fill="#E5E7EB" fontSize="14" fontWeight="400" fontFamily="Arial, sans-serif" letterSpacing="3">
         CLIC. GANA. EXPORTA.
       </text>
     </svg>
@@ -96,10 +99,10 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
   if (variant === 'text') {
     return (
       <div className={`flex flex-col ${className}`}>
-        <span className={`font-bold text-gray-800 dark:text-white ${textSizeClasses[size]}`}>
-          ECOM<span className="text-yellow-500">AUTOS</span>
+        <span className={`font-bold text-slate-100 dark:text-white ${textSizeClasses[size]}`}>
+          ECOM<span className="text-amber-500">AUTOS</span>
         </span>
-        <span className="text-xs text-gray-600 dark:text-gray-300 tracking-wider">
+        <span className="text-xs text-gray-300 dark:text-gray-400 tracking-widest font-light">
           CLIC. GANA. EXPORTA.
         </span>
       </div>
