@@ -10,7 +10,7 @@ import { useLocation } from 'wouter';
 import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function AuthPage() {
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'trial'>('login');
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum'>('gold');
   const [formData, setFormData] = useState({
     email: '',
@@ -74,13 +74,6 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // For signup, require trial flow with card capture
-    if (authMode === 'signup') {
-      setAuthMode('trial');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -187,47 +180,7 @@ export default function AuthPage() {
 
   const renderAuthForm = () => (
     <div className="space-y-6">
-      {authMode === 'signup' && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-            <Check className="h-5 w-5" />
-            <span className="font-semibold">7-Day Free Trial Included</span>
-          </div>
-          <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-            Full access to all premium features. Cancel anytime.
-          </p>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-4">
-        {authMode === 'signup' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Choose a username"
-                value={formData.username}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </>
-        )}
         
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -270,31 +223,21 @@ export default function AuthPage() {
           className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg font-semibold"
           size="lg"
         >
-          {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Start Free Trial')}
+          {isLoading ? 'Please wait...' : 'Sign In'}
           {!isLoading && <ArrowRight className="ml-2 h-5 w-5" />}
         </Button>
       </form>
 
       <div className="text-center space-y-2">
         <button
-          onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+          onClick={() => setAuthMode(authMode === 'login' ? 'trial' : 'login')}
           className="text-blue-600 hover:text-blue-700 text-sm font-medium block mx-auto"
         >
           {authMode === 'login' 
-            ? "New to e-ComAutos? Start your free trial" 
+            ? "New to e-ComAutos? Start your 7-day trial" 
             : "Already have an account? Sign in"
           }
         </button>
-        
-        {authMode === 'login' && (
-          <button
-            onClick={() => setAuthMode('trial')}
-            className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center justify-center mx-auto"
-          >
-            <CreditCard className="mr-1 h-4 w-4" />
-            Start Premium Trial (Card Required)
-          </button>
-        )}
       </div>
 
       <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
@@ -333,16 +276,12 @@ export default function AuthPage() {
             <Card className="shadow-2xl border-0">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">
-                  {authMode === 'login' ? 'Sign In to e-ComAutos' : 
-                   authMode === 'trial' ? 'Start Your Premium Trial' :
-                   'Join e-ComAutos Today'}
+                  {authMode === 'login' ? 'Sign In to e-ComAutos' : 'Start Your Premium Trial'}
                 </CardTitle>
                 <CardDescription>
                   {authMode === 'login' 
                     ? 'Access your vehicle auction dashboard' 
-                    : authMode === 'trial'
-                    ? `7 days free, then $${plans[selectedPlan].price}/month. Card required but not charged during trial.`
-                    : 'Start your 7-day free trial - no credit card required'
+                    : `7 days free, then $${plans[selectedPlan].price}/month. Card required but not charged during trial.`
                   }
                 </CardDescription>
               </CardHeader>
