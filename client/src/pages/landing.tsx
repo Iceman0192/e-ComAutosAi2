@@ -28,25 +28,25 @@ export default function LandingPage() {
       icon: Brain,
       title: "AI-Powered Intelligence",
       description: "Advanced machine learning algorithms analyze millions of auction records to provide predictive insights and market trends.",
-      gradient: "from-blue-500 to-cyan-500"
+      gradient: "ecomautos-gradient"
     },
     {
       icon: BarChart3,
       title: "Real-Time Analytics",
       description: "Live market data with instant notifications, price alerts, and comprehensive damage analysis across all major auction platforms.",
-      gradient: "from-purple-500 to-pink-500"
+      gradient: "purple-gradient"
     },
     {
       icon: Database,
       title: "Comprehensive Database",
       description: "Access to 136,997+ verified auction records with complete vehicle histories, damage assessments, and export documentation.",
-      gradient: "from-green-500 to-emerald-500"
+      gradient: "ecomautos-gradient"
     },
     {
       icon: Globe,
       title: "Global Export Solutions",
       description: "Streamlined international shipping, customs documentation, and duty calculations for seamless global vehicle export.",
-      gradient: "from-orange-500 to-red-500"
+      gradient: "purple-gradient"
     }
   ];
 
@@ -130,7 +130,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+    <div className="min-h-screen purple-gradient">
       {/* SEO Meta Tags would be handled by a helmet component */}
       <title>ecomautos.ai - AI-Powered Vehicle Auction Intelligence Platform</title>
       
@@ -138,27 +138,27 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 lg:py-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10"></div>
+        <div className="absolute inset-0 ecomautos-gradient opacity-10"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-6">
-                <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0 px-4 py-2">
-                  🚀 Next-Generation AI Platform
+                <Badge className="ecomautos-gradient text-white border-0 px-4 py-2">
+                  CLIC · GANA · EXPORTA
                 </Badge>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  <span className="text-gray-900 dark:text-white">The Future of</span>
+                  <span className="text-gray-900 dark:text-white">Domina las</span>
                   <br />
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Vehicle Auctions
+                  <span className="ecomautos-gradient-text">
+                    Subastas Globales
                   </span>
                   <br />
-                  <span className="text-gray-900 dark:text-white">is Here</span>
+                  <span className="text-gray-900 dark:text-white">con IA</span>
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                  Harness the power of artificial intelligence to dominate global vehicle auction markets. 
-                  Our platform transforms complex auction data into profitable insights, giving you the 
-                  competitive edge you need to succeed.
+                  Aprovecha el poder de la inteligencia artificial para dominar los mercados globales de subastas de vehículos. 
+                  Nuestra plataforma transforma datos complejos de subastas en información rentable, dándote la 
+                  ventaja competitiva que necesitas para tener éxito.
                 </p>
               </div>
 
@@ -166,18 +166,18 @@ export default function LandingPage() {
                 <Button 
                   size="lg"
                   onClick={() => setLocation('/auth')}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  className="ecomautos-button-primary shadow-xl hover:shadow-2xl transform hover:scale-105"
                 >
-                  Start Free Trial
+                  Comenzar Gratis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button 
                   variant="outline"
                   size="lg"
                   onClick={() => setLocation('/product/demo')}
-                  className="border-2 border-blue-200 hover:border-blue-300 text-blue-700 hover:text-blue-800 hover:bg-blue-50"
+                  className="ecomautos-button-secondary"
                 >
-                  Watch Demo
+                  Ver Demo
                 </Button>
               </div>
 
