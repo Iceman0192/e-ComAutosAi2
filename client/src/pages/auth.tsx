@@ -11,6 +11,7 @@ import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum'>('gold');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -21,6 +22,12 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  const plans = {
+    basic: { name: 'Basic', price: 29, features: ['Core auction data', 'Basic search', 'Export tools'] },
+    gold: { name: 'Gold', price: 59, features: ['Everything in Basic', 'AI Analysis', 'Advanced filters', 'Priority support'] },
+    platinum: { name: 'Platinum', price: 99, features: ['Everything in Gold', 'Real-time alerts', 'API access', 'Custom reports'] }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -35,10 +42,17 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // For signup, require trial flow with card capture
+    if (authMode === 'signup') {
+      setAuthMode('trial');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
+      const endpoint = '/api/auth/login';
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -52,7 +66,7 @@ export default function AuthPage() {
 
       if (data.success) {
         toast({
-          title: authMode === 'login' ? "Login Successful" : "Account Created",
+          title: "Login Successful",
           description: data.message,
         });
         
@@ -122,23 +136,94 @@ export default function AuthPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {authMode !== 'login' && (
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                    <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-                      <Check className="h-5 w-5" />
-                      <span className="font-semibold">7-Day Free Trial Included</span>
+                {authMode === 'trial' && (
+                  <div className="space-y-6">
+                    {/* Plan Selection */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-center">Choose Your Plan</h3>
+                      <div className="grid gap-4">
+                        {Object.entries(plans).map(([key, plan]) => (
+                          <div 
+                            key={key}
+                            className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                              selectedPlan === key 
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                            }`}
+                            onClick={() => setSelectedPlan(key as any)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold">{plan.name}</h4>
+                                  {key === 'gold' && (
+                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                      Most Popular
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-2xl font-bold text-blue-600">${plan.price}/month</p>
+                                <ul className="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+                                  {plan.features.map((feature, index) => (
+                                    <li key={index} className="flex items-center gap-2">
+                                      <Check className="h-3 w-3 text-green-500" />
+                                      {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              <div className={`w-4 h-4 rounded-full border-2 ${
+                                selectedPlan === key 
+                                  ? 'border-blue-500 bg-blue-500' 
+                                  : 'border-gray-300'
+                              }`}>
+                                {selectedPlan === key && (
+                                  <div className="w-2 h-2 bg-white rounded-full m-0.5"></div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                      Full access to all premium features. Cancel anytime.
-                    </p>
+                    
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                      <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
+                        <Check className="h-5 w-5" />
+                        <span className="font-semibold">7-Day Free Trial</span>
+                      </div>
+                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        Trial {plans[selectedPlan].name} plan free for 7 days, then ${plans[selectedPlan].price}/month. Cancel anytime.
+                      </p>
+                    </div>
+
+                    <StripeWrapper 
+                      onSuccess={handleTrialSuccess} 
+                      selectedPlan={selectedPlan}
+                      userInfo={formData}
+                    />
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {authMode === 'signup' && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                {authMode !== 'trial' && (
+                  <>
+                    {authMode === 'signup' && (
+                      <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
+                          <Check className="h-5 w-5" />
+                          <span className="font-semibold">7-Day Free Trial Included</span>
+                        </div>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          Full access to all premium features. Cancel anytime.
+                        </p>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {authMode === 'signup' && (
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
                         <Input
                           id="name"
                           name="name"
