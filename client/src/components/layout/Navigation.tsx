@@ -40,7 +40,7 @@ export default function Navigation({ user }: NavigationProps) {
   };
 
   return (
-    <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-amber-200/30 dark:border-amber-700/20 sticky top-0 z-50 shadow-lg shadow-amber-500/5">
+    <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gold/30 dark:border-gold/20 sticky top-0 z-50 shadow-lg shadow-gold/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Authentic ECOMAUTOS Logo */}
