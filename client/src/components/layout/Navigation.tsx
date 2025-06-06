@@ -97,7 +97,7 @@ export default function Navigation({ user }: NavigationProps) {
 
             {/* Support Dropdown */}
             <div className="relative group">
-              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-gold dark:hover:text-gold font-medium transition-colors">
                 <span>Support</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -119,9 +119,9 @@ export default function Navigation({ user }: NavigationProps) {
             {/* Pricing */}
             <button 
               onClick={() => handleNavigation('/pricing')}
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-gold dark:hover:text-gold font-medium transition-colors"
             >
-              Pricing
+              Precios
             </button>
           </div>
 
