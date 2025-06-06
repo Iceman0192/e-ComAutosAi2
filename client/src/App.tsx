@@ -27,6 +27,10 @@ import AdminDashboard from "./pages/admin";
 import DataCollectionPage from "./pages/data-collection";
 import NotFound from "./pages/not-found";
 
+// Marketing Pages
+import SearchAnalyticsPage from "./pages/product/search-analytics";
+import AboutPage from "./pages/company/about";
+
 function Router() {
   const { user, isLoading } = useAuth();
 
@@ -50,6 +54,28 @@ function Router() {
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={AuthPage} />
         <Route path="/signup" component={AuthPage} />
+        
+        {/* Product Pages */}
+        <Route path="/product/search-analytics" component={SearchAnalyticsPage} />
+        <Route path="/product/ai-analysis" component={LandingPage} />
+        <Route path="/product/market-data" component={LandingPage} />
+        <Route path="/product/api-access" component={LandingPage} />
+        
+        {/* Company Pages */}
+        <Route path="/company/about" component={AboutPage} />
+        <Route path="/company/contact" component={LandingPage} />
+        <Route path="/company/privacy" component={LandingPage} />
+        <Route path="/company/terms" component={LandingPage} />
+        
+        {/* Support Pages */}
+        <Route path="/support/help" component={LandingPage} />
+        <Route path="/support/documentation" component={LandingPage} />
+        <Route path="/support/contact" component={LandingPage} />
+        <Route path="/support/status" component={LandingPage} />
+        
+        {/* Pricing */}
+        <Route path="/pricing" component={LandingPage} />
+        
         <Route component={LandingPage} />
       </Switch>
     );
