@@ -220,7 +220,7 @@ export default function AuthPage() {
       </nav>
 
       <div className="flex min-h-[calc(100vh-4rem)]">
-        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-slate-800 via-slate-700 to-amber-600 relative overflow-hidden">
           <div className="absolute inset-0 opacity-20">
             <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
               <g fill="none" fillRule="evenodd">
@@ -240,30 +240,30 @@ export default function AuthPage() {
               
               <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
                 Welcome to the Future of
-                <span className="block text-yellow-300">Vehicle Intelligence</span>
+                <span className="block text-amber-400">Vehicle Intelligence</span>
               </h1>
               
-              <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+              <p className="text-xl text-slate-100 mb-8 leading-relaxed">
                 Join thousands of successful buyers, dealers, and exporters who use our AI-powered platform to maximize profits 
                 and dominate global auction markets.
               </p>
 
               <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-yellow-300">136,997+</div>
-                  <div className="text-sm text-blue-100">Auction Records</div>
+                <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm border border-amber-400/20">
+                  <div className="text-2xl font-bold text-amber-400">136,997+</div>
+                  <div className="text-sm text-slate-200">Auction Records</div>
                 </div>
-                <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
-                  <div className="text-2xl font-bold text-yellow-300">50+</div>
-                  <div className="text-sm text-blue-100">Countries Served</div>
+                <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm border border-amber-400/20">
+                  <div className="text-2xl font-bold text-amber-400">50+</div>
+                  <div className="text-sm text-slate-200">Countries Served</div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-3">
-                    <div className="p-2 bg-white/20 rounded-lg">
-                      <benefit.icon className="h-5 w-5 text-yellow-300" />
+                    <div className="p-2 bg-white/20 rounded-lg border border-amber-400/30">
+                      <benefit.icon className="h-5 w-5 text-amber-400" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-white">{benefit.title}</h4>
@@ -531,7 +531,7 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-amber-500/30"
                     size="lg"
                   >
                     {isLoading ? 'Processing...' : (
