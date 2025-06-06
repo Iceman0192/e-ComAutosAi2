@@ -360,8 +360,8 @@ export default function AuthPage() {
                           } ${plan.highlight ? 'ring-2 ring-gold ring-opacity-50' : ''}`}
                         >
                           {plan.highlight && (
-                            <Badge className="absolute -top-2 left-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                              Most Popular
+                            <Badge className="absolute -top-2 left-4 ecomautos-gradient text-white">
+                              Más Popular
                             </Badge>
                           )}
                           <div className="flex items-center justify-between">
@@ -531,7 +531,7 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-amber-500/30"
+                    className="w-full ecomautos-button-primary shadow-xl hover:shadow-2xl transition-all duration-300"
                     size="lg"
                   >
                     {isLoading ? 'Processing...' : (
@@ -543,7 +543,7 @@ export default function AuthPage() {
                           </>
                         ) : (
                           <>
-                            {authMode === 'login' ? 'Sign In' : 'Create Free Account'}
+                            {authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta Gratis'}
                             <ArrowRight className="ml-2 h-5 w-5" />
                           </>
                         )}
@@ -569,22 +569,22 @@ export default function AuthPage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     {authMode === 'login' ? (
                       <>
-                        Don't have an account?{' '}
+                        ¿No tienes cuenta?{' '}
                         <button
                           onClick={() => setAuthMode('signup')}
-                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                          className="text-gold dark:text-gold hover:underline font-medium"
                         >
-                          Sign up free
+                          Regístrate gratis
                         </button>
                       </>
                     ) : (
                       <>
-                        Already have an account?{' '}
+                        ¿Ya tienes cuenta?{' '}
                         <button
                           onClick={() => setAuthMode('login')}
-                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                          className="text-gold dark:text-gold hover:underline font-medium"
                         >
-                          Sign in
+                          Iniciar sesión
                         </button>
                       </>
                     )}
@@ -593,12 +593,12 @@ export default function AuthPage() {
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       By continuing, you agree to our{' '}
-                      <a href="/company/terms" className="text-blue-600 dark:text-blue-400 hover:underline">
-                        Terms of Service
+                      <a href="/company/terms" className="text-gold dark:text-gold hover:underline">
+                        Términos de Servicio
                       </a>{' '}
-                      and{' '}
-                      <a href="/company/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
-                        Privacy Policy
+                      y{' '}
+                      <a href="/company/privacy" className="text-gold dark:text-gold hover:underline">
+                        Política de Privacidad
                       </a>
                     </p>
                   </div>
