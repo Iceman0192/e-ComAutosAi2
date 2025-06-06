@@ -30,6 +30,7 @@ import NotFound from "./pages/not-found";
 // Marketing Pages
 import SearchAnalyticsPage from "./pages/product/search-analytics";
 import AboutPage from "./pages/company/about";
+import ContactPage from "./pages/company/contact";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -63,7 +64,7 @@ function Router() {
         
         {/* Company Pages */}
         <Route path="/company/about" component={AboutPage} />
-        <Route path="/company/contact" component={LandingPage} />
+        <Route path="/company/contact" component={ContactPage} />
         <Route path="/company/privacy" component={LandingPage} />
         <Route path="/company/terms" component={LandingPage} />
         
