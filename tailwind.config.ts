@@ -11,11 +11,6 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        // ECOMAUTOS Brand Colors
-        gold: "#FACC15",
-        orange: "#F97316",
-        slateDark: "#1E293B",
-        silver: "#F8FAFC",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -66,10 +61,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-      },
-      backgroundImage: {
-        "purple-gradient": "linear-gradient(90deg, #5C4BFF 0%, #8F7FFF 50%, #B2ABFF 100%)",
-        "ecomautos-gradient": "linear-gradient(135deg, #FACC15 0%, #F97316 100%)",
       },
       keyframes: {
         "accordion-down": {

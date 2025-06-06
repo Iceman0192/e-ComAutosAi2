@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EcomautosLogo } from '@/components/ui/ecomautos-logo';
 import { 
   Home,
   Car, 
@@ -32,31 +31,31 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const navigationItems = [
     {
-      title: 'Panel Principal',
+      title: 'Dashboard',
       href: '/dashboard',
       icon: Home,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Historial de Ventas',
+      title: 'Sales History',
       href: '/copart',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Buscador de Lotes',
+      title: 'Active Lot Finder',
       href: '/active-lots',
       icon: Car,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Análisis en Vivo',
+      title: 'Live Lot Analysis',
       href: '/live-copart',
       icon: Car,
       permission: 'FULL_ANALYTICS'
     },
     {
-      title: 'Búsqueda por VIN',
+      title: 'VIN History Search',
       href: '/vin-history',
       icon: History,
       permission: 'BASIC_SEARCH'
@@ -68,19 +67,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
-      title: 'Calculadora Importación',
+      title: 'Import Calculator',
       href: '/import-calculator',
       icon: Calculator,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Base de Datos',
+      title: 'Datasets',
       href: '/datasets',
       icon: Database,
       permission: 'ADMIN'
     },
     {
-      title: 'Gestión de Equipo',
+      title: 'Team Management',
       href: '/team',
       icon: Users,
       permission: 'ADMIN'
@@ -89,19 +88,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const accountItems = [
     {
-      title: 'Configuración',
+      title: 'Account Settings',
       href: '/account',
       icon: Settings,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Panel de Uso',
+      title: 'Usage Dashboard',
       href: '/usage',
       icon: BarChart3,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Facturación',
+      title: 'Billing',
       href: '/billing',
       icon: CreditCard,
       permission: 'BASIC_SEARCH'
@@ -137,13 +136,13 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full max-h-screen">
-      {/* Authentic ECOMAUTOS Logo and User Info */}
-      <div className="p-4 border-b border-gold/30 dark:border-gold/20 flex-shrink-0">
-        <div className="mb-3">
-          <EcomautosLogo size="sm" variant="full" />
-        </div>
+      {/* Logo and User Info */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+          e-ComAutos
+        </h2>
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 ecomautos-gradient rounded-full flex items-center justify-center text-white text-xs font-semibold">
+          <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
             {user?.name?.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
@@ -189,13 +188,18 @@ export function Sidebar({ className = '' }: SidebarProps) {
                   variant={isActive ? "default" : "ghost"}
                   className={`w-full justify-start gap-3 mb-1 ${
                     isActive 
-                      ? 'bg-gold text-white hover:bg-gold/90' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gold/10 dark:hover:bg-gold/20'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                   onClick={() => setIsMobileOpen(false)}
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.title}</span>
+                  {item.badge && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.badge}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
             );
@@ -218,8 +222,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
                     variant={isActive ? "default" : "ghost"}
                     className={`w-full justify-start gap-3 mb-1 ${
                       isActive 
-                        ? 'bg-orange text-white hover:bg-orange/90' 
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-orange/10 dark:hover:bg-orange/20'
+                        ? 'bg-red-600 text-white hover:bg-red-700' 
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20'
                     }`}
                     onClick={() => setIsMobileOpen(false)}
                   >
@@ -246,8 +250,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
                   variant={isActive ? "default" : "ghost"}
                   className={`w-full justify-start gap-3 mb-1 ${
                     isActive 
-                      ? 'bg-gold text-white hover:bg-gold/90' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gold/10 dark:hover:bg-gold/20'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                   onClick={() => setIsMobileOpen(false)}
                 >
@@ -261,14 +265,14 @@ export function Sidebar({ className = '' }: SidebarProps) {
       </div>
 
       {/* Logout */}
-      <div className="p-4 border-t border-gold/30 dark:border-gold/20 flex-shrink-0">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-gray-700 dark:text-gray-300 hover:bg-gold/10 dark:hover:bg-gold/20"
+          className="w-full justify-start gap-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           onClick={logout}
         >
           <LogOut className="h-4 w-4" />
-          Cerrar Sesión
+          Sign Out
         </Button>
       </div>
     </div>
