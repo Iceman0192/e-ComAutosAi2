@@ -24,9 +24,41 @@ export default function AuthPage() {
   const [, setLocation] = useLocation();
 
   const plans = {
-    basic: { name: 'Basic', price: 29, features: ['Core auction data', 'Basic search', 'Export tools'] },
-    gold: { name: 'Gold', price: 59, features: ['Everything in Basic', 'AI Analysis', 'Advanced filters', 'Priority support'] },
-    platinum: { name: 'Platinum', price: 99, features: ['Everything in Gold', 'Real-time alerts', 'API access', 'Custom reports'] }
+    basic: { 
+      name: 'Basic', 
+      price: 29, 
+      features: [
+        '50 daily searches',
+        '25 VIN lookups per month', 
+        '100 data exports per month',
+        'Advanced search filters',
+        'Email support'
+      ] 
+    },
+    gold: { 
+      name: 'Gold', 
+      price: 79, 
+      features: [
+        '200 daily searches',
+        '100 VIN lookups per month',
+        '500 data exports per month', 
+        'Cross-platform search',
+        'Advanced analytics',
+        'Priority support'
+      ] 
+    },
+    platinum: { 
+      name: 'Platinum', 
+      price: 149, 
+      features: [
+        'Unlimited searches',
+        'Unlimited VIN lookups',
+        'Unlimited exports',
+        'API access',
+        'Custom reports',
+        'White-label options'
+      ] 
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -309,7 +341,7 @@ export default function AuthPage() {
                   {authMode === 'login' 
                     ? 'Access your vehicle auction dashboard' 
                     : authMode === 'trial'
-                    ? '7 days free, then $29/month. Card required but not charged during trial.'
+                    ? `7 days free, then $${plans[selectedPlan].price}/month. Card required but not charged during trial.`
                     : 'Start your 7-day free trial - no credit card required'
                   }
                 </CardDescription>

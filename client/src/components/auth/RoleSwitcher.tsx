@@ -7,7 +7,8 @@ export default function RoleSwitcher() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  if (!user) return null;
+  // Only show for admin users
+  if (!user || user.role !== UserRole.ADMIN) return null;
 
   const roleColors = {
     [UserRole.FREE]: 'bg-gray-100 text-gray-800 border-gray-300',
