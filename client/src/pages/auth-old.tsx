@@ -128,6 +128,15 @@ export default function AuthPage() {
     }
   ];
 
+  const testimonials = [
+    {
+      name: "Marcus Chen",
+      role: "International Dealer",
+      content: "Increased our profit margins by 40% in just 3 months. The AI insights are incredible.",
+      rating: 5
+    }
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -141,7 +150,7 @@ export default function AuthPage() {
             password: formData.password, 
             username: formData.username,
             name: formData.name,
-            subscriptionPlan: authMode === 'trial' ? selectedPlan : 'free'
+            subscriptionPlan: authMode === 'trial' ? selectedPlan : 'freemium'
           };
 
       const response = await fetch(endpoint, {
@@ -184,6 +193,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+      {/* Navigation Bar */}
       <nav className="border-b border-white/20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -203,16 +213,9 @@ export default function AuthPage() {
       </nav>
 
       <div className="flex min-h-[calc(100vh-4rem)]">
+        {/* Left Side - Hero Content */}
         <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20">
-            <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-              <g fill="none" fillRule="evenodd">
-                <g fill="#ffffff" fillOpacity="0.1">
-                  <circle cx="7" cy="7" r="7"/>
-                </g>
-              </g>
-            </svg>
-          </div>
+          <div className="absolute inset-0 opacity-20" style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"7\" cy=\"7\" r=\"7\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"}}></div>
           
           <div className="relative z-10 flex flex-col justify-center px-12 py-20 text-white">
             <div className="max-w-lg">
@@ -231,6 +234,7 @@ export default function AuthPage() {
                 and dominate global auction markets.
               </p>
 
+              {/* Stats */}
               <div className="grid grid-cols-2 gap-6 mb-8">
                 <div className="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
                   <div className="text-2xl font-bold text-yellow-300">136,997+</div>
@@ -242,6 +246,7 @@ export default function AuthPage() {
                 </div>
               </div>
 
+              {/* Benefits */}
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-3">
@@ -256,6 +261,7 @@ export default function AuthPage() {
                 ))}
               </div>
 
+              {/* Testimonial */}
               <div className="mt-12 p-6 bg-white/10 rounded-xl backdrop-blur-sm">
                 <div className="flex mb-3">
                   {[...Array(5)].map((_, i) => (
@@ -263,21 +269,24 @@ export default function AuthPage() {
                   ))}
                 </div>
                 <p className="text-blue-100 italic mb-3">
-                  "Increased our profit margins by 40% in just 3 months. The AI insights are incredible."
+                  "{testimonials[0].content}"
                 </p>
-                <div className="text-white font-semibold">Marcus Chen</div>
-                <div className="text-blue-200 text-sm">International Dealer</div>
+                <div className="text-white font-semibold">{testimonials[0].name}</div>
+                <div className="text-blue-200 text-sm">{testimonials[0].role}</div>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Right Side - Auth Forms */}
         <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center p-8">
           <div className="w-full max-w-md space-y-8">
+            {/* Logo for mobile */}
             <div className="lg:hidden text-center mb-8">
               <EcomautosLogo size="lg" className="justify-center mx-auto" />
             </div>
 
+            {/* Auth Mode Selector */}
             <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
               <button
                 onClick={() => setAuthMode('login')}
@@ -311,6 +320,7 @@ export default function AuthPage() {
               </button>
             </div>
 
+            {/* Auth Form */}
             <Card className="border-0 shadow-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl">
               <CardHeader className="text-center space-y-2 pb-6">
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -326,6 +336,7 @@ export default function AuthPage() {
               </CardHeader>
 
               <CardContent className="space-y-6">
+                {/* Plan Selection for Trial */}
                 {authMode === 'trial' && (
                   <div className="space-y-4">
                     <Label className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -366,30 +377,33 @@ export default function AuthPage() {
                   </div>
                 )}
 
+                {/* Auth Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {authMode !== 'login' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
-                          placeholder="Enter your name"
-                          required
-                        />
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            placeholder="Enter your name"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="username">Username</Label>
+                          <Input
+                            id="username"
+                            value={formData.username}
+                            onChange={(e) => handleInputChange('username', e.target.value)}
+                            placeholder="Choose username"
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <Input
-                          id="username"
-                          value={formData.username}
-                          onChange={(e) => handleInputChange('username', e.target.value)}
-                          placeholder="Choose username"
-                          required
-                        />
-                      </div>
-                    </div>
+                    </>
                   )}
 
                   <div className="space-y-2">
@@ -429,6 +443,7 @@ export default function AuthPage() {
                     </div>
                   </div>
 
+                  {/* Features Preview for Trial */}
                   {authMode === 'trial' && (
                     <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
                       <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
@@ -469,6 +484,7 @@ export default function AuthPage() {
                   </Button>
                 </form>
 
+                {/* Footer */}
                 <div className="text-center space-y-4">
                   {authMode !== 'login' && (
                     <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
