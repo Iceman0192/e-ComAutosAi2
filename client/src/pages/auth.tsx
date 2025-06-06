@@ -10,7 +10,7 @@ import { useLocation } from 'wouter';
 import { StripeWrapper } from '@/components/StripeWrapper';
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,12 +29,16 @@ export default function AuthPage() {
     });
   };
 
+  const handleTrialSuccess = () => {
+    setLocation('/');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      const endpoint = authMode === 'login' ? '/api/auth/login' : '/api/auth/signup';
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -48,7 +52,7 @@ export default function AuthPage() {
 
       if (data.success) {
         toast({
-          title: isLogin ? "Login Successful" : "Account Created",
+          title: authMode === 'login' ? "Login Successful" : "Account Created",
           description: data.message,
         });
         
@@ -104,11 +108,15 @@ export default function AuthPage() {
             <Card className="shadow-2xl border-0">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">
-                  {isLogin ? 'Sign In to e-ComAutos' : 'Join e-ComAutos Today'}
+                  {authMode === 'login' ? 'Sign In to e-ComAutos' : 
+                   authMode === 'trial' ? 'Start Your Premium Trial' :
+                   'Join e-ComAutos Today'}
                 </CardTitle>
                 <CardDescription>
-                  {isLogin 
+                  {authMode === 'login' 
                     ? 'Access your vehicle auction dashboard' 
+                    : authMode === 'trial'
+                    ? '7 days free, then $29/month. Card required but not charged during trial.'
                     : 'Start your 7-day free trial - no credit card required'
                   }
                 </CardDescription>
