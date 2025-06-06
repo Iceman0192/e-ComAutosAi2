@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EcomautosLogo } from '@/components/ui/ecomautos-logo';
 import { OnboardingTrigger } from '@/components/OnboardingFlow';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';

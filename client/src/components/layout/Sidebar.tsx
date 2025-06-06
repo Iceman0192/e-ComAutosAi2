@@ -137,13 +137,13 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full max-h-screen">
-      {/* Logo and User Info */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-          e-ComAutos
-        </h2>
+      {/* Authentic ECOMAUTOS Logo and User Info */}
+      <div className="p-4 border-b border-amber-200/30 dark:border-amber-700/20 flex-shrink-0">
+        <div className="mb-3">
+          <EcomautosLogo size="sm" variant="full" />
+        </div>
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+          <div className="w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
             {user?.name?.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
