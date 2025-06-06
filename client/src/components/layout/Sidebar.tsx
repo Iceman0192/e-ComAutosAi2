@@ -32,31 +32,31 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const navigationItems = [
     {
-      title: 'Dashboard',
+      title: 'Panel Principal',
       href: '/dashboard',
       icon: Home,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Sales History',
+      title: 'Historial de Ventas',
       href: '/copart',
       icon: Search,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Active Lot Finder',
+      title: 'Buscador de Lotes',
       href: '/active-lots',
       icon: Car,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Live Lot Analysis',
+      title: 'Análisis en Vivo',
       href: '/live-copart',
       icon: Car,
       permission: 'FULL_ANALYTICS'
     },
     {
-      title: 'VIN History Search',
+      title: 'Búsqueda por VIN',
       href: '/vin-history',
       icon: History,
       permission: 'BASIC_SEARCH'
@@ -68,19 +68,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'CROSS_PLATFORM_SEARCH'
     },
     {
-      title: 'Import Calculator',
+      title: 'Calculadora Importación',
       href: '/import-calculator',
       icon: Calculator,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Datasets',
+      title: 'Base de Datos',
       href: '/datasets',
       icon: Database,
       permission: 'ADMIN'
     },
     {
-      title: 'Team Management',
+      title: 'Gestión de Equipo',
       href: '/team',
       icon: Users,
       permission: 'ADMIN'
@@ -89,19 +89,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const accountItems = [
     {
-      title: 'Account Settings',
+      title: 'Configuración',
       href: '/account',
       icon: Settings,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Usage Dashboard',
+      title: 'Panel de Uso',
       href: '/usage',
       icon: BarChart3,
       permission: 'BASIC_SEARCH'
     },
     {
-      title: 'Billing',
+      title: 'Facturación',
       href: '/billing',
       icon: CreditCard,
       permission: 'BASIC_SEARCH'
@@ -138,12 +138,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full max-h-screen">
       {/* Authentic ECOMAUTOS Logo and User Info */}
-      <div className="p-4 border-b border-amber-200/30 dark:border-amber-700/20 flex-shrink-0">
+      <div className="p-4 border-b border-gold/30 dark:border-gold/20 flex-shrink-0">
         <div className="mb-3">
           <EcomautosLogo size="sm" variant="full" />
         </div>
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+          <div className="w-6 h-6 ecomautos-gradient rounded-full flex items-center justify-center text-white text-xs font-semibold">
             {user?.name?.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
