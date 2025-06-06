@@ -7,8 +7,8 @@ export async function initializeDatabase() {
 
   const plans = [
     {
-      name: 'Freemium',
-      role: 'freemium' as const,
+      name: 'Free',
+      role: 'free' as const,
       monthlyPrice: '0',
       yearlyPrice: '0',
       stripePriceId: null,
@@ -65,14 +65,33 @@ export async function initializeDatabase() {
       stripePriceId: 'price_platinum_monthly',
       stripeYearlyPriceId: 'price_platinum_yearly',
       features: JSON.stringify([
+        '2000 daily searches',
+        '500 VIN lookups per month',
+        '5000 data exports per month',
+        'Premium analytics',
+        'Custom reports',
+        'Priority support',
+        'API access',
+        'Advanced integrations'
+      ]),
+      isActive: true,
+    },
+    {
+      name: 'Enterprise',
+      role: 'enterprise' as const,
+      monthlyPrice: '199',
+      yearlyPrice: '1990',
+      stripePriceId: 'price_enterprise_monthly',
+      stripeYearlyPriceId: 'price_enterprise_yearly',
+      features: JSON.stringify([
         'Unlimited searches',
         'Unlimited VIN lookups',
         'Unlimited data exports',
-        'AuctionMind Pro AI Analysis',
-        'Market intelligence reports',
-        'API access',
-        'Custom reporting',
-        'White-glove support'
+        'White-label options',
+        'Dedicated support',
+        'Custom integrations',
+        'Team collaboration',
+        'Enterprise security'
       ]),
       isActive: true,
     },

@@ -72,7 +72,7 @@ export function setupSimpleAuth(app: Express) {
         username,
         name: name || username,
         password: hashedPassword,
-        role: 'freemium',
+        role: 'free',
         isActive: true
       }).returning({
         id: users.id,
