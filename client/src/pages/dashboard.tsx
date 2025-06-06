@@ -3,7 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EcomautosLogo } from '@/components/ui/ecomautos-logo';
 import { OnboardingTrigger } from '@/components/OnboardingFlow';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
@@ -105,7 +104,7 @@ export default function Dashboard() {
         icon: TrendingUp,
         href: '/live-copart',
         permission: 'FULL_ANALYTICS',
-        color: 'bg-gold'
+        color: 'bg-indigo-500'
       });
 
       actions.push({
@@ -114,7 +113,7 @@ export default function Dashboard() {
         icon: Activity,
         href: '/live-iaai',
         permission: 'FULL_ANALYTICS',
-        color: 'bg-orange'
+        color: 'bg-pink-500'
       });
 
       // AuctionMind Pro - Platinum tier only
@@ -125,7 +124,7 @@ export default function Dashboard() {
           icon: Settings,
           href: '/auction-mind-v2',
           permission: 'FULL_ANALYTICS',
-          color: 'bg-gold'
+          color: 'bg-emerald-500'
         });
       }
 
@@ -135,7 +134,7 @@ export default function Dashboard() {
         icon: Car,
         href: '/import-calculator',
         permission: 'FULL_ANALYTICS',
-        color: 'bg-orange'
+        color: 'bg-amber-500'
       });
     }
 
@@ -147,7 +146,7 @@ export default function Dashboard() {
         icon: Database,
         href: '/datasets',
         permission: 'ADMIN',
-        color: 'bg-gold'
+        color: 'bg-orange-500'
       });
 
       actions.push({
@@ -276,7 +275,7 @@ export default function Dashboard() {
             const Icon = action.icon;
             return (
               <Link key={action.href} href={action.href}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer group ecomautos-card">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
                   <CardHeader>
                     <div className="flex items-center space-x-2">
                       <div className={`p-2 rounded-lg ${action.color} group-hover:scale-110 transition-transform`}>

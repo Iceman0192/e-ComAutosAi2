@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EcomautosLogo } from '@/components/ui/ecomautos-logo';
 import { Car, Menu, X, ChevronDown } from 'lucide-react';
 import { useLocation } from 'wouter';
 
@@ -40,22 +39,33 @@ export default function Navigation({ user }: NavigationProps) {
   };
 
   return (
-    <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-gold/30 dark:border-gold/20 sticky top-0 z-50 shadow-lg shadow-gold/5">
+    <nav className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Authentic ECOMAUTOS Logo */}
+          {/* Logo */}
           <div 
-            className="flex items-center cursor-pointer group"
+            className="flex items-center space-x-3 cursor-pointer group"
             onClick={() => handleNavigation('/')}
           >
-            <EcomautosLogo size="sm" className="transition-transform group-hover:scale-105" />
+            <div className="relative">
+              <Car className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ecomautos.ai
+              </span>
+              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                AI-Powered Intelligence
+              </Badge>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             {/* Product Dropdown */}
             <div className="relative group">
-              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-gold dark:hover:text-gold font-medium transition-colors">
+              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
                 <span>Product</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -65,7 +75,7 @@ export default function Navigation({ user }: NavigationProps) {
                     <button
                       key={item.name}
                       onClick={() => handleNavigation(item.href)}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gold/10 dark:hover:bg-gold/20 hover:text-gold dark:hover:text-gold rounded-lg transition-colors"
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors"
                     >
                       {item.name}
                     </button>
@@ -76,7 +86,7 @@ export default function Navigation({ user }: NavigationProps) {
 
             {/* Company Dropdown */}
             <div className="relative group">
-              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-gold dark:hover:text-gold font-medium transition-colors">
+              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
                 <span>Company</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -86,7 +96,7 @@ export default function Navigation({ user }: NavigationProps) {
                     <button
                       key={item.name}
                       onClick={() => handleNavigation(item.href)}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gold/10 dark:hover:bg-gold/20 hover:text-gold dark:hover:text-gold rounded-lg transition-colors"
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors"
                     >
                       {item.name}
                     </button>
@@ -97,7 +107,7 @@ export default function Navigation({ user }: NavigationProps) {
 
             {/* Support Dropdown */}
             <div className="relative group">
-              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-gold dark:hover:text-gold font-medium transition-colors">
+              <button className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
                 <span>Support</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
@@ -107,7 +117,7 @@ export default function Navigation({ user }: NavigationProps) {
                     <button
                       key={item.name}
                       onClick={() => handleNavigation(item.href)}
-                      className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gold/10 dark:hover:bg-gold/20 hover:text-gold dark:hover:text-gold rounded-lg transition-colors"
+                      className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors"
                     >
                       {item.name}
                     </button>
@@ -119,9 +129,9 @@ export default function Navigation({ user }: NavigationProps) {
             {/* Pricing */}
             <button 
               onClick={() => handleNavigation('/pricing')}
-              className="text-gray-700 dark:text-gray-300 hover:text-gold dark:hover:text-gold font-medium transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
             >
-              Precios
+              Pricing
             </button>
           </div>
 
@@ -132,15 +142,15 @@ export default function Navigation({ user }: NavigationProps) {
                 <Button 
                   variant="ghost" 
                   onClick={() => handleNavigation('/dashboard')}
-                  className="ecomautos-nav-link"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 >
                   Dashboard
                 </Button>
                 <Button 
                   onClick={() => handleNavigation('/billing')}
-                  className="ecomautos-button-primary shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 >
-                  Actualizar
+                  Upgrade
                 </Button>
               </>
             ) : (
@@ -148,15 +158,15 @@ export default function Navigation({ user }: NavigationProps) {
                 <Button 
                   variant="ghost" 
                   onClick={() => handleNavigation('/auth')}
-                  className="ecomautos-nav-link"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
                 >
-                  Iniciar Sesión
+                  Sign In
                 </Button>
                 <Button 
                   onClick={() => handleNavigation('/auth')}
-                  className="ecomautos-button-primary shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 >
-                  Comenzar Gratis
+                  Start Free Trial
                 </Button>
               </>
             )}

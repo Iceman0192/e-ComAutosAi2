@@ -200,8 +200,8 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen ecomautos-gradient">
-      <nav className="border-b border-white/20 backdrop-blur-sm bg-slateDark/90">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+      <nav className="border-b border-white/20 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <EcomautosLogo size="md" />
@@ -209,7 +209,7 @@ export default function AuthPage() {
               <Button
                 variant="ghost"
                 onClick={() => setLocation('/')}
-                className="ecomautos-nav-link"
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Back to Home
@@ -220,7 +220,7 @@ export default function AuthPage() {
       </nav>
 
       <div className="flex min-h-[calc(100vh-4rem)]">
-        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 ecomautos-gradient relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-slate-800 via-slate-700 to-amber-600 relative overflow-hidden">
           <div className="absolute inset-0 opacity-20">
             <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
               <g fill="none" fillRule="evenodd">
@@ -240,7 +240,7 @@ export default function AuthPage() {
               
               <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
                 Welcome to the Future of
-                <span className="block ecomautos-gradient-text">Vehicle Intelligence</span>
+                <span className="block text-amber-400">Vehicle Intelligence</span>
               </h1>
               
               <p className="text-xl text-slate-100 mb-8 leading-relaxed">
@@ -355,13 +355,13 @@ export default function AuthPage() {
                           onClick={() => setSelectedPlan(key as any)}
                           className={`relative p-4 rounded-lg border-2 cursor-pointer transition-all ${
                             selectedPlan === key
-                              ? 'border-gold bg-gold/10 dark:bg-gold/20'
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                               : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                          } ${plan.highlight ? 'ring-2 ring-gold ring-opacity-50' : ''}`}
+                          } ${plan.highlight ? 'ring-2 ring-purple-500 ring-opacity-50' : ''}`}
                         >
                           {plan.highlight && (
-                            <Badge className="absolute -top-2 left-4 ecomautos-gradient text-white">
-                              Más Popular
+                            <Badge className="absolute -top-2 left-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                              Most Popular
                             </Badge>
                           )}
                           <div className="flex items-center justify-between">
@@ -531,7 +531,7 @@ export default function AuthPage() {
                   <Button 
                     type="submit" 
                     disabled={isLoading}
-                    className="w-full ecomautos-button-primary shadow-xl hover:shadow-2xl transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-amber-500/30"
                     size="lg"
                   >
                     {isLoading ? 'Processing...' : (
@@ -543,7 +543,7 @@ export default function AuthPage() {
                           </>
                         ) : (
                           <>
-                            {authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta Gratis'}
+                            {authMode === 'login' ? 'Sign In' : 'Create Free Account'}
                             <ArrowRight className="ml-2 h-5 w-5" />
                           </>
                         )}
@@ -569,22 +569,22 @@ export default function AuthPage() {
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     {authMode === 'login' ? (
                       <>
-                        ¿No tienes cuenta?{' '}
+                        Don't have an account?{' '}
                         <button
                           onClick={() => setAuthMode('signup')}
-                          className="text-gold dark:text-gold hover:underline font-medium"
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                         >
-                          Regístrate gratis
+                          Sign up free
                         </button>
                       </>
                     ) : (
                       <>
-                        ¿Ya tienes cuenta?{' '}
+                        Already have an account?{' '}
                         <button
                           onClick={() => setAuthMode('login')}
-                          className="text-gold dark:text-gold hover:underline font-medium"
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                         >
-                          Iniciar sesión
+                          Sign in
                         </button>
                       </>
                     )}
@@ -593,12 +593,12 @@ export default function AuthPage() {
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       By continuing, you agree to our{' '}
-                      <a href="/company/terms" className="text-gold dark:text-gold hover:underline">
-                        Términos de Servicio
+                      <a href="/company/terms" className="text-blue-600 dark:text-blue-400 hover:underline">
+                        Terms of Service
                       </a>{' '}
-                      y{' '}
-                      <a href="/company/privacy" className="text-gold dark:text-gold hover:underline">
-                        Política de Privacidad
+                      and{' '}
+                      <a href="/company/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
+                        Privacy Policy
                       </a>
                     </p>
                   </div>

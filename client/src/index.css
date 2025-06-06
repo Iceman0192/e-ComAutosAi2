@@ -3,75 +3,48 @@
 @tailwind utilities;
 
 :root {
-      /* ECOMAUTOS Brand Colors - Enhanced Implementation */
---background: 0 0% 100%;
---foreground: 213 31% 15%; /* slateDark #1E293B */
---muted: 210 20% 98%; /* silver #F8FAFC */
---muted-foreground: 213 27% 45%;
+      --background: 0 0% 100%;
+--foreground: 20 14.3% 4.1%;
+--muted: 60 4.8% 95.9%;
+--muted-foreground: 25 5.3% 44.7%;
 --popover: 0 0% 100%;
---popover-foreground: 213 31% 15%;
+--popover-foreground: 20 14.3% 4.1%;
 --card: 0 0% 100%;
---card-foreground: 213 31% 15%;
---border: 213 20% 90%;
---input: 213 20% 90%;
---primary: 45 93% 55%; /* ECOMAUTOS gold #FACC15 */
---primary-foreground: 210 20% 98%;
---secondary: 24 95% 53%; /* ECOMAUTOS orange #F97316 */
---secondary-foreground: 210 20% 98%;
---accent: 45 93% 55%;
---accent-foreground: 210 20% 98%;
+--card-foreground: 20 14.3% 4.1%;
+--border: 20 5.9% 90%;
+--input: 20 5.9% 90%;
+--primary: 37 91% 55%;
+--primary-foreground: 0 0% 98%;
+--secondary: 60 4.8% 95.9%;
+--secondary-foreground: 24 9.8% 10%;
+--accent: 37 91% 55%;
+--accent-foreground: 0 0% 98%;
 --destructive: 0 84.2% 60.2%;
 --destructive-foreground: 60 9.1% 97.8%;
---ring: 45 93% 55%;
+--ring: 37 91% 55%;
 --radius: 0.5rem;
-
-/* ECOMAUTOS Purple Gradient Colors */
---purple-start: 247 80% 64%; /* #5C4BFF */
---purple-mid: 249 75% 74%; /* #8F7FFF */
---purple-end: 252 69% 83%; /* #B2ABFF */
-
-/* ECOMAUTOS Sidebar Colors */
---sidebar-background: 213 31% 15%; /* slateDark */
---sidebar-foreground: 210 20% 98%; /* silver */
---sidebar-primary: 45 93% 55%; /* gold */
---sidebar-primary-foreground: 213 31% 15%;
---sidebar-accent: 24 95% 53%; /* orange */
---sidebar-accent-foreground: 210 20% 98%;
---sidebar-border: 213 27% 25%;
---sidebar-ring: 45 93% 55%;
   }
   .dark {
-      /* Dark Mode - Enhanced ECOMAUTOS Branding */
---background: 213 31% 8%; /* Deep dark slate */
---foreground: 210 20% 98%; /* silver */
---muted: 213 27% 15%;
---muted-foreground: 213 20% 65%;
---popover: 213 31% 10%;
---popover-foreground: 210 20% 98%;
---card: 213 31% 10%;
---card-foreground: 210 20% 98%;
---border: 213 27% 20%;
---input: 213 27% 20%;
---primary: 45 93% 55%; /* ECOMAUTOS gold maintained */
---primary-foreground: 213 31% 15%;
---secondary: 24 95% 53%; /* ECOMAUTOS orange maintained */
---secondary-foreground: 210 20% 98%;
---accent: 45 93% 55%;
---accent-foreground: 213 31% 15%;
+      --background: 240 10% 3.9%;
+--foreground: 0 0% 98%;
+--muted: 240 3.7% 15.9%;
+--muted-foreground: 240 5% 64.9%;
+--popover: 240 10% 3.9%;
+--popover-foreground: 0 0% 98%;
+--card: 240 10% 3.9%;
+--card-foreground: 0 0% 98%;
+--border: 240 3.7% 15.9%;
+--input: 240 3.7% 15.9%;
+--primary: 37 91% 55%;
+--primary-foreground: 0 0% 98%;
+--secondary: 240 3.7% 15.9%;
+--secondary-foreground: 0 0% 98%;
+--accent: 37 91% 55%;
+--accent-foreground: 0 0% 98%;
 --destructive: 0 62.8% 30.6%;
 --destructive-foreground: 0 0% 98%;
---ring: 45 93% 55%;
+--ring: 37 91% 55%;
 --radius: 0.5rem;
-
-/* Dark mode sidebar colors */
---sidebar-background: 213 31% 5%;
---sidebar-foreground: 210 20% 95%;
---sidebar-primary: 45 93% 55%;
---sidebar-primary-foreground: 213 31% 10%;
---sidebar-accent: 24 95% 53%;
---sidebar-accent-foreground: 210 20% 98%;
---sidebar-border: 213 27% 15%;
---sidebar-ring: 45 93% 55%;
   }
 
 @layer base {
@@ -81,48 +54,5 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-  }
-}
-
-@layer components {
-  /* ECOMAUTOS Brand Components - Enhanced Implementation */
-  .ecomautos-gradient {
-    @apply bg-gradient-to-r from-primary to-secondary;
-  }
-  
-  .ecomautos-gradient-text {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
-  }
-  
-  .purple-gradient {
-    background: linear-gradient(90deg, #5C4BFF 0%, #8F7FFF 50%, #B2ABFF 100%);
-  }
-  
-  .ecomautos-card {
-    @apply bg-white dark:bg-card shadow-md rounded-lg border-t-4 border-primary;
-  }
-  
-  .ecomautos-button-primary {
-    @apply bg-purple-gradient text-silver hover:brightness-110 transition-all duration-200 px-6 py-3 rounded-md font-medium;
-  }
-  
-  .ecomautos-button-secondary {
-    @apply border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200 px-6 py-3 rounded-md font-medium;
-  }
-  
-  .ecomautos-input-focus {
-    @apply focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary;
-  }
-  
-  .ecomautos-sidebar {
-    @apply bg-sidebar text-sidebar-foreground border-r border-sidebar-border;
-  }
-  
-  .ecomautos-nav-link {
-    @apply text-sidebar-foreground hover:text-sidebar-primary transition-colors duration-200;
-  }
-  
-  .ecomautos-nav-active {
-    @apply text-sidebar-primary bg-sidebar-accent/10;
   }
 }
