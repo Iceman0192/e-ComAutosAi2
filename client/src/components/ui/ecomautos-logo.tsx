@@ -19,71 +19,80 @@ export function EcomautosLogo({ size = 'md', variant = 'full', className = '' }:
     xl: 'text-4xl'
   };
 
-  // Authentic ECOMAUTOS logo recreated from provided design
+  // Authentic ECOMAUTOS logo recreated from your exact brand asset
   const LogoSvg = () => (
     <svg 
-      viewBox="0 0 500 120" 
+      viewBox="0 0 600 140" 
       className={`${sizeClasses[size]} ${className}`}
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        {/* Premium gradients matching authentic design */}
-        <linearGradient id="carBodyGradient" x1="0%" y1="30%" x2="100%" y2="70%">
-          <stop offset="0%" stopColor="#F8FAFC" />
-          <stop offset="40%" stopColor="#E2E8F0" />
-          <stop offset="100%" stopColor="#CBD5E1" />
+        {/* Authentic gradients matching your logo design */}
+        <linearGradient id="car1Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="50%" stopColor="#E5E7EB" />
+          <stop offset="100%" stopColor="#F59E0B" />
         </linearGradient>
-        <linearGradient id="carAccentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="car2Gradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#F59E0B" />
           <stop offset="50%" stopColor="#F97316" />
-          <stop offset="100%" stopColor="#FB923C" />
+          <stop offset="100%" stopColor="#FBBF24" />
         </linearGradient>
-        <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#F8FAFC" />
-          <stop offset="100%" stopColor="#E2E8F0" />
+        <linearGradient id="ecomGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="100%" stopColor="#F3F4F6" />
         </linearGradient>
-        {/* Shadow effects for premium look */}
-        <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.3"/>
+        <linearGradient id="autosGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#F59E0B" />
+          <stop offset="100%" stopColor="#FBBF24" />
+        </linearGradient>
+        {/* Premium shadow effects */}
+        <filter id="logoShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="3" dy="3" stdDeviation="4" floodColor="#000000" floodOpacity="0.25"/>
         </filter>
       </defs>
       
-      {/* Main car silhouette with authentic curves */}
+      {/* First car silhouette - sleek sports car design */}
       <path
-        d="M10 55C8 48 15 42 28 40C45 35 70 33 95 36C115 38 135 42 140 50C142 55 140 62 135 65C130 67 125 68 120 67L115 66C110 65 105 64 100 63L95 62C85 60 75 59 65 58C55 57 45 56 35 55C25 54 15 53 10 55Z"
-        fill="url(#carBodyGradient)"
-        stroke="url(#carAccentGradient)"
-        strokeWidth="1.5"
-        filter="url(#dropShadow)"
+        d="M15 60C12 52 20 45 35 42C55 38 85 36 120 40C145 42 165 48 168 58C170 65 165 72 155 74C145 76 135 75 125 73L115 71C100 68 85 66 70 64C55 62 40 60 25 58C20 57 15 58 15 60Z"
+        fill="url(#car1Gradient)"
+        stroke="#F59E0B"
+        strokeWidth="2"
+        filter="url(#logoShadow)"
       />
       
-      {/* Accent car silhouette - overlapping for depth */}
+      {/* Second car silhouette - overlapping golden car */}
       <path
-        d="M20 48C18 45 22 42 30 41C42 38 58 37 75 39C88 40 100 42 105 46C107 48 106 52 103 54C100 55 97 56 94 55L90 54C86 53 82 52 78 51C70 49 62 48 54 47C46 46 38 45 30 46C24 47 20 48 20 48Z"
-        fill="url(#carAccentGradient)"
-        opacity="0.85"
+        d="M25 50C22 47 28 44 40 42C58 39 82 38 110 41C130 42 145 46 148 52C150 56 147 60 140 62C135 63 130 63 125 62L118 61C108 59 98 58 88 57C78 56 68 55 58 54C48 53 38 52 28 51C25 50 22 50 25 50Z"
+        fill="url(#car2Gradient)"
+        opacity="0.9"
       />
       
-      {/* Window details for realism */}
-      <ellipse cx="50" cy="47" rx="8" ry="4" fill="#1E293B" opacity="0.6" />
-      <ellipse cx="80" cy="45" rx="12" ry="5" fill="#1E293B" opacity="0.6" />
+      {/* Car details - windows and highlights */}
+      <ellipse cx="60" cy="52" rx="12" ry="6" fill="#1F2937" opacity="0.7" />
+      <ellipse cx="95" cy="50" rx="15" ry="7" fill="#1F2937" opacity="0.7" />
+      <ellipse cx="125" cy="49" rx="10" ry="5" fill="#1F2937" opacity="0.7" />
 
-      {/* ECOMAUTOS text with professional typography */}
-      <text x="160" y="45" fill="url(#textGradient)" fontSize="36" fontWeight="800" fontFamily="Arial Black, Arial, sans-serif" letterSpacing="1">
+      {/* ECOMAUTOS text - exact typography from your logo */}
+      <text x="190" y="55" fill="url(#ecomGradient)" fontSize="42" fontWeight="900" fontFamily="Arial Black, sans-serif" letterSpacing="2">
         ECOM
       </text>
-      <text x="280" y="45" fill="#F59E0B" fontSize="36" fontWeight="800" fontFamily="Arial Black, Arial, sans-serif" letterSpacing="1">
+      <text x="320" y="55" fill="url(#autosGradient)" fontSize="42" fontWeight="900" fontFamily="Arial Black, sans-serif" letterSpacing="2">
         AUTOS
       </text>
       
-      {/* Authentic tagline with premium styling */}
-      <text x="160" y="75" fill="#94A3B8" fontSize="12" fontWeight="500" fontFamily="Arial, sans-serif" letterSpacing="4">
+      {/* Authentic tagline - exactly as in your design */}
+      <text x="190" y="85" fill="#9CA3AF" fontSize="14" fontWeight="600" fontFamily="Arial, sans-serif" letterSpacing="6">
         CLIC. GANA. EXPORTA.
       </text>
       
-      {/* Subtle accent line for premium feel */}
-      <line x1="160" y1="82" x2="400" y2="82" stroke="#F59E0B" strokeWidth="2" opacity="0.7" />
+      {/* Premium accent line */}
+      <line x1="190" y1="95" x2="480" y2="95" stroke="#F59E0B" strokeWidth="3" opacity="0.8" />
+      
+      {/* Subtle highlight effects */}
+      <circle cx="45" cy="45" r="2" fill="#FBBF24" opacity="0.8" />
+      <circle cx="110" cy="42" r="1.5" fill="#FFFFFF" opacity="0.9" />
     </svg>
   );
 
