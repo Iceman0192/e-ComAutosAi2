@@ -25,14 +25,14 @@ export async function initializeDatabase() {
     {
       name: 'Basic',
       role: 'basic' as const,
-      monthlyPrice: '29',
-      yearlyPrice: '290',
+      monthlyPrice: '19',
+      yearlyPrice: '190',
       stripePriceId: 'price_basic_monthly', // To be replaced with actual Stripe price IDs
       stripeYearlyPriceId: 'price_basic_yearly',
       features: JSON.stringify([
-        '50 daily searches',
-        '25 VIN lookups per month',
-        '100 data exports per month',
+        '100 daily searches',
+        '50 VIN lookups per month',
+        '200 data exports per month',
         'Advanced search filters',
         'Export capabilities',
         'Email support'
@@ -42,14 +42,14 @@ export async function initializeDatabase() {
     {
       name: 'Gold',
       role: 'gold' as const,
-      monthlyPrice: '79',
-      yearlyPrice: '790',
+      monthlyPrice: '39',
+      yearlyPrice: '390',
       stripePriceId: 'price_gold_monthly',
       stripeYearlyPriceId: 'price_gold_yearly',
       features: JSON.stringify([
-        '200 daily searches',
-        '100 VIN lookups per month',
-        '500 data exports per month',
+        '500 daily searches',
+        '200 VIN lookups per month',
+        '1000 data exports per month',
         'Cross-platform search',
         'Advanced analytics',
         'Bulk export tools',
@@ -60,8 +60,8 @@ export async function initializeDatabase() {
     {
       name: 'Platinum',
       role: 'platinum' as const,
-      monthlyPrice: '149',
-      yearlyPrice: '1490',
+      monthlyPrice: '79',
+      yearlyPrice: '790',
       stripePriceId: 'price_platinum_monthly',
       stripeYearlyPriceId: 'price_platinum_yearly',
       features: JSON.stringify([
