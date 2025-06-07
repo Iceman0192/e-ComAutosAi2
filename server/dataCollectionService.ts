@@ -20,36 +20,38 @@ export class DataCollectionService {
 
   constructor() {
     this.initializeCollectionQueue();
+    // Auto-start is disabled - manual control only
   }
 
   private initializeCollectionQueue() {
-    // Simple make-only collection - discover models dynamically from 90-day windows
+    // Rebalanced collection - prioritize data gap fills first
     const makesToCollect = [
-      // Priority 1: High-value luxury brands
-      { make: 'BMW', priority: 1 },
-      { make: 'Mercedes-Benz', priority: 1 },
-      { make: 'Audi', priority: 1 },
-      { make: 'Tesla', priority: 1 },
-      { make: 'Porsche', priority: 1 },
+      // Priority 1: Fill mainstream brand gaps (Honda, Toyota, Ford, Chevrolet)
+      { make: 'Toyota', priority: 1 },
+      { make: 'Honda', priority: 1 },
+      { make: 'Ford', priority: 1 },
+      { make: 'Chevrolet', priority: 1 },
       
-      // Priority 2: Popular mainstream brands
-      { make: 'Toyota', priority: 2 },
-      { make: 'Honda', priority: 2 },
-      { make: 'Ford', priority: 2 },
-      { make: 'Chevrolet', priority: 2 },
+      // Priority 2: Other high-volume mainstream brands
       { make: 'Nissan', priority: 2 },
       { make: 'Hyundai', priority: 2 },
       { make: 'Kia', priority: 2 },
+      { make: 'Jeep', priority: 2 },
+      { make: 'Dodge', priority: 2 },
       
-      // Priority 3: Other major brands
-      { make: 'Lexus', priority: 3 },
-      { make: 'Jeep', priority: 3 },
-      { make: 'Dodge', priority: 3 },
-      { make: 'Mazda', priority: 3 },
-      { make: 'Volkswagen', priority: 3 },
-      { make: 'Subaru', priority: 3 },
-      { make: 'Mitsubishi', priority: 3 },
-      { make: 'Infiniti', priority: 3 },
+      // Priority 3: Well-covered luxury brands (already strong data)
+      { make: 'BMW', priority: 3 },
+      { make: 'Mercedes-Benz', priority: 3 },
+      { make: 'Audi', priority: 3 },
+      { make: 'Tesla', priority: 3 },
+      { make: 'Porsche', priority: 3 },
+      
+      // Priority 4: Additional brands
+      { make: 'Lexus', priority: 4 },
+      { make: 'Mazda', priority: 4 },
+      { make: 'Volkswagen', priority: 4 },
+      { make: 'Subaru', priority: 4 },
+      { make: 'Mitsubishi', priority: 4 },
     ];
 
     this.collectionQueue = makesToCollect.map((makeConfig, index) => ({
@@ -61,6 +63,11 @@ export class DataCollectionService {
     }));
 
     console.log(`Data collection queue initialized with ${this.collectionQueue.length} makes`);
+    console.log('Collection priorities:');
+    console.log('Priority 1 (Data Gap Fill):', makesToCollect.filter(m => m.priority === 1).map(m => m.make).join(', '));
+    console.log('Priority 2 (High Volume):', makesToCollect.filter(m => m.priority === 2).map(m => m.make).join(', '));
+    console.log('Priority 3 (Well Covered):', makesToCollect.filter(m => m.priority === 3).map(m => m.make).join(', '));
+    console.log('Note: Auto-collection disabled - use manual controls only');
   }
 
   async startAutomatedCollection() {
@@ -200,8 +207,8 @@ export class DataCollectionService {
         .where(
           and(
             eq(salesHistory.make, make),
-            sql`${salesHistory.sale_date} >= ${startDate.toISOString().split('T')[0]}`,
-            sql`${salesHistory.sale_date} <= ${endDate.toISOString().split('T')[0]}`
+            gte(salesHistory.sale_date, startDate),
+            lte(salesHistory.sale_date, endDate)
           )
         )
         .limit(100); // Limit to top 100 models
