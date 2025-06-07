@@ -211,12 +211,12 @@ export class DataCollectionService {
             lte(salesHistory.sale_date, endDate)
           )
         )
-        .limit(100); // Limit to top 100 models
+        .limit(200); // Get comprehensive model list
 
       const models = existingModels
         .map(row => row.model)
         .filter((model): model is string => model !== null && model.trim() !== '' && model !== 'Unknown')
-        .slice(0, 50); // Limit to 50 models per make
+        .slice(0, 100); // Get more comprehensive model coverage
 
       return models;
     } catch (error) {
@@ -235,11 +235,11 @@ export class DataCollectionService {
     let totalCollected = 0;
     let page = 1;
     let hasMoreData = true;
-    const maxPages = 100; // Increased depth for comprehensive coverage
+    // No artificial page limit - collect ALL data within 90-180 day window
     
     const baseUrl = 'http://localhost:5000/api/sales-history';
     
-    while (hasMoreData && page <= maxPages) {
+    while (hasMoreData) {
       try {
         const params = new URLSearchParams({
           make: make,
