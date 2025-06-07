@@ -15,8 +15,8 @@ export class DataCollectionService {
   private isRunning = false;
   private collectionQueue: CollectionJob[] = [];
   private readonly BATCH_SIZE = 50;
-  private readonly COLLECTION_INTERVAL = 30 * 60 * 1000; // 30 minutes
-  private readonly DAYS_WINDOW = 90; // 90 day rolling window
+  private readonly COLLECTION_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  private readonly DAYS_WINDOW = 180; // 180 day rolling window (6 months max)
 
   constructor() {
     this.initializeCollectionQueue();
@@ -200,15 +200,15 @@ export class DataCollectionService {
         .where(
           and(
             eq(salesHistory.make, make),
-            gte(salesHistory.saleDate, startDate.toISOString().split('T')[0]),
-            lte(salesHistory.saleDate, endDate.toISOString().split('T')[0])
+            sql`${salesHistory.sale_date} >= ${startDate.toISOString().split('T')[0]}`,
+            sql`${salesHistory.sale_date} <= ${endDate.toISOString().split('T')[0]}`
           )
         )
         .limit(100); // Limit to top 100 models
 
       const models = existingModels
         .map(row => row.model)
-        .filter(model => model && model.trim() !== '' && model !== 'Unknown')
+        .filter((model): model is string => model !== null && model.trim() !== '' && model !== 'Unknown')
         .slice(0, 50); // Limit to 50 models per make
 
       return models;
@@ -228,7 +228,7 @@ export class DataCollectionService {
     let totalCollected = 0;
     let page = 1;
     let hasMoreData = true;
-    const maxPages = 50; // Reasonable limit per model
+    const maxPages = 100; // Increased depth for comprehensive coverage
     
     const baseUrl = 'http://localhost:5000/api/sales-history';
     
