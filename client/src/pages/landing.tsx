@@ -83,46 +83,52 @@ export default function LandingPage() {
 
   const pricingPlans = [
     {
-      name: "Freemium",
-      price: "Free",
-      description: "Perfect for getting started",
+      name: "Basic",
+      price: "$29",
+      period: "/month",
+      description: "Essential features for buyers",
       features: [
-        "10 daily searches",
-        "Basic vehicle history",
-        "Community support",
+        "1,000 monthly searches",
+        "25 VIN history lookups",
+        "100 data exports",
+        "Basic analytics",
+        "Email support",
         "Mobile app access"
       ],
-      cta: "Start Free",
+      cta: "Start Free Trial",
       popular: false
     },
     {
-      name: "Professional",
-      price: "$39",
+      name: "Gold",
+      price: "$79",
       period: "/month",
-      description: "For serious traders",
+      description: "Most popular for serious dealers",
       features: [
-        "500 daily searches",
-        "AI market analysis",
-        "Real-time alerts",
-        "Export calculations",
+        "5,000 monthly searches",
+        "100 VIN history lookups",
+        "500 data exports",
+        "Cross-platform search",
+        "Advanced analytics",
         "Priority support",
-        "Advanced filters"
+        "Bulk export tools"
       ],
       cta: "Start Trial",
       popular: true
     },
     {
-      name: "Enterprise",
-      price: "$79",
+      name: "Platinum",
+      price: "$149",
       period: "/month",
-      description: "For large operations",
+      description: "Premium features for professionals",
       features: [
         "Unlimited searches",
+        "Unlimited VIN lookups",
+        "Unlimited exports",
+        "AuctionMind Pro AI",
+        "Market intelligence",
         "API access",
-        "Custom reports",
-        "Dedicated support",
-        "White-label options",
-        "Team collaboration"
+        "Custom reporting",
+        "White-glove support"
       ],
       cta: "Contact Sales",
       popular: false
