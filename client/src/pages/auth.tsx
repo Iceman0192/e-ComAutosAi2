@@ -58,7 +58,7 @@ export default function AuthPage() {
     },
     basic: { 
       name: 'Basic', 
-      price: 29, 
+      price: 19, 
       originalPrice: 49,
       description: 'Essential features for buyers',
       features: [
@@ -73,8 +73,8 @@ export default function AuthPage() {
     },
     gold: { 
       name: 'Gold', 
-      price: 79, 
-      originalPrice: 129,
+      price: 39, 
+      originalPrice: 89,
       description: 'Most popular for serious dealers',
       features: [
         '5,000 monthly searches',
@@ -89,8 +89,8 @@ export default function AuthPage() {
     },
     platinum: { 
       name: 'Platinum', 
-      price: 149, 
-      originalPrice: 249,
+      price: 79, 
+      originalPrice: 149,
       description: 'Premium features for professionals',
       features: [
         'Unlimited searches',
@@ -98,25 +98,25 @@ export default function AuthPage() {
         'Unlimited exports',
         'AuctionMind Pro AI',
         'Market intelligence',
-        'API access',
         'Custom reporting',
-        'White-glove support'
+        'Premium support',
+        'Advanced analytics'
       ],
       highlight: false
     },
     enterprise: { 
       name: 'Enterprise', 
-      price: 299, 
-      originalPrice: 499,
-      description: 'Unlimited access for large operations',
+      price: 149, 
+      originalPrice: 399,
+      description: 'Team access for large operations',
       features: [
         'Everything in Platinum',
-        'White-label options',
-        'Dedicated support',
-        'Custom integrations',
-        'Team collaboration',
+        'Team collaboration (2 users included)',
+        'Additional users: $39/month',
         'Enterprise security',
-        'SLA guarantees'
+        'Dedicated support',
+        'Team management tools',
+        'Priority processing'
       ],
       highlight: false
     }
