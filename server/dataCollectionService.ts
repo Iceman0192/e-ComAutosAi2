@@ -116,7 +116,7 @@ export class DataCollectionService {
     const job = sortedQueue[0];
     if (!job) return;
 
-    console.log(`Processing collection job: ${job.make} (120-150 day window)`);
+    console.log(`Processing collection job: ${job.make} (150-day window)`);
 
     try {
       const collectedCount = await this.collectDataForMake(job);
@@ -133,19 +133,18 @@ export class DataCollectionService {
   private async collectDataForMake(job: CollectionJob): Promise<number> {
     let totalCollected = 0;
 
-    // Calculate 120-150 day date range from present day
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() - 120); // Start from 120 days ago
+    // Calculate 150 days back from present day
+    const endDate = new Date(); // Today
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - this.DAYS_WINDOW); // Go back to 150 days ago
+    startDate.setDate(startDate.getDate() - this.DAYS_WINDOW); // Go back 150 days from today
 
     console.log(`Collecting ${job.make} data from ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
 
-    // First, discover all available models for this make in the 120-150 day window
+    // First, discover all available models for this make in the 150-day window
     const discoveredModels = await this.discoverModelsForMake(job.make, startDate, endDate);
     
     if (discoveredModels.length === 0) {
-      console.log(`No models found for ${job.make} in 120-150 day window`);
+      console.log(`No models found for ${job.make} in 150-day window`);
       return 0;
     }
 
@@ -236,7 +235,7 @@ export class DataCollectionService {
     let totalCollected = 0;
     let page = 1;
     let hasMoreData = true;
-    // No artificial page limit - collect ALL data within 120-150 day window
+    // No artificial page limit - collect ALL data within 150-day window
     
     const baseUrl = 'http://localhost:5000/api/sales-history';
     
