@@ -145,7 +145,7 @@ export class DataCollectionService {
     const discoveredModels = await this.discoverModelsForMake(job.make, startDate, endDate);
     
     if (discoveredModels.length === 0) {
-      console.log(`No models found for ${job.make} in 90-day window`);
+      console.log(`No models found for ${job.make} in 120-150 day window`);
       return 0;
     }
 
@@ -236,7 +236,7 @@ export class DataCollectionService {
     let totalCollected = 0;
     let page = 1;
     let hasMoreData = true;
-    // No artificial page limit - collect ALL data within 90-180 day window
+    // No artificial page limit - collect ALL data within 120-150 day window
     
     const baseUrl = 'http://localhost:5000/api/sales-history';
     
