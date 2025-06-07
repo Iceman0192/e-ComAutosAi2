@@ -113,18 +113,18 @@ export default function Dashboard() {
         description: 'Real-time IAAI lot analysis',
         icon: Activity,
         href: '/live-iaai',
-        permission: 'FULL_ANALYTICS',
+        permission: 'ADVANCED_ANALYTICS',
         color: 'bg-pink-500'
       });
 
       // AuctionMind Pro - Platinum tier only
-      if (user?.role === 'platinum' || user?.role === 'admin') {
+      if (user?.role === 'platinum' || user?.role === 'enterprise' || user?.role === 'admin') {
         actions.push({
           title: 'AuctionMind Pro',
           description: 'AI-powered vehicle analysis & comparable search',
           icon: Settings,
           href: '/auction-mind-v2',
-          permission: 'FULL_ANALYTICS',
+          permission: 'AUCTION_MIND_PRO',
           color: 'bg-emerald-500'
         });
       }
@@ -134,7 +134,7 @@ export default function Dashboard() {
         description: 'Calculate import duties and taxes',
         icon: Car,
         href: '/import-calculator',
-        permission: 'FULL_ANALYTICS',
+        permission: 'ADVANCED_ANALYTICS',
         color: 'bg-amber-500'
       });
     }
