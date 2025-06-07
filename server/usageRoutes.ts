@@ -24,7 +24,7 @@ router.get('/usage', requireAuth, async (req: any, res) => {
 });
 
 // Increment usage counter
-router.post('/increment-usage', isAuthenticated, async (req: any, res) => {
+router.post('/increment-usage', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.id;
     const { type } = req.body;
@@ -52,7 +52,7 @@ router.post('/increment-usage', isAuthenticated, async (req: any, res) => {
 });
 
 // Check if user can perform action
-router.post('/check-limit', isAuthenticated, async (req: any, res) => {
+router.post('/check-limit', requireAuth, async (req: any, res) => {
   try {
     const userId = req.user.id;
     const { type } = req.body;
