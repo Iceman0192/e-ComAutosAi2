@@ -116,7 +116,7 @@ export class DataCollectionService {
     const job = sortedQueue[0];
     if (!job) return;
 
-    console.log(`Processing collection job: ${job.make} (90-day window)`);
+    console.log(`Processing collection job: ${job.make} (120-150 day window)`);
 
     try {
       const collectedCount = await this.collectDataForMake(job);
