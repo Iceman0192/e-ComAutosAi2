@@ -4,7 +4,9 @@ import {
   type SaleHistory, 
   type InsertSaleHistory,
   type Vehicle,
-  type InsertVehicle
+  type InsertVehicle,
+  type UserUsage,
+  type InsertUserUsage
 } from "@shared/schema";
 
 // Modify the interface with any CRUD methods you might need
@@ -13,6 +15,13 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Usage tracking methods
+  getUserUsage(userId: number): Promise<UserUsage | undefined>;
+  incrementUsage(userId: number, type: 'search' | 'vin' | 'export'): Promise<void>;
+  checkUsageLimit(userId: number, type: 'search' | 'vin' | 'export'): Promise<boolean>;
+  resetDailyUsage(): Promise<void>;
+  resetMonthlyUsage(): Promise<void>;
   
   // Sales history methods
   getSaleHistory(id: string): Promise<SaleHistory | undefined>;
@@ -28,8 +37,17 @@ export interface IStorage {
 
 
 import { db } from "./db";
-import { users, salesHistory, vehicles } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { users, salesHistory, vehicles, userUsage } from "@shared/schema";
+import { eq, and, gte, lte } from "drizzle-orm";
+// Plan limits - moved from client to avoid circular dependency
+const PLAN_LIMITS = {
+  free: { dailySearches: 10, monthlyVinLookups: 5, monthlyExports: 10 },
+  basic: { dailySearches: 100, monthlyVinLookups: 25, monthlyExports: 100 },
+  gold: { dailySearches: 200, monthlyVinLookups: 100, monthlyExports: 500 },
+  platinum: { dailySearches: -1, monthlyVinLookups: -1, monthlyExports: -1 },
+  enterprise: { dailySearches: -1, monthlyVinLookups: -1, monthlyExports: -1 },
+  admin: { dailySearches: -1, monthlyVinLookups: -1, monthlyExports: -1 }
+} as const;
 
 export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
@@ -87,6 +105,137 @@ export class DatabaseStorage implements IStorage {
       .where(eq(vehicles.vin, vin))
       .returning();
     return vehicle || undefined;
+  }
+
+  // Usage tracking methods
+  async getUserUsage(userId: number): Promise<UserUsage | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const [usage] = await db
+      .select()
+      .from(userUsage)
+      .where(
+        and(
+          eq(userUsage.userId, userId),
+          gte(userUsage.date, today)
+        )
+      );
+    
+    return usage || undefined;
+  }
+
+  async incrementUsage(userId: number, type: 'search' | 'vin' | 'export'): Promise<void> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get or create today's usage record
+    let [usage] = await db
+      .select()
+      .from(userUsage)
+      .where(
+        and(
+          eq(userUsage.userId, userId),
+          gte(userUsage.date, today)
+        )
+      );
+
+    if (!usage) {
+      // Create new usage record for today
+      [usage] = await db
+        .insert(userUsage)
+        .values({
+          userId,
+          date: today,
+          searches: type === 'search' ? 1 : 0,
+          vinSearches: type === 'vin' ? 1 : 0,
+          exports: type === 'export' ? 1 : 0
+        })
+        .returning();
+    } else {
+      // Update existing record
+      const updateData: any = {};
+      if (type === 'search') updateData.searches = usage.searches + 1;
+      if (type === 'vin') updateData.vinSearches = usage.vinSearches + 1;
+      if (type === 'export') updateData.exports = usage.exports + 1;
+
+      await db
+        .update(userUsage)
+        .set(updateData)
+        .where(eq(userUsage.id, usage.id));
+    }
+  }
+
+  async checkUsageLimit(userId: number, type: 'search' | 'vin' | 'export'): Promise<boolean> {
+    const user = await this.getUser(userId);
+    if (!user) return false;
+
+    const limits = PLAN_LIMITS[user.role as keyof typeof PLAN_LIMITS];
+    if (!limits) return false;
+
+    // Check if unlimited
+    if (type === 'search' && limits.dailySearches === -1) return true;
+    if (type === 'vin' && limits.monthlyVinLookups === -1) return true;
+    if (type === 'export' && limits.monthlyExports === -1) return true;
+
+    const usage = await this.getUserUsage(userId);
+    if (!usage) return true; // No usage yet, so allowed
+
+    // Check daily/monthly limits
+    if (type === 'search') {
+      return usage.searches < limits.dailySearches;
+    }
+    
+    if (type === 'vin') {
+      // For VIN and export, check monthly usage
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const monthlyUsage = await db
+        .select()
+        .from(userUsage)
+        .where(
+          and(
+            eq(userUsage.userId, userId),
+            gte(userUsage.date, startOfMonth)
+          )
+        );
+      
+      const totalVinSearches = monthlyUsage.reduce((sum, record) => sum + record.vinSearches, 0);
+      return totalVinSearches < limits.monthlyVinLookups;
+    }
+    
+    if (type === 'export') {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      const monthlyUsage = await db
+        .select()
+        .from(userUsage)
+        .where(
+          and(
+            eq(userUsage.userId, userId),
+            gte(userUsage.date, startOfMonth)
+          )
+        );
+      
+      const totalExports = monthlyUsage.reduce((sum, record) => sum + record.exports, 0);
+      return totalExports < limits.monthlyExports;
+    }
+
+    return false;
+  }
+
+  async resetDailyUsage(): Promise<void> {
+    // Daily usage is automatically reset by date-based queries
+    // No action needed as we query by current date
+  }
+
+  async resetMonthlyUsage(): Promise<void> {
+    // Monthly usage is automatically calculated by date range queries
+    // No action needed as we calculate monthly totals from daily records
   }
 }
 
