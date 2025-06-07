@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { OnboardingTrigger } from '@/components/OnboardingFlow';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
+import { UsageTracker } from '@/components/UsageTracker';
 import { 
   Car, 
   BarChart3, 
@@ -97,13 +98,13 @@ export default function Dashboard() {
     ];
 
     // Premium features (Gold/Platinum tiers)
-    if (hasPermission('FULL_ANALYTICS')) {
+    if (hasPermission('ADVANCED_ANALYTICS')) {
       actions.push({
         title: 'Live Copart Analysis',
         description: 'Real-time lot analysis with AI insights',
         icon: TrendingUp,
         href: '/live-copart',
-        permission: 'FULL_ANALYTICS',
+        permission: 'ADVANCED_ANALYTICS',
         color: 'bg-indigo-500'
       });
 
@@ -263,6 +264,11 @@ export default function Dashboard() {
             </Card>
           </>
         )}
+      </div>
+
+      {/* Usage Tracker */}
+      <div className="mb-8">
+        <UsageTracker />
       </div>
 
       {/* Quick Actions */}
