@@ -99,7 +99,7 @@ export default function LandingPage() {
     },
     {
       name: "Basic",
-      price: "$29",
+      price: "$19",
       period: "/month",
       originalPrice: "$49",
       description: "Essential features for buyers",
@@ -116,9 +116,9 @@ export default function LandingPage() {
     },
     {
       name: "Gold",
-      price: "$79",
+      price: "$39",
       period: "/month",
-      originalPrice: "$129",
+      originalPrice: "$89",
       description: "Most popular for serious dealers",
       features: [
         "5,000 monthly searches",
@@ -134,9 +134,9 @@ export default function LandingPage() {
     },
     {
       name: "Platinum",
-      price: "$149",
+      price: "$79",
       period: "/month",
-      originalPrice: "$249",
+      originalPrice: "$149",
       description: "Premium features for professionals",
       features: [
         "Unlimited searches",
@@ -144,9 +144,8 @@ export default function LandingPage() {
         "Unlimited exports",
         "AuctionMind Pro AI",
         "Market intelligence",
-        "API access",
         "Custom reporting",
-        "White-glove support"
+        "Premium support"
       ],
       cta: "Contact Sales",
       popular: false

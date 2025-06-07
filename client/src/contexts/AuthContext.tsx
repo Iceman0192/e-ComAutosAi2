@@ -39,14 +39,14 @@ export const PLAN_LIMITS = {
     monthlyVinLookups: -1, // unlimited
     monthlyExports: -1, // unlimited
     searchResultsPerPage: 200,
-    features: ['all_features', 'auction_mind_pro', 'market_intelligence', 'api_access', 'custom_reports', 'white_glove_support']
+    features: ['all_features', 'auction_mind_pro', 'market_intelligence', 'custom_reports', 'premium_support']
   },
   [UserRole.ENTERPRISE]: {
     dailySearches: -1, // unlimited
     monthlyVinLookups: -1, // unlimited
     monthlyExports: -1, // unlimited
     searchResultsPerPage: 500,
-    features: ['all_features', 'white_label', 'dedicated_support', 'custom_integrations', 'team_collaboration', 'enterprise_security', 'sla_guarantees']
+    features: ['all_features', 'team_collaboration', 'enterprise_security', 'dedicated_support', 'team_management', 'priority_processing']
   },
   [UserRole.ADMIN]: {
     dailySearches: -1, // unlimited
@@ -84,10 +84,10 @@ export const PERMISSIONS = {
   WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   
   // Enterprise features
-  WHITE_LABEL: [UserRole.ENTERPRISE, UserRole.ADMIN],
   TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN],
   ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],
-  SLA_GUARANTEES: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN],
   
   // Admin only features
   ADMIN_TOOLS: [UserRole.ADMIN],
