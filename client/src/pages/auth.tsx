@@ -25,7 +25,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function AuthPage() {
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'trial'>('login');
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'basic' | 'gold' | 'platinum' | 'enterprise'>('gold');
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'gold' | 'platinum' | 'enterprise'>('gold');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -361,7 +361,7 @@ export default function AuthPage() {
                       Choose Your Plan
                     </Label>
                     <div className="grid grid-cols-1 gap-3">
-                      {Object.entries(plans).map(([key, plan]) => (
+                      {Object.entries(plans).filter(([key]) => key !== 'free').map(([key, plan]) => (
                         <div
                           key={key}
                           onClick={() => setSelectedPlan(key as any)}
@@ -458,7 +458,7 @@ export default function AuthPage() {
                     </div>
                   </div>
 
-                  {authMode === 'trial' && selectedPlan !== 'free' && (
+                  {authMode === 'trial' && (
                     <>
                       <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
@@ -524,22 +524,6 @@ export default function AuthPage() {
                     </>
                   )}
 
-                  {authMode === 'trial' && selectedPlan === 'free' && (
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                        Free Plan Features:
-                      </h4>
-                      <div className="space-y-1">
-                        {plans[selectedPlan].features.slice(0, 3).map((feature, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-sm text-gray-600 dark:text-gray-300">{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   <Button 
                     type="submit" 
                     disabled={isLoading}
@@ -569,7 +553,7 @@ export default function AuthPage() {
                     <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="h-4 w-4 text-amber-500" />
-                        <span>{selectedPlan === 'free' ? 'Completely free' : 'No credit card required for free tier'}</span>
+                        <span>{authMode === 'signup' ? 'Completely free' : 'No credit card required for trial'}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="h-4 w-4 text-amber-500" />
