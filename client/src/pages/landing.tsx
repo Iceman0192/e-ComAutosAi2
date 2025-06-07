@@ -83,9 +83,25 @@ export default function LandingPage() {
 
   const pricingPlans = [
     {
+      name: "Free",
+      price: "Free",
+      period: "",
+      description: "Perfect for getting started",
+      features: [
+        "10 daily searches",
+        "5 VIN lookups per month",
+        "10 data exports per month",
+        "Basic search filters",
+        "Community support"
+      ],
+      cta: "Start Free",
+      popular: false
+    },
+    {
       name: "Basic",
       price: "$29",
       period: "/month",
+      originalPrice: "$49",
       description: "Essential features for buyers",
       features: [
         "1,000 monthly searches",
@@ -102,6 +118,7 @@ export default function LandingPage() {
       name: "Gold",
       price: "$79",
       period: "/month",
+      originalPrice: "$129",
       description: "Most popular for serious dealers",
       features: [
         "5,000 monthly searches",
@@ -119,6 +136,7 @@ export default function LandingPage() {
       name: "Platinum",
       price: "$149",
       period: "/month",
+      originalPrice: "$249",
       description: "Premium features for professionals",
       features: [
         "Unlimited searches",

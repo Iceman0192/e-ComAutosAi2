@@ -58,14 +58,14 @@ export default function AuthPage() {
     },
     basic: { 
       name: 'Basic', 
-      price: 19, 
+      price: 29, 
       originalPrice: 49,
       description: 'Essential features for buyers',
       features: [
-        '100 daily searches',
-        '50 VIN lookups per month', 
-        '200 data exports per month',
-        'Basic search filters',
+        '1,000 monthly searches',
+        '25 VIN history lookups', 
+        '100 data exports',
+        'Basic analytics',
         'Email support',
         'Mobile app access'
       ],
@@ -73,52 +73,50 @@ export default function AuthPage() {
     },
     gold: { 
       name: 'Gold', 
-      price: 39, 
-      originalPrice: 89,
+      price: 79, 
+      originalPrice: 129,
       description: 'Most popular for serious dealers',
       features: [
-        '500 daily searches',
-        '200 VIN lookups per month',
-        '1000 data exports per month', 
-        'Advanced search filters',
+        '5,000 monthly searches',
+        '100 VIN history lookups',
+        '500 data exports', 
         'Cross-platform search',
+        'Advanced analytics',
         'Priority support',
-        'API access',
-        'Advanced analytics'
+        'Bulk export tools'
       ],
       highlight: true
     },
     platinum: { 
       name: 'Platinum', 
-      price: 79, 
-      originalPrice: 149,
+      price: 149, 
+      originalPrice: 249,
       description: 'Premium features for professionals',
       features: [
-        '2000 daily searches',
-        '500 VIN lookups per month',
-        '5000 data exports per month',
-        'Premium analytics',
-        'Custom reports',
-        'Priority support',
+        'Unlimited searches',
+        'Unlimited VIN lookups',
+        'Unlimited exports',
+        'AuctionMind Pro AI',
+        'Market intelligence',
         'API access',
-        'Advanced integrations'
+        'Custom reporting',
+        'White-glove support'
       ],
       highlight: false
     },
     enterprise: { 
       name: 'Enterprise', 
-      price: 199, 
-      originalPrice: 399,
+      price: 299, 
+      originalPrice: 499,
       description: 'Unlimited access for large operations',
       features: [
-        'Unlimited searches',
-        'Unlimited VIN lookups',
-        'Unlimited data exports',
+        'Everything in Platinum',
         'White-label options',
         'Dedicated support',
         'Custom integrations',
         'Team collaboration',
-        'Enterprise security'
+        'Enterprise security',
+        'SLA guarantees'
       ],
       highlight: false
     }
