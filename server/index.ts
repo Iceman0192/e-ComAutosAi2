@@ -9,7 +9,7 @@ import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupSimpleAuth } from "./simpleAuth";
 import { trialScheduler } from "./trialScheduler";
 import { setupAdminRoutes } from "./adminRoutes";
-import { registerUsageRoutes } from "./usageRoutes";
+import usageRoutes from "./usageRoutes";
 import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
 import { freshDataManager } from "./freshDataManager";
 
@@ -78,7 +78,7 @@ app.use((req, res, next) => {
   setupAdminRoutes(app);
   
   // Set up usage tracking routes
-  registerUsageRoutes(app);
+  app.use('/api', usageRoutes);
   
   // Set up data collection routes
   registerDataCollectionRoutes(app);
