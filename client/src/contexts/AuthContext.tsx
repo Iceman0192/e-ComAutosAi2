@@ -3,24 +3,97 @@ import { useLocation } from 'wouter';
 
 // User roles for tier-based access
 export enum UserRole {
-  FREEMIUM = 'freemium',
+  FREE = 'free',
   BASIC = 'basic',
   GOLD = 'gold',
   PLATINUM = 'platinum',
+  ENTERPRISE = 'enterprise',
   ADMIN = 'admin'
 }
 
+// Plan limits and permissions
+export const PLAN_LIMITS = {
+  [UserRole.FREE]: {
+    dailySearches: 10,
+    monthlyVinLookups: 5,
+    monthlyExports: 10,
+    searchResultsPerPage: 25,
+    features: ['basic_search', 'basic_filters', 'community_support']
+  },
+  [UserRole.BASIC]: {
+    dailySearches: 100, // ~1000 monthly
+    monthlyVinLookups: 25,
+    monthlyExports: 100,
+    searchResultsPerPage: 50,
+    features: ['basic_search', 'basic_filters', 'email_support', 'mobile_app', 'basic_analytics']
+  },
+  [UserRole.GOLD]: {
+    dailySearches: 200, // ~5000 monthly
+    monthlyVinLookups: 100,
+    monthlyExports: 500,
+    searchResultsPerPage: 100,
+    features: ['basic_search', 'advanced_filters', 'cross_platform_search', 'advanced_analytics', 'priority_support', 'bulk_export', 'real_time_alerts']
+  },
+  [UserRole.PLATINUM]: {
+    dailySearches: -1, // unlimited
+    monthlyVinLookups: -1, // unlimited
+    monthlyExports: -1, // unlimited
+    searchResultsPerPage: 200,
+    features: ['all_features', 'auction_mind_pro', 'market_intelligence', 'api_access', 'custom_reports', 'white_glove_support']
+  },
+  [UserRole.ENTERPRISE]: {
+    dailySearches: -1, // unlimited
+    monthlyVinLookups: -1, // unlimited
+    monthlyExports: -1, // unlimited
+    searchResultsPerPage: 500,
+    features: ['all_features', 'white_label', 'dedicated_support', 'custom_integrations', 'team_collaboration', 'enterprise_security', 'sla_guarantees']
+  },
+  [UserRole.ADMIN]: {
+    dailySearches: -1, // unlimited
+    monthlyVinLookups: -1, // unlimited
+    monthlyExports: -1, // unlimited
+    searchResultsPerPage: 1000,
+    features: ['all_features', 'admin_tools', 'data_collection_management', 'user_management', 'system_monitoring']
+  }
+} as const;
+
 // Feature permissions mapping
 export const PERMISSIONS = {
-  BASIC_SEARCH: [UserRole.FREEMIUM, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  ADVANCED_FILTERS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  UNLIMITED_RESULTS: [UserRole.PLATINUM, UserRole.ADMIN],
-  FULL_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  EXPORT_DATA: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
+  // Basic features available to all paid plans
+  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_FILTERS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Features requiring Basic or higher
+  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_ANALYTICS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  EMAIL_SUPPORT: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Features requiring Gold or higher
+  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  REAL_TIME_ALERTS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  PRIORITY_SUPPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Features requiring Platinum or higher
+  UNLIMITED_SEARCHES: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  AUCTION_MIND_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  MARKET_INTELLIGENCE: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  API_ACCESS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  CUSTOM_REPORTS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Enterprise features
+  WHITE_LABEL: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  SLA_GUARANTEES: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Admin only features
   ADMIN_TOOLS: [UserRole.ADMIN],
-  MULTIPLE_DAMAGE_TYPES: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN],
-  AI_ANALYSIS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ADMIN]
+  DATA_COLLECTION_MANAGEMENT: [UserRole.ADMIN],
+  USER_MANAGEMENT: [UserRole.ADMIN],
+  SYSTEM_MONITORING: [UserRole.ADMIN]
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -32,6 +105,12 @@ interface User {
   role: UserRole;
   subscriptionStatus: 'active' | 'inactive' | 'trial';
   joinDate: string;
+  usage?: {
+    dailySearches: number;
+    monthlyVinLookups: number;
+    monthlyExports: number;
+    lastResetDate: string;
+  };
 }
 
 interface AuthContextType {
@@ -39,6 +118,10 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   hasPermission: (permission: Permission) => boolean;
+  checkUsageLimit: (type: 'search' | 'vin' | 'export') => boolean;
+  incrementUsage: (type: 'search' | 'vin' | 'export') => Promise<void>;
+  getPlanLimits: () => typeof PLAN_LIMITS[UserRole] | null;
+  getRemainingUsage: () => { searches: number; vins: number; exports: number } | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUserRole: (role: UserRole) => void;
@@ -102,21 +185,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     switch (backendRole) {
       case 'admin':
         return UserRole.ADMIN;
-      case 'gold':
-        return UserRole.GOLD;
+      case 'enterprise':
+        return UserRole.ENTERPRISE;
       case 'platinum':
         return UserRole.PLATINUM;
+      case 'gold':
+        return UserRole.GOLD;
       case 'basic':
         return UserRole.BASIC;
-      case 'freemium':
+      case 'free':
       default:
-        return UserRole.FREEMIUM;
+        return UserRole.FREE;
     }
   };
 
   const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
-    return (PERMISSIONS[permission] as UserRole[]).includes(user.role);
+    return (PERMISSIONS[permission] as readonly UserRole[]).includes(user.role);
+  };
+
+  const getPlanLimits = () => {
+    if (!user) return null;
+    return PLAN_LIMITS[user.role];
+  };
+
+  const checkUsageLimit = (type: 'search' | 'vin' | 'export'): boolean => {
+    if (!user) return false;
+    
+    const limits = PLAN_LIMITS[user.role];
+    const usage = user.usage || { dailySearches: 0, monthlyVinLookups: 0, monthlyExports: 0, lastResetDate: new Date().toISOString() };
+    
+    // Check if limits are unlimited (-1)
+    switch (type) {
+      case 'search':
+        return limits.dailySearches === -1 || usage.dailySearches < limits.dailySearches;
+      case 'vin':
+        return limits.monthlyVinLookups === -1 || usage.monthlyVinLookups < limits.monthlyVinLookups;
+      case 'export':
+        return limits.monthlyExports === -1 || usage.monthlyExports < limits.monthlyExports;
+      default:
+        return false;
+    }
+  };
+
+  const getRemainingUsage = () => {
+    if (!user) return null;
+    
+    const limits = PLAN_LIMITS[user.role];
+    const usage = user.usage || { dailySearches: 0, monthlyVinLookups: 0, monthlyExports: 0, lastResetDate: new Date().toISOString() };
+    
+    return {
+      searches: limits.dailySearches === -1 ? -1 : Math.max(0, limits.dailySearches - usage.dailySearches),
+      vins: limits.monthlyVinLookups === -1 ? -1 : Math.max(0, limits.monthlyVinLookups - usage.monthlyVinLookups),
+      exports: limits.monthlyExports === -1 ? -1 : Math.max(0, limits.monthlyExports - usage.monthlyExports)
+    };
+  };
+
+  const incrementUsage = async (type: 'search' | 'vin' | 'export'): Promise<void> => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/auth/increment-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ type })
+      });
+      
+      if (response.ok) {
+        // Update local user state with new usage
+        const updatedUsage = { ...user.usage };
+        switch (type) {
+          case 'search':
+            updatedUsage.dailySearches = (updatedUsage.dailySearches || 0) + 1;
+            break;
+          case 'vin':
+            updatedUsage.monthlyVinLookups = (updatedUsage.monthlyVinLookups || 0) + 1;
+            break;
+          case 'export':
+            updatedUsage.monthlyExports = (updatedUsage.monthlyExports || 0) + 1;
+            break;
+        }
+        
+        setUser(prev => prev ? { ...prev, usage: updatedUsage } : null);
+      }
+    } catch (error) {
+      console.error('Failed to increment usage:', error);
+    }
   };
 
   const login = async (email: string, password: string): Promise<void> => {
@@ -205,6 +360,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoggedIn: !!user,
     isLoading,
     hasPermission,
+    checkUsageLimit,
+    incrementUsage,
+    getPlanLimits,
+    getRemainingUsage,
     login,
     logout,
     updateUserRole
