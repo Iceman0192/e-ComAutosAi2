@@ -16,7 +16,7 @@ export class DataCollectionService {
   private collectionQueue: CollectionJob[] = [];
   private readonly BATCH_SIZE = 50;
   private readonly COLLECTION_INTERVAL = 5 * 60 * 1000; // 5 minutes
-  private readonly DAYS_WINDOW = 180; // 180 day rolling window (6 months max)
+  private readonly DAYS_WINDOW = 150; // 150 day rolling window (5 months max)
 
   constructor() {
     this.initializeCollectionQueue();
@@ -133,14 +133,15 @@ export class DataCollectionService {
   private async collectDataForMake(job: CollectionJob): Promise<number> {
     let totalCollected = 0;
 
-    // Calculate 90-day date range from present day
+    // Calculate 120-150 day date range from present day
     const endDate = new Date();
+    endDate.setDate(endDate.getDate() - 120); // Start from 120 days ago
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - this.DAYS_WINDOW);
+    startDate.setDate(startDate.getDate() - this.DAYS_WINDOW); // Go back to 150 days ago
 
     console.log(`Collecting ${job.make} data from ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
 
-    // First, discover all available models for this make in the 90-day window
+    // First, discover all available models for this make in the 120-150 day window
     const discoveredModels = await this.discoverModelsForMake(job.make, startDate, endDate);
     
     if (discoveredModels.length === 0) {
