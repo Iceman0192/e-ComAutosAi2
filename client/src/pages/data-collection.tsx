@@ -50,7 +50,7 @@ export default function DataCollectionPage() {
       const response = await fetch('/api/admin/data-collection/status', {
         credentials: 'include'
       });
-
+      
       if (response.ok) {
         const data = await response.json();
         setStatus(data.data);
@@ -78,7 +78,7 @@ export default function DataCollectionPage() {
       const response = await fetch('/api/admin/data-collection/vehicle-progress', {
         credentials: 'include'
       });
-
+      
       if (response.ok) {
         const data = await response.json();
         setVehicleProgress(data.data);
@@ -95,9 +95,9 @@ export default function DataCollectionPage() {
         method: 'POST',
         credentials: 'include'
       });
-
+      
       const data = await response.json();
-
+      
       if (data.success) {
         toast({
           title: "Success",
@@ -130,9 +130,9 @@ export default function DataCollectionPage() {
         method: 'POST',
         credentials: 'include'
       });
-
+      
       const data = await response.json();
-
+      
       if (data.success) {
         toast({
           title: "Success",
@@ -178,9 +178,9 @@ export default function DataCollectionPage() {
         credentials: 'include',
         body: JSON.stringify({ make: selectedMake })
       });
-
+      
       const data = await response.json();
-
+      
       if (data.success) {
         toast({
           title: "Success",
@@ -210,7 +210,7 @@ export default function DataCollectionPage() {
   useEffect(() => {
     fetchStatus();
     fetchVehicleProgress();
-
+    
     // Refresh status every 30 seconds
     const interval = setInterval(() => {
       fetchStatus();
@@ -266,7 +266,7 @@ export default function DataCollectionPage() {
                   <SelectItem value="Cadillac">Cadillac</SelectItem>
                   <SelectItem value="Lincoln">Lincoln</SelectItem>
                   <SelectItem value="Genesis">Genesis</SelectItem>
-
+                  
                   {/* Priority 2: Major mainstream manufacturers */}
                   <SelectItem value="Toyota">Toyota</SelectItem>
                   <SelectItem value="Honda">Honda</SelectItem>
@@ -278,7 +278,7 @@ export default function DataCollectionPage() {
                   <SelectItem value="Volkswagen">Volkswagen</SelectItem>
                   <SelectItem value="Subaru">Subaru</SelectItem>
                   <SelectItem value="Mazda">Mazda</SelectItem>
-
+                  
                   {/* Priority 3: American brands and popular imports */}
                   <SelectItem value="Jeep">Jeep</SelectItem>
                   <SelectItem value="Ram">Ram</SelectItem>
@@ -290,7 +290,7 @@ export default function DataCollectionPage() {
                   <SelectItem value="Mitsubishi">Mitsubishi</SelectItem>
                   <SelectItem value="Land Rover">Land Rover</SelectItem>
                   <SelectItem value="Jaguar">Jaguar</SelectItem>
-
+                  
                   {/* Priority 4: Luxury and exotic brands */}
                   <SelectItem value="Porsche">Porsche</SelectItem>
                   <SelectItem value="Ferrari">Ferrari</SelectItem>
@@ -301,7 +301,7 @@ export default function DataCollectionPage() {
                   <SelectItem value="Aston Martin">Aston Martin</SelectItem>
                   <SelectItem value="McLaren">McLaren</SelectItem>
                   <SelectItem value="Alfa Romeo">Alfa Romeo</SelectItem>
-
+                  
                   {/* Priority 5: Additional manufacturers */}
                   <SelectItem value="Mini">Mini</SelectItem>
                   <SelectItem value="Smart">Smart</SelectItem>
@@ -314,7 +314,7 @@ export default function DataCollectionPage() {
                   <SelectItem value="Pontiac">Pontiac</SelectItem>
                   <SelectItem value="Saturn">Saturn</SelectItem>
                   <SelectItem value="Mercury">Mercury</SelectItem>
-
+                  
                   {/* Priority 6: Commercial vehicles */}
                   <SelectItem value="Freightliner">Freightliner</SelectItem>
                   <SelectItem value="Peterbilt">Peterbilt</SelectItem>
@@ -323,7 +323,7 @@ export default function DataCollectionPage() {
                   <SelectItem value="International">International</SelectItem>
                   <SelectItem value="Western Star">Western Star</SelectItem>
                   <SelectItem value="Volvo Trucks">Volvo Trucks</SelectItem>
-
+                  
                   {/* Priority 7: Electric and emerging brands */}
                   <SelectItem value="Rivian">Rivian</SelectItem>
                   <SelectItem value="Lucid">Lucid</SelectItem>
@@ -331,21 +331,21 @@ export default function DataCollectionPage() {
                   <SelectItem value="Fisker">Fisker</SelectItem>
                   <SelectItem value="Canoo">Canoo</SelectItem>
                   <SelectItem value="VinFast">VinFast</SelectItem>
-
+                  
                   {/* Priority 8: Motorcycles */}
                   <SelectItem value="Harley-Davidson">Harley-Davidson</SelectItem>
                   <SelectItem value="Indian">Indian</SelectItem>
                   <SelectItem value="Can-Am">Can-Am</SelectItem>
                   <SelectItem value="Polaris">Polaris</SelectItem>
                   <SelectItem value="Victory">Victory</SelectItem>
-
+                  
                   {/* Priority 9: RVs */}
                   <SelectItem value="Winnebago">Winnebago</SelectItem>
                   <SelectItem value="Thor">Thor</SelectItem>
                   <SelectItem value="Forest River">Forest River</SelectItem>
                   <SelectItem value="Keystone">Keystone</SelectItem>
                   <SelectItem value="Jayco">Jayco</SelectItem>
-
+                  
                   {/* Other */}
                   <SelectItem value="Other">Other</SelectItem>
                   <SelectItem value="Unknown">Unknown</SelectItem>
@@ -383,7 +383,7 @@ export default function DataCollectionPage() {
                 {status?.isRunning ? 'Running' : 'Stopped'}
               </span>
             </div>
-
+            
             <div className="flex gap-2">
               {!status?.isRunning ? (
                 <Button 
@@ -549,7 +549,7 @@ export default function DataCollectionPage() {
               {status?.availableJobs?.filter(job => job.lastCollected).map((job) => {
                 const progress = Math.min(100, ((job.lastCopartPage || 0) / 400) * 100);
                 const isActive = Date.now() - new Date(job.lastCollected!).getTime() < 60000; // Active in last minute
-
+                
                 return (
                   <div key={job.id} className="p-4 bg-white rounded-lg border">
                     <div className="flex items-center justify-between mb-2">
@@ -579,7 +579,7 @@ export default function DataCollectionPage() {
                   </div>
                 );
               })}
-
+              
               {(!status?.availableJobs?.some(job => job.lastCollected)) && (
                 <div className="p-4 bg-white rounded-lg border text-center text-gray-500">
                   No active collections running. Use manual selection to start collecting specific vehicle makes.
@@ -605,47 +605,37 @@ export default function DataCollectionPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {vehicleProgress.map((vehicle) => (
-                <Card key={vehicle.make} className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{vehicle.make || 'Unknown Make'}</h3>
-                      <p className="text-sm text-gray-600">
-                        Progress: {Math.round(vehicle.progressPercentage || 0)}%
-                      </p>
-                    </div>
-                    <Badge 
-                      variant={(vehicle.progressPercentage || 0) === 100 ? "default" : "secondary"}
-                      className={(vehicle.progressPercentage || 0) === 100 ? "bg-green-500" : ""}
-                    >
-                      {(vehicle.progressPercentage || 0) === 100 ? "Complete" : "In Progress"}
+                <div key={vehicle.make} className="p-4 border rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{vehicle.make}</h3>
+                    <Badge variant={vehicle.completed ? "default" : "secondary"}>
+                      {vehicle.completed ? "Complete" : "Collecting"}
                     </Badge>
                   </div>
-
-                  <div className="mb-3">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Overall Progress</span>
-                      <span>{Math.round(vehicle.progressPercentage || 0)}%</span>
-                    </div>
-                    {/* <Progress value={vehicle.progressPercentage || 0} className="h-2" /> */}
-                  </div>
-
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total Records:</span>
-                      <span className="font-medium">{(vehicle.totalRecords || 0).toLocaleString()}</span>
+                      <span className="font-medium">{vehicle.totalRecords.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Copart:</span>
-                      <span className="text-blue-600">{(vehicle.copartRecords || 0).toLocaleString()}</span>
+                      <span className="text-blue-600">{vehicle.copartRecords.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">IAAI:</span>
-                      <span className="text-green-600">{(vehicle.iaaiRecords || 0).toLocaleString()}</span>
+                      <span className="text-green-600">{vehicle.iaaiRecords.toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="mt-2 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ 
+                        width: vehicle.completed ? '100%' : 
+                               vehicle.totalRecords > 0 ? '75%' : '25%'
+                      }}
+                    ></div>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           </CardContent>
