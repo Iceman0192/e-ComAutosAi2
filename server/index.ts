@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
@@ -10,12 +11,28 @@ import { setupUnifiedAuth } from "./auth/unifiedAuth";
 import { trialScheduler } from "./trialScheduler";
 import { setupAdminRoutes } from "./adminRoutes";
 import { setupUsageRoutes } from "./routes/usageRoutes";
+import { setupHealthRoutes } from "./routes/healthRoutes";
 import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
 import { freshDataManager } from "./freshDataManager";
+import { errorHandler, notFound } from "./middleware/errorHandler";
+import { requestLogger, logger } from "./middleware/logger";
+import { securityHeaders, corsConfig, sanitizeInput, preventParameterPollution } from "./middleware/security";
+import { rateLimiters } from "./middleware/rateLimiter";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Security middleware - applied first
+app.use(securityHeaders);
+app.use(cors(corsConfig));
+app.use(preventParameterPollution);
+app.use(sanitizeInput);
+
+// Request logging
+app.use(requestLogger);
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(cookieParser());
 
 app.use((req, res, next) => {
