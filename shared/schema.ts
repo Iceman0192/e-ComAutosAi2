@@ -1,30 +1,18 @@
-import { pgTable, text, varchar, serial, integer, boolean, timestamp, numeric, pgEnum, index, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const userRoleEnum = pgEnum('user_role', ['freemium', 'basic', 'gold', 'platinum', 'enterprise', 'admin']);
 
-// Session storage table for Replit Auth
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
-
-// User storage table for Replit Auth
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  name: text("name").notNull(),
   role: userRoleEnum('role').default('freemium').notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
   lastLoginAt: timestamp('last_login_at'),
   isActive: boolean('is_active').default(true).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
@@ -35,13 +23,21 @@ export const users = pgTable("users", {
   hasUsedTrial: boolean('has_used_trial').default(false).notNull(),
 });
 
-export type UpsertUser = typeof users.$inferInsert;
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  email: true,
+  name: true,
+});
+
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type UserRole = typeof users.role.enumValues[number];
 
 // Usage tracking tables
 export const userUsage = pgTable("user_usage", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   date: timestamp("date").defaultNow().notNull(),
   searches: integer("searches").default(0).notNull(),
   aiAnalyses: integer("ai_analyses").default(0).notNull(),
@@ -71,7 +67,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
 
 export const userSubscriptions = pgTable("user_subscriptions", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   planId: integer("plan_id").notNull().references(() => subscriptionPlans.id, { onDelete: "restrict" }),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
   status: text("status").notNull(), // active, canceled, past_due, trialing, incomplete, incomplete_expired
