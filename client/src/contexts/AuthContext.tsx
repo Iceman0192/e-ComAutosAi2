@@ -212,18 +212,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   };
 
-  const checkUsageLimit = (type: 'search' | 'vin' | 'export'): boolean => {
+  const checkUsageLimit = (type: 'fresh_api' | 'ai_report' | 'export'): boolean => {
     if (!user) return false;
     
-    const limits = PLAN_LIMITS[user.role];
+    // Admin users have unlimited access
+    if (user.role === 'admin') return true;
+    
+    const limits = getTierLimits(user.role);
     const usage = user.usage;
     
     // Check if limits are unlimited (-1)
     switch (type) {
-      case 'search':
-        return limits.dailySearches === -1 || usage.dailySearches < limits.dailySearches;
-      case 'vin':
-        return limits.monthlyVinLookups === -1 || usage.monthlyVinLookups < limits.monthlyVinLookups;
+      case 'fresh_api':
+        return limits.dailyFreshApiCalls === -1 || usage.dailyFreshApiCalls < limits.dailyFreshApiCalls;
+      case 'ai_report':
+        return limits.monthlyAiReports === -1 || usage.monthlyAiReports < limits.monthlyAiReports;
       case 'export':
         return limits.monthlyExports === -1 || usage.monthlyExports < limits.monthlyExports;
       default:
@@ -231,7 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const incrementUsage = async (type: 'search' | 'vin' | 'export'): Promise<void> => {
+  const incrementUsage = async (type: 'fresh_api' | 'ai_report' | 'export'): Promise<void> => {
     if (!user) return;
     
     try {
@@ -246,18 +249,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (response.ok) {
         const updatedUsage = {
-          dailySearches: user.usage.dailySearches,
-          monthlyVinLookups: user.usage.monthlyVinLookups,
+          dailyFreshApiCalls: user.usage.dailyFreshApiCalls,
+          monthlyAiReports: user.usage.monthlyAiReports,
           monthlyExports: user.usage.monthlyExports,
           lastResetDate: user.usage.lastResetDate
         };
         
         switch (type) {
-          case 'search':
-            updatedUsage.dailySearches += 1;
+          case 'fresh_api':
+            updatedUsage.dailyFreshApiCalls += 1;
             break;
-          case 'vin':
-            updatedUsage.monthlyVinLookups += 1;
+          case 'ai_report':
+            updatedUsage.monthlyAiReports += 1;
             break;
           case 'export':
             updatedUsage.monthlyExports += 1;
