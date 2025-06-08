@@ -76,13 +76,13 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Datasets',
       href: '/datasets',
       icon: Database,
-      permission: 'ADMIN'
+      permission: 'ADMIN_TOOLS'
     },
     {
       title: 'Team Management',
       href: '/team',
       icon: Users,
-      permission: 'ADMIN'
+      permission: 'ADMIN_TOOLS'
     }
   ];
 
@@ -112,7 +112,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Admin Dashboard',
       href: '/admin',
       icon: Settings,
-      permission: 'ADMIN'
+      permission: 'ADMIN_TOOLS'
     }
   ];
 
@@ -195,11 +195,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="flex-1 text-left">{item.title}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="text-xs">
-                      {item.badge}
-                    </Badge>
-                  )}
                 </Button>
               </Link>
             );
