@@ -147,7 +147,7 @@ export class UsageService {
     
     if (limit === -1) return { allowed: true }; // Unlimited
     
-    if (current >= limit) {
+    if (current && typeof current === 'number' && current >= limit) {
       return {
         allowed: false,
         reason: `${mapping.period === 'daily' ? 'Daily' : 'Monthly'} limit reached for ${eventType.replace('_', ' ')}`

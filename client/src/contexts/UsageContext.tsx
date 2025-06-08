@@ -115,7 +115,7 @@ interface UsageContextType {
     monthlyExports: number;
     monthlyAiAnalyses: number;
   };
-  trackUsage: (action: 'search' | 'vin' | 'export' | 'ai') => Promise<void>;
+  trackUsage: (action: 'search' | 'vin' | 'export' | 'ai') => Promise<{ limitReached: boolean; message?: string } | undefined>;
   hasFeature: (feature: keyof typeof USAGE_LIMITS[keyof typeof USAGE_LIMITS]['features']) => boolean;
   refreshUsage: () => Promise<void>;
 }

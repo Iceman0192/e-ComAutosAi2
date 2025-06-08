@@ -8,7 +8,7 @@ declare global {
         username: string;
         email: string;
         name: string;
-        role: 'freemium' | 'basic' | 'gold' | 'platinum' | 'admin';
+        role: 'freemium' | 'basic' | 'gold' | 'platinum' | 'enterprise' | 'admin';
         stripeCustomerId?: string;
         stripeSubscriptionId?: string;
       };
