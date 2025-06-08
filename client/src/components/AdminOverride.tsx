@@ -6,8 +6,8 @@ import { Crown, Settings, Users, Database, Activity } from 'lucide-react';
 export function AdminOverride() {
   const { user } = useAuth();
 
-  // Only show for admin users
-  if (!user || user.role !== 'admin') {
+  // Show for admin users (check both role values)
+  if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
     return null;
   }
 
