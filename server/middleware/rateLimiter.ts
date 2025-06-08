@@ -119,11 +119,53 @@ export const rateLimiters = {
     message: 'Too many authentication attempts, please try again in 15 minutes'
   }),
 
-  // Moderate rate limiting for AI endpoints
-  ai: createRateLimiter({
+  // AI Chat endpoints
+  aiChat: createRateLimiter({
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 10,
-    message: 'AI request limit reached, please wait before making more requests'
+    message: 'AI chat request limit reached, please wait before making more requests'
+  }),
+
+  // AI Analysis endpoints
+  aiAnalysis: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 5,
+    message: 'AI analysis request limit reached, please wait before making more requests'
+  }),
+
+  // AuctionMind endpoints
+  auctionMind: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 20,
+    message: 'AuctionMind request limit reached, please wait before making more requests'
+  }),
+
+  // Sales History endpoints
+  salesHistory: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 30,
+    message: 'Sales history request limit reached, please wait before making more requests'
+  }),
+
+  // Vehicle Search endpoints
+  vehicleSearch: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 50,
+    message: 'Vehicle search request limit reached, please wait before searching again'
+  }),
+
+  // Comparables endpoints
+  comparables: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 25,
+    message: 'Comparables request limit reached, please wait before making more requests'
+  }),
+
+  // Admin endpoints
+  admin: createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 100,
+    message: 'Admin request limit reached, please wait before making more requests'
   }),
 
   // General API rate limiting
@@ -138,13 +180,6 @@ export const rateLimiters = {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 5,
     message: 'Request limit reached for this operation'
-  }),
-
-  // Rate limiting for search endpoints
-  search: createRateLimiter({
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 50,
-    message: 'Search request limit reached, please wait before searching again'
   })
 };
 
