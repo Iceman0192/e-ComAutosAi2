@@ -19,92 +19,89 @@ import { requestLogger, logger } from "./middleware/logger";
 import { securityHeaders, corsConfig, sanitizeInput, preventParameterPollution } from "./middleware/security";
 import { rateLimiters } from "./middleware/rateLimiter";
 
-const app = express();
-
-// Security middleware - applied first
-app.use(securityHeaders);
-app.use(cors(corsConfig));
-app.use(preventParameterPollution);
-app.use(sanitizeInput);
-
-// Request logging
-app.use(requestLogger);
-
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-app.use(cookieParser());
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
-
-  next();
-});
-
-(async () => {
-  // Create HTTP server
+async function startServer() {
+  const app = express();
   const server = createServer(app);
-  
-  // Set up clean cache routes (now the primary system)
-  setupApiRoutes(app);
-  
-  // Set up AuctionMind AI analysis routes
-  setupAuctionMindRoutes(app);
-  
-  // Set up AuctionMind V2 routes
-  setupAuctionMindV2Routes(app);
-  
-  // Set up unified authentication system
-  setupUnifiedAuth(app);
-  
-  // Set up subscription and billing routes
-  registerSubscriptionRoutes(app);
-  
-  // Initialize database with subscription plans
-  import('./dbInit').then(({ initializeDatabase, createIndexes }) => {
-    initializeDatabase().then(() => {
-      createIndexes();
+
+  // Basic middleware first
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+  app.use(cookieParser());
+
+  // CORS configuration
+  if (app.get("env") === "development") {
+    app.use(cors({
+      origin: ['http://localhost:5173', 'http://localhost:5000'],
+      credentials: true
+    }));
+  } else {
+    app.use(cors(corsConfig));
+  }
+
+  // Set up Vite in development mode BEFORE other middleware
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+    
+    // Apply security middleware only to API routes in development
+    app.use('/api', securityHeaders);
+    app.use('/api', preventParameterPollution);
+    app.use('/api', sanitizeInput);
+    app.use('/api', requestLogger);
+  } else {
+    // Production mode - apply security to all routes
+    app.use(securityHeaders);
+    app.use(preventParameterPollution);
+    app.use(sanitizeInput);
+    app.use(requestLogger);
+  }
+
+  // Performance monitoring middleware
+  app.use((req, res, next) => {
+    const start = Date.now();
+    const path = req.path;
+    let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+    const originalResJson = res.json;
+    res.json = function (bodyJson, ...args) {
+      capturedJsonResponse = bodyJson;
+      return originalResJson.apply(res, [bodyJson, ...args]);
+    };
+
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      if (duration > 1000 && !path.startsWith('/@vite') && !path.includes('.hot-update')) {
+        logger.warn(`Slow request: ${req.method} ${path} took ${duration}ms`);
+      }
     });
+
+    next();
   });
-  
-  // Set up admin routes
+
+  // Rate limiting middleware
+  app.use('/api/auth/login', rateLimiters.auth);
+  app.use('/api/auth/signup', rateLimiters.auth);
+  app.use('/api/ai-chat', rateLimiters.aiChat);
+  app.use('/api/ai-lot-analysis', rateLimiters.aiAnalysis);
+  app.use('/api/auction-mind', rateLimiters.auctionMind);
+  app.use('/api/sales-history', rateLimiters.salesHistory);
+  app.use('/api/cars', rateLimiters.vehicleSearch);
+  app.use('/api/find-comparables', rateLimiters.comparables);
+  app.use('/api/admin', rateLimiters.admin);
+
+  // Authentication setup
+  setupUnifiedAuth(app);
+
+  // API Routes
+  setupApiRoutes(app);
+  setupAuctionMindRoutes(app);
+  setupAuctionMindV2Routes(app);
+  registerSubscriptionRoutes(app);
   setupAdminRoutes(app);
-  
-  // Set up usage tracking routes with rate limiting
-  app.use('/api/usage', rateLimiters.api);
   setupUsageRoutes(app);
-  
-  // Set up health check routes
   setupHealthRoutes(app);
-  
-  // Set up data collection routes
   registerDataCollectionRoutes(app);
-  
-  // Start 3-day migration scheduler
+
+  // Fresh data migration scheduler
   setInterval(async () => {
     try {
       await freshDataManager.migrateExpiredData();
@@ -116,28 +113,33 @@ app.use((req, res, next) => {
   // Start trial monitoring scheduler
   trialScheduler.start();
   
-  // Handle 404s for undefined routes
+  // Serve static files in production
+  if (app.get("env") !== "development") {
+    serveStatic(app);
+  }
+
+  // Handle 404s for undefined routes (after Vite/static setup)
   app.use(notFound);
   
   // Enterprise error handler
   app.use(errorHandler);
 
-  // Set up Vite in development or serve static files in production
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // Start server on port 5000
+  // Start server
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`Server running on port ${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    log(`Server running on port ${port} in ${app.get("env")} mode`);
+    if (app.get("env") === "development") {
+      log(`Frontend: http://localhost:${port}`);
+      log(`API: http://localhost:${port}/api`);
+      log(`Health: http://localhost:${port}/health`);
+    }
   });
-})().catch((error) => {
+
+  return server;
+}
+
+// Start the server
+startServer().catch((error) => {
   console.error('Server startup error:', error);
+  process.exit(1);
 });
