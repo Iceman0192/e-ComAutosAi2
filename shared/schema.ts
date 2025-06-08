@@ -2,7 +2,7 @@ import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum, in
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const userRoleEnum = pgEnum('user_role', ['free', 'basic', 'gold', 'platinum', 'enterprise', 'admin']);
+export const userRoleEnum = pgEnum('user_role', ['freemium', 'basic', 'gold', 'platinum', 'enterprise', 'admin']);
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
-  role: userRoleEnum('role').default('free').notNull(),
+  role: userRoleEnum('role').default('freemium').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   lastLoginAt: timestamp('last_login_at'),
