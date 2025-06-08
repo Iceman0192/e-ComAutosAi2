@@ -268,7 +268,7 @@ export default function Dashboard() {
 
       {/* Usage Tracker */}
       <div className="mb-8">
-        <UsageTracker />
+        {/* <UsageTracker /> */}
       </div>
 
       {/* Quick Actions */}

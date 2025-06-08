@@ -14,75 +14,77 @@ export enum UserRole {
 // Plan limits and permissions
 export const PLAN_LIMITS = {
   [UserRole.FREE]: {
-    dailySearches: 10,
-    monthlyVinLookups: 5,
-    monthlyExports: 10,
+    dailyFreshApiCalls: 0, // No fresh API access
+    monthlyAiReports: 0, // No AI access
     searchResultsPerPage: 25,
-    features: ['basic_search', 'basic_filters', 'community_support']
+    hasAccessTo: ['cached_sales_history', 'basic_active_lots'] // No similar vehicles, no AI analysis
   },
   [UserRole.BASIC]: {
-    dailySearches: 100,
-    monthlyVinLookups: 25,
-    monthlyExports: 100,
+    dailyFreshApiCalls: 100, // ~3k/month (30% of 100k monthly cap for all users)
+    monthlyAiReports: 0, // No AI access
     searchResultsPerPage: 50,
-    features: ['basic_search', 'basic_filters', 'email_support', 'mobile_app', 'basic_analytics']
+    hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'basic_active_lots']
   },
   [UserRole.GOLD]: {
-    dailySearches: 200,
-    monthlyVinLookups: 100,
-    monthlyExports: 500,
+    dailyFreshApiCalls: 200, // ~6k/month 
+    monthlyAiReports: 0, // No AI access yet
     searchResultsPerPage: 100,
-    features: ['basic_search', 'advanced_filters', 'cross_platform_search', 'advanced_analytics', 'priority_support', 'bulk_export', 'real_time_alerts']
+    hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'advanced_filters', 'bulk_export', 'active_lots_advanced']
   },
   [UserRole.PLATINUM]: {
-    dailySearches: -1,
-    monthlyVinLookups: -1,
-    monthlyExports: -1,
+    dailyFreshApiCalls: 500, // ~15k/month
+    monthlyAiReports: 10, // Limited AI reports ($2-3 per report estimated)
     searchResultsPerPage: 200,
-    features: ['all_features', 'auction_mind_pro', 'market_intelligence', 'custom_reports', 'premium_support']
+    hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'advanced_filters', 'bulk_export', 'ai_analysis', 'market_intelligence', 'active_lots_pro']
   },
   [UserRole.ENTERPRISE]: {
-    dailySearches: -1,
-    monthlyVinLookups: -1,
-    monthlyExports: -1,
+    dailyFreshApiCalls: 1000, // ~30k/month
+    monthlyAiReports: 50, // More AI reports for enterprise
     searchResultsPerPage: 500,
-    features: ['all_features', 'team_collaboration', 'enterprise_security', 'dedicated_support', 'team_management', 'priority_processing']
+    hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'advanced_filters', 'bulk_export', 'ai_analysis', 'market_intelligence', 'team_collaboration', 'priority_processing', 'active_lots_enterprise']
   },
   [UserRole.ADMIN]: {
-    dailySearches: -1,
-    monthlyVinLookups: -1,
-    monthlyExports: -1,
+    dailyFreshApiCalls: -1, // Unlimited
+    monthlyAiReports: -1, // Unlimited
     searchResultsPerPage: 1000,
-    features: ['all_features', 'admin_tools', 'data_collection_management', 'user_management', 'system_monitoring']
+    hasAccessTo: ['all_features', 'admin_tools', 'data_collection_management', 'user_management', 'system_monitoring', 'god_level_access']
   }
 } as const;
 
-// Feature permissions mapping
+// Feature permissions mapping based on actual platform features
 export const PERMISSIONS = {
-  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  BASIC_FILTERS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  // Free tier - cached data only
+  CACHED_SALES_HISTORY: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_ACTIVE_LOTS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Basic tier - fresh API access
+  FRESH_SALES_HISTORY: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  SIMILAR_VEHICLES: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  IMPORT_CALCULATOR: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Gold tier - advanced features
   ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  BASIC_ANALYTICS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  EMAIL_SUPPORT: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  REAL_TIME_ALERTS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  PRIORITY_SUPPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  UNLIMITED_SEARCHES: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  AUCTION_MIND_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ACTIVE_LOTS_ADVANCED: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Platinum tier - AI and intelligence
+  AI_ANALYSIS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   MARKET_INTELLIGENCE: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  API_ACCESS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ACTIVE_LOTS_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   CUSTOM_REPORTS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Enterprise tier - collaboration and priority
   TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN],
-  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],
-  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN],
   PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  ACTIVE_LOTS_ENTERPRISE: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  
+  // Admin only - God Level
   ADMIN_TOOLS: [UserRole.ADMIN],
   DATA_COLLECTION_MANAGEMENT: [UserRole.ADMIN],
   USER_MANAGEMENT: [UserRole.ADMIN],
-  SYSTEM_MONITORING: [UserRole.ADMIN]
+  SYSTEM_MONITORING: [UserRole.ADMIN],
+  GOD_LEVEL_ACCESS: [UserRole.ADMIN]
 };
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -95,8 +97,8 @@ interface User {
   subscriptionStatus: 'active' | 'inactive' | 'trial';
   joinDate: string;
   usage: {
-    dailySearches: number;
-    monthlyVinLookups: number;
+    dailyFreshApiCalls: number;
+    monthlyAiReports: number;
     monthlyExports: number;
     lastResetDate: string;
   };
@@ -108,9 +110,9 @@ interface AuthContextType {
   isLoading: boolean;
   hasPermission: (permission: Permission) => boolean;
   getPlanLimits: () => typeof PLAN_LIMITS[UserRole] | null;
-  getRemainingUsage: () => { searches: number; vinLookups: number; exports: number } | null;
-  checkUsageLimit: (type: 'search' | 'vin' | 'export') => boolean;
-  incrementUsage: (type: 'search' | 'vin' | 'export') => Promise<void>;
+  getRemainingUsage: () => { freshApiCalls: number; aiReports: number; exports: number } | null;
+  checkUsageLimit: (type: 'fresh_api' | 'ai_report' | 'export') => boolean;
+  incrementUsage: (type: 'fresh_api' | 'ai_report' | 'export') => Promise<void>;
   refreshUser: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -204,9 +206,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const usage = user.usage;
     
     return {
-      searches: limits.dailySearches === -1 ? -1 : Math.max(0, limits.dailySearches - usage.dailySearches),
-      vinLookups: limits.monthlyVinLookups === -1 ? -1 : Math.max(0, limits.monthlyVinLookups - usage.monthlyVinLookups),
-      exports: limits.monthlyExports === -1 ? -1 : Math.max(0, limits.monthlyExports - usage.monthlyExports)
+      freshApiCalls: limits.dailyFreshApiCalls === -1 ? -1 : Math.max(0, limits.dailyFreshApiCalls - usage.dailyFreshApiCalls),
+      aiReports: limits.monthlyAiReports === -1 ? -1 : Math.max(0, limits.monthlyAiReports - usage.monthlyAiReports),
+      exports: limits.monthlyAiReports === -1 ? -1 : Math.max(0, limits.monthlyAiReports - usage.monthlyExports)
     };
   };
 
