@@ -45,9 +45,9 @@ export function setupAdminRoutes(app: Express) {
         trialUsers: trialUsersResult[0]?.count || 0,
         newUsersThisMonth: newUsersResult[0]?.count || 0,
         roleDistribution,
-        monthlyRevenue: 0, // Would integrate with Stripe for real revenue data
-        revenueGrowth: 0,
-        churnRate: 0
+        monthlyRevenue: 0, // Integrate with Stripe webhooks for actual revenue
+        revenueGrowth: 0, // Calculate from historical data
+        churnRate: 0 // Calculate from subscription cancellations
       };
 
       res.json({
@@ -167,22 +167,55 @@ export function setupAdminRoutes(app: Express) {
         });
       }
 
-      // In production, aggregate subscription data from your database
+      // Get real subscription data from database
+      const subscriptionStats = await db.select({
+        planRole: subscriptionPlans.role,
+        planName: subscriptionPlans.name,
+        monthlyPrice: subscriptionPlans.monthlyPrice,
+        userCount: sql<number>`count(${userSubscriptions.id})::int`,
+      })
+      .from(subscriptionPlans)
+      .leftJoin(userSubscriptions, eq(subscriptionPlans.id, userSubscriptions.planId))
+      .where(eq(subscriptionPlans.isActive, true))
+      .groupBy(subscriptionPlans.id, subscriptionPlans.role, subscriptionPlans.name, subscriptionPlans.monthlyPrice);
+
+      // Calculate real metrics
+      const totalUsers = subscriptionStats.reduce((sum, stat) => sum + stat.userCount, 0);
+      const totalMRR = subscriptionStats.reduce((sum, stat) => sum + (parseFloat(stat.monthlyPrice) * stat.userCount), 0);
+      
+      const planDistribution = subscriptionStats.reduce((acc, stat) => {
+        acc[stat.planRole] = {
+          count: stat.userCount,
+          percentage: totalUsers > 0 ? (stat.userCount / totalUsers) * 100 : 0,
+          revenue: parseFloat(stat.monthlyPrice) * stat.userCount
+        };
+        return acc;
+      }, {} as any);
+
+      // Get recent subscription changes
+      const recentSubscriptions = await db.select({
+        email: users.email,
+        planRole: subscriptionPlans.role,
+        status: userSubscriptions.status,
+        createdAt: userSubscriptions.createdAt
+      })
+      .from(userSubscriptions)
+      .innerJoin(users, eq(userSubscriptions.userId, users.id))
+      .innerJoin(subscriptionPlans, eq(userSubscriptions.planId, subscriptionPlans.id))
+      .orderBy(desc(userSubscriptions.createdAt))
+      .limit(10);
+
       const subscriptionData = {
-        totalMRR: 24750,
-        retentionRate: 94.2,
-        avgRevenuePerUser: 72,
-        planDistribution: {
-          free: { count: 905, percentage: 72.6, revenue: 0 },
-          gold: { count: 234, percentage: 18.8, revenue: 11466 },
-          platinum: { count: 89, percentage: 7.1, revenue: 8811 },
-          enterprise: { count: 19, percentage: 1.5, revenue: 3781 }
-        },
-        recentSubscriptions: [
-          { email: 'sarah@example.com', plan: 'gold', action: 'upgraded', date: '2025-06-01' },
-          { email: 'mike@example.com', plan: 'platinum', action: 'new', date: '2025-05-31' },
-          { email: 'jen@example.com', plan: 'free', action: 'cancelled', date: '2025-05-30' }
-        ]
+        totalMRR: Math.round(totalMRR),
+        retentionRate: 0, // Would need historical data to calculate
+        avgRevenuePerUser: totalUsers > 0 ? Math.round(totalMRR / totalUsers) : 0,
+        planDistribution,
+        recentSubscriptions: recentSubscriptions.map(sub => ({
+          email: sub.email,
+          plan: sub.planRole,
+          action: sub.status === 'active' ? 'subscribed' : sub.status,
+          date: sub.createdAt?.toISOString().split('T')[0] || ''
+        }))
       };
 
       res.json({
