@@ -56,6 +56,7 @@ export const PERMISSIONS = {
   // Free tier - cached data only
   CACHED_SALES_HISTORY: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   BASIC_ACTIVE_LOTS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   
   // Basic tier - fresh API access
   FRESH_SALES_HISTORY: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
@@ -64,6 +65,7 @@ export const PERMISSIONS = {
   
   // Gold tier - advanced features
   ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   ACTIVE_LOTS_ADVANCED: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   
