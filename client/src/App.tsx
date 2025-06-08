@@ -29,8 +29,16 @@ import NotFound from "./pages/not-found";
 
 // Marketing Pages
 import SearchAnalyticsPage from "./pages/product/search-analytics";
+import AIAnalysisPage from "./pages/product/ai-analysis";
+import MarketDataPage from "./pages/product/market-data";
+import APIAccessPage from "./pages/product/api-access";
 import AboutPage from "./pages/company/about";
 import ContactPage from "./pages/company/contact";
+import PrivacyPage from "./pages/company/privacy";
+import TermsPage from "./pages/company/terms";
+import HelpPage from "./pages/support/help";
+import DocumentationPage from "./pages/support/documentation";
+import StatusPage from "./pages/support/status";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -58,21 +66,21 @@ function Router() {
         
         {/* Product Pages */}
         <Route path="/product/search-analytics" component={SearchAnalyticsPage} />
-        <Route path="/product/ai-analysis" component={LandingPage} />
-        <Route path="/product/market-data" component={LandingPage} />
-        <Route path="/product/api-access" component={LandingPage} />
+        <Route path="/product/ai-analysis" component={AIAnalysisPage} />
+        <Route path="/product/market-data" component={MarketDataPage} />
+        <Route path="/product/api-access" component={APIAccessPage} />
         
         {/* Company Pages */}
         <Route path="/company/about" component={AboutPage} />
         <Route path="/company/contact" component={ContactPage} />
-        <Route path="/company/privacy" component={LandingPage} />
-        <Route path="/company/terms" component={LandingPage} />
+        <Route path="/company/privacy" component={PrivacyPage} />
+        <Route path="/company/terms" component={TermsPage} />
         
         {/* Support Pages */}
-        <Route path="/support/help" component={LandingPage} />
-        <Route path="/support/documentation" component={LandingPage} />
-        <Route path="/support/contact" component={LandingPage} />
-        <Route path="/support/status" component={LandingPage} />
+        <Route path="/support/help" component={HelpPage} />
+        <Route path="/support/documentation" component={DocumentationPage} />
+        <Route path="/support/contact" component={ContactPage} />
+        <Route path="/support/status" component={StatusPage} />
         
         {/* Pricing */}
         <Route path="/pricing" component={LandingPage} />
