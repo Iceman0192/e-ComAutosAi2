@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
 import ErrorBoundary from "./components/ui/error-boundary";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./hooks/useAuth";
 import { UsageProvider } from "./contexts/UsageContext";
 import RoleSwitcher from "./components/auth/RoleSwitcher";
 import { MainLayout } from "./components/layout/MainLayout";
@@ -22,7 +22,6 @@ import Datasets from "./pages/datasets";
 import Account from "./pages/account";
 import Billing from "./pages/billing";
 import LandingPage from "./pages/landing";
-import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
 import DataCollectionPage from "./pages/data-collection";
 import NotFound from "./pages/not-found";
@@ -33,7 +32,7 @@ import AboutPage from "./pages/company/about";
 import ContactPage from "./pages/company/contact";
 
 function Router() {
-  const { user, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -48,46 +47,28 @@ function Router() {
   }
 
   // Show landing page for non-authenticated users
-  if (!user) {
+  if (!isAuthenticated) {
     return (
       <Switch>
         <Route path="/" component={LandingPage} />
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/login" component={AuthPage} />
-        <Route path="/signup" component={AuthPage} />
         
         {/* Product Pages */}
         <Route path="/product/search-analytics" component={SearchAnalyticsPage} />
-        <Route path="/product/ai-analysis" component={LandingPage} />
-        <Route path="/product/market-data" component={LandingPage} />
-        <Route path="/product/api-access" component={LandingPage} />
         
         {/* Company Pages */}
         <Route path="/company/about" component={AboutPage} />
         <Route path="/company/contact" component={ContactPage} />
-        <Route path="/company/privacy" component={LandingPage} />
-        <Route path="/company/terms" component={LandingPage} />
-        
-        {/* Support Pages */}
-        <Route path="/support/help" component={LandingPage} />
-        <Route path="/support/documentation" component={LandingPage} />
-        <Route path="/support/contact" component={LandingPage} />
-        <Route path="/support/status" component={LandingPage} />
-        
-        {/* Pricing */}
-        <Route path="/pricing" component={LandingPage} />
         
         <Route component={LandingPage} />
       </Switch>
     );
   }
 
-  // Show main application for authenticated users
+  // Show main app for authenticated users
   return (
     <MainLayout>
       <Switch>
-        <Route path="/copart" component={Home} />
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={Home} />
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
@@ -110,17 +91,12 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <UsageProvider>
-          <QueryClientProvider client={queryClient}>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-              <Router />
-              <Toaster />
-              <RoleSwitcher />
-            </div>
-          </QueryClientProvider>
-        </UsageProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <Router />
+          <Toaster />
+        </div>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
