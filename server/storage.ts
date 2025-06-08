@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Usage tracking methods
-  async getUserUsage(userId: number): Promise<UserUsage | undefined> {
+  async getUserUsage(userId: string): Promise<UserUsage | undefined> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
     return usage || undefined;
   }
 
-  async incrementUsage(userId: number, type: 'search' | 'vin' | 'export'): Promise<void> {
+  async incrementUsage(userId: string, type: 'search' | 'vin' | 'export'): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -168,7 +168,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async checkUsageLimit(userId: number, type: 'search' | 'vin' | 'export'): Promise<boolean> {
+  async checkUsageLimit(userId: string, type: 'search' | 'vin' | 'export'): Promise<boolean> {
     const user = await this.getUser(userId);
     if (!user) return false;
 

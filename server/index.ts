@@ -6,7 +6,7 @@ import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes";
-import { setupSimpleAuth } from "./simpleAuth";
+import { registerRoutes } from "./routes";
 import { trialScheduler } from "./trialScheduler";
 import { setupAdminRoutes } from "./adminRoutes";
 import usageRoutes from "./usageRoutes";
@@ -61,8 +61,8 @@ app.use((req, res, next) => {
   // Set up AuctionMind V2 routes
   setupAuctionMindV2Routes(app);
   
-  // Set up authentication routes
-  setupSimpleAuth(app);
+  // Set up Replit Auth routes
+  await registerRoutes(app);
   
   // Set up subscription and billing routes
   registerSubscriptionRoutes(app);
