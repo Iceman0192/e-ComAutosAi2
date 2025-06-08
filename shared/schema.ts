@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -17,10 +17,24 @@ export const users = pgTable("users", {
   isActive: boolean('is_active').default(true).notNull(),
   stripeCustomerId: text('stripe_customer_id'),
   stripeSubscriptionId: text('stripe_subscription_id'),
+  subscriptionStatus: text('subscription_status'), // active, canceled, past_due
+  trialEndsAt: timestamp('trial_ends_at'),
   trialStartDate: timestamp('trial_start_date'),
   trialEndDate: timestamp('trial_end_date'),
   isTrialActive: boolean('is_trial_active').default(false).notNull(),
   hasUsedTrial: boolean('has_used_trial').default(false).notNull(),
+}, (table) => ({
+  emailIdx: uniqueIndex("email_idx").on(table.email),
+  usernameIdx: uniqueIndex("username_idx").on(table.username)
+}));
+
+// Sessions table for persistent authentication
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").unique().notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -309,7 +323,7 @@ export const SalesFilterSchema = z.object({
 
 export type SalesFilter = z.infer<typeof SalesFilterSchema>;
 
-// User usage tracking table
+// Fixed user usage stats table with proper constraints
 export const userUsageStats = pgTable('user_usage_stats', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').references(() => users.id).notNull(),
@@ -321,4 +335,19 @@ export const userUsageStats = pgTable('user_usage_stats', {
   aiAnalyses: integer('ai_analyses').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
+}, (table) => ({
+  userDatePeriodIdx: uniqueIndex("user_date_period_idx").on(
+    table.userId, 
+    table.date, 
+    table.period
+  )
+}));
+
+// Usage events for tracking
+export const usageEvents = pgTable("usage_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  eventType: text("event_type").notNull(),
+  metadata: text("metadata"), // JSON string for additional data
+  createdAt: timestamp("created_at").defaultNow()
 });
