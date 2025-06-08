@@ -41,7 +41,7 @@ import { users, salesHistory, vehicles, userUsage } from "@shared/schema";
 import { eq, and, gte, lte } from "drizzle-orm";
 // Plan limits - aligned with pricing structure
 const PLAN_LIMITS = {
-  free: { dailySearches: 10, monthlyVinLookups: 5, monthlyExports: 10 },
+  freemium: { dailySearches: 10, monthlyVinLookups: 5, monthlyExports: 10 },
   basic: { dailySearches: 33, monthlyVinLookups: 25, monthlyExports: 100 }, // ~1000 monthly searches
   gold: { dailySearches: 167, monthlyVinLookups: 100, monthlyExports: 500 }, // ~5000 monthly searches  
   platinum: { dailySearches: -1, monthlyVinLookups: -1, monthlyExports: -1 },
