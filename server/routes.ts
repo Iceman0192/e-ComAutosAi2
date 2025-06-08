@@ -1,16 +1,16 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupSimpleAuth, requireAuth } from "./simpleAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  setupSimpleAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -20,8 +20,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Protected route example
-  app.get("/api/protected", isAuthenticated, async (req, res) => {
-    const userId = req.user?.claims?.sub;
+  app.get("/api/protected", requireAuth, async (req, res) => {
+    const userId = req.user?.id;
     res.json({ message: "This is a protected route", userId });
   });
 

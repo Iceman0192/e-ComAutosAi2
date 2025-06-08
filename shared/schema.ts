@@ -71,7 +71,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
 
 export const userSubscriptions = pgTable("user_subscriptions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   planId: integer("plan_id").notNull().references(() => subscriptionPlans.id, { onDelete: "restrict" }),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
   status: text("status").notNull(), // active, canceled, past_due, trialing, incomplete, incomplete_expired
