@@ -7,27 +7,30 @@ import { Search, Eye, Download, TrendingUp } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 export function UsageTracker() {
-  const { user, getPlanLimits, getRemainingUsage } = useAuth();
+  const { user, getPlanLimits } = useAuth();
   const [, setLocation] = useLocation();
   
   if (!user) return null;
   
   const limits = getPlanLimits();
-  const remaining = getRemainingUsage();
-  
-  if (!limits || !remaining) return null;
+  if (!limits) return null;
 
-  const usage = user.usage || { 
-    dailySearches: 0, 
-    monthlyVinLookups: 0, 
-    monthlyExports: 0, 
-    lastResetDate: new Date().toISOString() 
-  };
+  const usage = user.usage;
 
   const getProgressValue = (used: number, limit: number) => {
     if (limit === -1) return 0; // Unlimited
     return Math.min((used / limit) * 100, 100);
   };
+
+  const getRemainingUsage = () => {
+    return {
+      searches: limits.dailySearches === -1 ? -1 : Math.max(0, limits.dailySearches - usage.dailySearches),
+      vinLookups: limits.monthlyVinLookups === -1 ? -1 : Math.max(0, limits.monthlyVinLookups - usage.monthlyVinLookups),
+      exports: limits.monthlyExports === -1 ? -1 : Math.max(0, limits.monthlyExports - usage.monthlyExports)
+    };
+  };
+
+  const remaining = getRemainingUsage();
 
   const getProgressColor = (used: number, limit: number) => {
     if (limit === -1) return 'bg-green-500'; // Unlimited
