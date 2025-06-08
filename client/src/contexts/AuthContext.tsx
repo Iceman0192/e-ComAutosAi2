@@ -108,6 +108,7 @@ interface AuthContextType {
   isLoading: boolean;
   hasPermission: (permission: Permission) => boolean;
   getPlanLimits: () => typeof PLAN_LIMITS[UserRole] | null;
+  getRemainingUsage: () => { searches: number; vinLookups: number; exports: number } | null;
   checkUsageLimit: (type: 'search' | 'vin' | 'export') => boolean;
   incrementUsage: (type: 'search' | 'vin' | 'export') => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -194,6 +195,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return null;
     const limits = PLAN_LIMITS[user.role];
     return limits || PLAN_LIMITS[UserRole.FREE];
+  };
+
+  const getRemainingUsage = () => {
+    if (!user) return null;
+    
+    const limits = PLAN_LIMITS[user.role];
+    const usage = user.usage;
+    
+    return {
+      searches: limits.dailySearches === -1 ? -1 : Math.max(0, limits.dailySearches - usage.dailySearches),
+      vinLookups: limits.monthlyVinLookups === -1 ? -1 : Math.max(0, limits.monthlyVinLookups - usage.monthlyVinLookups),
+      exports: limits.monthlyExports === -1 ? -1 : Math.max(0, limits.monthlyExports - usage.monthlyExports)
+    };
   };
 
   const checkUsageLimit = (type: 'search' | 'vin' | 'export'): boolean => {
@@ -336,6 +350,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     hasPermission,
     getPlanLimits,
+    getRemainingUsage,
     checkUsageLimit,
     incrementUsage,
     refreshUser,
