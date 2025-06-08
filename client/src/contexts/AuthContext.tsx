@@ -145,8 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               subscriptionStatus: 'active',
               joinDate: new Date().toISOString(),
               usage: {
-                dailySearches: 0,
-                monthlyVinLookups: 0,
+                dailyFreshApiCalls: 0,
+                monthlyAiReports: 0,
                 monthlyExports: 0,
                 lastResetDate: new Date().toISOString()
               }

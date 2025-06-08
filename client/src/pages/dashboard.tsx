@@ -7,6 +7,7 @@ import { OnboardingTrigger } from '@/components/OnboardingFlow';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { UsageTracker } from '@/components/UsageTracker';
+import { AdminOverride } from '@/components/AdminOverride';
 import { 
   Car, 
   BarChart3, 
@@ -264,6 +265,11 @@ export default function Dashboard() {
             </Card>
           </>
         )}
+      </div>
+
+      {/* Admin Override for God Level Access */}
+      <div className="mb-8">
+        <AdminOverride />
       </div>
 
       {/* Usage Tracker */}
