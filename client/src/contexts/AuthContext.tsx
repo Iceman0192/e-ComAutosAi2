@@ -60,41 +60,41 @@ export const PLAN_LIMITS = {
 // Feature permissions mapping
 export const PERMISSIONS = {
   // Basic features available to all paid plans
-  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  BASIC_FILTERS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  BASIC_FILTERS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
   
   // Features requiring Basic or higher
-  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  BASIC_ANALYTICS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  EMAIL_SUPPORT: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  BASIC_ANALYTICS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  EMAIL_SUPPORT: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
   
   // Features requiring Gold or higher
-  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  REAL_TIME_ALERTS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  PRIORITY_SUPPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  REAL_TIME_ALERTS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  PRIORITY_SUPPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
   
   // Features requiring Platinum or higher
-  UNLIMITED_SEARCHES: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  AUCTION_MIND_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  MARKET_INTELLIGENCE: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  API_ACCESS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  CUSTOM_REPORTS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
-  WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  UNLIMITED_SEARCHES: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  AUCTION_MIND_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  MARKET_INTELLIGENCE: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  API_ACCESS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  CUSTOM_REPORTS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
   
   // Enterprise features
-  TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN],
-  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],
-  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN],
-  PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
+  PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
   
   // Admin only features
-  ADMIN_TOOLS: [UserRole.ADMIN],
-  DATA_COLLECTION_MANAGEMENT: [UserRole.ADMIN],
-  USER_MANAGEMENT: [UserRole.ADMIN],
-  SYSTEM_MONITORING: [UserRole.ADMIN]
-} as const;
+  ADMIN_TOOLS: [UserRole.ADMIN] as UserRole[],
+  DATA_COLLECTION_MANAGEMENT: [UserRole.ADMIN] as UserRole[],
+  USER_MANAGEMENT: [UserRole.ADMIN] as UserRole[],
+  SYSTEM_MONITORING: [UserRole.ADMIN] as UserRole[]
+};
 
 export type Permission = keyof typeof PERMISSIONS;
 
@@ -105,7 +105,7 @@ interface User {
   role: UserRole;
   subscriptionStatus: 'active' | 'inactive' | 'trial';
   joinDate: string;
-  usage?: {
+  usage: {
     dailySearches: number;
     monthlyVinLookups: number;
     monthlyExports: number;
@@ -162,7 +162,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               name: data.user.name || data.user.username,
               role: mapBackendRoleToUserRole(data.user.role),
               subscriptionStatus: 'active', // Default for now
-              joinDate: new Date().toISOString()
+              joinDate: new Date().toISOString(),
+              usage: {
+                dailySearches: 0,
+                monthlyVinLookups: 0,
+                monthlyExports: 0,
+                lastResetDate: new Date().toISOString()
+              }
             });
           } else {
             setUser(null);
@@ -201,12 +207,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
-    return (PERMISSIONS[permission] as readonly UserRole[]).includes(user.role);
+    const allowedRoles = PERMISSIONS[permission];
+    if (!allowedRoles) return false;
+    return allowedRoles.includes(user.role);
   };
 
   const getPlanLimits = () => {
     if (!user) return null;
-    return PLAN_LIMITS[user.role];
+    const limits = PLAN_LIMITS[user.role];
+    return limits || PLAN_LIMITS[UserRole.FREE];
   };
 
   const checkUsageLimit = (type: 'search' | 'vin' | 'export'): boolean => {
@@ -254,16 +263,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (response.ok) {
         // Update local user state with new usage
-        const updatedUsage = { ...user.usage };
+        const updatedUsage = {
+          dailySearches: user.usage.dailySearches || 0,
+          monthlyVinLookups: user.usage.monthlyVinLookups || 0,
+          monthlyExports: user.usage.monthlyExports || 0,
+          lastResetDate: user.usage.lastResetDate || new Date().toISOString()
+        };
+        
         switch (type) {
           case 'search':
-            updatedUsage.dailySearches = (updatedUsage.dailySearches || 0) + 1;
+            updatedUsage.dailySearches += 1;
             break;
           case 'vin':
-            updatedUsage.monthlyVinLookups = (updatedUsage.monthlyVinLookups || 0) + 1;
+            updatedUsage.monthlyVinLookups += 1;
             break;
           case 'export':
-            updatedUsage.monthlyExports = (updatedUsage.monthlyExports || 0) + 1;
+            updatedUsage.monthlyExports += 1;
             break;
         }
         
@@ -297,7 +312,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: data.user.name || data.user.username,
       role: mapBackendRoleToUserRole(data.user.role),
       subscriptionStatus: 'active',
-      joinDate: new Date().toISOString()
+      joinDate: new Date().toISOString(),
+      usage: {
+        dailySearches: 0,
+        monthlyVinLookups: 0,
+        monthlyExports: 0,
+        lastResetDate: new Date().toISOString()
+      }
     });
   };
 
