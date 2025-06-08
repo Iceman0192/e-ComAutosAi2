@@ -38,17 +38,13 @@ async function startServer() {
     app.use(cors(corsConfig));
   }
 
-  // Set up Vite in development mode BEFORE other middleware
+  // Apply security middleware to API routes only in development, all routes in production
   if (app.get("env") === "development") {
-    await setupVite(app, server);
-    
-    // Apply security middleware only to API routes in development
     app.use('/api', securityHeaders);
     app.use('/api', preventParameterPollution);
     app.use('/api', sanitizeInput);
     app.use('/api', requestLogger);
   } else {
-    // Production mode - apply security to all routes
     app.use(securityHeaders);
     app.use(preventParameterPollution);
     app.use(sanitizeInput);
@@ -77,6 +73,9 @@ async function startServer() {
     next();
   });
 
+  // Authentication setup FIRST
+  setupUnifiedAuth(app);
+
   // Rate limiting middleware
   app.use('/api/auth/login', rateLimiters.auth);
   app.use('/api/auth/signup', rateLimiters.auth);
@@ -87,9 +86,6 @@ async function startServer() {
   app.use('/api/cars', rateLimiters.vehicleSearch);
   app.use('/api/find-comparables', rateLimiters.comparables);
   app.use('/api/admin', rateLimiters.admin);
-
-  // Authentication setup
-  setupUnifiedAuth(app);
 
   // API Routes
   setupApiRoutes(app);
@@ -113,8 +109,10 @@ async function startServer() {
   // Start trial monitoring scheduler
   trialScheduler.start();
   
-  // Serve static files in production
-  if (app.get("env") !== "development") {
+  // Set up Vite in development mode AFTER API routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
     serveStatic(app);
   }
 
