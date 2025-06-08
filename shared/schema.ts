@@ -60,7 +60,10 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   features: text("features"), // JSON string
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  roleIdx: index("idx_subscription_plans_role").on(table.role),
+  isActiveIdx: index("idx_subscription_plans_is_active").on(table.isActive),
+}));
 
 export const userSubscriptions = pgTable("user_subscriptions", {
   id: serial("id").primaryKey(),
@@ -87,6 +90,36 @@ export type InsertUserUsage = z.infer<typeof insertUserUsageSchema>;
 export type UserUsage = typeof userUsage.$inferSelect;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
+
+// Database relations for proper joins and queries
+import { relations } from "drizzle-orm";
+
+export const usersRelations = relations(users, ({ many }) => ({
+  subscriptions: many(userSubscriptions),
+  usage: many(userUsage),
+}));
+
+export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
+  userSubscriptions: many(userSubscriptions),
+}));
+
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSubscriptions.userId],
+    references: [users.id],
+  }),
+  plan: one(subscriptionPlans, {
+    fields: [userSubscriptions.planId],
+    references: [subscriptionPlans.id],
+  }),
+}));
+
+export const userUsageRelations = relations(userUsage, ({ one }) => ({
+  user: one(users, {
+    fields: [userUsage.userId],
+    references: [users.id],
+  }),
+}));
 
 // Sales history schema
 // Data collection progress tracking
