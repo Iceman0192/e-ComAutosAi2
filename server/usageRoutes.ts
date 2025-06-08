@@ -1,14 +1,18 @@
 import { Express, Request, Response } from 'express';
 import { db } from './db';
 import { userUsageStats } from '../shared/schema';
-import { eq, and, gte } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { requireAuth } from './authRoutes';
 
 interface AuthenticatedRequest extends Request {
   user: {
     id: number;
+    username: string;
     email: string;
-    role: string;
+    name: string;
+    role: 'freemium' | 'basic' | 'gold' | 'platinum' | 'admin';
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
   };
 }
 
@@ -115,13 +119,8 @@ export function setupUsageRoutes(app: Express) {
         .onConflictDoUpdate({
           target: [userUsageStats.userId, userUsageStats.date, userUsageStats.period],
           set: {
-            searches: db.select().from(userUsageStats).where(
-              and(
-                eq(userUsageStats.userId, userId),
-                eq(userUsageStats.date, today),
-                eq(userUsageStats.period, 'daily')
-              )
-            ).then(rows => (rows[0]?.searches || 0) + 1)
+            searches: sql`${userUsageStats.searches} + 1`,
+            updatedAt: sql`now()`
           }
         });
       }
@@ -143,13 +142,8 @@ export function setupUsageRoutes(app: Express) {
         .onConflictDoUpdate({
           target: [userUsageStats.userId, userUsageStats.date, userUsageStats.period],
           set: {
-            [field]: db.select().from(userUsageStats).where(
-              and(
-                eq(userUsageStats.userId, userId),
-                eq(userUsageStats.date, thisMonth),
-                eq(userUsageStats.period, 'monthly')
-              )
-            ).then(rows => (rows[0]?.[field as keyof typeof rows[0]] as number || 0) + 1)
+            [field]: sql`${userUsageStats[field as keyof typeof userUsageStats]} + 1`,
+            updatedAt: sql`now()`
           }
         });
       }

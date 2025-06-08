@@ -313,14 +313,12 @@ export type SalesFilter = z.infer<typeof SalesFilterSchema>;
 export const userUsageStats = pgTable('user_usage_stats', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').references(() => users.id).notNull(),
-  date: varchar('date', { length: 10 }).notNull(), // YYYY-MM-DD for daily, YYYY-MM for monthly
-  period: varchar('period', { length: 10 }).notNull(), // 'daily' or 'monthly'
+  date: text('date').notNull(), // YYYY-MM-DD for daily, YYYY-MM for monthly
+  period: text('period').notNull(), // 'daily' or 'monthly'
   searches: integer('searches').notNull().default(0),
   vinSearches: integer('vin_searches').notNull().default(0),
   exports: integer('exports').notNull().default(0),
   aiAnalyses: integer('ai_analyses').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow()
-}, (table) => ({
-  uniqueUserDatePeriod: unique().on(table.userId, table.date, table.period)
-}));
+});
