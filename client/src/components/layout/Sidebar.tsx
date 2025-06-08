@@ -35,55 +35,61 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Dashboard',
       href: '/dashboard',
       icon: Home,
-      permission: 'BASIC_SEARCH'
+      permission: 'CACHED_SALES_HISTORY'
     },
     {
       title: 'Sales History',
       href: '/copart',
       icon: Search,
-      permission: 'BASIC_SEARCH'
+      permission: 'CACHED_SALES_HISTORY'
     },
     {
       title: 'Active Lot Finder',
       href: '/active-lots',
       icon: Car,
-      permission: 'BASIC_SEARCH'
+      permission: 'BASIC_ACTIVE_LOTS'
     },
     {
-      title: 'Live Lot Analysis',
+      title: 'Live Copart Analysis',
       href: '/live-copart',
       icon: Car,
-      permission: 'FULL_ANALYTICS'
+      permission: 'AI_ANALYSIS'
+    },
+    {
+      title: 'Live IAAI Analysis',
+      href: '/live-iaai',
+      icon: Car,
+      permission: 'AI_ANALYSIS'
     },
     {
       title: 'VIN History Search',
       href: '/vin-history',
       icon: History,
-      permission: 'BASIC_SEARCH'
+      permission: 'FRESH_SALES_HISTORY'
     },
     {
       title: 'AuctionMind Pro',
       href: '/auction-mind-v2',
       icon: Brain,
-      permission: 'CROSS_PLATFORM_SEARCH'
+      permission: 'AI_ANALYSIS'
     },
     {
       title: 'Import Calculator',
       href: '/import-calculator',
       icon: Calculator,
-      permission: 'BASIC_SEARCH'
+      permission: 'IMPORT_CALCULATOR'
     },
     {
       title: 'Datasets',
       href: '/datasets',
       icon: Database,
-      permission: 'ADMIN_TOOLS'
+      permission: 'DATA_COLLECTION_MANAGEMENT'
     },
     {
       title: 'Team Management',
       href: '/team',
       icon: Users,
-      permission: 'ADMIN_TOOLS'
+      permission: 'USER_MANAGEMENT'
     }
   ];
 
@@ -92,19 +98,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Account Settings',
       href: '/account',
       icon: Settings,
-      permission: 'BASIC_SEARCH'
+      permission: 'CACHED_SALES_HISTORY'
     },
     {
       title: 'Usage Dashboard',
       href: '/usage',
       icon: BarChart3,
-      permission: 'BASIC_SEARCH'
+      permission: 'CACHED_SALES_HISTORY'
     },
     {
       title: 'Billing',
       href: '/billing',
       icon: CreditCard,
-      permission: 'BASIC_SEARCH'
+      permission: 'CACHED_SALES_HISTORY'
     }
   ];
 
@@ -112,6 +118,24 @@ export function Sidebar({ className = '' }: SidebarProps) {
     {
       title: 'Admin Dashboard',
       href: '/admin',
+      icon: Settings,
+      permission: 'ADMIN_TOOLS'
+    },
+    {
+      title: 'Data Collection',
+      href: '/data-collection',
+      icon: Database,
+      permission: 'DATA_COLLECTION_MANAGEMENT'
+    },
+    {
+      title: 'System Monitor',
+      href: '/system-monitor',
+      icon: BarChart3,
+      permission: 'SYSTEM_MONITORING'
+    },
+    {
+      title: 'API Management',
+      href: '/api-management',
       icon: Settings,
       permission: 'ADMIN_TOOLS'
     }
