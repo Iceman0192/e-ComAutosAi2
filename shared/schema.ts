@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, numeric, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -37,14 +37,17 @@ export type UserRole = typeof users.role.enumValues[number];
 // Usage tracking tables
 export const userUsage = pgTable("user_usage", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   date: timestamp("date").defaultNow().notNull(),
   searches: integer("searches").default(0).notNull(),
   aiAnalyses: integer("ai_analyses").default(0).notNull(),
   vinSearches: integer("vin_searches").default(0).notNull(),
   exports: integer("exports").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("idx_user_usage_user_id").on(table.userId),
+  dateIdx: index("idx_user_usage_date").on(table.date),
+}));
 
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: serial("id").primaryKey(),
@@ -61,16 +64,20 @@ export const subscriptionPlans = pgTable("subscription_plans", {
 
 export const userSubscriptions = pgTable("user_subscriptions", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  planId: integer("plan_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: integer("plan_id").notNull().references(() => subscriptionPlans.id, { onDelete: "restrict" }),
   stripeSubscriptionId: text("stripe_subscription_id").unique(),
-  status: text("status").notNull(), // active, canceled, past_due, etc.
+  status: text("status").notNull(), // active, canceled, past_due, trialing, incomplete, incomplete_expired
   currentPeriodStart: timestamp("current_period_start"),
   currentPeriodEnd: timestamp("current_period_end"),
   cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index("idx_user_subscriptions_user_id").on(table.userId),
+  planIdIdx: index("idx_user_subscriptions_plan_id").on(table.planId),
+  statusIdx: index("idx_user_subscriptions_status").on(table.status),
+}));
 
 export const insertUserUsageSchema = createInsertSchema(userUsage);
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans);
