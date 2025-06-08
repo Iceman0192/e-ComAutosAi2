@@ -8,8 +8,21 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+// Get the current domain from the request or use a fallback
+function getCurrentDomain(req?: any): string {
+  if (req?.hostname) {
+    return req.hostname;
+  }
+  // Extract domain from REPL_URL if available
+  if (process.env.REPL_URL) {
+    try {
+      const url = new URL(process.env.REPL_URL);
+      return url.hostname;
+    } catch (e) {
+      console.warn('Could not parse REPL_URL:', process.env.REPL_URL);
+    }
+  }
+  return 'localhost:5000'; // fallback for development
 }
 
 const getOidcConfig = memoize(
@@ -38,7 +51,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false, // Set to false for development in Replit
       maxAge: sessionTtl,
     },
   });
@@ -78,40 +91,62 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    try {
+      const user = {};
+      updateUserSession(user, tokens);
+      await upsertUser(tokens.claims());
+      console.log('User verified successfully:', tokens.claims()?.sub);
+      verified(null, user);
+    } catch (error) {
+      console.error('Error during verification:', error);
+      verified(error, false);
+    }
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
-  }
+  // Use current domain or fallback
+  const currentDomain = getCurrentDomain();
+  const strategy = new Strategy(
+    {
+      name: `replitauth:${currentDomain}`,
+      config,
+      scope: "openid email profile offline_access",
+      callbackURL: `https://${currentDomain}/api/callback`,
+    },
+    verify,
+  );
+  passport.use(strategy);
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    const domain = getCurrentDomain(req);
+    passport.authenticate(`replitauth:${domain}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+    const domain = getCurrentDomain(req);
+    passport.authenticate(`replitauth:${domain}`, (err: any, user: any, info: any) => {
+      if (err) {
+        console.error('Authentication error:', err);
+        return res.redirect("/api/login");
+      }
+      if (!user) {
+        console.error('No user returned from authentication:', info);
+        return res.redirect("/api/login");
+      }
+      
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error('Login error:', err);
+          return res.redirect("/api/login");
+        }
+        console.log('User successfully authenticated, redirecting to home');
+        return res.redirect("/");
+      });
     })(req, res, next);
   });
 
