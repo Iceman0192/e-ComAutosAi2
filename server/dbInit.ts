@@ -7,8 +7,8 @@ export async function initializeDatabase() {
 
   const plans = [
     {
-      name: 'Free',
-      role: 'free' as const,
+      name: 'Freemium',
+      role: 'freemium' as const,
       monthlyPrice: '0',
       yearlyPrice: '0',
       stripePriceId: null,
