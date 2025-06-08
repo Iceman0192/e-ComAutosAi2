@@ -52,7 +52,7 @@ const UsageContext = createContext<UsageContextType | null>(null);
 
 export function UsageProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  
+
   // Demo usage stats - in production, this would come from your database
   const [usageStats, setUsageStats] = useState<UsageStats>({
     searchesThisMonth: 1, // User has done 1 search already
@@ -62,12 +62,12 @@ export function UsageProvider({ children }: { children: ReactNode }) {
   });
 
   const limits = user ? USAGE_LIMITS[user.role] : USAGE_LIMITS[UserRole.FREE];
-  
+
   // Calculate remaining usage
   const remainingSearches = limits.monthlySearches === -1 
     ? -1 
     : Math.max(0, limits.monthlySearches - usageStats.searchesThisMonth);
-    
+
   const remainingAPICalls = limits.apiCallsPerSearch === -1 
     ? -1 
     : Math.max(0, (limits.monthlySearches * limits.apiCallsPerSearch) - usageStats.apiCallsThisMonth);
@@ -90,7 +90,7 @@ export function UsageProvider({ children }: { children: ReactNode }) {
         const newCachedViews = prev.cachedPagesViewed + 1;
         const creditEarned = Math.floor(newCachedViews / limits.cachedPageCredit);
         const previousCredit = Math.floor(prev.cachedPagesViewed / limits.cachedPageCredit);
-        
+
         return {
           ...prev,
           cachedPagesViewed: newCachedViews,
