@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { db } from './db';
-import { users, userUsage, subscriptionPlans } from '../shared/schema';
+import { users, userUsage, subscriptionPlans, userSubscriptions } from '@shared/schema';
 import { eq, desc, count, like, and, gte, lte, sql } from 'drizzle-orm';
 import { requireAuth, requireAdmin } from './simpleAuth';
 
