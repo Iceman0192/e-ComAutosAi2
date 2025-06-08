@@ -218,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Admin users have unlimited access
     if (user.role === 'admin') return true;
     
-    const limits = getTierLimits(user.role);
+    const limits = PLAN_LIMITS[user.role as UserRole] || PLAN_LIMITS[UserRole.FREE];
     const usage = user.usage;
     
     // Check if limits are unlimited (-1)
@@ -298,8 +298,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscriptionStatus: 'active',
       joinDate: new Date().toISOString(),
       usage: {
-        dailySearches: 0,
-        monthlyVinLookups: 0,
+        dailyFreshApiCalls: 0,
+        monthlyAiReports: 0,
         monthlyExports: 0,
         lastResetDate: new Date().toISOString()
       }
@@ -323,8 +323,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             subscriptionStatus: 'active',
             joinDate: new Date().toISOString(),
             usage: {
-              dailySearches: 0,
-              monthlyVinLookups: 0,
+              dailyFreshApiCalls: 0,
+              monthlyAiReports: 0,
               monthlyExports: 0,
               lastResetDate: new Date().toISOString()
             }
