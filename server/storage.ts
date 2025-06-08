@@ -1,6 +1,6 @@
 import { 
   type User, 
-  type InsertUser, 
+  type UpsertUser, 
   type SaleHistory, 
   type InsertSaleHistory,
   type Vehicle,
@@ -11,15 +11,14 @@ import {
 
 // Modify the interface with any CRUD methods you might need
 export interface IStorage {
-  // User methods
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // User methods for Replit Auth
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
   
   // Usage tracking methods
-  getUserUsage(userId: number): Promise<UserUsage | undefined>;
-  incrementUsage(userId: number, type: 'search' | 'vin' | 'export'): Promise<void>;
-  checkUsageLimit(userId: number, type: 'search' | 'vin' | 'export'): Promise<boolean>;
+  getUserUsage(userId: string): Promise<UserUsage | undefined>;
+  incrementUsage(userId: string, type: 'search' | 'vin' | 'export'): Promise<void>;
+  checkUsageLimit(userId: string, type: 'search' | 'vin' | 'export'): Promise<boolean>;
   resetDailyUsage(): Promise<void>;
   resetMonthlyUsage(): Promise<void>;
   
@@ -50,20 +49,23 @@ const PLAN_LIMITS = {
 } as const;
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
+  // User operations for Replit Auth
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return user;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
       .returning();
     return user;
   }
