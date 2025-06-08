@@ -149,15 +149,15 @@ export function UsageProvider({ children }: { children: ReactNode }) {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.data) {
+        if (data.success && data.usage) {
           const today = new Date().toISOString().split('T')[0];
           const thisMonth = new Date().toISOString().substring(0, 7);
           
           setUsageStats({
-            dailySearches: data.data.searches || 0,
-            monthlyVinLookups: data.data.vinSearches || 0,
-            monthlyExports: data.data.exports || 0,
-            monthlyAiAnalyses: data.data.aiAnalyses || 0,
+            dailySearches: data.usage.daily?.searches || 0,
+            monthlyVinLookups: data.usage.monthly?.vinSearches || 0,
+            monthlyExports: data.usage.monthly?.exports || 0,
+            monthlyAiAnalyses: data.usage.monthly?.aiAnalyses || 0,
             lastDailyReset: today,
             lastMonthlyReset: thisMonth
           });
@@ -205,36 +205,47 @@ export function UsageProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     try {
-      const response = await fetch('/api/increment-usage', {
+      const eventTypeMap = {
+        'search': 'search',
+        'vin': 'vin_lookup',
+        'export': 'export',
+        'ai': 'ai_analysis'
+      };
+
+      const response = await fetch('/api/usage/track', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ type: action })
+        body: JSON.stringify({ 
+          eventType: eventTypeMap[action],
+          metadata: { action, timestamp: new Date().toISOString() }
+        })
       });
 
       if (response.ok) {
-        // Update local state
-        setUsageStats(prev => {
-          const updates: Partial<UsageStats> = {};
-          
-          if (action === 'search') {
-            updates.dailySearches = prev.dailySearches + 1;
-          } else if (action === 'vin') {
-            updates.monthlyVinLookups = prev.monthlyVinLookups + 1;
-          } else if (action === 'export') {
-            updates.monthlyExports = prev.monthlyExports + 1;
-          } else if (action === 'ai') {
-            updates.monthlyAiAnalyses = prev.monthlyAiAnalyses + 1;
-          }
-          
-          return { ...prev, ...updates };
-        });
+        const data = await response.json();
+        if (data.success && data.usage) {
+          // Update local state with server response
+          setUsageStats(prev => ({
+            ...prev,
+            dailySearches: data.usage.daily?.searches || prev.dailySearches,
+            monthlyVinLookups: data.usage.monthly?.vinSearches || prev.monthlyVinLookups,
+            monthlyExports: data.usage.monthly?.exports || prev.monthlyExports,
+            monthlyAiAnalyses: data.usage.monthly?.aiAnalyses || prev.monthlyAiAnalyses
+          }));
+        }
+      } else {
+        const errorData = await response.json();
+        console.warn('Usage limit reached:', errorData.message);
+        return { limitReached: true, message: errorData.message };
       }
     } catch (error) {
       console.error('Failed to track usage:', error);
     }
+    
+    return { limitReached: false };
   };
 
   // Check if user has specific feature
