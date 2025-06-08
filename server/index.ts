@@ -94,8 +94,12 @@ app.use((req, res, next) => {
   // Set up admin routes
   setupAdminRoutes(app);
   
-  // Set up usage tracking routes
+  // Set up usage tracking routes with rate limiting
+  app.use('/api/usage', rateLimiters.api);
   setupUsageRoutes(app);
+  
+  // Set up health check routes
+  setupHealthRoutes(app);
   
   // Set up data collection routes
   registerDataCollectionRoutes(app);
@@ -112,14 +116,11 @@ app.use((req, res, next) => {
   // Start trial monitoring scheduler
   trialScheduler.start();
   
-  // Global error handler
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
+  // Handle 404s for undefined routes
+  app.use(notFound);
+  
+  // Enterprise error handler
+  app.use(errorHandler);
 
   // Set up Vite in development or serve static files in production
   if (app.get("env") === "development") {
