@@ -21,37 +21,37 @@ export const PLAN_LIMITS = {
     features: ['basic_search', 'basic_filters', 'community_support']
   },
   [UserRole.BASIC]: {
-    dailySearches: 100, // ~1000 monthly
+    dailySearches: 100,
     monthlyVinLookups: 25,
     monthlyExports: 100,
     searchResultsPerPage: 50,
     features: ['basic_search', 'basic_filters', 'email_support', 'mobile_app', 'basic_analytics']
   },
   [UserRole.GOLD]: {
-    dailySearches: 200, // ~5000 monthly
+    dailySearches: 200,
     monthlyVinLookups: 100,
     monthlyExports: 500,
     searchResultsPerPage: 100,
     features: ['basic_search', 'advanced_filters', 'cross_platform_search', 'advanced_analytics', 'priority_support', 'bulk_export', 'real_time_alerts']
   },
   [UserRole.PLATINUM]: {
-    dailySearches: -1, // unlimited
-    monthlyVinLookups: -1, // unlimited
-    monthlyExports: -1, // unlimited
+    dailySearches: -1,
+    monthlyVinLookups: -1,
+    monthlyExports: -1,
     searchResultsPerPage: 200,
     features: ['all_features', 'auction_mind_pro', 'market_intelligence', 'custom_reports', 'premium_support']
   },
   [UserRole.ENTERPRISE]: {
-    dailySearches: -1, // unlimited
-    monthlyVinLookups: -1, // unlimited
-    monthlyExports: -1, // unlimited
+    dailySearches: -1,
+    monthlyVinLookups: -1,
+    monthlyExports: -1,
     searchResultsPerPage: 500,
     features: ['all_features', 'team_collaboration', 'enterprise_security', 'dedicated_support', 'team_management', 'priority_processing']
   },
   [UserRole.ADMIN]: {
-    dailySearches: -1, // unlimited
-    monthlyVinLookups: -1, // unlimited
-    monthlyExports: -1, // unlimited
+    dailySearches: -1,
+    monthlyVinLookups: -1,
+    monthlyExports: -1,
     searchResultsPerPage: 1000,
     features: ['all_features', 'admin_tools', 'data_collection_management', 'user_management', 'system_monitoring']
   }
@@ -59,41 +59,30 @@ export const PLAN_LIMITS = {
 
 // Feature permissions mapping
 export const PERMISSIONS = {
-  // Basic features available to all paid plans
-  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  BASIC_FILTERS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  
-  // Features requiring Basic or higher
-  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  BASIC_ANALYTICS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  EMAIL_SUPPORT: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  
-  // Features requiring Gold or higher
-  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  REAL_TIME_ALERTS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  PRIORITY_SUPPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  
-  // Features requiring Platinum or higher
-  UNLIMITED_SEARCHES: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  AUCTION_MIND_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  MARKET_INTELLIGENCE: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  API_ACCESS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  CUSTOM_REPORTS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  
-  // Enterprise features
-  TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN] as UserRole[],
-  
-  // Admin only features
-  ADMIN_TOOLS: [UserRole.ADMIN] as UserRole[],
-  DATA_COLLECTION_MANAGEMENT: [UserRole.ADMIN] as UserRole[],
-  USER_MANAGEMENT: [UserRole.ADMIN] as UserRole[],
-  SYSTEM_MONITORING: [UserRole.ADMIN] as UserRole[]
+  BASIC_SEARCH: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_FILTERS: [UserRole.FREE, UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ADVANCED_FILTERS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BASIC_ANALYTICS: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  EMAIL_SUPPORT: [UserRole.BASIC, UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  REAL_TIME_ALERTS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  PRIORITY_SUPPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  UNLIMITED_SEARCHES: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  AUCTION_MIND_PRO: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  MARKET_INTELLIGENCE: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  API_ACCESS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  CUSTOM_REPORTS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  WHITE_GLOVE_SUPPORT: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  ADMIN_TOOLS: [UserRole.ADMIN],
+  DATA_COLLECTION_MANAGEMENT: [UserRole.ADMIN],
+  USER_MANAGEMENT: [UserRole.ADMIN],
+  SYSTEM_MONITORING: [UserRole.ADMIN]
 };
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -118,26 +107,16 @@ interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   hasPermission: (permission: Permission) => boolean;
+  getPlanLimits: () => typeof PLAN_LIMITS[UserRole] | null;
   checkUsageLimit: (type: 'search' | 'vin' | 'export') => boolean;
   incrementUsage: (type: 'search' | 'vin' | 'export') => Promise<void>;
-  getPlanLimits: () => typeof PLAN_LIMITS[UserRole] | null;
-  getRemainingUsage: () => { searches: number; vins: number; exports: number } | null;
+  refreshUser: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUserRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-
-// Demo user for development - replace with real auth later
-const DEMO_USER: User = {
-  id: 'demo-admin-1',
-  email: 'admin@ecomautos.com',
-  name: 'God Level Admin',
-  role: UserRole.ADMIN,
-  subscriptionStatus: 'active',
-  joinDate: '2025-01-01'
-};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -155,13 +134,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.user) {
-            // Map backend user data to frontend User interface
             setUser({
               id: data.user.id.toString(),
               email: data.user.email,
               name: data.user.name || data.user.username,
               role: mapBackendRoleToUserRole(data.user.role),
-              subscriptionStatus: 'active', // Default for now
+              subscriptionStatus: 'active',
               joinDate: new Date().toISOString(),
               usage: {
                 dailySearches: 0,
@@ -222,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return false;
     
     const limits = PLAN_LIMITS[user.role];
-    const usage = user.usage || { dailySearches: 0, monthlyVinLookups: 0, monthlyExports: 0, lastResetDate: new Date().toISOString() };
+    const usage = user.usage;
     
     // Check if limits are unlimited (-1)
     switch (type) {
@@ -237,37 +215,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const getRemainingUsage = () => {
-    if (!user) return null;
-    
-    const limits = PLAN_LIMITS[user.role];
-    const usage = user.usage || { dailySearches: 0, monthlyVinLookups: 0, monthlyExports: 0, lastResetDate: new Date().toISOString() };
-    
-    return {
-      searches: limits.dailySearches === -1 ? -1 : Math.max(0, limits.dailySearches - usage.dailySearches),
-      vins: limits.monthlyVinLookups === -1 ? -1 : Math.max(0, limits.monthlyVinLookups - usage.monthlyVinLookups),
-      exports: limits.monthlyExports === -1 ? -1 : Math.max(0, limits.monthlyExports - usage.monthlyExports)
-    };
-  };
-
   const incrementUsage = async (type: 'search' | 'vin' | 'export'): Promise<void> => {
     if (!user) return;
     
     try {
-      const response = await fetch('/api/auth/increment-usage', {
+      const response = await fetch('/api/usage/increment', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ type })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type }),
+        credentials: 'include'
       });
       
       if (response.ok) {
-        // Update local user state with new usage
         const updatedUsage = {
-          dailySearches: user.usage.dailySearches || 0,
-          monthlyVinLookups: user.usage.monthlyVinLookups || 0,
-          monthlyExports: user.usage.monthlyExports || 0,
-          lastResetDate: user.usage.lastResetDate || new Date().toISOString()
+          dailySearches: user.usage.dailySearches,
+          monthlyVinLookups: user.usage.monthlyVinLookups,
+          monthlyExports: user.usage.monthlyExports,
+          lastResetDate: user.usage.lastResetDate
         };
         
         switch (type) {
@@ -305,7 +271,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(data.message || 'Login failed');
     }
 
-    // Update user state with logged in user
     setUser({
       id: data.user.id.toString(),
       email: data.user.email,
@@ -322,7 +287,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Add refresh function to re-fetch user data
   const refreshUser = async (): Promise<void> => {
     try {
       const response = await fetch('/api/auth/me', {
@@ -338,39 +302,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: data.user.name || data.user.username,
             role: mapBackendRoleToUserRole(data.user.role),
             subscriptionStatus: 'active',
-            joinDate: new Date().toISOString()
+            joinDate: new Date().toISOString(),
+            usage: {
+              dailySearches: 0,
+              monthlyVinLookups: 0,
+              monthlyExports: 0,
+              lastResetDate: new Date().toISOString()
+            }
           });
         }
       } else {
         setUser(null);
       }
     } catch (error) {
-      console.error('Refresh user failed:', error);
-      setUser(null);
+      console.error('Failed to refresh user:', error);
     }
   };
 
-  const logout = async (): Promise<void> => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
-      
-      // Clear user state
-      setUser(null);
-      
-      // Redirect to auth page
-      setLocation('/auth');
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Clear user state even if logout fails
-      setUser(null);
-      setLocation('/auth');
-    }
+  const logout = () => {
+    setUser(null);
+    window.location.href = '/api/auth/logout';
   };
 
-  const updateUserRole = (role: UserRole): void => {
+  const updateUserRole = (role: UserRole) => {
     if (user) {
       setUser({ ...user, role });
     }
@@ -381,10 +335,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoggedIn: !!user,
     isLoading,
     hasPermission,
+    getPlanLimits,
     checkUsageLimit,
     incrementUsage,
-    getPlanLimits,
-    getRemainingUsage,
+    refreshUser,
     login,
     logout,
     updateUserRole
