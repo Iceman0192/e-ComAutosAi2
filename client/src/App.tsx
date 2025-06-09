@@ -32,6 +32,7 @@ import Demo from "./pages/demo";
 import SystemMonitor from "./pages/system-monitor";
 import APIManagement from "./pages/api-management";
 import UsageDashboard from "./pages/usage-dashboard";
+import Recommendations from "./pages/recommendations";
 import NotFound from "./pages/not-found";
 
 // Marketing Pages
