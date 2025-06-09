@@ -214,7 +214,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                       <SelectValue placeholder="All damage types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All damage types</SelectItem>
+                      <SelectItem value="all">All damage types</SelectItem>
                       {damageTypes.map((damage) => (
                         <SelectItem key={damage} value={damage}>{damage}</SelectItem>
                       ))}
@@ -232,7 +232,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All statuses</SelectItem>
+                      <SelectItem value="all">All statuses</SelectItem>
                       <SelectItem value="Sold">Sold</SelectItem>
                       <SelectItem value="ON APPROVAL">On Approval</SelectItem>
                       <SelectItem value="Not sold">Not Sold</SelectItem>
@@ -250,7 +250,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                       <SelectValue placeholder="All title types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All title types</SelectItem>
+                      <SelectItem value="all">All title types</SelectItem>
                       {titleTypes.map((title) => (
                         <SelectItem key={title} value={title}>{title}</SelectItem>
                       ))}
@@ -268,7 +268,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                       <SelectValue placeholder="All transmissions" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All transmissions</SelectItem>
+                      <SelectItem value="all">All transmissions</SelectItem>
                       {transmissions.map((transmission) => (
                         <SelectItem key={transmission} value={transmission}>{transmission}</SelectItem>
                       ))}
@@ -286,7 +286,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                       <SelectValue placeholder="All fuel types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All fuel types</SelectItem>
+                      <SelectItem value="all">All fuel types</SelectItem>
                       {fuelTypes.map((fuel) => (
                         <SelectItem key={fuel} value={fuel}>{fuel}</SelectItem>
                       ))}
