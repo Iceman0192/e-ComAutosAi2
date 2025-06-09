@@ -104,10 +104,13 @@ function Router() {
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/iaai" component={IAAIPage} />
-        <Route path="/vin-history" component={AuctionMind} />
+        <Route path="/vin-history" component={VINHistory} />
+        <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={ImportCalculator} />
         <Route path="/datasets" component={Datasets} />
+        <Route path="/team" component={Team} />
+        <Route path="/product/demo" component={Demo} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
         <Route path="/admin" component={AdminDashboard} />
