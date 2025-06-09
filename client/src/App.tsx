@@ -24,7 +24,7 @@ import Billing from "./pages/billing";
 import LandingPage from "./pages/landing";
 import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
-import DataCollectionPage from "./pages/data-collection";
+import DataCollectionPage from "./pages/data-collection-clean";
 import VINHistory from "./pages/vin-history";
 import Team from "./pages/team";
 import Demo from "./pages/demo";

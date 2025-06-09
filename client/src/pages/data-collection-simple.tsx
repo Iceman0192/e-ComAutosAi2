@@ -15,7 +15,7 @@ import {
   BarChart3,
   Clock
 } from 'lucide-react';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SimpleStatus {
   isRunning: boolean;
@@ -43,7 +43,7 @@ export default function DataCollectionSimple() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { hasPermission } = usePermissions();
+  const { hasPermission } = useAuth();
   const canManage = hasPermission('DATA_COLLECTION_MANAGEMENT');
 
   const fetchStatus = async () => {
