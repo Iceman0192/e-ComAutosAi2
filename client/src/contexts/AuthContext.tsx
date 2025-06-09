@@ -16,36 +16,42 @@ export const PLAN_LIMITS = {
   [UserRole.FREE]: {
     dailyFreshApiCalls: 0, // No fresh API access
     monthlyAiReports: 0, // No AI access
+    monthlyExports: 0, // No exports
     searchResultsPerPage: 25,
     hasAccessTo: ['cached_sales_history', 'basic_active_lots'] // No similar vehicles, no AI analysis
   },
   [UserRole.BASIC]: {
     dailyFreshApiCalls: 100, // ~3k/month (30% of 100k monthly cap for all users)
     monthlyAiReports: 0, // No AI access
+    monthlyExports: 10, // Limited exports
     searchResultsPerPage: 50,
     hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'basic_active_lots']
   },
   [UserRole.GOLD]: {
     dailyFreshApiCalls: 200, // ~6k/month 
     monthlyAiReports: 0, // No AI access yet
+    monthlyExports: 50, // More exports
     searchResultsPerPage: 100,
     hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'advanced_filters', 'bulk_export', 'active_lots_advanced']
   },
   [UserRole.PLATINUM]: {
     dailyFreshApiCalls: 500, // ~15k/month
     monthlyAiReports: 10, // Limited AI reports ($2-3 per report estimated)
+    monthlyExports: 200, // Premium exports
     searchResultsPerPage: 200,
     hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'advanced_filters', 'bulk_export', 'ai_analysis', 'market_intelligence', 'active_lots_pro']
   },
   [UserRole.ENTERPRISE]: {
     dailyFreshApiCalls: 1000, // ~30k/month
     monthlyAiReports: 50, // More AI reports for enterprise
+    monthlyExports: 1000, // High volume exports
     searchResultsPerPage: 500,
     hasAccessTo: ['cached_sales_history', 'fresh_sales_history', 'similar_vehicles', 'import_calculator', 'advanced_filters', 'bulk_export', 'ai_analysis', 'market_intelligence', 'team_collaboration', 'priority_processing', 'active_lots_enterprise']
   },
   [UserRole.ADMIN]: {
     dailyFreshApiCalls: -1, // Unlimited
     monthlyAiReports: -1, // Unlimited
+    monthlyExports: -1, // Unlimited
     searchResultsPerPage: 1000,
     hasAccessTo: ['all_features', 'admin_tools', 'data_collection_management', 'user_management', 'system_monitoring', 'god_level_access']
   }

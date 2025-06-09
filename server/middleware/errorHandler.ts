@@ -67,3 +67,6 @@ export const notFoundHandler = (req: Request, res: Response) => {
     message: `Route ${req.originalUrl} not found`
   });
 };
+
+// Alternative export name for compatibility
+export const notFound = notFoundHandler;

@@ -391,7 +391,7 @@ export default function Team() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {member.id !== user?.id && (
+                          {member.id.toString() !== user?.id && (
                             <Button
                               variant="ghost"
                               size="sm"

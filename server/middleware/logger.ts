@@ -37,7 +37,7 @@ class Logger {
       filtered = filtered.filter(log => log.method === filter.method);
     }
     if (filter?.minStatus !== undefined) {
-      filtered = filtered.filter(log => (log.statusCode || 0) >= filter.minStatus);
+      filtered = filtered.filter(log => (log.statusCode || 0) >= filter.minStatus!);
     }
     
     return filtered.reverse(); // Most recent first
