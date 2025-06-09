@@ -151,23 +151,63 @@ export class DataCollectionService {
     job.modelsDiscovered = discoveredModels;
     console.log(`Discovered ${discoveredModels.length} models for ${job.make}: ${discoveredModels.slice(0, 5).join(', ')}${discoveredModels.length > 5 ? '...' : ''}`);
 
-    // Collect data for each discovered model from both Copart and IAAI
-    const sitesToCollect = [1, 2]; // Copart and IAAI
+    // Process models in batches with concurrent collection for efficiency
+    const concurrencyLimit = 3; // Process 3 model-site combinations concurrently
+    const tasks = [];
     
-    for (const site of sitesToCollect) {
-      const siteName = site === 1 ? 'Copart' : 'IAAI';
+    // Create all collection tasks
+    for (const model of discoveredModels) {
+      for (const site of [1, 2]) { // Copart and IAAI
+        tasks.push({
+          make: job.make,
+          model,
+          site,
+          siteName: site === 1 ? 'Copart' : 'IAAI',
+          startDate,
+          endDate
+        });
+      }
+    }
+    
+    // Process tasks in concurrent batches
+    for (let i = 0; i < tasks.length; i += concurrencyLimit) {
+      const batch = tasks.slice(i, i + concurrencyLimit);
       
-      for (const model of discoveredModels) {
+      const batchPromises = batch.map(async (task, index) => {
+        // Stagger the start of each concurrent request by 1 second
+        await new Promise(resolve => setTimeout(resolve, index * 1000));
+        
         try {
-          const modelCount = await this.collectDataForMakeModelSite(job.make, model, startDate, endDate, 2012, 2025, site);
-          totalCollected += modelCount;
+          console.log(`Collecting ${task.make} ${task.model} data from ${task.siteName}...`);
+          const count = await this.collectDataForMakeModelSite(
+            task.make, 
+            task.model, 
+            task.startDate, 
+            task.endDate, 
+            2012, 
+            2025, 
+            task.site
+          );
           
-          if (modelCount > 0) {
-            console.log(`Collected ${modelCount} records for ${job.make} ${model} from ${siteName}`);
+          if (count > 0) {
+            console.log(`${task.make} ${task.model}: ${count} records from ${task.siteName}`);
           }
+          
+          return count;
         } catch (error) {
-          console.error(`Failed to collect ${job.make} ${model} from ${siteName}:`, error);
+          console.error(`Failed to collect ${task.make} ${task.model} from ${task.siteName}:`, error);
+          return 0;
         }
+      });
+      
+      // Wait for current batch to complete
+      const batchResults = await Promise.all(batchPromises);
+      totalCollected += batchResults.reduce((sum, count) => sum + count, 0);
+      
+      // Add delay between batches to respect rate limits
+      if (i + concurrencyLimit < tasks.length) {
+        console.log(`Completed batch ${Math.floor(i / concurrencyLimit) + 1}, waiting before next batch...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
@@ -234,10 +274,17 @@ export class DataCollectionService {
     yearTo: number = 2025,
     site: number = 1
   ): Promise<number> {
+    // First, check if we already have cached data for this make/model/site combination
+    const existingCount = await this.checkExistingData(make, model, site, startDate, endDate);
+    
+    if (existingCount > 0) {
+      console.log(`Found ${existingCount} existing records for ${make} ${model} on site ${site}, skipping API call`);
+      return 0; // No new data collected since we already have it
+    }
+
     let totalCollected = 0;
     let page = 1;
     let hasMoreData = true;
-    // No artificial page limit - collect ALL data within 150-day window
     
     const baseUrl = 'http://localhost:5000/api/sales-history';
     
@@ -263,6 +310,9 @@ export class DataCollectionService {
         });
 
         if (!response.ok) {
+          if (response.status === 429) {
+            console.log(`Rate limited for ${make} ${model}, will retry later`);
+          }
           hasMoreData = false;
           break;
         }
@@ -277,6 +327,11 @@ export class DataCollectionService {
         totalCollected += data.data.length;
         page++;
 
+        // Stop after collecting a reasonable amount per model to respect rate limits
+        if (page > 10) { // Max 10 pages (250 records) per model
+          hasMoreData = false;
+        }
+
         // 2-3 second delay between requests to respect rate limits
         const delay = 2000 + Math.random() * 1000; // Random 2-3 second delay
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -288,6 +343,38 @@ export class DataCollectionService {
     }
 
     return totalCollected;
+  }
+
+  private async checkExistingData(
+    make: string, 
+    model: string, 
+    site: number, 
+    startDate: Date, 
+    endDate: Date
+  ): Promise<number> {
+    try {
+      const { salesHistory } = await import('../shared/schema');
+      const { db } = await import('./db');
+      const { eq, and, gte, lte, count } = await import('drizzle-orm');
+
+      const result = await db
+        .select({ count: count() })
+        .from(salesHistory)
+        .where(
+          and(
+            eq(salesHistory.make, make),
+            eq(salesHistory.model, model),
+            eq(salesHistory.site, site),
+            gte(salesHistory.sale_date, startDate),
+            lte(salesHistory.sale_date, endDate)
+          )
+        );
+
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error(`Error checking existing data for ${make} ${model}:`, error);
+      return 0;
+    }
   }
 
   // Public methods for status and control
