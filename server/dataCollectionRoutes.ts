@@ -105,12 +105,19 @@ export function registerDataCollectionRoutes(app: Express) {
   });
 
   // Get collection jobs (admin only)
-  app.get('/api/admin/data-collection/jobs', requireAuth, requireAdmin, (req, res) => {
+  app.get('/api/admin/data-collection/jobs', requireAuth, requireAdmin, async (req, res) => {
     try {
       const jobs = dataCollectionService.getQueueStatus();
+      const vehicleProgress = await dataCollectionService.getVehicleProgress();
+      const siteStats = await dataCollectionService.getCollectionStatsByAuctionSite();
+      
       res.json({
         success: true,
-        data: jobs
+        data: {
+          jobs,
+          vehicleProgress,
+          siteStats
+        }
       });
     } catch (error: any) {
       console.error('Error getting collection jobs:', error);
