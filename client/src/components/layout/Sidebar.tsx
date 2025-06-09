@@ -62,6 +62,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'FRESH_SALES_HISTORY'
     },
     {
+      title: 'Sales Database',
+      href: '/sales-history',
+      icon: BarChart3,
+      permission: 'CACHED_SALES_HISTORY'
+    },
+    {
       title: 'AuctionMind Pro',
       href: '/auction-mind-v2',
       icon: Brain,
