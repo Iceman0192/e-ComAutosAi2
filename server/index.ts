@@ -6,6 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
+import { setupRecommendationRoutes } from "./recommendationRoutes";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupUnifiedAuth } from "./auth/unifiedAuth";
 import { trialScheduler } from "./trialScheduler";
@@ -106,6 +107,7 @@ async function startServer() {
   setupApiRoutes(app);
   setupAuctionMindRoutes(app);
   setupAuctionMindV2Routes(app);
+  setupRecommendationRoutes(app);
   registerSubscriptionRoutes(app);
   setupAdminRoutes(app);
   setupUsageRoutes(app);

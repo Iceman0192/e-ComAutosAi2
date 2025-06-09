@@ -163,52 +163,29 @@ export class RecommendationEngine {
     const maxPrice = preferences?.budgetMax || searchPatterns.priceRange.max;
     const minPrice = preferences?.budgetMin || searchPatterns.priceRange.min;
 
-    // Search both Copart and IAAI databases
-    const copartResults = await db.select()
-      .from(copartSalesHistory)
+    // Search sales history database
+    const results = await db.select()
+      .from(salesHistory)
       .where(and(
-        targetMakes.length ? inArray(copartSalesHistory.make, targetMakes) : sql`1=1`,
-        gte(copartSalesHistory.year, minYear),
-        lte(copartSalesHistory.year, maxYear),
-        maxPrice ? lte(copartSalesHistory.purchasePrice, maxPrice) : sql`1=1`,
-        minPrice ? gte(copartSalesHistory.purchasePrice, minPrice) : sql`1=1`,
-        sql`${copartSalesHistory.purchasePrice} > 0`
+        targetMakes.length ? inArray(salesHistory.make, targetMakes) : sql`1=1`,
+        gte(salesHistory.year, minYear),
+        lte(salesHistory.year, maxYear),
+        maxPrice ? lte(salesHistory.purchase_price, maxPrice) : sql`1=1`,
+        minPrice ? gte(salesHistory.purchase_price, minPrice) : sql`1=1`,
+        sql`${salesHistory.purchase_price} > 0`
       ))
-      .orderBy(desc(copartSalesHistory.saleDate))
-      .limit(200);
-
-    const iaaiResults = await db.select()
-      .from(iaaiSalesHistory)
-      .where(and(
-        targetMakes.length ? inArray(iaaiSalesHistory.make, targetMakes) : sql`1=1`,
-        gte(iaaiSalesHistory.year, minYear),
-        lte(iaaiSalesHistory.year, maxYear),
-        maxPrice ? lte(iaaiSalesHistory.costPriced, maxPrice) : sql`1=1`,
-        minPrice ? gte(iaaiSalesHistory.costPriced, minPrice) : sql`1=1`,
-        sql`${iaaiSalesHistory.costPriced} > 0`
-      ))
-      .orderBy(desc(iaaiSalesHistory.saleDate))
-      .limit(200);
+      .orderBy(desc(salesHistory.sale_date))
+      .limit(400);
 
     // Normalize data structure
-    const candidates = [
-      ...copartResults.map(v => ({
-        ...v,
-        platform: 'copart',
-        price: v.purchasePrice,
-        mileage: v.vehicleMileage,
-        damage: v.vehicleDamage,
-        location: v.auctionLocation
-      })),
-      ...iaaiResults.map(v => ({
-        ...v,
-        platform: 'iaai',
-        price: v.costPriced,
-        mileage: v.vehicleMileage,
-        damage: v.vehicleDamage,
-        location: v.auctionLocation
-      }))
-    ];
+    const candidates = results.map(v => ({
+      ...v,
+      platform: v.site === 1 ? 'copart' : 'iaai',
+      price: parseInt(v.purchase_price || '0'),
+      mileage: v.vehicle_mileage,
+      damage: v.vehicle_damage,
+      location: v.auction_location
+    }));
 
     return candidates.slice(0, 50); // Limit for AI processing
   }
