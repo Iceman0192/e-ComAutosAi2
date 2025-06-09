@@ -620,14 +620,14 @@ export function setupApiRoutes(app: Express) {
       console.log('Fetching from API');
       const apiResponse = await getVehicleSalesHistory(
         make,
+        site.toString(),
         model,
         page,
         size,
         yearFrom,
         yearTo,
         auctionDateFrom,
-        auctionDateTo,
-        site.toString()
+        auctionDateTo
       );
       
       if (!apiResponse || !apiResponse.data) {
@@ -762,14 +762,14 @@ export function setupApiRoutes(app: Express) {
       console.log('Fetching IAAI from API');
       const apiResponse = await getVehicleSalesHistory(
         make,
+        '2',
         model,
         page,
         size,
         yearFrom,
         yearTo,
         auctionDateFrom,
-        auctionDateTo,
-        '2'
+        auctionDateTo
       );
       
       if (!apiResponse || !apiResponse.data) {
