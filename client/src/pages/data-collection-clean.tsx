@@ -10,6 +10,9 @@ import {
   AlertCircle,
   Loader
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AuctionSiteStats {
   site: number;
@@ -42,6 +45,9 @@ export default function DataCollectionClean() {
   const [siteStats, setSiteStats] = useState<SiteStatsData>({ sites: [], totalVehicles: 0, siteBreakdown: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedMake, setSelectedMake] = useState('');
+  const [selectedSite, setSelectedSite] = useState('1');
+  const [customMake, setCustomMake] = useState('');
 
   const fetchData = async () => {
     try {
@@ -70,21 +76,40 @@ export default function DataCollectionClean() {
     }
   };
 
-  const startCollection = async (make: string) => {
+  const startManualCollection = async () => {
+    if (!selectedMake && !customMake) {
+      setError('Please select or enter a vehicle make');
+      return;
+    }
+    
+    const make = customMake || selectedMake;
     setLoading(true);
     setError('');
+    
     try {
-      const response = await fetch('/api/admin/data-collection/start-multiple', {
+      const response = await fetch('/api/admin/data-collection/start-make-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          searches: [{ make, yearFrom: 2012, yearTo: 2025, daysBack: 150 }]
+          make: make,
+          site: parseInt(selectedSite),
+          yearFrom: 2012,
+          yearTo: 2025,
+          daysBack: 150,
+          discoverModels: true
         })
       });
       
       if (response.ok) {
-        setTimeout(fetchData, 1000);
+        const data = await response.json();
+        if (data.success) {
+          setSelectedMake('');
+          setCustomMake('');
+          setTimeout(fetchData, 1000);
+        } else {
+          setError(data.message || 'Failed to start collection');
+        }
       } else {
         setError('Failed to start collection');
       }
@@ -278,24 +303,99 @@ export default function DataCollectionClean() {
         </Card>
       )}
 
-      {/* Collection Controls */}
+      {/* Manual Collection Controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Start New Collection</CardTitle>
+          <CardTitle>Manual Data Collection</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Select a vehicle make and auction site to collect all available models within the 150-day window
+          </p>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 md:grid-cols-3">
-            {['Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'BMW'].map((make) => (
-              <Button
-                key={make}
-                onClick={() => startCollection(make)}
-                disabled={loading}
-                className="h-12"
-              >
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="make-select">Vehicle Make</Label>
+              <Select value={selectedMake} onValueChange={setSelectedMake}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a make" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Acura">Acura</SelectItem>
+                  <SelectItem value="Audi">Audi</SelectItem>
+                  <SelectItem value="BMW">BMW</SelectItem>
+                  <SelectItem value="Buick">Buick</SelectItem>
+                  <SelectItem value="Cadillac">Cadillac</SelectItem>
+                  <SelectItem value="Chevrolet">Chevrolet</SelectItem>
+                  <SelectItem value="Chrysler">Chrysler</SelectItem>
+                  <SelectItem value="Dodge">Dodge</SelectItem>
+                  <SelectItem value="Ford">Ford</SelectItem>
+                  <SelectItem value="GMC">GMC</SelectItem>
+                  <SelectItem value="Honda">Honda</SelectItem>
+                  <SelectItem value="Hyundai">Hyundai</SelectItem>
+                  <SelectItem value="Infiniti">Infiniti</SelectItem>
+                  <SelectItem value="Jaguar">Jaguar</SelectItem>
+                  <SelectItem value="Jeep">Jeep</SelectItem>
+                  <SelectItem value="Kia">Kia</SelectItem>
+                  <SelectItem value="Land Rover">Land Rover</SelectItem>
+                  <SelectItem value="Lexus">Lexus</SelectItem>
+                  <SelectItem value="Lincoln">Lincoln</SelectItem>
+                  <SelectItem value="Mazda">Mazda</SelectItem>
+                  <SelectItem value="Mercedes-Benz">Mercedes-Benz</SelectItem>
+                  <SelectItem value="Mini">Mini</SelectItem>
+                  <SelectItem value="Mitsubishi">Mitsubishi</SelectItem>
+                  <SelectItem value="Nissan">Nissan</SelectItem>
+                  <SelectItem value="Porsche">Porsche</SelectItem>
+                  <SelectItem value="Ram">Ram</SelectItem>
+                  <SelectItem value="Subaru">Subaru</SelectItem>
+                  <SelectItem value="Tesla">Tesla</SelectItem>
+                  <SelectItem value="Toyota">Toyota</SelectItem>
+                  <SelectItem value="Volkswagen">Volkswagen</SelectItem>
+                  <SelectItem value="Volvo">Volvo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="custom-make">Or Enter Custom Make</Label>
+              <Input
+                id="custom-make"
+                placeholder="e.g., Ferrari, Lamborghini"
+                value={customMake}
+                onChange={(e) => setCustomMake(e.target.value)}
+                disabled={!!selectedMake}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="site-select">Auction Site</Label>
+              <Select value={selectedSite} onValueChange={setSelectedSite}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Copart (Site 1)</SelectItem>
+                  <SelectItem value="2">IAAI (Site 2)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center pt-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              Collection will discover all models for the selected make and site automatically
+            </div>
+            <Button 
+              onClick={startManualCollection} 
+              disabled={loading || (!selectedMake && !customMake)}
+              className="min-w-[120px]"
+            >
+              {loading ? (
+                <Loader className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
                 <Play className="mr-2 h-4 w-4" />
-                Collect {make}
-              </Button>
-            ))}
+              )}
+              Start Collection
+            </Button>
           </div>
         </CardContent>
       </Card>
