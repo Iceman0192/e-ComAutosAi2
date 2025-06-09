@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import { 
@@ -19,17 +21,27 @@ import {
   ChevronRight,
   X,
   Eye,
-  Loader2
+  Loader2,
+  Brain,
+  History,
+  Database,
+  TrendingUp,
+  Calendar,
+  Zap
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 export default function LiveIAAI() {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const [, setLocation] = useLocation();
   const [lotId, setLotId] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageViewer, setShowImageViewer] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [vinHistoryTriggered, setVinHistoryTriggered] = useState(false);
+  const [similarLotsTriggered, setSimilarLotsTriggered] = useState(false);
+  const [analysisTriggered, setAnalysisTriggered] = useState(false);
 
   // Fetch live lot data
   const { data: lotData, isLoading: lotLoading, error: lotError } = useQuery({
@@ -45,6 +57,60 @@ export default function LiveIAAI() {
       return result;
     },
     enabled: searchTriggered && !!lotId,
+  });
+
+  // Fetch VIN history data
+  const { data: vinHistory, isLoading: vinLoading } = useQuery({
+    queryKey: ['/api/auction-mind/vin-history', lotData?.lot?.vin],
+    queryFn: async () => {
+      const response = await fetch('/api/auction-mind/vin-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vin: lotData.lot.vin })
+      });
+      if (!response.ok) throw new Error('Failed to fetch VIN history');
+      return response.json();
+    },
+    enabled: vinHistoryTriggered && !!lotData?.lot?.vin,
+  });
+
+  // Fetch similar active lots
+  const { data: similarLots, isLoading: similarLoading } = useQuery({
+    queryKey: ['/api/cars', lotData?.lot?.make, lotData?.lot?.model, lotData?.lot?.year],
+    queryFn: async () => {
+      const response = await fetch(`/api/cars?make=${lotData.lot.make}&model=${lotData.lot.model}&yearFrom=${lotData.lot.year - 2}&yearTo=${lotData.lot.year + 2}&site=2&size=20`);
+      if (!response.ok) throw new Error('Failed to fetch similar lots');
+      return response.json();
+    },
+    enabled: similarLotsTriggered && !!lotData?.lot?.make,
+  });
+
+  // Fetch AI analysis
+  const { data: aiAnalysis, isLoading: aiLoading } = useQuery({
+    queryKey: ['/api/ai-lot-analysis', lotData?.lot?.vin],
+    queryFn: async () => {
+      const vehicleData = {
+        year: lotData.lot.year,
+        make: lotData.lot.make,
+        model: lotData.lot.model,
+        currentBid: lotData.lot.current_bid,
+        damage: lotData.lot.damage_pr,
+        images: lotData.lot.link_img_hd || [],
+        site: 2,
+        vin: lotData.lot.vin,
+        color: lotData.lot.color,
+        odometer: lotData.lot.odometer
+      };
+      
+      const response = await fetch('/api/ai-lot-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleData })
+      });
+      if (!response.ok) throw new Error('AI Analysis failed');
+      return response.json();
+    },
+    enabled: analysisTriggered && !!lotData?.lot?.vin,
   });
 
   const handleSearch = () => {
@@ -191,6 +257,48 @@ export default function LiveIAAI() {
                     </a>
                   </Button>
                 </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setVinHistoryTriggered(true);
+                    setActiveTab('history');
+                  }}
+                  disabled={vinLoading}
+                >
+                  {vinLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <History className="h-4 w-4 mr-2" />}
+                  VIN History
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSimilarLotsTriggered(true);
+                    setActiveTab('similar');
+                  }}
+                  disabled={similarLoading}
+                >
+                  {similarLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Database className="h-4 w-4 mr-2" />}
+                  Similar Lots
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAnalysisTriggered(true);
+                    setActiveTab('analysis');
+                  }}
+                  disabled={aiLoading}
+                >
+                  {aiLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Brain className="h-4 w-4 mr-2" />}
+                  AI Analysis
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -363,6 +471,201 @@ export default function LiveIAAI() {
                   </div>
                 </div>
               </div>
+
+              {/* Tabbed Content */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="history">VIN History</TabsTrigger>
+                  <TabsTrigger value="similar">Similar Lots</TabsTrigger>
+                  <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="mt-4">
+                  <div className="text-center py-8 text-gray-500">
+                    Basic vehicle information is displayed above. Use the tabs to explore VIN history, similar lots, and AI analysis.
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="history" className="mt-4">
+                  {vinHistory?.data ? (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <History className="h-5 w-5" />
+                        VIN History ({vinHistory.data.length} records)
+                      </h3>
+                      
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Sale Date</TableHead>
+                              <TableHead>Price</TableHead>
+                              <TableHead>Platform</TableHead>
+                              <TableHead>Damage</TableHead>
+                              <TableHead>Location</TableHead>
+                              <TableHead>Mileage</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {vinHistory.data.map((record: any, index: number) => (
+                              <TableRow key={index}>
+                                <TableCell>{new Date(record.saleDate).toLocaleDateString()}</TableCell>
+                                <TableCell className="font-semibold">{formatCurrency(record.price || 0)}</TableCell>
+                                <TableCell>
+                                  <Badge variant={record.platform === 'iaai' ? 'default' : 'secondary'}>
+                                    {record.platform?.toUpperCase()}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>{record.damage}</TableCell>
+                                <TableCell>{record.location}</TableCell>
+                                <TableCell>{record.mileage?.toLocaleString() || 'N/A'}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  ) : vinLoading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                      <p>Loading VIN history...</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      Click "VIN History" button to load historical auction data for this vehicle.
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="similar" className="mt-4">
+                  {similarLots?.data ? (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Database className="h-5 w-5" />
+                        Similar Active Lots ({similarLots.data.length} found)
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {similarLots.data.slice(0, 12).map((lot: any, index: number) => (
+                          <Card key={index} className="border">
+                            <CardContent className="p-4">
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-semibold">{lot.year} {lot.make} {lot.model}</p>
+                                    <p className="text-sm text-gray-600">{lot.series || ''}</p>
+                                  </div>
+                                  <Badge variant="outline">#{lot.lot_id}</Badge>
+                                </div>
+                                
+                                <div className="text-sm space-y-1">
+                                  <div className="flex justify-between">
+                                    <span>Current Bid:</span>
+                                    <span className="font-semibold text-green-600">{formatCurrency(lot.current_bid || 0)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Mileage:</span>
+                                    <span>{lot.odometer?.toLocaleString() || 'N/A'} mi</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Damage:</span>
+                                    <span>{lot.damage_pr}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Location:</span>
+                                    <span>{lot.location}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Auction:</span>
+                                    <span>{new Date(lot.auction_date).toLocaleDateString()}</span>
+                                  </div>
+                                </div>
+                                
+                                {lot.link && (
+                                  <Button size="sm" variant="outline" className="w-full mt-2" asChild>
+                                    <a href={lot.link} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="h-3 w-3 mr-1" />
+                                      View Lot
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ) : similarLoading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                      <p>Finding similar lots...</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      Click "Similar Lots" button to find comparable vehicles currently at auction.
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="analysis" className="mt-4">
+                  {aiAnalysis ? (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Brain className="h-5 w-5" />
+                        AI Analysis Results
+                      </h3>
+                      
+                      {aiAnalysis.imageAnalysis && (
+                        <Card className="border-blue-200">
+                          <CardHeader>
+                            <CardTitle className="text-base">Image Analysis</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2 text-sm">
+                              <div><strong>Condition Assessment:</strong> {aiAnalysis.imageAnalysis.condition}</div>
+                              <div><strong>Damage Summary:</strong> {aiAnalysis.imageAnalysis.damageSummary}</div>
+                              <div><strong>Estimated Repair Cost:</strong> {aiAnalysis.imageAnalysis.repairEstimate}</div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                      
+                      {aiAnalysis.recommendation && (
+                        <Card className="border-green-200">
+                          <CardHeader>
+                            <CardTitle className="text-base">AI Recommendation</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <strong>Action:</strong>
+                                <Badge variant={aiAnalysis.recommendation.action === 'BUY' ? 'default' : 'secondary'}>
+                                  {aiAnalysis.recommendation.action}
+                                </Badge>
+                              </div>
+                              <div><strong>Confidence:</strong> {aiAnalysis.recommendation.confidence}%</div>
+                              <div><strong>Reasoning:</strong> {aiAnalysis.recommendation.reasoning}</div>
+                              {aiAnalysis.recommendation.estimatedValue && (
+                                <div><strong>Estimated Value:</strong> {formatCurrency(aiAnalysis.recommendation.estimatedValue)}</div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  ) : aiLoading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                      <p>Running AI analysis...</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      Click "AI Analysis" button to get AI-powered insights on this vehicle.
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         )}
