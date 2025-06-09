@@ -33,6 +33,7 @@ import SystemMonitor from "./pages/system-monitor";
 import APIManagement from "./pages/api-management";
 import UsageDashboard from "./pages/usage-dashboard";
 import Recommendations from "./pages/recommendations";
+import TargetedCollection from "./pages/targeted-collection";
 import NotFound from "./pages/not-found";
 
 // Marketing Pages
@@ -117,6 +118,7 @@ function Router() {
         <Route path="/import-calculator" component={() => <ImportCalculator vehicle={undefined} />} />
         <Route path="/datasets" component={Datasets} />
         <Route path="/recommendations" component={Recommendations} />
+        <Route path="/targeted-collection" component={TargetedCollection} />
         <Route path="/team" component={Team} />
         <Route path="/product/demo" component={Demo} />
         <Route path="/account" component={Account} />
