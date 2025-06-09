@@ -304,7 +304,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                       <SelectValue placeholder="All drive types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All drive types</SelectItem>
+                      <SelectItem value="all">All drive types</SelectItem>
                       {driveTypes.map((drive) => (
                         <SelectItem key={drive} value={drive}>{drive}</SelectItem>
                       ))}
@@ -323,7 +323,7 @@ export default function SalesFilters({ onApplyFilters, onClearFilters, salesData
                     <SelectValue placeholder="All locations" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All locations</SelectItem>
+                    <SelectItem value="all">All locations</SelectItem>
                     {locations.map((location) => (
                       <SelectItem key={location} value={location}>{location}</SelectItem>
                     ))}

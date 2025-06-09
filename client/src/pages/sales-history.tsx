@@ -298,7 +298,7 @@ export default function SalesHistory() {
                   <SelectValue placeholder="Filter by make" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Makes</SelectItem>
+                  <SelectItem value="all">All Makes</SelectItem>
                   {POPULAR_MAKES.map(make => (
                     <SelectItem key={make} value={make}>{make}</SelectItem>
                   ))}
@@ -310,7 +310,7 @@ export default function SalesHistory() {
                   <SelectValue placeholder="Filter by site" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sites</SelectItem>
+                  <SelectItem value="all">All Sites</SelectItem>
                   <SelectItem value="1">Copart</SelectItem>
                   <SelectItem value="2">IAAI</SelectItem>
                 </SelectContent>
