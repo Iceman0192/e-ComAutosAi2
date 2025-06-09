@@ -28,6 +28,9 @@ import DataCollectionPage from "./pages/data-collection";
 import VINHistory from "./pages/vin-history";
 import Team from "./pages/team";
 import Demo from "./pages/demo";
+import SystemMonitor from "./pages/system-monitor";
+import APIManagement from "./pages/api-management";
+import UsageDashboard from "./pages/usage-dashboard";
 import NotFound from "./pages/not-found";
 
 // Marketing Pages
@@ -113,8 +116,11 @@ function Router() {
         <Route path="/product/demo" component={Demo} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
+        <Route path="/usage-dashboard" component={UsageDashboard} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/data-collection" component={DataCollectionPage} />
+        <Route path="/admin/system-monitor" component={SystemMonitor} />
+        <Route path="/admin/api-management" component={APIManagement} />
         <Route component={NotFound} />
       </Switch>
     </MainLayout>
