@@ -303,7 +303,7 @@ export class DataCollectionService {
     // Use the existing sales history endpoint which handles cache + database automatically
     const baseUrl = 'http://localhost:5000/api/sales-history';
     
-    while (hasMoreData && page <= 10) { // Max 10 pages per model to avoid rate limits
+    while (hasMoreData) { // Continue until API returns no more data within date range
       try {
         const params = new URLSearchParams({
           make: make,
