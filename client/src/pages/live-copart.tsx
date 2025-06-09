@@ -635,23 +635,50 @@ export default function LiveCopart() {
         </div>
       )}
 
-      {/* Find Comparables Section - Gold Tier Manual Filtering */}
-      {lotData?.lot && hasPermission('FULL_ANALYTICS') && (
-        <Card className="border-blue-200 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
-            <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+      {/* Find Comparables Section - Basic functionality */}
+      {lotData?.lot && hasPermission('ADVANCED_FILTERS') && (
+        <Card className={`shadow-lg ${platform === 'copart' ? 'border-blue-200' : 'border-red-200'}`}>
+          <CardHeader className={`bg-gradient-to-r ${
+            platform === 'copart' 
+              ? 'from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50' 
+              : 'from-red-50 to-pink-50 dark:from-red-950/50 dark:to-pink-950/50'
+          }`}>
+            <CardTitle className={`flex items-center gap-2 ${
+              platform === 'copart' 
+                ? 'text-blue-900 dark:text-blue-100' 
+                : 'text-red-900 dark:text-red-100'
+            }`}>
               <Filter className="h-5 w-5" />
               Find Comparable Vehicles
             </CardTitle>
-            <CardDescription className="text-blue-700 dark:text-blue-300">
-              Search for similar vehicles in your database to compare prices across platforms
+            <CardDescription className={platform === 'copart' ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}>
+              Search for similar vehicles in your database to compare prices
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <ComparableSearchForm 
-              lotData={lotData.lot}
-              platform="copart"
-            />
+            <div className="flex gap-4 mb-6">
+              <Button 
+                onClick={handleFilterSearch}
+                className={platform === 'copart' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Auto-Fill Filters
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Manual Filters
+              </Button>
+            </div>
+            
+            {showFilters && (
+              <ComparableSearchForm 
+                lotData={lotData.lot}
+                platform={platform}
+              />
+            )}
           </CardContent>
         </Card>
       )}
