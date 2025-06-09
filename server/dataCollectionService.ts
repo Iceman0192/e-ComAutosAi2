@@ -159,7 +159,7 @@ export class DataCollectionService {
       
       for (const model of discoveredModels) {
         try {
-          const modelCount = await this.collectDataForMakeModel(job.make, model, startDate, endDate, site);
+          const modelCount = await this.collectDataForMakeModelSite(job.make, model, startDate, endDate, 2012, 2025, site);
           totalCollected += modelCount;
           
           if (modelCount > 0) {
@@ -225,13 +225,14 @@ export class DataCollectionService {
     }
   }
 
-  private async collectDataForMakeModel(
+  private async collectDataForMakeModelSite(
     make: string, 
     model: string, 
     startDate: Date, 
     endDate: Date, 
     yearFrom: number = 2012,
-    yearTo: number = 2025
+    yearTo: number = 2025,
+    site: number = 1
   ): Promise<number> {
     let totalCollected = 0;
     let page = 1;
@@ -249,6 +250,7 @@ export class DataCollectionService {
           sale_date_to: endDate.toISOString().split('T')[0],
           year_from: yearFrom.toString(),
           year_to: yearTo.toString(),
+          site: site.toString(),
           page: page.toString(),
           limit: this.BATCH_SIZE.toString()
         });
@@ -388,19 +390,38 @@ export class DataCollectionService {
         models.push(...discoveredModels.slice(0, 20)); // Limit to 20 models for discovery
       }
 
-      // Collect data for each model
+      // Collect data for each model from both Copart and IAAI
       for (const model of models.slice(0, 50)) { // Limit to 50 models max
         try {
-          console.log(`Collecting ${make} ${model} data...`);
-          const collected = await this.collectDataForMakeModel(
+          console.log(`Collecting ${make} ${model} data from both Copart and IAAI...`);
+          
+          // Collect from Copart (site 1)
+          const copartCollected = await this.collectDataForMakeModelSite(
             make, 
             model, 
             startDate, 
             endDate,
             yearFrom,
-            yearTo
+            yearTo,
+            1 // Copart
           );
-          totalCollected += collected;
+          
+          // Small delay between sites
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Collect from IAAI (site 2)
+          const iaaiCollected = await this.collectDataForMakeModelSite(
+            make, 
+            model, 
+            startDate, 
+            endDate,
+            yearFrom,
+            yearTo,
+            2 // IAAI
+          );
+          
+          totalCollected += copartCollected + iaaiCollected;
+          console.log(`${make} ${model}: ${copartCollected} Copart + ${iaaiCollected} IAAI = ${copartCollected + iaaiCollected} total`);
           
           // Small delay between model collections
           await new Promise(resolve => setTimeout(resolve, 200));
