@@ -1,4 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import { db } from '../db';
+import { users } from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 interface SessionRequest extends Request {
   session?: any;
@@ -18,7 +21,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 // Attach user to request for authenticated sessions
-export function attachUser(req: SessionRequest, res: Response, next: NextFunction) {
+export async function attachUser(req: SessionRequest, res: Response, next: NextFunction) {
   // Skip if user is already attached
   if (req.user) {
     return next();
@@ -26,17 +29,27 @@ export function attachUser(req: SessionRequest, res: Response, next: NextFunctio
 
   // Check if user is authenticated via session
   if (req.session && req.session.userId) {
-    const userId = req.session.userId;
-    
-    // In a real implementation, you'd fetch user from database
-    // For now, create a mock user based on session
-    req.user = {
-      id: userId,
-      username: `user${userId}`,
-      email: `user${userId}@example.com`,
-      name: `User ${userId}`,
-      role: 'admin' // Default to admin for development
-    };
+    try {
+      const userId = req.session.userId;
+      
+      // Fetch real user data from database
+      const userResult = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      
+      if (userResult.length > 0) {
+        const userData = userResult[0];
+        req.user = {
+          id: userData.id,
+          username: userData.username,
+          email: userData.email,
+          name: userData.name || userData.username,
+          role: userData.role,
+          stripeCustomerId: userData.stripeCustomerId || undefined,
+          stripeSubscriptionId: userData.stripeSubscriptionId || undefined
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching user from database:', error);
+    }
   }
 
   next();
