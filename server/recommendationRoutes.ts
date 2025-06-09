@@ -13,7 +13,7 @@ export function setupRecommendationRoutes(app: Express) {
   /**
    * Get personalized recommendations for authenticated user
    */
-  app.get('/api/recommendations', requireAuth, async (req: Request, res: Response) => {
+  app.get('/api/recommendations', requireAuth, async (req: any, res: Response) => {
     try {
       const { limit = 10, refresh = false } = req.query;
       const userId = req.user.id;
@@ -71,7 +71,7 @@ export function setupRecommendationRoutes(app: Express) {
   /**
    * Generate fresh recommendations
    */
-  app.post('/api/recommendations/generate', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/recommendations/generate', requireAuth, async (req: any, res: Response) => {
     try {
       const { maxRecommendations = 10 } = req.body;
       const userId = req.user.id;
