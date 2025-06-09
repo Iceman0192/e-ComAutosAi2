@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db, pool } from './db';
 import { salesHistory } from '../shared/schema';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 
@@ -312,6 +312,61 @@ export class DataCollectionService {
       modelsDiscovered: job.modelsDiscovered?.length || 0,
       status: job.lastCollected ? 'completed' : 'pending'
     }));
+  }
+
+  // Get vehicle progress summary
+  async getVehicleProgress() {
+    try {
+      const progressQuery = `
+        SELECT 
+          make,
+          COUNT(*) as total_records,
+          COUNT(DISTINCT model) as unique_models,
+          MIN(sale_date) as earliest_sale,
+          MAX(sale_date) as latest_sale,
+          AVG(purchase_price) as avg_price
+        FROM sales_history 
+        WHERE purchase_price > 0 
+        GROUP BY make 
+        ORDER BY total_records DESC
+        LIMIT 50
+      `;
+      
+      const result = await pool.query(progressQuery);
+      return result.rows;
+    } catch (error) {
+      console.error('Error getting vehicle progress:', error);
+      return [];
+    }
+  }
+
+  // Start collection for a specific make
+  async startMakeCollection(make: string) {
+    const existingJob = this.collectionQueue.find(job => job.make.toLowerCase() === make.toLowerCase());
+    
+    if (existingJob) {
+      // Reset the job to start fresh
+      existingJob.lastCollected = undefined;
+      existingJob.lastModelIndex = 0;
+      existingJob.modelsDiscovered = [];
+      
+      console.log(`Reset collection job for ${make}`);
+      return { message: `Reset collection for ${make}`, jobId: existingJob.id };
+    } else {
+      // Create new job
+      const newJob: CollectionJob = {
+        id: `${make.toLowerCase()}-${Date.now()}`,
+        make: make,
+        priority: 1, // High priority for manual requests
+        lastCollected: undefined,
+        modelsDiscovered: [],
+        lastModelIndex: 0
+      };
+      
+      this.collectionQueue.unshift(newJob); // Add to front of queue
+      console.log(`Created new collection job for ${make}`);
+      return { message: `Started collection for ${make}`, jobId: newJob.id };
+    }
   }
 }
 

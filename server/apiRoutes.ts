@@ -98,13 +98,13 @@ async function searchCrossPlatformComparables(vehicleData: any) {
       SELECT 
         site,
         COUNT(*) as count,
-        AVG(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' 
+        AVG(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' AND purchase_price ~ '^[0-9]+\.?[0-9]*$'
             THEN CAST(purchase_price AS DECIMAL) 
             ELSE NULL END) as avg_price,
-        MIN(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' 
+        MIN(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' AND purchase_price ~ '^[0-9]+\.?[0-9]*$'
             THEN CAST(purchase_price AS DECIMAL) 
             ELSE NULL END) as min_price,
-        MAX(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' 
+        MAX(CASE WHEN purchase_price IS NOT NULL AND purchase_price != '' AND purchase_price ~ '^[0-9]+\.?[0-9]*$'
             THEN CAST(purchase_price AS DECIMAL) 
             ELSE NULL END) as max_price
       FROM sales_history 
@@ -113,6 +113,7 @@ async function searchCrossPlatformComparables(vehicleData: any) {
         AND year BETWEEN $3 AND $4
         AND purchase_price IS NOT NULL 
         AND purchase_price != ''
+        AND purchase_price ~ '^[0-9]+\.?[0-9]*$'
       GROUP BY site
       ORDER BY site
     `;
