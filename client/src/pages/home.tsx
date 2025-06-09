@@ -1123,11 +1123,10 @@ export default function Home() {
                     <p className="text-sm text-gray-700 dark:text-gray-300">
                       Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
                       <span className="font-medium">
-                        {Math.min((page * resultsPerPage), totalResults)}
+                        {Math.min(page * resultsPerPage, searchResults?.data?.pagination?.totalCount || totalResults)}
                       </span> of{' '}
                       <span className="font-medium">
-                        {/* Always show at least the number of visible results + more */}
-                        {Math.max(searchResults?.data?.pagination?.totalCount || 0, searchResults?.data?.salesHistory?.length || 0, totalResults || 25)}
+                        {searchResults?.data?.pagination?.totalCount || totalResults}
                       </span> results
                     </p>
                   </div>
