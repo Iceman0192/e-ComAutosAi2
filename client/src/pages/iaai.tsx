@@ -1231,31 +1231,13 @@ export default function IAAIPage() {
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm text-gray-700 dark:text-gray-300">
-                      {(() => {
-                        const currentResults = searchResults?.data?.salesHistory?.length || 0;
-                        const startIndex = (page - 1) * resultsPerPage + 1;
-                        const endIndex = (page - 1) * resultsPerPage + currentResults;
-                        
-                        if (currentResults === 0) {
-                          return "No results found";
-                        }
-                        
-                        // Use total count from API response, fall back to actualTotalCount, then dynamic calculation
-                        const apiTotalCount = searchResults?.data?.pagination?.totalCount || totalResults;
-                        const totalDisplay = apiTotalCount > 0 
-                          ? apiTotalCount.toLocaleString()
-                          : actualTotalCount !== null 
-                            ? actualTotalCount.toLocaleString()
-                            : (currentResults === resultsPerPage ? `${endIndex}+` : endIndex);
-                        
-                        return (
-                          <>
-                            Showing <span className="font-medium">{startIndex}</span> to{' '}
-                            <span className="font-medium">{endIndex}</span> of{' '}
-                            <span className="font-medium">{totalDisplay}</span> results
-                          </>
-                        );
-                      })()}
+                      Showing <span className="font-medium">{(page - 1) * resultsPerPage + 1}</span> to{' '}
+                      <span className="font-medium">
+                        {Math.min(page * resultsPerPage, searchResults?.data?.pagination?.totalCount || totalResults)}
+                      </span> of{' '}
+                      <span className="font-medium">
+                        {searchResults?.data?.pagination?.totalCount || totalResults}
+                      </span> results
                     </p>
                   </div>
                   <div className="flex items-center space-x-4">
