@@ -353,7 +353,7 @@ export default function LiveCopart() {
                   {/* Image Thumbnails */}
                   {lotData.lot.link_img_hd.length > 1 && (
                     <div className="flex gap-2 overflow-x-auto pb-2">
-                      {lotData.lot.link_img_hd.map((img, index) => (
+                      {lotData.lot.link_img_hd.map((img: string, index: number) => (
                         <img
                           key={index}
                           src={img}
@@ -486,7 +486,7 @@ export default function LiveCopart() {
                 </TabsContent>
 
                 <TabsContent value="history" className="mt-4">
-                  {vinHistory?.data ? (
+                  {vinHistory?.data && Array.isArray(vinHistory.data) && vinHistory.data.length > 0 ? (
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <History className="h-5 w-5" />

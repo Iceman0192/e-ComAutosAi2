@@ -488,7 +488,7 @@ export default function LiveIAAI() {
                 </TabsContent>
 
                 <TabsContent value="history" className="mt-4">
-                  {vinHistory?.data ? (
+                  {vinHistory?.data && Array.isArray(vinHistory.data) && vinHistory.data.length > 0 ? (
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2">
                         <History className="h-5 w-5" />
