@@ -444,6 +444,53 @@ export class DataCollectionService {
     }
   }
 
+  // Get collection statistics by auction site
+  async getCollectionStatsByAuctionSite() {
+    try {
+      const siteStatsQuery = `
+        SELECT 
+          site,
+          COUNT(*) as vehicle_count,
+          COUNT(DISTINCT make) as unique_makes,
+          COUNT(DISTINCT model) as unique_models,
+          MIN(sale_date) as earliest_sale,
+          MAX(sale_date) as latest_sale
+        FROM sales_history 
+        GROUP BY site 
+        ORDER BY site
+      `;
+      
+      const result = await pool.query(siteStatsQuery);
+      const stats = result.rows.map(row => ({
+        site: row.site,
+        siteName: row.site === 1 ? 'Copart' : row.site === 2 ? 'IAAI' : `Site ${row.site}`,
+        vehicleCount: parseInt(row.vehicle_count),
+        uniqueMakes: parseInt(row.unique_makes),
+        uniqueModels: parseInt(row.unique_models),
+        earliestSale: row.earliest_sale,
+        latestSale: row.latest_sale
+      }));
+
+      const totalVehicles = stats.reduce((sum, stat) => sum + stat.vehicleCount, 0);
+
+      return {
+        sites: stats,
+        totalVehicles,
+        siteBreakdown: stats.map(stat => ({
+          ...stat,
+          percentage: totalVehicles > 0 ? Math.round((stat.vehicleCount / totalVehicles) * 100) : 0
+        }))
+      };
+    } catch (error) {
+      console.error('Error getting auction site stats:', error);
+      return {
+        sites: [],
+        totalVehicles: 0,
+        siteBreakdown: []
+      };
+    }
+  }
+
   // Start collection for a specific make with manual parameters
   async startMakeCollection(make: string, options?: {
     yearFrom?: number;

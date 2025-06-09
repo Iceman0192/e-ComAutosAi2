@@ -51,7 +51,7 @@ export default function DataCollectionClean() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          searches: [{ make, yearFrom: 2020, yearTo: 2024, daysBack: 30 }]
+          searches: [{ make, yearFrom: 2012, yearTo: 2025, daysBack: 150 }]
         })
       });
       
