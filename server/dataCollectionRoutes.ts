@@ -79,13 +79,13 @@ export function registerDataCollectionRoutes(app: Express) {
             model: search.model,
             status: 'started'
           });
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Failed to start collection for ${search.make}:`, error);
           results.push({
             make: search.make,
             model: search.model,
             status: 'failed',
-            error: error.message
+            error: error?.message || 'Unknown error'
           });
         }
       }
