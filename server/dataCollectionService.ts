@@ -275,6 +275,18 @@ export class DataCollectionService {
     }
   }
 
+  private async collectDataForMakeModelSite(
+    make: string, 
+    model: string, 
+    startDate: Date, 
+    endDate: Date, 
+    yearFrom: number = 2012,
+    yearTo: number = 2025,
+    site: number = 1
+  ): Promise<number> {
+    return this.collectDataUsingExistingAPI(make, model, startDate, endDate, yearFrom, yearTo, site);
+  }
+
   private async collectDataUsingExistingAPI(
     make: string, 
     model: string, 
@@ -511,8 +523,8 @@ export class DataCollectionService {
           totalCollected += copartCollected + iaaiCollected;
           console.log(`${make} ${model}: ${copartCollected} Copart + ${iaaiCollected} IAAI = ${copartCollected + iaaiCollected} total`);
           
-          // Small delay between model collections
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // 5-second delay between model collections as per user request
+          await new Promise(resolve => setTimeout(resolve, 5000));
         } catch (error) {
           console.error(`Error collecting ${make} ${model}:`, error);
         }
