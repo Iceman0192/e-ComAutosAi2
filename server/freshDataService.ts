@@ -5,7 +5,7 @@
 
 import { db } from './db';
 import { salesHistory } from '@shared/schema';
-import { eq, and, gte, desc } from 'drizzle-orm';
+import { eq, and, gte, desc, sql } from 'drizzle-orm';
 import { getVehicleSalesHistory } from './apiClient';
 
 export interface FreshDataParams {
@@ -29,7 +29,7 @@ export class FreshDataService {
       const conditions = [
         eq(salesHistory.make, params.make),
         eq(salesHistory.site, params.site),
-        gte(salesHistory.sale_date, threeDaysAgo.toISOString())
+        sql`${salesHistory.sale_date} >= ${threeDaysAgo.toISOString()}`
       ];
       
       if (params.model && params.model.trim() !== '') {
@@ -136,7 +136,7 @@ export class FreshDataService {
       if (includeFresh) {
         const threeDaysAgo = new Date();
         threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        conditions.push(gte(salesHistory.sale_date, threeDaysAgo.toISOString()));
+        conditions.push(sql`${salesHistory.sale_date} >= ${threeDaysAgo.toISOString()}`);
       }
       
       const offset = (page - 1) * size;
