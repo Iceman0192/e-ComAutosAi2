@@ -85,6 +85,7 @@ interface ComparableFilters {
 export default function LiveCopart() {
   const { user, hasPermission } = useAuth();
   const [, setLocation] = useLocation();
+  const [platform, setPlatform] = useState<'copart' | 'iaai'>('copart');
   const [lotId, setLotId] = useState('');
   const [searchTriggered, setSearchTriggered] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -105,9 +106,9 @@ export default function LiveCopart() {
 
   // Fetch live lot data
   const { data: lotData, isLoading: lotLoading, error: lotError } = useQuery({
-    queryKey: ['/api/live-copart', lotId],
+    queryKey: [`/api/live-${platform}`, lotId],
     queryFn: async () => {
-      const response = await fetch(`/api/live-copart/${lotId}`);
+      const response = await fetch(`/api/live-${platform}/${lotId}`);
       const result = await response.json();
       
       if (!response.ok || !result.success) {
@@ -207,35 +208,79 @@ export default function LiveCopart() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header - BLUE branding for Copart */}
-      <header className="bg-blue-600 text-white">
+      {/* Dynamic Header */}
+      <header className={platform === 'copart' ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold">Copart Live Lot Analysis</h1>
-              <p className="text-blue-100 mt-1 text-sm">Search current auction lots and analyze comparable sales</p>
+              <h1 className="text-xl sm:text-2xl font-bold">
+                {platform === 'copart' ? 'Copart' : 'IAAI'} Live Lot Analysis
+              </h1>
+              <p className={`mt-1 text-sm ${platform === 'copart' ? 'text-blue-100' : 'text-red-100'}`}>
+                Search current auction lots and analyze comparable sales
+              </p>
             </div>
             <div className="hidden sm:block">
-              <PlatformToggle />
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={platform === 'copart' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPlatform('copart')}
+                  className="text-white border-white"
+                >
+                  Copart
+                </Button>
+                <Button
+                  variant={platform === 'iaai' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setPlatform('iaai')}
+                  className="text-white border-white"
+                >
+                  IAAI
+                </Button>
+              </div>
             </div>
           </div>
           {/* Mobile platform toggle */}
-          <div className="sm:hidden mt-3">
-            <PlatformToggle />
+          <div className="sm:hidden mt-3 flex gap-2">
+            <Button
+              variant={platform === 'copart' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setPlatform('copart')}
+              className="flex-1 text-white border-white"
+            >
+              Copart
+            </Button>
+            <Button
+              variant={platform === 'iaai' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setPlatform('iaai')}
+              className="flex-1 text-white border-white"
+            >
+              IAAI
+            </Button>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Enhanced Search Section */}
-      <Card className="border-blue-200 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
-          <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+      <Card className={`shadow-lg ${platform === 'copart' ? 'border-blue-200' : 'border-red-200'}`}>
+        <CardHeader className={`bg-gradient-to-r ${
+          platform === 'copart' 
+            ? 'from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50' 
+            : 'from-red-50 to-pink-50 dark:from-red-950/50 dark:to-pink-950/50'
+        }`}>
+          <CardTitle className={`flex items-center gap-2 ${
+            platform === 'copart' 
+              ? 'text-blue-900 dark:text-blue-100' 
+              : 'text-red-900 dark:text-red-100'
+          }`}>
             <Search className="h-5 w-5" />
             Live Lot Lookup
           </CardTitle>
-          <CardDescription className="text-blue-700 dark:text-blue-300">
-            Enter a Copart lot ID to view current auction details and photos
+          <CardDescription className={platform === 'copart' ? 'text-blue-700 dark:text-blue-300' : 'text-red-700 dark:text-red-300'}>
+            Enter a {platform === 'copart' ? 'Copart' : 'IAAI'} lot ID to view current auction details and photos
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
