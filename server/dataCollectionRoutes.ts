@@ -104,6 +104,39 @@ export function registerDataCollectionRoutes(app: Express) {
     }
   });
 
+  // Start manual collection for specific make and site (admin only)
+  app.post('/api/admin/data-collection/start-make-site', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { make, site, yearFrom, yearTo, daysBack, discoverModels } = req.body;
+      
+      if (!make || !site) {
+        return res.status(400).json({
+          success: false,
+          message: 'Make and site are required'
+        });
+      }
+
+      await dataCollectionService.startMakeCollection(make, {
+        site: parseInt(site),
+        yearFrom: yearFrom || 2012,
+        yearTo: yearTo || 2025,
+        daysBack: daysBack || 150,
+        discoverModels: discoverModels !== false
+      });
+
+      res.json({
+        success: true,
+        message: `Started collection for ${make} on ${site === 1 ? 'Copart' : 'IAAI'}`
+      });
+    } catch (error: any) {
+      console.error('Error starting make collection:', error);
+      res.status(500).json({
+        success: false,
+        message: error?.message || 'Failed to start collection'
+      });
+    }
+  });
+
   // Get collection jobs (admin only)
   app.get('/api/admin/data-collection/jobs', requireAuth, requireAdmin, async (req, res) => {
     try {
