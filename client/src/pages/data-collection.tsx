@@ -188,10 +188,16 @@ export default function DataCollection() {
       const result = await response.json();
       setActiveSearches(result.searches || []);
       
-      await fetchSystemStatus();
-      await fetchJobs();
+      // Clear selections immediately
       setSelectedMakes([]);
       setSelectedModels({});
+      
+      // Refresh status and jobs after a short delay
+      setTimeout(() => {
+        fetchSystemStatus();
+        fetchJobs();
+      }, 1000);
+      
     } catch (err) {
       setError("Failed to start collections");
       console.error('Collection error:', err);
@@ -461,61 +467,96 @@ export default function DataCollection() {
         </TabsContent>
 
         <TabsContent value="collect" className="space-y-4 lg:space-y-6">
-          {/* Active Collections - Mobile First */}
-          {systemStatus?.isRunning && (
-            <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm lg:text-base">
-                  <Loader className="h-4 w-4 lg:h-5 lg:w-5 animate-spin text-blue-600" />
-                  Active Collections
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {jobs.filter(job => job.status === 'running').map((job) => (
-                  <div key={job.id} className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
-                          <Loader className="h-3 w-3 lg:h-4 lg:w-4 animate-spin text-blue-600" />
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="font-semibold text-sm lg:text-base truncate">{job.make}</h4>
-                          <p className="text-xs lg:text-sm text-muted-foreground">
-                            {job.currentModel && (
-                              <span className="block lg:inline">
-                                Collecting: {job.currentModel}
-                                {job.totalModels && job.modelsCompleted && (
-                                  <span className="ml-1">({job.modelsCompleted}/{job.totalModels})</span>
-                                )}
+          {/* Real-time Collection Status - Mobile First */}
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950 dark:to-indigo-950">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-sm lg:text-base">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Loader className="h-4 w-4 lg:h-5 lg:w-5 animate-spin text-blue-600" />
+                    <div className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                  </div>
+                  {systemStatus?.isRunning ? 'Collection System Active' : 'Collection System Ready'}
+                </div>
+                <div className="text-xs lg:text-sm text-blue-600 font-normal">
+                  Live Updates
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* System Stats Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3">
+                <div className="text-center p-2 lg:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                  <div className="text-xs text-muted-foreground">Queue</div>
+                  <div className="font-bold text-base lg:text-lg text-blue-600">{systemStatus?.queueSize || 0}</div>
+                </div>
+                <div className="text-center p-2 lg:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                  <div className="text-xs text-muted-foreground">Today</div>
+                  <div className="font-bold text-base lg:text-lg text-green-600">{systemStatus?.dailyCollected || 0}</div>
+                </div>
+                <div className="text-center p-2 lg:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                  <div className="text-xs text-muted-foreground">Total</div>
+                  <div className="font-bold text-base lg:text-lg">{systemStatus?.totalRecords?.toLocaleString() || 0}</div>
+                </div>
+                <div className="text-center p-2 lg:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                  <div className="text-xs text-muted-foreground">Errors</div>
+                  <div className="font-bold text-base lg:text-lg text-red-600">{((systemStatus?.errorRate || 0) * 100).toFixed(1)}%</div>
+                </div>
+              </div>
+
+              {/* Active Jobs */}
+              {systemStatus?.isRunning && (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    <span>Active Collections</span>
+                    <Badge variant="secondary" className="text-xs">{jobs.filter(job => job.status === 'running').length}</Badge>
+                  </h4>
+                  {jobs.filter(job => job.status === 'running').map((job) => (
+                    <div key={job.id} className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border">
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+                            <Loader className="h-3 w-3 lg:h-4 lg:w-4 animate-spin text-blue-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-semibold text-sm lg:text-base truncate">{job.make}</h4>
+                            <p className="text-xs lg:text-sm text-muted-foreground">
+                              {job.currentModel && (
+                                <span className="block lg:inline">
+                                  Collecting: {job.currentModel}
+                                  {job.totalModels && job.modelsCompleted && (
+                                    <span className="ml-1">({job.modelsCompleted}/{job.totalModels})</span>
+                                  )}
+                                </span>
+                              )}
+                              <span className="block lg:inline lg:ml-2">
+                                {job.recordsCollected} records • {job.yearFrom}-{job.yearTo}
                               </span>
-                            )}
-                            <span className="block lg:inline lg:ml-2">
-                              {job.recordsCollected} records • {job.yearFrom}-{job.yearTo}
-                            </span>
-                          </p>
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 lg:gap-3">
+                          <Badge variant="default" className="text-xs">
+                            Running
+                          </Badge>
+                          <span className="text-xs lg:text-sm font-medium min-w-[3rem] text-right">
+                            {job.progress}%
+                          </span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2 lg:gap-3">
-                        <Badge variant="default" className="text-xs">
-                          Running
-                        </Badge>
-                        <span className="text-xs lg:text-sm font-medium min-w-[3rem] text-right">
-                          {job.progress}%
-                        </span>
-                      </div>
+                      {job.progress > 0 && (
+                        <div className="mt-3">
+                          <Progress value={job.progress} className="h-1.5 lg:h-2" />
+                        </div>
+                      )}
                     </div>
-                    
-                    {job.progress > 0 && (
-                      <div className="mt-3">
-                        <Progress value={job.progress} className="h-1.5 lg:h-2" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Multi-Vehicle Collection */}
           <Card>
