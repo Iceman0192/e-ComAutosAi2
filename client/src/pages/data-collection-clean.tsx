@@ -82,9 +82,25 @@ export default function DataCollectionClean() {
   // Manual collection controls
   const [selectedMake, setSelectedMake] = useState<string>('');
   const [selectedSite, setSelectedSite] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isCollecting, setIsCollecting] = useState(false);
   
   const { toast } = useToast();
+
+  // Fetch available models when make changes
+  const fetchModels = async (make: string) => {
+    try {
+      const response = await fetch(`/api/admin/data-collection/models?make=${encodeURIComponent(make)}`);
+      if (response.ok) {
+        const result = await response.json();
+        setAvailableModels(result.models || []);
+      }
+    } catch (error) {
+      console.error('Error fetching models:', error);
+      setAvailableModels([]);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -158,6 +174,8 @@ export default function DataCollectionClean() {
         // Reset selections and refresh data
         setSelectedMake('');
         setSelectedSite(null);
+        setSelectedModel('');
+        setAvailableModels([]);
         fetchData();
       } else {
         throw new Error(result.message || 'Failed to start collection');
@@ -243,7 +261,14 @@ export default function DataCollectionClean() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Vehicle Make</label>
-              <Select value={selectedMake} onValueChange={setSelectedMake}>
+              <Select value={selectedMake} onValueChange={(make) => {
+                setSelectedMake(make);
+                setSelectedModel('');
+                setAvailableModels([]);
+                if (make) {
+                  fetchModels(make);
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select vehicle make" />
                 </SelectTrigger>
@@ -264,6 +289,25 @@ export default function DataCollectionClean() {
                 <SelectContent>
                   <SelectItem value="1">Copart</SelectItem>
                   <SelectItem value="2">IAAI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Model (Optional)</label>
+              <Select 
+                value={selectedModel} 
+                onValueChange={setSelectedModel}
+                disabled={!selectedMake || availableModels.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={selectedMake ? "All models" : "Select make first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">All Models</SelectItem>
+                  {availableModels.map(model => (
+                    <SelectItem key={model} value={model}>{model}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
