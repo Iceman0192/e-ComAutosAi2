@@ -624,7 +624,12 @@ export default function DataCollection() {
                     from both Copart and IAAI platforms.
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Estimated {selectedMakes.length * 2} concurrent API searches will be initiated with 2-3 second intervals.
+                    Estimated {getTotalSelections()} total searches will be initiated with 5-second intervals between each collection.
+                    {showAdvanced && Object.keys(selectedModels).some(make => selectedModels[make]?.length > 0) && (
+                      <span className="block mt-1">
+                        Advanced mode: Specific models selected for targeted data collection.
+                      </span>
+                    )}
                   </p>
                 </div>
               )}
