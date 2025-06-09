@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { db } from '../db.js';
-import { users } from '../../shared/schema.js';
-import { eq } from 'drizzle-orm';
+
+interface SessionRequest extends Request {
+  session?: any;
+  user?: any;
+}
 
 export interface AuthenticatedRequest extends Request {
   user: {
@@ -16,15 +18,15 @@ export interface AuthenticatedRequest extends Request {
 }
 
 // Attach user to request for authenticated sessions
-export function attachUser(req: Request & { user?: any }, res: Response, next: NextFunction) {
+export function attachUser(req: SessionRequest, res: Response, next: NextFunction) {
   // Skip if user is already attached
   if (req.user) {
     return next();
   }
 
   // Check if user is authenticated via session
-  if (req.session && (req.session as any).userId) {
-    const userId = (req.session as any).userId;
+  if (req.session && req.session.userId) {
+    const userId = req.session.userId;
     
     // In a real implementation, you'd fetch user from database
     // For now, create a mock user based on session
@@ -40,9 +42,9 @@ export function attachUser(req: Request & { user?: any }, res: Response, next: N
   next();
 }
 
-export function requireAuth(req: Request & { user?: any }, res: Response, next: NextFunction) {
+export function requireAuth(req: SessionRequest, res: Response, next: NextFunction) {
   // Check if user is authenticated
-  if (!req.user && (!req.session || !(req.session as any).userId)) {
+  if (!req.user && (!req.session || !req.session.userId)) {
     return res.status(401).json({
       success: false,
       message: 'Authentication required'
@@ -50,8 +52,8 @@ export function requireAuth(req: Request & { user?: any }, res: Response, next: 
   }
 
   // Attach user if not already attached
-  if (!req.user && req.session && (req.session as any).userId) {
-    const userId = (req.session as any).userId;
+  if (!req.user && req.session && req.session.userId) {
+    const userId = req.session.userId;
     req.user = {
       id: userId,
       username: `user${userId}`,
@@ -65,7 +67,7 @@ export function requireAuth(req: Request & { user?: any }, res: Response, next: 
 }
 
 export function requireRole(roles: string[]) {
-  return (req: Request & { user?: any }, res: Response, next: NextFunction) => {
+  return (req: SessionRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -86,7 +88,7 @@ export function requireRole(roles: string[]) {
   };
 }
 
-export function requireAdmin(req: Request & { user?: any }, res: Response, next: NextFunction) {
+export function requireAdmin(req: SessionRequest, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).json({
       success: false,
@@ -104,7 +106,7 @@ export function requireAdmin(req: Request & { user?: any }, res: Response, next:
   next();
 }
 
-export function requirePremium(req: Request & { user?: any }, res: Response, next: NextFunction) {
+export function requirePremium(req: SessionRequest, res: Response, next: NextFunction) {
   if (!req.user) {
     return res.status(401).json({
       success: false,

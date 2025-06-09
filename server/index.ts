@@ -13,6 +13,8 @@ import { setupAdminRoutes } from "./adminRoutes";
 import { setupUsageRoutes } from "./routes/usageRoutes";
 import { setupHealthRoutes } from "./routes/healthRoutes";
 import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
+import { setupTeamRoutes } from "./routes/teamRoutes";
+import { setupVinRoutes } from "./routes/vinRoutes";
 import { freshDataManager } from "./freshDataManager";
 import { errorHandler, notFound } from "./middleware/errorHandler";
 import { requestLogger, logger } from "./middleware/logger";
@@ -66,7 +68,15 @@ async function startServer() {
     res.on("finish", () => {
       const duration = Date.now() - start;
       if (duration > 1000 && !path.startsWith('/@vite') && !path.includes('.hot-update')) {
-        logger.warn(`Slow request: ${req.method} ${path} took ${duration}ms`);
+        logger.log({
+          timestamp: new Date().toISOString(),
+          method: req.method,
+          url: path,
+          ip: req.ip || 'unknown',
+          statusCode: res.statusCode,
+          duration,
+          error: `Slow request: ${req.method} ${path} took ${duration}ms`
+        });
       }
     });
 
@@ -96,6 +106,8 @@ async function startServer() {
   setupUsageRoutes(app);
   setupHealthRoutes(app);
   registerDataCollectionRoutes(app);
+  setupTeamRoutes(app);
+  setupVinRoutes(app);
 
   // Fresh data migration scheduler
   setInterval(async () => {
