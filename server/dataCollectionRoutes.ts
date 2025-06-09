@@ -108,10 +108,10 @@ export function registerDataCollectionRoutes(app: Express) {
     }
   });
 
-  // Start collection for specific make
+  // Start collection for specific make with manual parameters
   app.post('/api/admin/data-collection/start-make', requireAuth, requireAdmin, async (req, res) => {
     try {
-      const { make } = req.body;
+      const { make, yearFrom, yearTo, daysBack } = req.body;
       if (!make) {
         return res.status(400).json({
           success: false,
@@ -119,17 +119,50 @@ export function registerDataCollectionRoutes(app: Express) {
         });
       }
 
-      const result = await dataCollectionService.startMakeCollection(make);
+      // Validate optional parameters
+      const options = {
+        yearFrom: yearFrom ? parseInt(yearFrom) : 2012,
+        yearTo: yearTo ? parseInt(yearTo) : 2025,
+        daysBack: daysBack ? parseInt(daysBack) : 150
+      };
+
+      // Validate year range
+      if (options.yearFrom < 1990 || options.yearFrom > 2025) {
+        return res.status(400).json({
+          success: false,
+          message: 'Year from must be between 1990 and 2025'
+        });
+      }
+
+      if (options.yearTo < options.yearFrom || options.yearTo > 2025) {
+        return res.status(400).json({
+          success: false,
+          message: 'Year to must be between year from and 2025'
+        });
+      }
+
+      // Validate days back
+      if (options.daysBack < 1 || options.daysBack > 365) {
+        return res.status(400).json({
+          success: false,
+          message: 'Days back must be between 1 and 365'
+        });
+      }
+
+      console.log(`Starting manual collection for ${make} with options:`, options);
+      const result = await dataCollectionService.startMakeCollection(make, options);
+      
       res.json({
         success: true,
-        message: `Started collecting ${make} vehicles`,
+        message: `Started collecting ${make} vehicles (${options.yearFrom}-${options.yearTo}, ${options.daysBack} days back)`,
         data: result
       });
     } catch (error: any) {
       console.error('Error starting make collection:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to start make collection'
+        message: 'Failed to start make collection',
+        error: error.message
       });
     }
   });
