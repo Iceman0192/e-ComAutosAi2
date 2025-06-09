@@ -358,13 +358,37 @@ export class DataCollectionService {
 
           console.log(`${make} ${model} (site ${site}) page ${currentPage}: Collected ${vehicles.length} records (${totalCollected} total)`);
           
-          // Check if we've reached the end of available data
+          // Check if we should continue based on date range and API response
+          let shouldContinue = true;
+          let oldestDate = null;
+          
+          // Check the oldest sale date in this batch
+          for (const vehicle of vehicles) {
+            if (vehicle.sale_date) {
+              const saleDate = new Date(vehicle.sale_date);
+              if (!oldestDate || saleDate < oldestDate) {
+                oldestDate = saleDate;
+              }
+            }
+          }
+          
+          // If we have an oldest date and it's before our start date, we've gone past the 150-day window
+          if (oldestDate && oldestDate < startDate) {
+            console.log(`Reached 150-day limit for ${make} ${model} (site ${site}) - oldest record: ${oldestDate.toISOString().split('T')[0]}, cutoff: ${startDate.toISOString().split('T')[0]}`);
+            shouldContinue = false;
+          }
+          
+          // If API returned fewer records than page size, we've hit the end
           if (vehicles.length < pageSize) {
-            console.log(`Reached end of data for ${make} ${model} (site ${site}) - page ${currentPage} returned ${vehicles.length} records`);
+            console.log(`Reached end of API data for ${make} ${model} (site ${site}) - page ${currentPage} returned ${vehicles.length} records`);
+            shouldContinue = false;
+          }
+          
+          if (!shouldContinue) {
             hasMoreData = false;
           } else {
             currentPage++;
-            console.log(`Continuing to page ${currentPage} for ${make} ${model} (site ${site})`);
+            console.log(`Continuing to page ${currentPage} for ${make} ${model} (site ${site}) - ${vehicles.length} records collected, oldest: ${oldestDate ? oldestDate.toISOString().split('T')[0] : 'N/A'}`);
             // Add delay between API calls to respect rate limits
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
