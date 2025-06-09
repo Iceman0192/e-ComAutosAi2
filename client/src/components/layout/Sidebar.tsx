@@ -142,16 +142,20 @@ export function Sidebar({ className = '' }: SidebarProps) {
   ];
 
   const isActiveRoute = (href: string) => {
+    // Exact matches for specific routes to prevent conflicts
     if (href === '/dashboard') return location === '/dashboard';
     if (href === '/') return location === '/' && !location.includes('/dashboard');
     if (href === '/copart') return location === '/copart';
+    if (href === '/vin-history') return location === '/vin-history';
+    if (href === '/auction-mind-v2') return location === '/auction-mind-v2';
     
-    // Exact match for similar routes to prevent conflicts
-    if (href === '/vin-history' && location === '/vin-history') return true;
-    if (href === '/auction-mind-v2' && location === '/auction-mind-v2') return true;
+    // Special handling for admin routes to prevent both being highlighted
+    if (href === '/admin') return location === '/admin';
+    if (href === '/admin/data-collection') return location === '/admin/data-collection';
     
     // For other routes, check if location starts with href but ensure it's not a partial match
-    if (location.startsWith(href)) {
+    // Exclude admin routes from general prefix matching
+    if (!href.startsWith('/admin') && location.startsWith(href)) {
       const nextChar = location[href.length];
       return nextChar === undefined || nextChar === '/' || nextChar === '?';
     }
