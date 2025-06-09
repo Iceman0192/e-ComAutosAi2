@@ -14,7 +14,7 @@ interface CollectionJob {
 export class DataCollectionService {
   private isRunning = false;
   private collectionQueue: CollectionJob[] = [];
-  private readonly BATCH_SIZE = 50;
+  private readonly BATCH_SIZE = 25; // Match API pagination limit
   private readonly COLLECTION_INTERVAL = 5 * 60 * 1000; // 5 minutes
   private readonly DAYS_WINDOW = 150; // 150 day rolling window (5 months max)
 
@@ -277,8 +277,9 @@ export class DataCollectionService {
         totalCollected += data.data.length;
         page++;
 
-        // Small delay between requests to be respectful
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // 2-3 second delay between requests to respect rate limits
+        const delay = 2000 + Math.random() * 1000; // Random 2-3 second delay
+        await new Promise(resolve => setTimeout(resolve, delay));
 
       } catch (error) {
         console.error(`Error collecting page ${page} for ${make} ${model}:`, error);
