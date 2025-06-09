@@ -48,6 +48,78 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type UserRole = typeof users.role.enumValues[number];
 
+// User preferences for personalized recommendations
+export const userPreferences = pgTable("user_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  preferredMakes: text("preferred_makes").array(), // ["Toyota", "Honda"]
+  budgetMin: integer("budget_min"), // minimum budget
+  budgetMax: integer("budget_max"), // maximum budget
+  preferredYearMin: integer("preferred_year_min"),
+  preferredYearMax: integer("preferred_year_max"),
+  preferredMileageMax: integer("preferred_mileage_max"),
+  preferredBodyTypes: text("preferred_body_types").array(), // ["SUV", "Sedan"]
+  preferredTransmissions: text("preferred_transmissions").array(), // ["Automatic", "Manual"]
+  preferredFuelTypes: text("preferred_fuel_types").array(), // ["Gas", "Hybrid"]
+  avoidDamageTypes: text("avoid_damage_types").array(), // ["FLOOD", "FIRE"]
+  preferredStates: text("preferred_states").array(), // ["CA", "TX"]
+  riskTolerance: text("risk_tolerance"), // "low", "medium", "high"
+  investmentGoal: text("investment_goal"), // "personal_use", "resale", "parts"
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// User browsing/search history for ML insights
+export const userActivity = pgTable("user_activity", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  activityType: text("activity_type").notNull(), // "search", "view_lot", "save_vehicle", "market_analysis"
+  vehicleData: text("vehicle_data"), // JSON string with vehicle details
+  searchParams: text("search_params"), // JSON string with search parameters
+  timestamp: timestamp("timestamp").defaultNow().notNull()
+});
+
+// AI-generated personalized recommendations
+export const recommendations = pgTable("recommendations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  vehicleId: text("vehicle_id").notNull(), // lot_id or VIN
+  recommendationType: text("recommendation_type").notNull(), // "trending", "match", "opportunity"
+  score: numeric("score", { precision: 5, scale: 2 }).notNull(), // 0.00 to 100.00
+  reasoning: text("reasoning").notNull(), // AI explanation
+  vehicleData: text("vehicle_data").notNull(), // JSON with vehicle details
+  marketData: text("market_data"), // JSON with comparable market data
+  isActive: boolean("is_active").default(true).notNull(),
+  viewedAt: timestamp("viewed_at"),
+  dismissedAt: timestamp("dismissed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+}, (table) => ({
+  userIdIdx: index("recommendations_user_id_idx").on(table.userId),
+  scoreIdx: index("recommendations_score_idx").on(table.score),
+  activeIdx: index("recommendations_active_idx").on(table.isActive)
+}));
+
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
+  id: true,
+  updatedAt: true
+});
+
+export const insertUserActivitySchema = createInsertSchema(userActivity).omit({
+  id: true,
+  timestamp: true
+});
+
+export const insertRecommendationSchema = createInsertSchema(recommendations).omit({
+  id: true,
+  createdAt: true
+});
+
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
+export type UserActivity = typeof userActivity.$inferSelect;
+export type InsertRecommendation = z.infer<typeof insertRecommendationSchema>;
+export type Recommendation = typeof recommendations.$inferSelect;
+
 // Usage tracking tables
 export const userUsage = pgTable("user_usage", {
   id: serial("id").primaryKey(),
