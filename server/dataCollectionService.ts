@@ -287,14 +287,34 @@ export class DataCollectionService {
             site.toString()
           );
 
-          if (!apiResponse.success || !apiResponse.data || apiResponse.data.length === 0) {
+          if (!apiResponse.success || !apiResponse.data) {
             console.log(`No more data available for ${make} ${model} on page ${currentPage}`);
             hasMoreData = false;
             break;
           }
 
+          // Handle different response structures
+          let vehicles = [];
+          if (Array.isArray(apiResponse.data)) {
+            vehicles = apiResponse.data;
+          } else if (apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
+            vehicles = apiResponse.data.data;
+          } else if (apiResponse.data.results && Array.isArray(apiResponse.data.results)) {
+            vehicles = apiResponse.data.results;
+          } else {
+            console.log(`Unexpected response structure for ${make} ${model} on page ${currentPage}:`, typeof apiResponse.data);
+            hasMoreData = false;
+            break;
+          }
+
+          if (vehicles.length === 0) {
+            console.log(`No vehicles found for ${make} ${model} on page ${currentPage}`);
+            hasMoreData = false;
+            break;
+          }
+
           // Insert data into database
-          for (const vehicle of apiResponse.data) {
+          for (const vehicle of vehicles) {
             try {
               await db.insert(salesHistory).values({
                 id: `${vehicle.lot_id}-${vehicle.site}-${Date.now()}`,
@@ -336,13 +356,15 @@ export class DataCollectionService {
             }
           }
 
-          console.log(`${make} ${model} (site ${site}) page ${currentPage}: Collected ${apiResponse.data.length} records (${totalCollected} total)`);
+          console.log(`${make} ${model} (site ${site}) page ${currentPage}: Collected ${vehicles.length} records (${totalCollected} total)`);
           
           // Check if we've reached the end of available data
-          if (apiResponse.data.length < pageSize) {
+          if (vehicles.length < pageSize) {
+            console.log(`Reached end of data for ${make} ${model} (site ${site}) - page ${currentPage} returned ${vehicles.length} records`);
             hasMoreData = false;
           } else {
             currentPage++;
+            console.log(`Continuing to page ${currentPage} for ${make} ${model} (site ${site})`);
             // Add delay between API calls to respect rate limits
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
