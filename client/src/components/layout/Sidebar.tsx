@@ -50,14 +50,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'BASIC_ACTIVE_LOTS'
     },
     {
-      title: 'Live Copart Analysis',
+      title: 'Live Lot Analysis',
       href: '/live-copart',
-      icon: Car,
-      permission: 'AI_ANALYSIS'
-    },
-    {
-      title: 'Live IAAI Analysis',
-      href: '/live-iaai',
       icon: Car,
       permission: 'AI_ANALYSIS'
     },
