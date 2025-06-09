@@ -47,12 +47,30 @@ export default function DataCollection() {
 
   useEffect(() => {
     if (canManageDataCollection) {
-      fetchDataCollectionStatus();
-      fetchCollectionJobs();
+      fetchCollectionJobs().then(() => {
+        fetchDataCollectionStatus();
+      });
     } else {
       setLoading(false);
     }
   }, [canManageDataCollection]);
+
+  // Update system status when jobs change
+  useEffect(() => {
+    if (jobs.length > 0 && systemStatus) {
+      const totalRecords = jobs.reduce((sum, job) => sum + (job.recordsCollected || 0), 0);
+      const failedJobs = jobs.filter(job => job.status === 'failed').length;
+      const errorRate = jobs.length > 0 ? (failedJobs / jobs.length) * 100 : 0;
+      
+      setSystemStatus(prev => prev ? {
+        ...prev,
+        queueSize: jobs.length,
+        totalRecords: totalRecords,
+        dailyCollected: totalRecords,
+        errorRate: errorRate
+      } : prev);
+    }
+  }, [jobs]);
 
   const fetchDataCollectionStatus = async () => {
     try {
@@ -65,7 +83,17 @@ export default function DataCollection() {
       }
 
       const data = await response.json();
-      setSystemStatus(data);
+      if (data.success && data.data) {
+        const status = data.data;
+        setSystemStatus({
+          isRunning: status.isRunning,
+          queueSize: status.totalJobs || 0,
+          totalRecords: 0,
+          dailyCollected: 0,
+          errorRate: 0,
+          lastUpdate: new Date().toISOString()
+        });
+      }
     } catch (err) {
       setError("Failed to load data collection status");
       console.error('Data collection status error:', err);
@@ -83,7 +111,22 @@ export default function DataCollection() {
       }
 
       const data = await response.json();
-      setJobs(data.jobs || []);
+      if (data.success && data.data) {
+        // Map backend job data to frontend interface
+        const mappedJobs = data.data.map((job: any) => ({
+          id: job.id,
+          make: job.make,
+          priority: job.priority,
+          status: job.status || 'pending',
+          progress: job.progress || 0,
+          lastCollected: job.lastCollected,
+          recordsCollected: job.modelsDiscovered || 0,
+          estimatedTimeRemaining: job.estimatedTimeRemaining
+        }));
+        setJobs(mappedJobs);
+      } else {
+        setJobs([]);
+      }
     } catch (err) {
       setError("Failed to load collection jobs");
       console.error('Collection jobs error:', err);
