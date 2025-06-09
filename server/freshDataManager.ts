@@ -85,14 +85,14 @@ export class FreshDataManager {
     
     const apiResponse = await getVehicleSalesHistory(
       params.make,
+      params.site.toString(),
       params.model,
       page,
       size,
       params.yearFrom,
       params.yearTo,
       params.auctionDateFrom,
-      params.auctionDateTo,
-      params.site
+      params.auctionDateTo
     );
     
     if (apiResponse.success && apiResponse.data.data && Array.isArray(apiResponse.data.data)) {
@@ -213,7 +213,7 @@ export class FreshDataManager {
       
       try {
         await db.insert(salesHistory)
-          .values(mainRecord)
+          .values([mainRecord])
           .onConflictDoNothing();
       } catch (error) {
         console.log(`Skipping duplicate migration: ${mainRecord.id}`);
