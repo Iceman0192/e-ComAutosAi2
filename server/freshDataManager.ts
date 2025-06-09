@@ -178,14 +178,20 @@ export class FreshDataManager {
     
     // Migrate to main database
     for (const record of expiredRecords) {
+      // Skip records with null lot_id
+      if (record.lot_id === null) {
+        console.log(`Skipping migration for record with null lot_id: ${record.id}`);
+        continue;
+      }
+
       const mainRecord = {
         id: record.id.replace('-fresh', ''),
         lot_id: record.lot_id,
         site: record.site,
-        base_site: record.base_site,
-        vin: record.vin,
-        sale_status: record.sale_status,
-        sale_date: record.sale_date,
+        base_site: record.base_site || (record.site === 1 ? 'copart' : 'iaai'),
+        vin: record.vin || '',
+        sale_status: record.sale_status || 'unknown',
+        sale_date: record.sale_date || new Date(),
         purchase_price: record.purchase_price,
         buyer_state: record.buyer_state,
         buyer_country: record.buyer_country,
@@ -207,8 +213,6 @@ export class FreshDataManager {
         color: record.color,
         images: record.images,
         link: record.link,
-        link_img_hd: record.link_img_hd,
-        link_img_small: record.link_img_small,
       };
       
       try {
