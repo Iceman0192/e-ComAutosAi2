@@ -116,6 +116,7 @@ function Router() {
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={() => <ImportCalculator vehicle={undefined} />} />
         <Route path="/datasets" component={Datasets} />
+        <Route path="/recommendations" component={Recommendations} />
         <Route path="/team" component={Team} />
         <Route path="/product/demo" component={Demo} />
         <Route path="/account" component={Account} />

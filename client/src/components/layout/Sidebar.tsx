@@ -16,7 +16,8 @@ import {
   X,
   Calculator,
   History,
-  BarChart3
+  BarChart3,
+  Star
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
@@ -71,6 +72,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'AuctionMind Pro',
       href: '/auction-mind-v2',
       icon: Brain,
+      permission: 'AI_ANALYSIS'
+    },
+    {
+      title: 'AI Recommendations',
+      href: '/recommendations',
+      icon: Star,
       permission: 'AI_ANALYSIS'
     },
     {

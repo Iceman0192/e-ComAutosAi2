@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { Brain, Star, TrendingUp, Car, Settings, Refresh, Eye, X, Target, Calendar, MapPin, DollarSign } from 'lucide-react';
+import { Brain, Star, TrendingUp, Car, Settings, RefreshCw, Eye, X, Target, Calendar, MapPin, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Recommendation {
@@ -212,7 +212,7 @@ export default function Recommendations() {
           disabled={generateRecommendations.isPending}
           className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
         >
-          <Refresh className="h-4 w-4 mr-2" />
+          <RefreshCw className="h-4 w-4 mr-2" />
           Generate New
         </Button>
       </div>

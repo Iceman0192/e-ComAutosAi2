@@ -13,7 +13,7 @@ export function setupRecommendationRoutes(app: Express) {
   /**
    * Get personalized recommendations for authenticated user
    */
-  app.get('/api/recommendations', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/recommendations', requireAuth, async (req: Request, res: Response) => {
     try {
       const { limit = 10, refresh = false } = req.query;
       const userId = req.user.id;
