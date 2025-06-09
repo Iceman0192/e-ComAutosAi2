@@ -72,14 +72,14 @@ export class FreshDataService {
       // Fetch fresh data from API
       const apiResponse = await getVehicleSalesHistory(
         params.make,
+        params.site.toString(),
         params.model,
         1, // Start with page 1 for fresh data
         50, // Larger page size for fresh data
         params.yearFrom,
         params.yearTo,
         auctionDateFrom,
-        auctionDateTo,
-        params.site
+        auctionDateTo
       );
       
       if (apiResponse.success && apiResponse.data && apiResponse.data.length > 0) {
