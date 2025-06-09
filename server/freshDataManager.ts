@@ -150,9 +150,23 @@ export class FreshDataManager {
       
       console.log(`✅ Stored ${freshRecords.length} fresh records in temporary database`);
       
+      // Calculate estimated total count for pagination
+      // Since API returns max 25 records per page, estimate based on returned count
+      const recordCount = freshRecords.length;
+      let estimatedTotal = recordCount;
+      
+      // If we get exactly 25 records (full page), estimate more pages available
+      if (recordCount === 25) {
+        // Conservative estimate: assume at least 2-3 more pages exist
+        estimatedTotal = Math.max(page * 25 + 50, 100);
+      } else {
+        // Less than full page means this is likely the last page
+        estimatedTotal = (page - 1) * 25 + recordCount;
+      }
+      
       return {
         data: apiResponse.data.data,
-        totalCount: apiResponse.data.count || freshRecords.length,
+        totalCount: estimatedTotal,
         fromAPI: true
       };
     }
