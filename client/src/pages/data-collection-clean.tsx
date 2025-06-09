@@ -453,7 +453,7 @@ export default function DataCollectionClean() {
                 <div className="grid grid-cols-4 gap-4 text-center bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                   <div>
                     <p className="text-lg font-semibold text-blue-600">
-                      {parseInt(vehicle.total_records).toLocaleString()}
+                      {parseInt(vehicle.total_records.toString()).toLocaleString()}
                     </p>
                     <p className="text-xs text-muted-foreground">Total Records</p>
                   </div>
