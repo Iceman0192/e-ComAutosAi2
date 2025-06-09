@@ -35,11 +35,11 @@ export default function ComparableSearchForm({ lotData, platform = 'copart' }: C
     : [platform];
     
   const [searchParams, setSearchParams] = useState({
-    make: lotData.make || '',
-    model: lotData.model || '',
+    make: lotData?.lot?.make || lotData?.make || '',
+    model: lotData?.lot?.model || lotData?.model || '',
     series: '',
-    yearFrom: lotData.year ? lotData.year - 1 : 2020,
-    yearTo: lotData.year ? lotData.year + 1 : 2025,
+    yearFrom: lotData?.lot?.year ? lotData.lot.year - 1 : (lotData?.year ? lotData.year - 1 : 2020),
+    yearTo: lotData?.lot?.year ? lotData.lot.year + 1 : (lotData?.year ? lotData.year + 1 : 2025),
     damageType: 'all',
     maxMileage: '',
     saleStatus: 'sold',
