@@ -433,10 +433,10 @@ export default function ActiveLotsPage() {
             .filter((p: number) => p > 0);
           
           if (prices.length > 0) {
-            const avgPrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+            const avgPrice = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
             const minPrice = Math.min(...prices);
             const maxPrice = Math.max(...prices);
-            const medianPrice = prices.sort((a, b) => a - b)[Math.floor(prices.length / 2)];
+            const medianPrice = prices.sort((a: number, b: number) => a - b)[Math.floor(prices.length / 2)];
             
             const insights = {
               averagePrice: avgPrice,
