@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useLocation } from 'wouter';
 import PlatformToggle from '../components/ui/platform-toggle';
 import ComparableSearchForm from '../components/ComparableSearchForm';
@@ -30,12 +32,22 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Grid3X3,
+  List,
+  BarChart3,
+  TrendingUp,
+  Target,
+  Eye,
+  Database,
+  RefreshCw,
+  Download
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AIAnalysis } from '@/components/AIAnalysis';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface LiveLot {
   id: string;
@@ -91,6 +103,13 @@ export default function LiveCopart() {
   const [showFilters, setShowFilters] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewMode, setViewMode] = useState<'detail' | 'table' | 'grid' | 'charts'>('detail');
+  const [selectedLot, setSelectedLot] = useState<LiveLot | null>(null);
+  const [autoPopulateSearch, setAutoPopulateSearch] = useState(false);
+  const [comparableSales, setComparableSales] = useState<any[]>([]);
+  const [showComparableAnalysis, setShowComparableAnalysis] = useState(false);
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
+  const [marketTrends, setMarketTrends] = useState<any[]>([]);
   const [filters, setFilters] = useState<ComparableFilters>({
     yearFrom: 2020,
     yearTo: 2025,
@@ -123,7 +142,11 @@ export default function LiveCopart() {
   // Fetch comparable sales (for Gold users with manual filters)
   const { data: comparableData, isLoading: comparableLoading } = useQuery({
     queryKey: ['/api/comparable-sales', filters],
-    queryFn: () => apiRequest('/api/comparable-sales', { method: 'POST', body: filters }),
+    queryFn: () => apiRequest('/api/comparable-sales', { 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(filters)
+    }),
     enabled: showFilters && hasPermission('ADVANCED_FILTERS') && !!filters.make,
   });
 
