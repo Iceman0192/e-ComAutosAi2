@@ -11,11 +11,35 @@ import {
   Loader
 } from 'lucide-react';
 
+interface AuctionSiteStats {
+  site: number;
+  siteName: string;
+  vehicleCount: number;
+  uniqueMakes: number;
+  uniqueModels: number;
+  percentage: number;
+}
+
+interface VehicleProgress {
+  make: string;
+  total_records: number;
+  unique_models: number;
+  earliest_sale: string;
+  latest_sale: string;
+  avg_price: number;
+}
+
+interface SiteStatsData {
+  sites: AuctionSiteStats[];
+  totalVehicles: number;
+  siteBreakdown: AuctionSiteStats[];
+}
+
 export default function DataCollectionClean() {
   const [status, setStatus] = useState({ isRunning: false, queueSize: 0, totalRecords: 0 });
-  const [jobs, setJobs] = useState([]);
-  const [vehicleProgress, setVehicleProgress] = useState([]);
-  const [siteStats, setSiteStats] = useState({ sites: [], totalVehicles: 0, siteBreakdown: [] });
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [vehicleProgress, setVehicleProgress] = useState<VehicleProgress[]>([]);
+  const [siteStats, setSiteStats] = useState<SiteStatsData>({ sites: [], totalVehicles: 0, siteBreakdown: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -153,7 +177,7 @@ export default function DataCollectionClean() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {siteStats.siteBreakdown.map((site) => (
+              {siteStats.siteBreakdown.map((site: AuctionSiteStats) => (
                 <div key={site.site} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -204,7 +228,7 @@ export default function DataCollectionClean() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {vehicleProgress.slice(0, 10).map((vehicle, index) => (
+              {vehicleProgress.slice(0, 10).map((vehicle: VehicleProgress, index) => (
                 <div key={vehicle.make} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium w-4">{index + 1}</span>
