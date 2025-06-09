@@ -356,8 +356,6 @@ export class DataCollectionService {
 
           console.log(`${make} ${model} (site ${site}) page ${currentPage}: Collected ${vehicles.length} records (${totalCollected} total)`);
           
-          console.log(`${make} ${model} (site ${site}) page ${currentPage}: Collected ${vehicles.length} records (${totalCollected} total)`);
-          
           // Check if we should continue based on date range and API response
           let shouldContinue = true;
           let oldestDate = null;
