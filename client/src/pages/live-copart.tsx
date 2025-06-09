@@ -139,16 +139,77 @@ export default function LiveCopart() {
     enabled: searchTriggered && !!lotId,
   });
 
-  // Fetch comparable sales (for Gold users with manual filters)
-  const { data: comparableData, isLoading: comparableLoading } = useQuery({
-    queryKey: ['/api/comparable-sales', filters],
-    queryFn: () => apiRequest('/api/comparable-sales', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(filters)
-    }),
-    enabled: showFilters && hasPermission('ADVANCED_FILTERS') && !!filters.make,
-  });
+  // Generate chart data for analysis
+  const generateChartData = (data: any[]) => {
+    if (!data || data.length === 0) return;
+
+    // Price history chart data
+    const priceData = data.map((item, index) => ({
+      name: `Sale ${index + 1}`,
+      price: item.final_bid || item.price || 0,
+      date: item.sale_date || item.auction_date,
+      mileage: item.odometer || item.mileage || 0
+    })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    setPriceHistory(priceData);
+
+    // Market trends by month
+    const trendData = data.reduce((acc: any, item: any) => {
+      const date = new Date(item.sale_date || item.auction_date);
+      const monthYear = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      
+      if (!acc[monthYear]) {
+        acc[monthYear] = { month: monthYear, avgPrice: 0, count: 0, total: 0 };
+      }
+      
+      acc[monthYear].total += item.final_bid || item.price || 0;
+      acc[monthYear].count += 1;
+      acc[monthYear].avgPrice = acc[monthYear].total / acc[monthYear].count;
+      
+      return acc;
+    }, {});
+
+    setMarketTrends(Object.values(trendData));
+  };
+
+  // Fetch comparable sales data for analysis
+  const fetchComparableData = async () => {
+    if (showFilters && hasPermission('ADVANCED_FILTERS') && filters.make) {
+      try {
+        const response = await apiRequest('/api/comparable-sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(filters)
+        });
+        const data = Array.isArray(response) ? response : [];
+        setComparableSales(data);
+        generateChartData(data);
+      } catch (error) {
+        console.error('Error fetching comparable data:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchComparableData();
+  }, [filters, showFilters]);
+
+  // Auto-populate search from selected lot
+  const handleLotSelection = (lot: LiveLot) => {
+    setSelectedLot(lot);
+    if (autoPopulateSearch) {
+      setFilters(prev => ({
+        ...prev,
+        make: lot.make,
+        model: lot.model,
+        yearFrom: lot.year - 2,
+        yearTo: lot.year + 2,
+        mileageMin: Math.max(0, lot.odometer - 50000),
+        mileageMax: lot.odometer + 50000
+      }));
+      setShowComparableAnalysis(true);
+    }
+  };
 
   const handleSearch = () => {
     if (lotId.trim()) {
@@ -287,6 +348,116 @@ export default function LiveCopart() {
       </header>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Search and Controls */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Lot Lookup & Analysis
+              </CardTitle>
+              
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-lg border p-1">
+                  <Button
+                    variant={viewMode === 'detail' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('detail')}
+                    className="px-3"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Detail
+                  </Button>
+                  <Button
+                    variant={viewMode === 'table' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('table')}
+                    className="px-3"
+                  >
+                    <List className="h-4 w-4 mr-1" />
+                    Table
+                  </Button>
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="px-3"
+                  >
+                    <Grid3X3 className="h-4 w-4 mr-1" />
+                    Grid
+                  </Button>
+                  <Button
+                    variant={viewMode === 'charts' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('charts')}
+                    className="px-3"
+                  >
+                    <BarChart3 className="h-4 w-4 mr-1" />
+                    Charts
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            {/* Search Input */}
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  placeholder={`Enter ${platform === 'copart' ? 'Copart' : 'IAAI'} lot ID (e.g., 58411805)`}
+                  value={lotId}
+                  onChange={(e) => setLotId(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="text-lg"
+                />
+              </div>
+              <Button onClick={handleSearch} disabled={!lotId.trim() || lotLoading}>
+                {lotLoading ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Search className="h-4 w-4 mr-2" />
+                )}
+                Search
+              </Button>
+            </div>
+
+            {/* Auto-populate and Analysis Controls */}
+            {lotData?.lot && (
+              <div className="flex flex-wrap gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="auto-populate"
+                    checked={autoPopulateSearch}
+                    onChange={(e) => setAutoPopulateSearch(e.target.checked)}
+                    className="rounded"
+                  />
+                  <Label htmlFor="auto-populate" className="text-sm">
+                    Auto-populate comparable search
+                  </Label>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleFilterSearch}
+                  className="ml-auto"
+                >
+                  <Target className="h-4 w-4 mr-1" />
+                  Find Comparables
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowComparableAnalysis(!showComparableAnalysis)}
+                >
+                  <Database className="h-4 w-4 mr-1" />
+                  {showComparableAnalysis ? 'Hide' : 'Show'} Analysis
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         {/* Enhanced Search Section */}
       <Card className={`shadow-lg ${platform === 'copart' ? 'border-blue-200' : 'border-red-200'}`}>
         <CardHeader className={`bg-gradient-to-r ${
@@ -359,10 +530,12 @@ export default function LiveCopart() {
         </Card>
       )}
 
-      {/* Enhanced Live Lot Display with AI Analysis Tab */}
-      {lotData?.lot && (
-        <div className="space-y-6">
-            <Card className="border-green-200 shadow-lg">
+        {/* Multiple View Modes for Lot Data */}
+        {lotData?.lot && (
+          <div className="space-y-6">
+            {/* Detail View */}
+            {viewMode === 'detail' && (
+              <Card className="border-green-200 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex-1">
@@ -572,8 +745,212 @@ export default function LiveCopart() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
+            )}
+
+            {/* Comparable Search and Analysis */}
+            {showComparableAnalysis && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5" />
+                    Comparable Vehicle Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ComparableSearchForm
+                    selectedVehicle={selectedLot}
+                    onSearch={(data) => {
+                      setComparableSales(data);
+                      generateChartData(data);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Table View */}
+            {viewMode === 'table' && comparableSales.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <List className="h-5 w-5" />
+                    Comparable Sales Data - Table View
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Year</TableHead>
+                          <TableHead>Make/Model</TableHead>
+                          <TableHead>Mileage</TableHead>
+                          <TableHead>Final Price</TableHead>
+                          <TableHead>Damage</TableHead>
+                          <TableHead>Sale Date</TableHead>
+                          <TableHead>Platform</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {comparableSales.map((sale, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{sale.year}</TableCell>
+                            <TableCell>{sale.make} {sale.model}</TableCell>
+                            <TableCell>{(sale.mileage || sale.odometer || 0).toLocaleString()} mi</TableCell>
+                            <TableCell className="font-semibold">{formatCurrency(sale.final_bid || sale.price || 0)}</TableCell>
+                            <TableCell>{sale.damage_pr || sale.damage || 'N/A'}</TableCell>
+                            <TableCell>{new Date(sale.sale_date || sale.auction_date).toLocaleDateString()}</TableCell>
+                            <TableCell>{sale.platform || sale.base_site || 'N/A'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Grid View */}
+            {viewMode === 'grid' && comparableSales.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Grid3X3 className="h-5 w-5" />
+                    Comparable Sales Data - Grid View
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {comparableSales.map((sale, index) => (
+                      <Card key={index} className="border-l-4 border-l-blue-500">
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start">
+                              <h3 className="font-semibold">{sale.year} {sale.make} {sale.model}</h3>
+                              <Badge variant="outline">{sale.platform || sale.base_site}</Badge>
+                            </div>
+                            <div className="text-2xl font-bold text-green-600">
+                              {formatCurrency(sale.final_bid || sale.price || 0)}
+                            </div>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <div className="flex justify-between">
+                                <span>Mileage:</span>
+                                <span>{(sale.mileage || sale.odometer || 0).toLocaleString()} mi</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Damage:</span>
+                                <span>{sale.damage_pr || sale.damage || 'N/A'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Sale Date:</span>
+                                <span>{new Date(sale.sale_date || sale.auction_date).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Charts View */}
+            {viewMode === 'charts' && (priceHistory.length > 0 || marketTrends.length > 0) && (
+              <div className="space-y-6">
+                {/* Price History Chart */}
+                {priceHistory.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Price History Analysis
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={priceHistory}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Price']} />
+                            <Legend />
+                            <Line type="monotone" dataKey="price" stroke="#2563eb" strokeWidth={3} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Market Trends Chart */}
+                {marketTrends.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        Market Trends by Month
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={marketTrends}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Avg Price']} />
+                            <Legend />
+                            <Bar dataKey="avgPrice" fill="#10b981" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Market Intelligence Summary */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Bidding Strategy Recommendations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">
+                          {comparableSales.length > 0 ? formatCurrency(
+                            Math.round(comparableSales.reduce((sum, sale) => sum + (sale.final_bid || sale.price || 0), 0) / comparableSales.length)
+                          ) : '$0'}
+                        </div>
+                        <div className="text-sm text-gray-600">Average Sale Price</div>
+                      </div>
+                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {comparableSales.length > 0 ? formatCurrency(
+                            Math.min(...comparableSales.map(sale => sale.final_bid || sale.price || 0))
+                          ) : '$0'}
+                        </div>
+                        <div className="text-sm text-gray-600">Minimum Price</div>
+                      </div>
+                      <div className="text-center p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {comparableSales.length > 0 ? formatCurrency(
+                            Math.max(...comparableSales.map(sale => sale.final_bid || sale.price || 0))
+                          ) : '$0'}
+                        </div>
+                        <div className="text-sm text-gray-600">Maximum Price</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        )}
 
       {/* Full-Screen Image Modal - Mobile Optimized */}
       {showImageViewer && lotData?.lot?.link_img_hd && (
