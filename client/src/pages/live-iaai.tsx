@@ -42,6 +42,9 @@ export default function LiveIAAI() {
   const [vinHistoryTriggered, setVinHistoryTriggered] = useState(false);
   const [similarLotsTriggered, setSimilarLotsTriggered] = useState(false);
   const [analysisTriggered, setAnalysisTriggered] = useState(false);
+  const [comparableAnalysisTriggered, setComparableAnalysisTriggered] = useState(false);
+  const [marketInsights, setMarketInsights] = useState<any>(null);
+  const [comparableHistory, setComparableHistory] = useState<any[]>([]);
 
   // Fetch live lot data
   const { data: lotData, isLoading: lotLoading, error: lotError } = useQuery({
@@ -111,6 +114,74 @@ export default function LiveIAAI() {
       return response.json();
     },
     enabled: analysisTriggered && !!lotData?.lot?.vin,
+  });
+
+  // Fetch comparable analysis data
+  const { data: comparableAnalysis, isLoading: comparableLoading } = useQuery({
+    queryKey: ['/api/find-comparables', lotData?.lot?.make, lotData?.lot?.model, lotData?.lot?.year],
+    queryFn: async () => {
+      const vehicleData = {
+        make: lotData.lot.make,
+        model: lotData.lot.model,
+        year: lotData.lot.year,
+        mileage: lotData.lot.odometer,
+        damage: lotData.lot.damage_pr,
+        site: 2
+      };
+      
+      const response = await fetch('/api/find-comparables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vehicleData)
+      });
+      if (!response.ok) throw new Error('Failed to fetch comparable analysis');
+      const result = await response.json();
+      
+      // Process the comparable data for market insights
+      if (result.comparables && result.comparables.length > 0) {
+        const prices = result.comparables.map((comp: any) => comp.purchase_price || comp.cost_priced || 0).filter((p: number) => p > 0);
+        const averagePrice = prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length;
+        const medianPrice = prices.sort((a: number, b: number) => a - b)[Math.floor(prices.length / 2)];
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        
+        // Generate recommendation based on current bid vs market data
+        const currentBid = lotData.lot.current_bid || 0;
+        const bidVsAverage = currentBid > 0 ? ((currentBid - averagePrice) / averagePrice * 100) : 0;
+        
+        let recommendation = 'HOLD';
+        let confidence = 0;
+        
+        if (bidVsAverage < -20) {
+          recommendation = 'STRONG BUY';
+          confidence = 85;
+        } else if (bidVsAverage < -10) {
+          recommendation = 'BUY';
+          confidence = 75;
+        } else if (bidVsAverage > 15) {
+          recommendation = 'AVOID';
+          confidence = 80;
+        } else {
+          recommendation = 'HOLD';
+          confidence = 60;
+        }
+        
+        setMarketInsights({
+          averagePrice: Math.round(averagePrice),
+          medianPrice: Math.round(medianPrice),
+          priceRange: { min: minPrice, max: maxPrice },
+          totalComparables: result.comparables.length,
+          recommendation,
+          confidence,
+          currentBidVsAverage: bidVsAverage
+        });
+        
+        setComparableHistory(result.comparables.slice(0, 10));
+      }
+      
+      return result;
+    },
+    enabled: comparableAnalysisTriggered && !!lotData?.lot?.make,
   });
 
   const handleSearch = () => {
@@ -299,6 +370,20 @@ export default function LiveIAAI() {
                   {aiLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Brain className="h-4 w-4 mr-2" />}
                   AI Analysis
                 </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setComparableAnalysisTriggered(true);
+                    setActiveTab('market');
+                  }}
+                  disabled={comparableLoading}
+                  className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                >
+                  {comparableLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <TrendingUp className="h-4 w-4 mr-2" />}
+                  Market Analysis
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -474,11 +559,12 @@ export default function LiveIAAI() {
 
               {/* Tabbed Content */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="history">VIN History</TabsTrigger>
                   <TabsTrigger value="similar">Similar Lots</TabsTrigger>
                   <TabsTrigger value="analysis">AI Analysis</TabsTrigger>
+                  <TabsTrigger value="market">Market Analysis</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="mt-4">
@@ -662,6 +748,116 @@ export default function LiveIAAI() {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       Click "AI Analysis" button to get AI-powered insights on this vehicle.
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="market" className="mt-4">
+                  {marketInsights ? (
+                    <div className="space-y-6">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Market Analysis & Comparable Sales
+                      </h3>
+                      
+                      {/* Price Analysis Cards */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card className="p-4">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Average Price</p>
+                            <p className="text-lg font-bold text-green-600">${marketInsights.averagePrice.toLocaleString()}</p>
+                          </div>
+                        </Card>
+                        <Card className="p-4">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Median Price</p>
+                            <p className="text-lg font-bold text-blue-600">${marketInsights.medianPrice.toLocaleString()}</p>
+                          </div>
+                        </Card>
+                        <Card className="p-4">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Price Range</p>
+                            <p className="text-sm font-medium">${marketInsights.priceRange.min.toLocaleString()} - ${marketInsights.priceRange.max.toLocaleString()}</p>
+                          </div>
+                        </Card>
+                        <Card className="p-4">
+                          <div className="text-center">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Comparables</p>
+                            <p className="text-lg font-bold text-purple-600">{marketInsights.totalComparables}</p>
+                          </div>
+                        </Card>
+                      </div>
+
+                      {/* Recommendation */}
+                      <Card className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-semibold text-lg">Recommendation</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Based on {marketInsights.totalComparables} comparable sales
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge 
+                              variant={marketInsights.recommendation === 'STRONG BUY' ? 'default' : 
+                                      marketInsights.recommendation === 'BUY' ? 'secondary' :
+                                      marketInsights.recommendation === 'AVOID' ? 'destructive' : 'outline'}
+                              className="text-lg px-4 py-2"
+                            >
+                              {marketInsights.recommendation}
+                            </Badge>
+                            <p className="text-sm mt-1">Confidence: {marketInsights.confidence}%</p>
+                          </div>
+                        </div>
+                        {marketInsights.currentBidVsAverage !== 0 && (
+                          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                            <p className="text-sm">
+                              Current bid is <span className="font-semibold">
+                                {marketInsights.currentBidVsAverage > 0 ? '+' : ''}{marketInsights.currentBidVsAverage.toFixed(1)}%
+                              </span> compared to average market price
+                            </p>
+                          </div>
+                        )}
+                      </Card>
+
+                      {/* Comparable Sales History */}
+                      {comparableHistory.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">Recent Comparable Sales</h4>
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {comparableHistory.map((sale: any) => (
+                              <Card key={sale.id} className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h5 className="font-medium">{sale.year} {sale.make} {sale.model}</h5>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      {(sale.vehicle_mileage || sale.odometer || 0).toLocaleString()} mi • {sale.vehicle_damage || sale.damage_pr}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      Sold: {sale.sale_date ? new Date(sale.sale_date).toLocaleDateString() : 'Unknown date'}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-lg font-bold text-green-600">
+                                      ${(sale.purchase_price || sale.cost_priced || 0).toLocaleString()}
+                                    </p>
+                                    <p className="text-xs text-gray-500">{sale.location || sale.auction_location}</p>
+                                  </div>
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : comparableLoading ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                      <p>Analyzing comparable sales...</p>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      Click "Market Analysis" button to analyze comparable sales and get market insights.
                     </div>
                   )}
                 </TabsContent>
