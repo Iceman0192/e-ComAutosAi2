@@ -263,11 +263,99 @@ export class DataCollectionService {
         return 0;
       }
 
-      // Simulate API call and data insertion
-      // In a real implementation, this would call the actual APICAR API
-      // and insert the results into the database
+      // Import and use the real APICAR API client
+      const { getVehicleSalesHistory } = await import('./apiClient');
       
-      return 0; // Placeholder return
+      let totalCollected = 0;
+      let currentPage = 1;
+      const pageSize = 25;
+      let hasMoreData = true;
+
+      console.log(`Starting API collection for ${make} ${model || 'all models'} on site ${site}`);
+      
+      while (hasMoreData) {
+        try {
+          const apiResponse = await getVehicleSalesHistory(
+            make,
+            model || undefined,
+            currentPage,
+            pageSize,
+            yearFrom,
+            yearTo,
+            startDateStr,
+            endDateStr,
+            site.toString()
+          );
+
+          if (!apiResponse.success || !apiResponse.data || apiResponse.data.length === 0) {
+            console.log(`No more data available for ${make} ${model} on page ${currentPage}`);
+            hasMoreData = false;
+            break;
+          }
+
+          // Insert data into database
+          for (const vehicle of apiResponse.data) {
+            try {
+              await db.insert(salesHistory).values({
+                id: `${vehicle.lot_id}-${vehicle.site}-${Date.now()}`,
+                lot_id: vehicle.lot_id,
+                site: vehicle.site,
+                base_site: vehicle.base_site,
+                vin: vehicle.vin,
+                sale_status: vehicle.sale_status,
+                sale_date: new Date(vehicle.sale_date),
+                purchase_price: vehicle.purchase_price?.toString(),
+                buyer_state: vehicle.buyer_state,
+                buyer_country: vehicle.buyer_country,
+                buyer_type: vehicle.buyer_type,
+                auction_location: vehicle.auction_location,
+                vehicle_mileage: vehicle.vehicle_mileage,
+                vehicle_damage: vehicle.vehicle_damage,
+                vehicle_title: vehicle.vehicle_title,
+                vehicle_has_keys: vehicle.vehicle_has_keys,
+                year: vehicle.year,
+                make: vehicle.make,
+                model: vehicle.model,
+                series: vehicle.series,
+                trim: vehicle.trim,
+                transmission: vehicle.transmission,
+                drive: vehicle.drive,
+                fuel: vehicle.fuel,
+                engine: vehicle.engine,
+                color: vehicle.color,
+                images: JSON.stringify(vehicle.images),
+                link: vehicle.link
+              }).onConflictDoNothing();
+              
+              totalCollected++;
+            } catch (insertError: any) {
+              // Skip duplicate entries
+              if (!insertError.message?.includes('duplicate key')) {
+                console.error(`Error inserting vehicle ${vehicle.vin}:`, insertError.message);
+              }
+            }
+          }
+
+          console.log(`${make} ${model} (site ${site}) page ${currentPage}: Collected ${apiResponse.data.length} records (${totalCollected} total)`);
+          
+          // Check if we've reached the end of available data
+          if (apiResponse.data.length < pageSize) {
+            hasMoreData = false;
+          } else {
+            currentPage++;
+            // Add delay between API calls to respect rate limits
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+        } catch (apiError: any) {
+          console.error(`API error on page ${currentPage} for ${make} ${model}:`, apiError.message);
+          hasMoreData = false;
+        }
+      }
+
+      console.log(`Completed API collection for ${make} ${model} (site ${site}): ${totalCollected} records collected`);
+      return totalCollected;
+      
     } catch (error) {
       console.error(`Error in API collection for ${make} ${model}:`, error);
       return 0;
