@@ -25,6 +25,9 @@ import LandingPage from "./pages/landing";
 import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
 import DataCollectionPage from "./pages/data-collection";
+import VINHistory from "./pages/vin-history";
+import Team from "./pages/team";
+import Demo from "./pages/demo";
 import NotFound from "./pages/not-found";
 
 // Marketing Pages
