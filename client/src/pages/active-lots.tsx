@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Gauge,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface AuctionLot {
@@ -1305,6 +1307,102 @@ export default function ActiveLotsPage() {
               </Card>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Showing {((currentPage - 1) * 25) + 1}-{Math.min(currentPage * 25, totalResults)} of {totalResults.toLocaleString()} results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentPage(prev => Math.max(1, prev - 1));
+                    searchActiveLots();
+                  }}
+                  disabled={currentPage === 1 || isLoading}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {/* Show page numbers around current page */}
+                  {currentPage > 3 && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setCurrentPage(1);
+                          searchActiveLots();
+                        }}
+                        disabled={isLoading}
+                      >
+                        1
+                      </Button>
+                      {currentPage > 4 && <span className="text-gray-400">...</span>}
+                    </>
+                  )}
+                  
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = Math.max(1, currentPage - 2) + i;
+                    if (pageNum > totalPages) return null;
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        size="sm"
+                        variant={pageNum === currentPage ? "default" : "ghost"}
+                        onClick={() => {
+                          setCurrentPage(pageNum);
+                          searchActiveLots();
+                        }}
+                        disabled={isLoading}
+                        className={pageNum === currentPage ? `${brandColors.primary} text-white` : ""}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                  
+                  {currentPage < totalPages - 2 && (
+                    <>
+                      {currentPage < totalPages - 3 && <span className="text-gray-400">...</span>}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setCurrentPage(totalPages);
+                          searchActiveLots();
+                        }}
+                        disabled={isLoading}
+                      >
+                        {totalPages}
+                      </Button>
+                    </>
+                  )}
+                </div>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                    searchActiveLots();
+                  }}
+                  disabled={currentPage === totalPages || isLoading}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
