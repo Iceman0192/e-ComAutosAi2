@@ -55,6 +55,23 @@ export function registerDataCollectionRoutes(app: Express) {
     }
   });
 
+  // Get collection jobs (admin only)
+  app.get('/api/admin/data-collection/jobs', requireAuth, requireAdmin, (req, res) => {
+    try {
+      const jobs = dataCollectionService.getQueueStatus();
+      res.json({
+        success: true,
+        data: jobs
+      });
+    } catch (error: any) {
+      console.error('Error getting collection jobs:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get collection jobs'
+      });
+    }
+  });
+
   // Get database statistics
   app.get('/api/admin/database/stats', requireAuth, requireAdmin, async (req, res) => {
     try {
