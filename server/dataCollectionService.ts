@@ -230,7 +230,8 @@ export class DataCollectionService {
     model: string, 
     startDate: Date, 
     endDate: Date, 
-    site: number
+    yearFrom: number = 2012,
+    yearTo: number = 2025
   ): Promise<number> {
     let totalCollected = 0;
     let page = 1;
@@ -246,9 +247,10 @@ export class DataCollectionService {
           model: model,
           sale_date_from: startDate.toISOString().split('T')[0],
           sale_date_to: endDate.toISOString().split('T')[0],
+          year_from: yearFrom.toString(),
+          year_to: yearTo.toString(),
           page: page.toString(),
-          limit: this.BATCH_SIZE.toString(),
-          site: site.toString(),
+          limit: this.BATCH_SIZE.toString()
         });
 
         const response = await fetch(`${baseUrl}?${params.toString()}`, {
@@ -340,32 +342,101 @@ export class DataCollectionService {
     }
   }
 
-  // Start collection for a specific make
-  async startMakeCollection(make: string) {
-    const existingJob = this.collectionQueue.find(job => job.make.toLowerCase() === make.toLowerCase());
+  // Start collection for a specific make with manual parameters
+  async startMakeCollection(make: string, options?: {
+    yearFrom?: number;
+    yearTo?: number;
+    daysBack?: number;
+  }) {
+    const yearFrom = options?.yearFrom || 2012;
+    const yearTo = options?.yearTo || 2025;
+    const daysBack = options?.daysBack || 150;
     
-    if (existingJob) {
-      // Reset the job to start fresh
-      existingJob.lastCollected = undefined;
-      existingJob.lastModelIndex = 0;
-      existingJob.modelsDiscovered = [];
+    console.log(`Starting manual collection for ${make} (${yearFrom}-${yearTo}, ${daysBack} days back)`);
+    
+    try {
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - daysBack);
       
-      console.log(`Reset collection job for ${make}`);
-      return { message: `Reset collection for ${make}`, jobId: existingJob.id };
-    } else {
-      // Create new job
-      const newJob: CollectionJob = {
-        id: `${make.toLowerCase()}-${Date.now()}`,
-        make: make,
-        priority: 1, // High priority for manual requests
-        lastCollected: undefined,
-        modelsDiscovered: [],
-        lastModelIndex: 0
+      let totalCollected = 0;
+      
+      // Get all models for this make from existing data
+      const existingModels = await db
+        .selectDistinct({ model: salesHistory.model })
+        .from(salesHistory)
+        .where(
+          and(
+            eq(salesHistory.make, make),
+            gte(salesHistory.year, yearFrom),
+            lte(salesHistory.year, yearTo)
+          )
+        )
+        .limit(100);
+
+      const models = existingModels
+        .map(row => row.model)
+        .filter((model): model is string => model !== null && model.trim() !== '' && model !== 'Unknown');
+
+      console.log(`Found ${models.length} models for ${make}: ${models.slice(0, 5).join(', ')}${models.length > 5 ? '...' : ''}`);
+
+      // If no models found, try a general search to discover models
+      if (models.length === 0) {
+        console.log(`No existing models found for ${make}, attempting discovery...`);
+        const discoveredModels = await this.discoverModelsForMake(make, startDate, endDate);
+        models.push(...discoveredModels.slice(0, 20)); // Limit to 20 models for discovery
+      }
+
+      // Collect data for each model
+      for (const model of models.slice(0, 50)) { // Limit to 50 models max
+        try {
+          console.log(`Collecting ${make} ${model} data...`);
+          const collected = await this.collectDataForMakeModel(
+            make, 
+            model, 
+            startDate, 
+            endDate,
+            yearFrom,
+            yearTo
+          );
+          totalCollected += collected;
+          
+          // Small delay between model collections
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Error collecting ${make} ${model}:`, error);
+        }
+      }
+
+      // Update or create job record
+      const existingJob = this.collectionQueue.find(job => job.make.toLowerCase() === make.toLowerCase());
+      if (existingJob) {
+        existingJob.lastCollected = new Date();
+        existingJob.modelsDiscovered = models;
+      } else {
+        const newJob: CollectionJob = {
+          id: `${make.toLowerCase()}-${Date.now()}`,
+          make: make,
+          priority: 1,
+          lastCollected: new Date(),
+          modelsDiscovered: models,
+          lastModelIndex: 0
+        };
+        this.collectionQueue.push(newJob);
+      }
+
+      console.log(`Manual collection completed for ${make}: ${totalCollected} records collected`);
+      return { 
+        message: `Completed collection for ${make}`, 
+        modelsProcessed: models.length,
+        recordsCollected: totalCollected,
+        timeframe: `${daysBack} days (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})`,
+        yearRange: `${yearFrom}-${yearTo}`
       };
-      
-      this.collectionQueue.unshift(newJob); // Add to front of queue
-      console.log(`Created new collection job for ${make}`);
-      return { message: `Started collection for ${make}`, jobId: newJob.id };
+    } catch (error) {
+      console.error(`Error in manual collection for ${make}:`, error);
+      throw error;
     }
   }
 }
