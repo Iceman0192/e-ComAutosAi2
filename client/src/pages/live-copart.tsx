@@ -123,8 +123,8 @@ export default function LiveCopart() {
   // Fetch comparable sales (for Gold users with manual filters)
   const { data: comparableData, isLoading: comparableLoading } = useQuery({
     queryKey: ['/api/comparable-sales', filters],
-    queryFn: () => apiRequest('POST', '/api/comparable-sales', filters),
-    enabled: showFilters && hasPermission('FULL_ANALYTICS') && !!filters.make,
+    queryFn: () => apiRequest('/api/comparable-sales', { method: 'POST', body: filters }),
+    enabled: showFilters && hasPermission('ADVANCED_FILTERS') && !!filters.make,
   });
 
   const handleSearch = () => {
