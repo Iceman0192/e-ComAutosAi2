@@ -97,8 +97,16 @@ export default function DataCollection() {
         credentials: 'include'
       });
       if (response.ok) {
-        const data = await response.json();
-        setSystemStatus(data);
+        const result = await response.json();
+        const status = result.data || result;
+        // Ensure all required properties exist with defaults
+        setSystemStatus({
+          isRunning: status.isRunning || false,
+          queueSize: status.queueSize || 0,
+          totalRecords: status.totalRecords || 0,
+          dailyCollected: status.dailyCollected || 0,
+          errorRate: status.errorRate || 0
+        });
       }
     } catch (err) {
       console.error('Failed to fetch system status:', err);
@@ -111,8 +119,22 @@ export default function DataCollection() {
         credentials: 'include'
       });
       if (response.ok) {
-        const data = await response.json();
-        setDatabaseStats(data);
+        const result = await response.json();
+        const stats = result.data || result;
+        // Ensure all numeric properties exist with defaults
+        setDatabaseStats({
+          totalVehicles: stats.totalVehicles || 0,
+          totalMakes: stats.totalMakes || 0,
+          copartRecords: stats.copartRecords || 0,
+          iaaiRecords: stats.iaaiRecords || 0,
+          recentRecords: stats.recentRecords || 0,
+          oldestRecord: stats.oldestRecord || 'N/A',
+          newestRecord: stats.newestRecord || 'N/A',
+          topMakes: stats.topMakes || [],
+          modelsByMake: stats.modelsByMake || {},
+          recordsByMonth: stats.recordsByMonth || [],
+          avgPriceByMake: stats.avgPriceByMake || []
+        });
       }
     } catch (err) {
       console.error('Failed to fetch database stats:', err);
@@ -496,7 +518,7 @@ export default function DataCollection() {
                 </div>
                 <div className="text-center p-2 lg:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                   <div className="text-xs text-muted-foreground">Total</div>
-                  <div className="font-bold text-base lg:text-lg">{systemStatus?.totalRecords?.toLocaleString() || 0}</div>
+                  <div className="font-bold text-base lg:text-lg">{(systemStatus?.totalRecords || 0).toLocaleString()}</div>
                 </div>
                 <div className="text-center p-2 lg:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                   <div className="text-xs text-muted-foreground">Errors</div>
