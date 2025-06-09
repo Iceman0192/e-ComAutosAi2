@@ -178,8 +178,18 @@ export class DataCollectionService {
         await new Promise(resolve => setTimeout(resolve, index * 1000));
         
         try {
+          // Check if we already have data for this specific combination
+          const existingCount = await this.checkExistingData(task.make, task.model, task.site, task.startDate, task.endDate);
+          
+          if (existingCount > 0) {
+            console.log(`${task.make} ${task.model}: Found ${existingCount} existing records from ${task.siteName}, skipping`);
+            return 0; // Return 0 for new collections since we already have this data
+          }
+          
           console.log(`Collecting ${task.make} ${task.model} data from ${task.siteName}...`);
-          const count = await this.collectDataForMakeModelSite(
+          
+          // Use direct database insertion instead of going through cache service
+          const count = await this.collectDirectFromAPI(
             task.make, 
             task.model, 
             task.startDate, 
@@ -190,7 +200,7 @@ export class DataCollectionService {
           );
           
           if (count > 0) {
-            console.log(`${task.make} ${task.model}: ${count} records from ${task.siteName}`);
+            console.log(`${task.make} ${task.model}: Collected ${count} new records from ${task.siteName}`);
           }
           
           return count;
@@ -202,7 +212,7 @@ export class DataCollectionService {
       
       // Wait for current batch to complete
       const batchResults = await Promise.all(batchPromises);
-      totalCollected += batchResults.reduce((sum, count) => sum + count, 0);
+      totalCollected += batchResults.reduce((sum: number, count: number) => sum + count, 0);
       
       // Add delay between batches to respect rate limits
       if (i + concurrencyLimit < tasks.length) {
@@ -265,7 +275,7 @@ export class DataCollectionService {
     }
   }
 
-  private async collectDataForMakeModelSite(
+  private async collectDirectFromAPI(
     make: string, 
     model: string, 
     startDate: Date, 
@@ -274,35 +284,28 @@ export class DataCollectionService {
     yearTo: number = 2025,
     site: number = 1
   ): Promise<number> {
-    // First, check if we already have cached data for this make/model/site combination
-    const existingCount = await this.checkExistingData(make, model, site, startDate, endDate);
-    
-    if (existingCount > 0) {
-      console.log(`Found ${existingCount} existing records for ${make} ${model} on site ${site}, skipping API call`);
-      return 0; // No new data collected since we already have it
-    }
-
     let totalCollected = 0;
     let page = 1;
     let hasMoreData = true;
     
-    const baseUrl = 'http://localhost:5000/api/sales-history';
-    
-    while (hasMoreData) {
+    while (hasMoreData && page <= 10) { // Max 10 pages per model
       try {
+        // Direct API call to APICAR
         const params = new URLSearchParams({
           make: make,
           model: model,
-          sale_date_from: startDate.toISOString().split('T')[0],
-          sale_date_to: endDate.toISOString().split('T')[0],
           year_from: yearFrom.toString(),
           year_to: yearTo.toString(),
+          sale_date_from: startDate.toISOString().split('T')[0],
+          sale_date_to: endDate.toISOString().split('T')[0],
           site: site.toString(),
           page: page.toString(),
-          limit: this.BATCH_SIZE.toString()
+          size: this.BATCH_SIZE.toString()
         });
 
-        const response = await fetch(`${baseUrl}?${params.toString()}`, {
+        const apiUrl = `https://api.apicar.store/api/history-cars?${params.toString()}`;
+        
+        const response = await fetch(apiUrl, {
           headers: {
             'Accept': 'application/json',
             'User-Agent': 'eComAutos Data Collection Service'
@@ -311,29 +314,27 @@ export class DataCollectionService {
 
         if (!response.ok) {
           if (response.status === 429) {
-            console.log(`Rate limited for ${make} ${model}, will retry later`);
+            console.log(`Rate limited for ${make} ${model}, stopping collection`);
           }
           hasMoreData = false;
           break;
         }
 
-        const data = await response.json();
+        const apiData = await response.json();
         
-        if (!data.data || data.data.length === 0) {
+        if (!apiData.data || apiData.data.length === 0) {
           hasMoreData = false;
           break;
         }
 
-        totalCollected += data.data.length;
+        // Insert directly into database
+        await this.insertVehicleData(apiData.data);
+        
+        totalCollected += apiData.data.length;
         page++;
 
-        // Stop after collecting a reasonable amount per model to respect rate limits
-        if (page > 10) { // Max 10 pages (250 records) per model
-          hasMoreData = false;
-        }
-
-        // 2-3 second delay between requests to respect rate limits
-        const delay = 2000 + Math.random() * 1000; // Random 2-3 second delay
+        // 2-3 second delay between requests
+        const delay = 2000 + Math.random() * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
 
       } catch (error) {
@@ -343,6 +344,55 @@ export class DataCollectionService {
     }
 
     return totalCollected;
+  }
+
+  private async insertVehicleData(vehicles: any[]): Promise<void> {
+    try {
+      const { salesHistory } = await import('../shared/schema');
+      const { db } = await import('./db');
+
+      for (const vehicle of vehicles) {
+        try {
+          // Generate unique ID for the record
+          const recordId = `${vehicle.lot_id}-${vehicle.site}-${Date.now()}`;
+          
+          await db.insert(salesHistory).values({
+            id: recordId,
+            lot_id: vehicle.lot_id || 0,
+            site: vehicle.site || 1,
+            base_site: vehicle.site === 1 ? 'copart' : 'iaai',
+            vin: vehicle.vin || '',
+            sale_status: vehicle.sale_status || 'SOLD',
+            sale_date: vehicle.sale_date ? new Date(vehicle.sale_date) : new Date(),
+            purchase_price: vehicle.sale_price?.toString() || '0',
+            buyer_state: vehicle.buyer_state || null,
+            buyer_country: vehicle.buyer_country || null,
+            buyer_type: vehicle.buyer_type || null,
+            auction_location: vehicle.location || null,
+            vehicle_mileage: vehicle.odometer || null,
+            vehicle_damage: vehicle.damage || null,
+            vehicle_title: vehicle.title || null,
+            vehicle_has_keys: vehicle.has_keys || null,
+            year: vehicle.year || null,
+            make: vehicle.make || null,
+            model: vehicle.model || null,
+            series: vehicle.series || null,
+            trim: vehicle.trim || null,
+            transmission: vehicle.transmission || null,
+            drive: vehicle.drive || null,
+            fuel: vehicle.fuel_type || null,
+            engine: vehicle.engine || null,
+            color: vehicle.color || null,
+            images: JSON.stringify(vehicle.images || []),
+            link: vehicle.link || null
+          }).onConflictDoNothing();
+        } catch (insertError) {
+          // Skip duplicate entries silently
+        }
+      }
+    } catch (error) {
+      console.error('Error inserting vehicle data:', error);
+    }
   }
 
   private async checkExistingData(
