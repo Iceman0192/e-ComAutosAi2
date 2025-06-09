@@ -140,7 +140,7 @@ export class RecommendationEngine {
         min: years.length ? Math.min(...years) : 2010,
         max: years.length ? Math.max(...years) : new Date().getFullYear()
       },
-      preferredDamageTypes: [...new Set(damages)]
+      preferredDamageTypes: damages.filter((damage, index) => damages.indexOf(damage) === index)
     };
   }
 
