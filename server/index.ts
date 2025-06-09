@@ -16,6 +16,7 @@ import { setupHealthRoutes } from "./routes/healthRoutes";
 import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
 import { setupTeamRoutes } from "./routes/teamRoutes";
 import { setupVinRoutes } from "./routes/vinRoutes";
+import { setupTargetedCollectionRoutes } from "./targetedCollectionRoutes";
 import { freshDataManager } from "./freshDataManager";
 import { autoCollectionService } from "./autoCollectionService";
 import { errorHandler, notFound } from "./middleware/errorHandler";
@@ -115,6 +116,7 @@ async function startServer() {
   registerDataCollectionRoutes(app);
   setupTeamRoutes(app);
   setupVinRoutes(app);
+  setupTargetedCollectionRoutes(app);
 
   // Fresh data migration scheduler
   setInterval(async () => {
