@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { dataCollectionService } from "./dataCollectionService";
-import { requireAuth, requireAdmin } from "./authRoutes";
+import { requireAuth, requireAdmin, AuthenticatedRequest } from "./auth/unifiedAuth";
 
 export function registerDataCollectionRoutes(app: Express) {
   

@@ -106,6 +106,23 @@ export async function requireRole(roles: string[]) {
   };
 }
 
+// Admin-specific middleware
+export async function requireAdmin(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) {
+  await requireAuth(req, res, () => {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Admin access required' 
+      });
+    }
+    next();
+  });
+}
+
 export function setupUnifiedAuth(app: Express) {
   // Signup endpoint
   app.post('/api/auth/signup', async (req: Request, res: Response) => {
