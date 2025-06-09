@@ -504,7 +504,7 @@ export class DataCollectionService {
             yearFrom,
             yearTo,
             1 // Copart
-          );
+          ) || 0;
           
           // Small delay between sites
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -518,10 +518,11 @@ export class DataCollectionService {
             yearFrom,
             yearTo,
             2 // IAAI
-          );
+          ) || 0;
           
-          totalCollected += copartCollected + iaaiCollected;
-          console.log(`${make} ${model}: ${copartCollected} Copart + ${iaaiCollected} IAAI = ${copartCollected + iaaiCollected} total`);
+          const modelTotal = copartCollected + iaaiCollected;
+          totalCollected += modelTotal;
+          console.log(`${make} ${model}: ${copartCollected} Copart + ${iaaiCollected} IAAI = ${modelTotal} total`);
           
           // 5-second delay between model collections as per user request
           await new Promise(resolve => setTimeout(resolve, 5000));

@@ -165,26 +165,30 @@ export function registerDataCollectionRoutes(app: Express) {
         `)
       ]);
 
-      const totalVehicles = totalVehiclesResult?.[0]?.count || 0;
-      const totalMakes = makesResult?.[0]?.count || 0;
-      const recentRecords = recentRecordsResult?.[0]?.count || 0;
+      // Handle query results properly
+      const totalVehicles = (totalVehiclesResult as any)?.[0]?.count || 0;
+      const totalMakes = (makesResult as any)?.[0]?.count || 0;
+      const recentRecords = (recentRecordsResult as any)?.[0]?.count || 0;
       
       // Process platform records
-      const platformRecords = (platformRecordsResult || []).reduce((acc: any, row: any) => {
+      const platformRecordsArray = (platformRecordsResult as any) || [];
+      const platformRecords = platformRecordsArray.reduce((acc: any, row: any) => {
         if (row.site === 1) acc.copart = parseInt(row.count);
         if (row.site === 2) acc.iaai = parseInt(row.count);
         return acc;
       }, { copart: 0, iaai: 0 });
 
-      const dateRange = dateRangeResult?.[0] || {};
-      const topMakes = (topMakesResult || []).map((row: any) => ({
+      const dateRange = (dateRangeResult as any)?.[0] || {};
+      const topMakesArray = (topMakesResult as any) || [];
+      const topMakes = topMakesArray.map((row: any) => ({
         make: row.make,
         count: parseInt(row.count),
         percentage: parseFloat(row.percentage)
       }));
 
       // Process models by make
-      const modelsByMake = (modelsResult || []).reduce((acc: any, row: any) => {
+      const modelsArray = (modelsResult as any) || [];
+      const modelsByMake = modelsArray.reduce((acc: any, row: any) => {
         if (!acc[row.make]) {
           acc[row.make] = [];
         }
@@ -385,7 +389,7 @@ export function registerDataCollectionRoutes(app: Express) {
         LIMIT 50
       `);
 
-      const modelsArray = Array.isArray(modelsResult) ? modelsResult : [];
+      const modelsArray = (modelsResult as any) || [];
       const models = modelsArray.map((row: any) => ({
         model: row.model,
         count: parseInt(row.count)
