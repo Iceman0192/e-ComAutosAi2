@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Database, Play, Pause, RefreshCw, TrendingUp, AlertCircle } from "lucide-react";
+import { Database, Play, Pause, RefreshCw, TrendingUp, AlertCircle, Settings } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface CollectionJob {
   id: string;
@@ -42,6 +45,19 @@ export default function DataCollection() {
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Manual collection form state
+  const [selectedMake, setSelectedMake] = useState<string>('');
+  const [yearFrom, setYearFrom] = useState<string>('2012');
+  const [yearTo, setYearTo] = useState<string>('2025');
+  const [daysBack, setDaysBack] = useState<string>('150');
+  const [isStarting, setIsStarting] = useState(false);
+
+  const vehicleMakes = [
+    'Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Hyundai', 'Kia', 
+    'Jeep', 'Dodge', 'BMW', 'Mercedes-Benz', 'Audi', 'Tesla', 'Porsche',
+    'Lexus', 'Mazda', 'Volkswagen', 'Subaru', 'Mitsubishi'
+  ];
 
   const canManageDataCollection = hasPermission('DATA_COLLECTION_MANAGEMENT');
 
@@ -169,6 +185,43 @@ export default function DataCollection() {
     } catch (err) {
       setError("Failed to stop data collection");
       console.error('Stop collection error:', err);
+    }
+  };
+
+  const handleStartMakeCollection = async () => {
+    if (!selectedMake) {
+      setError("Please select a vehicle make");
+      return;
+    }
+
+    setIsStarting(true);
+    try {
+      const response = await fetch('/api/admin/data-collection/start-make', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          make: selectedMake,
+          yearFrom: parseInt(yearFrom),
+          yearTo: parseInt(yearTo),
+          daysBack: parseInt(daysBack)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start make collection');
+      }
+
+      await fetchDataCollectionStatus();
+      await fetchCollectionJobs();
+      setError(null);
+    } catch (err) {
+      setError("Failed to start make collection");
+      console.error('Start make collection error:', err);
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -318,6 +371,90 @@ export default function DataCollection() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Manual Collection Controls */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Manual Collection
+          </CardTitle>
+          <CardDescription>
+            Start data collection for specific vehicle makes with custom parameters
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="make-select">Vehicle Make</Label>
+              <Select value={selectedMake} onValueChange={setSelectedMake}>
+                <SelectTrigger id="make-select">
+                  <SelectValue placeholder="Select make" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehicleMakes.map((make) => (
+                    <SelectItem key={make} value={make}>
+                      {make}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="year-from">Year From</Label>
+              <Input
+                id="year-from"
+                type="number"
+                value={yearFrom}
+                onChange={(e) => setYearFrom(e.target.value)}
+                min="2012"
+                max="2025"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="year-to">Year To</Label>
+              <Input
+                id="year-to"
+                type="number"
+                value={yearTo}
+                onChange={(e) => setYearTo(e.target.value)}
+                min="2012"
+                max="2025"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="days-back">Days Back</Label>
+              <Input
+                id="days-back"
+                type="number"
+                value={daysBack}
+                onChange={(e) => setDaysBack(e.target.value)}
+                min="1"
+                max="365"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <Button
+              onClick={handleStartMakeCollection}
+              disabled={!selectedMake || isStarting}
+              className="flex items-center gap-2"
+            >
+              <Play className="h-4 w-4" />
+              {isStarting ? 'Starting...' : 'Start Collection'}
+            </Button>
+            
+            <div className="text-sm text-muted-foreground self-center">
+              Collection will cover {selectedMake || 'selected make'} vehicles from {yearFrom}-{yearTo} 
+              over the last {daysBack} days from both Copart and IAAI platforms
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Collection Jobs */}
       <Card>
