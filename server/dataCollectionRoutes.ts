@@ -75,13 +75,141 @@ export function registerDataCollectionRoutes(app: Express) {
   // Get database statistics
   app.get('/api/admin/database/stats', requireAuth, requireAdmin, async (req, res) => {
     try {
-      // This endpoint will be implemented to show database growth over time
-      res.json({
-        success: true,
-        data: {
-          message: "Database statistics endpoint ready for implementation"
+      const { db } = await import('./db');
+      const { sql } = await import('drizzle-orm');
+
+      const [
+        totalVehiclesResult,
+        makesResult,
+        platformRecordsResult,
+        recentRecordsResult,
+        dateRangeResult,
+        topMakesResult,
+        modelsResult
+      ] = await Promise.all([
+        // Total vehicles
+        db.execute(sql`SELECT COUNT(*) as count FROM copart_vehicle_sales`),
+        
+        // Unique makes
+        db.execute(sql`SELECT COUNT(DISTINCT make) as count FROM copart_vehicle_sales WHERE make IS NOT NULL`),
+        
+        // Platform breakdown
+        db.execute(sql`
+          SELECT 
+            site,
+            COUNT(*) as count
+          FROM copart_vehicle_sales 
+          GROUP BY site
+        `),
+        
+        // Recent records (last 30 days)
+        db.execute(sql`
+          SELECT COUNT(*) as count 
+          FROM copart_vehicle_sales 
+          WHERE auction_date >= NOW() - INTERVAL '30 days'
+        `),
+        
+        // Date range
+        db.execute(sql`
+          SELECT 
+            MIN(auction_date) as oldest,
+            MAX(auction_date) as newest
+          FROM copart_vehicle_sales
+          WHERE auction_date IS NOT NULL
+        `),
+        
+        // Top makes with percentages
+        db.execute(sql`
+          WITH total_count AS (
+            SELECT COUNT(*) as total FROM copart_vehicle_sales WHERE make IS NOT NULL
+          ),
+          make_counts AS (
+            SELECT 
+              make,
+              COUNT(*) as count
+            FROM copart_vehicle_sales 
+            WHERE make IS NOT NULL
+            GROUP BY make
+            ORDER BY count DESC
+            LIMIT 15
+          )
+          SELECT 
+            mc.make,
+            mc.count,
+            ROUND((mc.count * 100.0 / tc.total), 2) as percentage
+          FROM make_counts mc
+          CROSS JOIN total_count tc
+          ORDER BY mc.count DESC
+        `),
+
+        // Models by top makes
+        db.execute(sql`
+          SELECT DISTINCT 
+            make,
+            model,
+            COUNT(*) as count
+          FROM copart_vehicle_sales 
+          WHERE make IS NOT NULL AND model IS NOT NULL
+            AND make IN (
+              SELECT make FROM (
+                SELECT make, COUNT(*) as cnt
+                FROM copart_vehicle_sales 
+                WHERE make IS NOT NULL
+                GROUP BY make
+                ORDER BY cnt DESC
+                LIMIT 10
+              ) top_makes
+            )
+          GROUP BY make, model
+          ORDER BY make, count DESC
+        `)
+      ]);
+
+      const totalVehicles = (totalVehiclesResult as any)[0]?.count || 0;
+      const totalMakes = (makesResult as any)[0]?.count || 0;
+      const recentRecords = (recentRecordsResult as any)[0]?.count || 0;
+      
+      // Process platform records
+      const platformRecords = (platformRecordsResult as any).reduce((acc: any, row: any) => {
+        if (row.site === 1) acc.copart = row.count;
+        if (row.site === 2) acc.iaai = row.count;
+        return acc;
+      }, { copart: 0, iaai: 0 });
+
+      const dateRange = (dateRangeResult as any)[0] || {};
+      const topMakes = (topMakesResult as any).map((row: any) => ({
+        make: row.make,
+        count: parseInt(row.count),
+        percentage: parseFloat(row.percentage)
+      }));
+
+      // Process models by make
+      const modelsByMake = (modelsResult as any).reduce((acc: any, row: any) => {
+        if (!acc[row.make]) {
+          acc[row.make] = [];
         }
-      });
+        acc[row.make].push({
+          model: row.model,
+          count: parseInt(row.count)
+        });
+        return acc;
+      }, {});
+
+      const stats = {
+        totalVehicles: parseInt(totalVehicles),
+        totalMakes: parseInt(totalMakes),
+        copartRecords: platformRecords.copart,
+        iaaiRecords: platformRecords.iaai,
+        recentRecords: parseInt(recentRecords),
+        oldestRecord: dateRange.oldest ? new Date(dateRange.oldest).toLocaleDateString() : 'N/A',
+        newestRecord: dateRange.newest ? new Date(dateRange.newest).toLocaleDateString() : 'N/A',
+        topMakes,
+        modelsByMake,
+        recordsByMonth: [],
+        avgPriceByMake: []
+      };
+
+      res.json(stats);
     } catch (error: any) {
       console.error('Error getting database stats:', error);
       res.status(500).json({
@@ -163,6 +291,118 @@ export function registerDataCollectionRoutes(app: Express) {
         success: false,
         message: 'Failed to start make collection',
         error: error.message
+      });
+    }
+  });
+
+  // Start multiple collections with make/model combinations
+  app.post('/api/admin/data-collection/start-multiple', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { searches } = req.body;
+      
+      if (!searches || !Array.isArray(searches) || searches.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No searches provided'
+        });
+      }
+
+      const startedSearches = [];
+      
+      for (const search of searches) {
+        const { make, model, yearFrom, yearTo, daysBack } = search;
+        
+        if (!make) {
+          continue;
+        }
+
+        try {
+          // Prepare collection options
+          const options = {
+            yearFrom: yearFrom || 2020,
+            yearTo: yearTo || 2025,
+            daysBack: daysBack || 30,
+            priority: 2,
+            model: model || undefined
+          };
+
+          console.log(`Starting collection for ${make}${model ? ` ${model}` : ''} with options:`, options);
+          
+          // Start collection for this make/model combination
+          await dataCollectionService.startMakeCollection(make, options);
+
+          startedSearches.push({
+            id: `${make}-${model || 'all'}-${Date.now()}`,
+            make,
+            model: model || 'All Models',
+            yearFrom: options.yearFrom,
+            yearTo: options.yearTo,
+            daysBack: options.daysBack,
+            status: 'queued',
+            progress: 0,
+            recordsFound: 0
+          });
+
+          // Add delay between starts to prevent API overload
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        } catch (error) {
+          console.error(`Failed to start collection for ${make}${model ? ` ${model}` : ''}:`, error);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Started ${startedSearches.length} of ${searches.length} requested collections`,
+        searches: startedSearches
+      });
+    } catch (error: any) {
+      console.error('Multiple collection start error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to start multiple collections',
+        error: error.message
+      });
+    }
+  });
+
+  // Get available models for a specific make
+  app.get('/api/admin/database/models/:make', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { make } = req.params;
+      const { db } = await import('./db');
+      const { sql } = await import('drizzle-orm');
+
+      const modelsResult = await db.execute(sql`
+        SELECT DISTINCT 
+          model,
+          COUNT(*) as count
+        FROM copart_vehicle_sales 
+        WHERE make = ${make} 
+          AND model IS NOT NULL 
+          AND model != ''
+        GROUP BY model
+        ORDER BY count DESC, model ASC
+        LIMIT 50
+      `);
+
+      const models = (modelsResult as any).map((row: any) => ({
+        model: row.model,
+        count: parseInt(row.count)
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          make,
+          models,
+          totalModels: models.length
+        }
+      });
+    } catch (error: any) {
+      console.error('Error getting models for make:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get models for make'
       });
     }
   });
