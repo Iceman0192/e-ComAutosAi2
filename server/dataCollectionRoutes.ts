@@ -55,6 +55,55 @@ export function registerDataCollectionRoutes(app: Express) {
     }
   });
 
+  // Start multiple collections (admin only)
+  app.post('/api/admin/data-collection/start-multiple', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { searches } = req.body;
+      if (!searches || !Array.isArray(searches)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid search parameters'
+        });
+      }
+
+      const results = [];
+      for (const search of searches) {
+        try {
+          await dataCollectionService.startMakeCollection(search.make, {
+            yearFrom: search.yearFrom,
+            yearTo: search.yearTo,
+            daysBack: search.daysBack
+          });
+          results.push({
+            make: search.make,
+            model: search.model,
+            status: 'started'
+          });
+        } catch (error) {
+          console.error(`Failed to start collection for ${search.make}:`, error);
+          results.push({
+            make: search.make,
+            model: search.model,
+            status: 'failed',
+            error: error.message
+          });
+        }
+      }
+
+      res.json({
+        success: true,
+        searches: results,
+        message: `Started ${results.filter(r => r.status === 'started').length} collections`
+      });
+    } catch (error: any) {
+      console.error('Error starting multiple collections:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to start collections'
+      });
+    }
+  });
+
   // Get collection jobs (admin only)
   app.get('/api/admin/data-collection/jobs', requireAuth, requireAdmin, (req, res) => {
     try {
