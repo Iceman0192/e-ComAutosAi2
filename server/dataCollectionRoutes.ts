@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { dataCollectionService } from "./dataCollectionService";
 import { requireAuth, requireAdmin, AuthenticatedRequest } from "./auth/unifiedAuth";
 import { pool } from "./db";
+import { autoCollectionService } from "./autoCollectionService";
 
 export function registerDataCollectionRoutes(app: Express) {
   
@@ -549,6 +550,114 @@ export function registerDataCollectionRoutes(app: Express) {
       res.status(500).json({
         success: false,
         message: 'Failed to get models for make'
+      });
+    }
+  });
+
+  // Auto-collection status endpoint
+  app.get('/api/admin/auto-collection/status', requireAuth, requireAdmin, (req, res) => {
+    try {
+      const status = autoCollectionService.getStatus();
+      res.json(status);
+    } catch (error: any) {
+      console.error('Error getting auto-collection status:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get auto-collection status'
+      });
+    }
+  });
+
+  // Start auto-collection
+  app.post('/api/admin/auto-collection/start', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const result = await autoCollectionService.start();
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error starting auto-collection:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to start auto-collection'
+      });
+    }
+  });
+
+  // Stop auto-collection
+  app.post('/api/admin/auto-collection/stop', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const result = await autoCollectionService.stop();
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error stopping auto-collection:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to stop auto-collection'
+      });
+    }
+  });
+
+  // Sales history data endpoint
+  app.get('/api/sales-history', requireAuth, async (req, res) => {
+    try {
+      const { page = '1', limit = '50', search, make, site } = req.query;
+      const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+      
+      let whereClause = 'WHERE 1=1';
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      if (search) {
+        whereClause += ` AND (vin ILIKE $${paramIndex} OR make ILIKE $${paramIndex} OR model ILIKE $${paramIndex})`;
+        params.push(`%${search}%`);
+        paramIndex++;
+      }
+
+      if (make) {
+        whereClause += ` AND make = $${paramIndex}`;
+        params.push(make);
+        paramIndex++;
+      }
+
+      if (site) {
+        whereClause += ` AND site = $${paramIndex}`;
+        params.push(parseInt(site as string));
+        paramIndex++;
+      }
+
+      // Get total count
+      const countQuery = `SELECT COUNT(*) as total FROM sales_history ${whereClause}`;
+      const countResult = await pool.query(countQuery, params);
+      const totalRecords = parseInt(countResult.rows[0].total);
+      const totalPages = Math.ceil(totalRecords / parseInt(limit as string));
+
+      // Get paginated data
+      const dataQuery = `
+        SELECT id, make, model, year, sale_date, purchase_price, odometer, 
+               damage_pr, location, site, vin
+        FROM sales_history 
+        ${whereClause}
+        ORDER BY sale_date DESC
+        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+      `;
+      params.push(parseInt(limit as string), offset);
+
+      const dataResult = await pool.query(dataQuery, params);
+
+      res.json({
+        success: true,
+        data: dataResult.rows,
+        pagination: {
+          page: parseInt(page as string),
+          limit: parseInt(limit as string),
+          totalRecords,
+          totalPages
+        }
+      });
+    } catch (error: any) {
+      console.error('Error fetching sales history:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch sales history'
       });
     }
   });

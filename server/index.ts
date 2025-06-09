@@ -16,6 +16,7 @@ import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
 import { setupTeamRoutes } from "./routes/teamRoutes";
 import { setupVinRoutes } from "./routes/vinRoutes";
 import { freshDataManager } from "./freshDataManager";
+import { autoCollectionService } from "./autoCollectionService";
 import { errorHandler, notFound } from "./middleware/errorHandler";
 import { requestLogger, logger } from "./middleware/logger";
 import { securityHeaders, corsConfig, sanitizeInput, preventParameterPollution } from "./middleware/security";
