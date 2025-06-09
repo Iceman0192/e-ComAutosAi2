@@ -68,25 +68,8 @@ export async function getVehicleSalesHistory(
       }
     });
     
-    // Log the actual response structure for debugging
-    console.log('=== APICAR API Response Debug ===');
-    console.log('Full response status:', response.status);
-    console.log('Response headers:', response.headers);
-    console.log('Response data type:', typeof response.data);
-    console.log('Is response.data an array?', Array.isArray(response.data));
-    
-    if (typeof response.data === 'object' && response.data !== null) {
-      console.log('Response data keys:', Object.keys(response.data));
-      if (response.data.data) {
-        console.log('response.data.data type:', typeof response.data.data);
-        console.log('Is response.data.data an array?', Array.isArray(response.data.data));
-        if (Array.isArray(response.data.data)) {
-          console.log('response.data.data length:', response.data.data.length);
-        }
-      }
-    }
-    
-    console.log('First 200 chars of response:', JSON.stringify(response.data).substring(0, 200));
+    // Log basic API response info
+    console.log(`APICAR API: ${response.data.data?.length || 0} records returned (status: ${response.status})`);
     
     // Return the data
     return {

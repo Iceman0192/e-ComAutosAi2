@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { dataCollectionService } from "./dataCollectionService";
 import { requireAuth, requireAdmin, AuthenticatedRequest } from "./auth/unifiedAuth";
+import { pool } from "./db";
 
 export function registerDataCollectionRoutes(app: Express) {
   
@@ -104,10 +105,50 @@ export function registerDataCollectionRoutes(app: Express) {
     }
   });
 
+  // Get available models for a make (admin only)
+  app.get('/api/admin/data-collection/models', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { make } = req.query;
+      
+      if (!make) {
+        return res.status(400).json({
+          success: false,
+          message: 'Make parameter is required'
+        });
+      }
+
+      // Query distinct models from the database
+      const query = `
+        SELECT DISTINCT model 
+        FROM sales_history 
+        WHERE make = $1 
+        AND model IS NOT NULL 
+        AND model != '' 
+        AND model != 'Unknown'
+        ORDER BY model
+        LIMIT 50
+      `;
+      
+      const result = await pool.query(query, [make]);
+      const models = result.rows.map((row: any) => row.model).filter((model: any) => model && model.trim() !== '');
+
+      res.json({
+        success: true,
+        models
+      });
+    } catch (error: any) {
+      console.error('Error fetching models:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch models'
+      });
+    }
+  });
+
   // Start manual collection for specific make and site (admin only)
   app.post('/api/admin/data-collection/start-make-site', requireAuth, requireAdmin, async (req, res) => {
     try {
-      const { make, site, yearFrom, yearTo, daysBack, discoverModels } = req.body;
+      const { make, site, model, yearFrom, yearTo, daysBack, discoverModels } = req.body;
       
       if (!make || !site) {
         return res.status(400).json({
@@ -116,13 +157,21 @@ export function registerDataCollectionRoutes(app: Express) {
         });
       }
 
-      await dataCollectionService.startMakeCollection(make, {
+      const options: any = {
         site: parseInt(site),
         yearFrom: yearFrom || 2012,
         yearTo: yearTo || 2025,
         daysBack: daysBack || 150,
         discoverModels: discoverModels !== false
-      });
+      };
+
+      // Add specific model if provided and not "all models"
+      if (model && model !== '__all__') {
+        options.specificModel = model;
+        options.discoverModels = false; // Don't discover models if specific model requested
+      }
+
+      await dataCollectionService.startMakeCollection(make, options);
 
       res.json({
         success: true,

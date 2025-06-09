@@ -151,17 +151,25 @@ export default function DataCollectionClean() {
 
     setIsCollecting(true);
     try {
+      const requestBody: any = {
+        make: selectedMake,
+        site: selectedSite,
+        yearFrom: 2012,
+        yearTo: 2025,
+        daysBack: 150,
+        discoverModels: true
+      };
+
+      // Add model if specific model is selected
+      if (selectedModel && selectedModel !== '__all__') {
+        requestBody.model = selectedModel;
+        requestBody.discoverModels = false;
+      }
+
       const response = await fetch('/api/admin/data-collection/start-make-site', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          make: selectedMake,
-          site: selectedSite,
-          yearFrom: 2012,
-          yearTo: 2025,
-          daysBack: 150,
-          discoverModels: true
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const result = await response.json();
