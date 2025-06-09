@@ -88,46 +88,46 @@ export function registerDataCollectionRoutes(app: Express) {
         modelsResult
       ] = await Promise.all([
         // Total vehicles
-        db.execute(sql`SELECT COUNT(*) as count FROM copart_vehicle_sales`),
+        db.execute(sql`SELECT COUNT(*) as count FROM sales_history`),
         
         // Unique makes
-        db.execute(sql`SELECT COUNT(DISTINCT make) as count FROM copart_vehicle_sales WHERE make IS NOT NULL`),
+        db.execute(sql`SELECT COUNT(DISTINCT make) as count FROM sales_history WHERE make IS NOT NULL`),
         
         // Platform breakdown
         db.execute(sql`
           SELECT 
             site,
             COUNT(*) as count
-          FROM copart_vehicle_sales 
+          FROM sales_history 
           GROUP BY site
         `),
         
         // Recent records (last 30 days)
         db.execute(sql`
           SELECT COUNT(*) as count 
-          FROM copart_vehicle_sales 
-          WHERE auction_date >= NOW() - INTERVAL '30 days'
+          FROM sales_history 
+          WHERE sale_date >= NOW() - INTERVAL '30 days'
         `),
         
         // Date range
         db.execute(sql`
           SELECT 
-            MIN(auction_date) as oldest,
-            MAX(auction_date) as newest
-          FROM copart_vehicle_sales
-          WHERE auction_date IS NOT NULL
+            MIN(sale_date) as oldest,
+            MAX(sale_date) as newest
+          FROM sales_history
+          WHERE sale_date IS NOT NULL
         `),
         
         // Top makes with percentages
         db.execute(sql`
           WITH total_count AS (
-            SELECT COUNT(*) as total FROM copart_vehicle_sales WHERE make IS NOT NULL
+            SELECT COUNT(*) as total FROM sales_history WHERE make IS NOT NULL
           ),
           make_counts AS (
             SELECT 
               make,
               COUNT(*) as count
-            FROM copart_vehicle_sales 
+            FROM sales_history 
             WHERE make IS NOT NULL
             GROUP BY make
             ORDER BY count DESC
@@ -148,12 +148,12 @@ export function registerDataCollectionRoutes(app: Express) {
             make,
             model,
             COUNT(*) as count
-          FROM copart_vehicle_sales 
+          FROM sales_history 
           WHERE make IS NOT NULL AND model IS NOT NULL
             AND make IN (
               SELECT make FROM (
                 SELECT make, COUNT(*) as cnt
-                FROM copart_vehicle_sales 
+                FROM sales_history 
                 WHERE make IS NOT NULL
                 GROUP BY make
                 ORDER BY cnt DESC
@@ -376,7 +376,7 @@ export function registerDataCollectionRoutes(app: Express) {
         SELECT DISTINCT 
           model,
           COUNT(*) as count
-        FROM copart_vehicle_sales 
+        FROM sales_history 
         WHERE make = ${make} 
           AND model IS NOT NULL 
           AND model != ''

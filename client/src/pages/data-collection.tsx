@@ -71,10 +71,12 @@ export default function DataCollection() {
   
   // Multi-search form state
   const [selectedMakes, setSelectedMakes] = useState<string[]>([]);
+  const [selectedModels, setSelectedModels] = useState<Record<string, string[]>>({});
   const [yearFrom, setYearFrom] = useState<string>('2020');
   const [yearTo, setYearTo] = useState<string>('2025');
   const [daysBack, setDaysBack] = useState<string>('30');
   const [isStartingMultiple, setIsStartingMultiple] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const vehicleMakes = [
     'Toyota', 'Honda', 'Ford', 'Chevrolet', 'Nissan', 'Hyundai', 'Kia', 
@@ -139,12 +141,32 @@ export default function DataCollection() {
     setError(null);
 
     try {
-      const searches = selectedMakes.map(make => ({
-        make,
-        yearFrom: parseInt(yearFrom),
-        yearTo: parseInt(yearTo),
-        daysBack: parseInt(daysBack)
-      }));
+      const searches: any[] = [];
+      
+      selectedMakes.forEach(make => {
+        const modelsForMake = selectedModels[make] || [];
+        
+        if (modelsForMake.length === 0) {
+          // No specific models selected, collect all models for this make
+          searches.push({
+            make,
+            yearFrom: parseInt(yearFrom),
+            yearTo: parseInt(yearTo),
+            daysBack: parseInt(daysBack)
+          });
+        } else {
+          // Specific models selected, create separate searches for each
+          modelsForMake.forEach(model => {
+            searches.push({
+              make,
+              model,
+              yearFrom: parseInt(yearFrom),
+              yearTo: parseInt(yearTo),
+              daysBack: parseInt(daysBack)
+            });
+          });
+        }
+      });
 
       const response = await fetch('/api/admin/data-collection/start-multiple', {
         method: 'POST',
@@ -165,6 +187,7 @@ export default function DataCollection() {
       await fetchSystemStatus();
       await fetchJobs();
       setSelectedMakes([]);
+      setSelectedModels({});
     } catch (err) {
       setError("Failed to start collections");
       console.error('Collection error:', err);
@@ -187,6 +210,30 @@ export default function DataCollection() {
 
   const clearAllMakes = () => {
     setSelectedMakes([]);
+    setSelectedModels({});
+  };
+
+  const toggleModelSelection = (make: string, model: string) => {
+    setSelectedModels(prev => {
+      const current = prev[make] || [];
+      const updated = current.includes(model)
+        ? current.filter(m => m !== model)
+        : [...current, model];
+      
+      return {
+        ...prev,
+        [make]: updated
+      };
+    });
+  };
+
+  const getTotalSelections = () => {
+    let total = 0;
+    selectedMakes.forEach(make => {
+      const models = selectedModels[make] || [];
+      total += models.length === 0 ? 1 : models.length;
+    });
+    return total;
   };
 
   useEffect(() => {
@@ -422,13 +469,22 @@ export default function DataCollection() {
               {/* Vehicle Selection */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-medium">Select Vehicle Makes ({selectedMakes.length} selected)</Label>
+                  <Label className="text-base font-medium">
+                    Select Vehicle Makes ({selectedMakes.length} makes, {getTotalSelections()} total searches)
+                  </Label>
                   <div className="space-x-2">
                     <Button variant="outline" size="sm" onClick={selectAllMakes}>
                       Select All
                     </Button>
                     <Button variant="outline" size="sm" onClick={clearAllMakes}>
                       Clear All
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                    >
+                      {showAdvanced ? 'Simple' : 'Advanced'} Mode
                     </Button>
                   </div>
                 </div>
@@ -443,9 +499,62 @@ export default function DataCollection() {
                       className="justify-start"
                     >
                       {make}
+                      {selectedMakes.includes(make) && selectedModels[make]?.length > 0 && (
+                        <span className="ml-1 text-xs">({selectedModels[make].length})</span>
+                      )}
                     </Button>
                   ))}
                 </div>
+
+                {/* Model Selection */}
+                {showAdvanced && selectedMakes.length > 0 && (
+                  <div className="space-y-4 mt-6 p-4 border rounded-lg bg-muted/50">
+                    <Label className="text-base font-medium">Advanced Model Selection</Label>
+                    <div className="space-y-3">
+                      {selectedMakes.map((make) => {
+                        const availableModels = databaseStats?.modelsByMake?.[make] || [];
+                        const selectedForMake = selectedModels[make] || [];
+                        
+                        return (
+                          <div key={make} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{make}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {availableModels.length} models available
+                              </span>
+                            </div>
+                            
+                            {availableModels.length > 0 ? (
+                              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-1">
+                                {availableModels.slice(0, 14).map((modelData) => (
+                                  <Button
+                                    key={`${make}-${modelData.model}`}
+                                    variant={selectedForMake.includes(modelData.model) ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => toggleModelSelection(make, modelData.model)}
+                                    className="text-xs h-8"
+                                    title={`${modelData.model} (${modelData.count} records)`}
+                                  >
+                                    {modelData.model}
+                                  </Button>
+                                ))}
+                                {availableModels.length > 14 && (
+                                  <span className="text-xs text-muted-foreground self-center">
+                                    +{availableModels.length - 14} more
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                No model data available for {make}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Parameters */}
