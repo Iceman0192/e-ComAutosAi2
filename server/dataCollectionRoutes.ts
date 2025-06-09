@@ -171,7 +171,8 @@ export function registerDataCollectionRoutes(app: Express) {
       const recentRecords = (recentRecordsResult as any)?.[0]?.count || 0;
       
       // Process platform records
-      const platformRecordsArray = (platformRecordsResult as any) || [];
+      const platformRecordsArray = Array.isArray(platformRecordsResult) ? platformRecordsResult : 
+                                   (platformRecordsResult ? [platformRecordsResult] : []);
       const platformRecords = platformRecordsArray.reduce((acc: any, row: any) => {
         if (row.site === 1) acc.copart = parseInt(row.count);
         if (row.site === 2) acc.iaai = parseInt(row.count);
@@ -179,7 +180,8 @@ export function registerDataCollectionRoutes(app: Express) {
       }, { copart: 0, iaai: 0 });
 
       const dateRange = (dateRangeResult as any)?.[0] || {};
-      const topMakesArray = (topMakesResult as any) || [];
+      const topMakesArray = Array.isArray(topMakesResult) ? topMakesResult : 
+                           (topMakesResult ? [topMakesResult] : []);
       const topMakes = topMakesArray.map((row: any) => ({
         make: row.make,
         count: parseInt(row.count),
@@ -187,7 +189,8 @@ export function registerDataCollectionRoutes(app: Express) {
       }));
 
       // Process models by make
-      const modelsArray = (modelsResult as any) || [];
+      const modelsArray = Array.isArray(modelsResult) ? modelsResult : 
+                         (modelsResult ? [modelsResult] : []);
       const modelsByMake = modelsArray.reduce((acc: any, row: any) => {
         if (!acc[row.make]) {
           acc[row.make] = [];

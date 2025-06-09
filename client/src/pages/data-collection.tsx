@@ -36,6 +36,7 @@ interface DatabaseStats {
 interface CollectionJob {
   id: string;
   make: string;
+  model?: string;
   priority: number;
   status: 'pending' | 'running' | 'completed' | 'failed';
   progress: number;
@@ -47,6 +48,9 @@ interface CollectionJob {
   yearFrom: number;
   yearTo: number;
   daysBack: number;
+  currentModel?: string;
+  totalModels?: number;
+  modelsCompleted?: number;
 }
 
 interface ActiveSearch {
@@ -456,40 +460,97 @@ export default function DataCollection() {
           </div>
         </TabsContent>
 
-        <TabsContent value="collect" className="space-y-6">
+        <TabsContent value="collect" className="space-y-4 lg:space-y-6">
+          {/* Active Collections - Mobile First */}
+          {systemStatus?.isRunning && (
+            <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm lg:text-base">
+                  <Loader className="h-4 w-4 lg:h-5 lg:w-5 animate-spin text-blue-600" />
+                  Active Collections
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {jobs.filter(job => job.status === 'running').map((job) => (
+                  <div key={job.id} className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+                          <Loader className="h-3 w-3 lg:h-4 lg:w-4 animate-spin text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-sm lg:text-base truncate">{job.make}</h4>
+                          <p className="text-xs lg:text-sm text-muted-foreground">
+                            {job.currentModel && (
+                              <span className="block lg:inline">
+                                Collecting: {job.currentModel}
+                                {job.totalModels && job.modelsCompleted && (
+                                  <span className="ml-1">({job.modelsCompleted}/{job.totalModels})</span>
+                                )}
+                              </span>
+                            )}
+                            <span className="block lg:inline lg:ml-2">
+                              {job.recordsCollected} records • {job.yearFrom}-{job.yearTo}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 lg:gap-3">
+                        <Badge variant="default" className="text-xs">
+                          Running
+                        </Badge>
+                        <span className="text-xs lg:text-sm font-medium min-w-[3rem] text-right">
+                          {job.progress}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {job.progress > 0 && (
+                      <div className="mt-3">
+                        <Progress value={job.progress} className="h-1.5 lg:h-2" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Multi-Vehicle Collection */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-sm lg:text-base">
+                <Search className="h-4 w-4 lg:h-5 lg:w-5" />
                 Multi-Vehicle Collection
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 lg:space-y-6">
               {/* Vehicle Selection */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-medium">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4">
+                  <Label className="text-sm lg:text-base font-medium">
                     Select Vehicle Makes ({selectedMakes.length} makes, {getTotalSelections()} total searches)
                   </Label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm" onClick={selectAllMakes}>
+                  <div className="flex flex-wrap gap-2 lg:space-x-2">
+                    <Button variant="outline" size="sm" onClick={selectAllMakes} className="text-xs lg:text-sm">
                       Select All
                     </Button>
-                    <Button variant="outline" size="sm" onClick={clearAllMakes}>
+                    <Button variant="outline" size="sm" onClick={clearAllMakes} className="text-xs lg:text-sm">
                       Clear All
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="text-xs lg:text-sm"
                     >
                       {showAdvanced ? 'Simple' : 'Advanced'} Mode
                     </Button>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                   {vehicleMakes.map((make) => (
                     <Button
                       key={make}
