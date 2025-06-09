@@ -80,6 +80,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'IMPORT_CALCULATOR'
     },
     {
+      title: 'Product Demo',
+      href: '/product/demo',
+      icon: Brain,
+      permission: 'CACHED_SALES_HISTORY'
+    },
+    {
       title: 'Datasets',
       href: '/datasets',
       icon: Database,
@@ -89,7 +95,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       title: 'Team Management',
       href: '/team',
       icon: Users,
-      permission: 'USER_MANAGEMENT'
+      permission: 'TEAM_MANAGEMENT'
     }
   ];
 
@@ -102,7 +108,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'Usage Dashboard',
-      href: '/usage',
+      href: '/usage-dashboard',
       icon: BarChart3,
       permission: 'CACHED_SALES_HISTORY'
     },
@@ -123,21 +129,21 @@ export function Sidebar({ className = '' }: SidebarProps) {
     },
     {
       title: 'Data Collection',
-      href: '/data-collection',
+      href: '/admin/data-collection',
       icon: Database,
       permission: 'DATA_COLLECTION_MANAGEMENT'
     },
     {
       title: 'System Monitor',
-      href: '/system-monitor',
+      href: '/admin/system-monitor',
       icon: BarChart3,
       permission: 'SYSTEM_MONITORING'
     },
     {
       title: 'API Management',
-      href: '/api-management',
+      href: '/admin/api-management',
       icon: Settings,
-      permission: 'ADMIN_TOOLS'
+      permission: 'API_ACCESS'
     }
   ];
 
