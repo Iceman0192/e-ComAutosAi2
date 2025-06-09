@@ -194,22 +194,23 @@ export class DataCollectionService {
 
   private async discoverModelsForMake(make: string, startDate: Date, endDate: Date): Promise<string[]> {
     try {
-      // Check existing data first
-      const existingModels = await db
-        .selectDistinct({ model: salesHistory.model })
-        .from(salesHistory)
-        .where(
-          and(
-            eq(salesHistory.make, make),
-            gte(salesHistory.saleDate, startDate.toISOString().split('T')[0]),
-            lte(salesHistory.saleDate, endDate.toISOString().split('T')[0])
-          )
-        )
-        .limit(100);
-
-      const models = existingModels
+      // Check existing data first using SQL query for proper timestamp handling
+      const query = `
+        SELECT DISTINCT model 
+        FROM sales_history 
+        WHERE make = $1 
+        AND sale_date >= $2 
+        AND sale_date <= $3 
+        AND model IS NOT NULL 
+        AND model != '' 
+        AND model != 'Unknown'
+        LIMIT 100
+      `;
+      
+      const result = await pool.query(query, [make, startDate.toISOString(), endDate.toISOString()]);
+      const models = result.rows
         .map(row => row.model)
-        .filter((model): model is string => model !== null && model.trim() !== '' && model !== 'Unknown')
+        .filter((model): model is string => model !== null && model.trim() !== '')
         .slice(0, 50);
 
       return models;
@@ -283,25 +284,26 @@ export class DataCollectionService {
     site: number
   ): Promise<number> {
     try {
-      const conditions = [
-        eq(salesHistory.make, make),
-        eq(salesHistory.site, site),
-        gte(salesHistory.saleDate, startDate),
-        lte(salesHistory.saleDate, endDate),
-        gte(salesHistory.year, yearFrom),
-        lte(salesHistory.year, yearTo)
-      ];
-
+      let query = `
+        SELECT COUNT(*) as count
+        FROM sales_history 
+        WHERE make = $1 
+        AND site = $2 
+        AND sale_date >= $3 
+        AND sale_date <= $4 
+        AND year >= $5 
+        AND year <= $6
+      `;
+      
+      const params = [make, site, startDate, endDate, yearFrom, yearTo];
+      
       if (model && model.trim() !== '') {
-        conditions.push(eq(salesHistory.model, model));
+        query += ' AND model = $7';
+        params.push(model);
       }
 
-      const result = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(salesHistory)
-        .where(and(...conditions));
-
-      return result[0]?.count || 0;
+      const result = await pool.query(query, params);
+      return parseInt(result.rows[0]?.count || '0');
     } catch (error) {
       console.error('Error checking existing data:', error);
       return 0;
