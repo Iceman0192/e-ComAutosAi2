@@ -81,12 +81,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
       permission: 'AI_ANALYSIS'
     },
     {
-      title: 'Targeted Collection',
-      href: '/targeted-collection',
-      icon: Database,
-      permission: 'DATA_COLLECTION_MANAGEMENT'
-    },
-    {
       title: 'Import Calculator',
       href: '/import-calculator',
       icon: Calculator,

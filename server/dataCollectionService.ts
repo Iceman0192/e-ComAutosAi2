@@ -253,22 +253,15 @@ export class DataCollectionService {
       const startDateStr = startDate.toISOString().split('T')[0];
       const endDateStr = endDate.toISOString().split('T')[0];
       
-      // Check for recent auction data (last 7 days) to determine if fresh collection is needed
-      const recentDate = new Date();
-      recentDate.setDate(recentDate.getDate() - 7);
-      const recentDateStr = recentDate.toISOString().split('T')[0];
-      
-      const recentDataCount = await this.checkExistingData(
-        make, model, recentDateStr, endDateStr, yearFrom, yearTo, site
+      // Check if we already have data for this period
+      const existingCount = await this.checkExistingData(
+        make, model, startDateStr, endDateStr, yearFrom, yearTo, site
       );
       
-      // Only skip if we have substantial recent data (more than 50 records in last 7 days)
-      if (recentDataCount > 50) {
-        console.log(`${make} ${model} (site ${site}): ${recentDataCount} recent records exist (last 7 days), skipping`);
+      if (existingCount > 0) {
+        console.log(`${make} ${model} (site ${site}): ${existingCount} records already exist, skipping`);
         return 0;
       }
-      
-      console.log(`${make} ${model} (site ${site}): Only ${recentDataCount} recent records found, collecting fresh data...`);
 
       // Import and use the real APICAR API client
       const { getVehicleSalesHistory } = await import('./apiClient');
