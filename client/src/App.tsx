@@ -91,6 +91,7 @@ function Router() {
         {/* Pricing */}
         <Route path="/pricing" component={LandingPage} />
         
+        {/* Catch all other routes for unauthenticated users */}
         <Route component={LandingPage} />
       </Switch>
     );
@@ -110,7 +111,7 @@ function Router() {
         <Route path="/vin-history" component={VINHistory} />
         <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
-        <Route path="/import-calculator" component={ImportCalculator} />
+        <Route path="/import-calculator" component={() => <ImportCalculator vehicle={undefined} />} />
         <Route path="/datasets" component={Datasets} />
         <Route path="/team" component={Team} />
         <Route path="/product/demo" component={Demo} />

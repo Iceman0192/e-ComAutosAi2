@@ -152,7 +152,7 @@ export default function AdminDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${analytics.monthlyRevenue || 24,750}</div>
+            <div className="text-2xl font-bold">${(analytics.monthlyRevenue || 24750).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               +8% from last month
             </p>
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analytics.dailySearches || 8,234}</div>
+            <div className="text-2xl font-bold">{(analytics.dailySearches || 8234).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               Searches today
             </p>

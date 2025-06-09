@@ -74,6 +74,7 @@ export const PERMISSIONS = {
   ADVANCED_ANALYTICS: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   BULK_EXPORT: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   ACTIVE_LOTS_ADVANCED: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
+  CROSS_PLATFORM_SEARCH: [UserRole.GOLD, UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
   
   // Platinum tier - AI and intelligence
   AI_ANALYSIS: [UserRole.PLATINUM, UserRole.ENTERPRISE, UserRole.ADMIN],
