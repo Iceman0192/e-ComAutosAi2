@@ -77,6 +77,7 @@ export const PERMISSIONS = {
   
   // Enterprise tier - collaboration and priority
   TEAM_COLLABORATION: [UserRole.ENTERPRISE, UserRole.ADMIN],
+  TEAM_MANAGEMENT: [UserRole.ENTERPRISE, UserRole.ADMIN],
   PRIORITY_PROCESSING: [UserRole.ENTERPRISE, UserRole.ADMIN],
   ACTIVE_LOTS_ENTERPRISE: [UserRole.ENTERPRISE, UserRole.ADMIN],
   ENTERPRISE_SECURITY: [UserRole.ENTERPRISE, UserRole.ADMIN],

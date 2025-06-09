@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from './errorHandler.js';
-import { securityLogger } from './logger.js';
+import { logger } from './logger.js';
 
 interface RateLimitConfig {
   windowMs: number;
@@ -89,12 +89,14 @@ export const createRateLimiter = (config: RateLimitConfig) => {
       });
 
       if (requests > config.maxRequests) {
-        securityLogger.suspiciousActivity('Rate limit exceeded', {
-          ip: req.ip,
+        logger.log({
+          timestamp: new Date().toISOString(),
+          method: req.method,
+          url: req.originalUrl || req.url,
+          ip: req.ip || 'unknown',
           userId,
-          url: req.url,
-          requests,
-          limit: config.maxRequests
+          statusCode: 429,
+          error: 'Rate limit exceeded'
         });
 
         throw new AppError(

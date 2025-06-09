@@ -2,144 +2,85 @@ import { Request, Response, NextFunction } from 'express';
 
 interface LogEntry {
   timestamp: string;
-  level: 'info' | 'warn' | 'error' | 'debug';
-  message: string;
-  method?: string;
-  url?: string;
-  status?: number;
-  duration?: number;
-  ip?: string;
+  method: string;
+  url: string;
+  ip: string;
   userAgent?: string;
   userId?: number;
-  error?: any;
+  statusCode?: number;
+  duration?: number;
+  error?: string;
 }
 
 class Logger {
-  private formatTimestamp(): string {
-    return new Date().toISOString();
-  }
-
-  private log(entry: LogEntry): void {
-    const logString = JSON.stringify({
-      ...entry,
-      timestamp: this.formatTimestamp()
-    });
-
-    if (entry.level === 'error') {
-      console.error(logString);
-    } else if (entry.level === 'warn') {
-      console.warn(logString);
-    } else {
-      console.log(logString);
+  private logs: LogEntry[] = [];
+  
+  log(entry: LogEntry) {
+    // In production, this would write to a file or external service
+    const logLine = JSON.stringify(entry);
+    console.log(logLine);
+    
+    // Keep last 1000 logs in memory for admin panel
+    this.logs.push(entry);
+    if (this.logs.length > 1000) {
+      this.logs.shift();
     }
   }
-
-  info(message: string, meta?: any): void {
-    this.log({
-      timestamp: this.formatTimestamp(),
-      level: 'info',
-      message,
-      ...meta
-    });
-  }
-
-  warn(message: string, meta?: any): void {
-    this.log({
-      timestamp: this.formatTimestamp(),
-      level: 'warn',
-      message,
-      ...meta
-    });
-  }
-
-  error(message: string, error?: any, meta?: any): void {
-    this.log({
-      timestamp: this.formatTimestamp(),
-      level: 'error',
-      message,
-      error: error?.stack || error,
-      ...meta
-    });
-  }
-
-  debug(message: string, meta?: any): void {
-    if (process.env.NODE_ENV !== 'production') {
-      this.log({
-        timestamp: this.formatTimestamp(),
-        level: 'debug',
-        message,
-        ...meta
-      });
+  
+  getLogs(filter?: { userId?: number; method?: string; minStatus?: number }) {
+    let filtered = [...this.logs];
+    
+    if (filter?.userId) {
+      filtered = filtered.filter(log => log.userId === filter.userId);
     }
+    if (filter?.method) {
+      filtered = filtered.filter(log => log.method === filter.method);
+    }
+    if (filter?.minStatus !== undefined) {
+      filtered = filtered.filter(log => (log.statusCode || 0) >= filter.minStatus);
+    }
+    
+    return filtered.reverse(); // Most recent first
   }
 }
 
 export const logger = new Logger();
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+export const requestLogger = (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   const start = Date.now();
   
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    const userId = (req as any).session?.userId;
+  // Log response after it's sent
+  const originalSend = res.send;
+  res.send = function(data) {
+    res.send = originalSend;
+    res.send(data);
     
-    logger.info('Request completed', {
+    const duration = Date.now() - start;
+    const logEntry: LogEntry = {
+      timestamp: new Date().toISOString(),
       method: req.method,
-      url: req.url,
-      status: res.statusCode,
-      duration,
-      ip: req.ip,
+      url: req.originalUrl || req.url,
+      ip: req.ip || 'unknown',
       userAgent: req.get('user-agent'),
-      userId
-    });
-
-    // Log slow requests
-    if (duration > 1000) {
-      logger.warn('Slow request detected', {
-        method: req.method,
-        url: req.url,
-        duration,
-        userId
-      });
+      userId: req.user?.id,
+      statusCode: res.statusCode,
+      duration
+    };
+    
+    // Add error info for 4xx and 5xx responses
+    if (res.statusCode >= 400) {
+      try {
+        const errorData = JSON.parse(data);
+        logEntry.error = errorData.message || 'Unknown error';
+      } catch {
+        // Not JSON response
+      }
     }
-  });
+    
+    logger.log(logEntry);
+    
+    return res;
+  };
   
   next();
-};
-
-export const securityLogger = {
-  loginAttempt: (email: string, success: boolean, ip: string) => {
-    logger.info('Login attempt', {
-      email,
-      success,
-      ip,
-      event: 'auth.login'
-    });
-  },
-
-  signupAttempt: (email: string, success: boolean, ip: string) => {
-    logger.info('Signup attempt', {
-      email,
-      success,
-      ip,
-      event: 'auth.signup'
-    });
-  },
-
-  usageLimitReached: (userId: number, eventType: string, limit: number) => {
-    logger.warn('Usage limit reached', {
-      userId,
-      eventType,
-      limit,
-      event: 'usage.limit_reached'
-    });
-  },
-
-  suspiciousActivity: (message: string, meta: any) => {
-    logger.warn('Suspicious activity detected', {
-      message,
-      ...meta,
-      event: 'security.suspicious'
-    });
-  }
 };
