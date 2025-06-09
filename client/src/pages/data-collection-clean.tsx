@@ -14,6 +14,8 @@ import {
 export default function DataCollectionClean() {
   const [status, setStatus] = useState({ isRunning: false, queueSize: 0, totalRecords: 0 });
   const [jobs, setJobs] = useState([]);
+  const [vehicleProgress, setVehicleProgress] = useState([]);
+  const [siteStats, setSiteStats] = useState({ sites: [], totalVehicles: 0, siteBreakdown: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,7 +37,9 @@ export default function DataCollectionClean() {
 
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json();
-        setJobs(Array.isArray(jobsData?.data) ? jobsData.data : []);
+        setJobs(Array.isArray(jobsData?.data?.jobs) ? jobsData.data.jobs : Array.isArray(jobsData?.data) ? jobsData.data : []);
+        setVehicleProgress(Array.isArray(jobsData?.data?.vehicleProgress) ? jobsData.data.vehicleProgress : []);
+        setSiteStats(jobsData?.data?.siteStats || { sites: [], totalVehicles: 0, siteBreakdown: [] });
       }
     } catch (err) {
       console.error('Fetch failed:', err);
@@ -137,6 +141,86 @@ export default function DataCollectionClean() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Auction Site Statistics */}
+      {siteStats.siteBreakdown.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5" />
+              Collection Progress by Auction Site
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {siteStats.siteBreakdown.map((site) => (
+                <div key={site.site} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${site.siteName === 'Copart' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                      <span className="font-medium">{site.siteName}</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">{site.percentage}%</span>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span>Vehicles</span>
+                      <span className="font-medium">{site.vehicleCount.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Makes</span>
+                      <span className="font-medium">{site.uniqueMakes}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Models</span>
+                      <span className="font-medium">{site.uniqueModels}</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-300 ${site.siteName === 'Copart' ? 'bg-blue-500' : 'bg-green-500'}`}
+                      style={{ width: `${site.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {siteStats.totalVehicles > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <div className="text-center text-sm text-muted-foreground">
+                  Total: {siteStats.totalVehicles.toLocaleString()} vehicles across all auction platforms
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vehicle Progress by Make */}
+      {vehicleProgress.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Vehicle Collection Progress by Make</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {vehicleProgress.slice(0, 10).map((vehicle, index) => (
+                <div key={vehicle.make} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium w-4">{index + 1}</span>
+                    <span className="font-medium">{vehicle.make}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{vehicle.total_records.toLocaleString()} vehicles</span>
+                    <span>{vehicle.unique_models} models</span>
+                    <span>${vehicle.avg_price?.toLocaleString() || '0'} avg</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Active Jobs */}
       {jobs.length > 0 && (
