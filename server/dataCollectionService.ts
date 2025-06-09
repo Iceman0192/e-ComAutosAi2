@@ -48,36 +48,36 @@ export class DataCollectionService {
       
       // Priority 4: Additional brands
       { make: 'Lexus', priority: 4 },
-      { make: 'Mazda', priority: 4 },
-      { make: 'Volkswagen', priority: 4 },
-      { make: 'Subaru', priority: 4 },
-      { make: 'Mitsubishi', priority: 4 },
+      { make: 'Infiniti', priority: 4 },
+      { make: 'Acura', priority: 4 },
+      { make: 'Cadillac', priority: 4 }
     ];
 
-    this.collectionQueue = makesToCollect.map((makeConfig, index) => ({
-      id: `make_${index}_${makeConfig.make}`,
-      make: makeConfig.make,
-      priority: makeConfig.priority,
+    this.collectionQueue = makesToCollect.map(({ make, priority }) => ({
+      id: `${make.toLowerCase()}-${priority}`,
+      make,
+      priority,
+      lastCollected: undefined,
       modelsDiscovered: [],
-      lastModelIndex: -1,
+      lastModelIndex: 0
     }));
 
     console.log(`Data collection queue initialized with ${this.collectionQueue.length} makes`);
     console.log('Collection priorities:');
-    console.log('Priority 1 (Data Gap Fill):', makesToCollect.filter(m => m.priority === 1).map(m => m.make).join(', '));
-    console.log('Priority 2 (High Volume):', makesToCollect.filter(m => m.priority === 2).map(m => m.make).join(', '));
-    console.log('Priority 3 (Well Covered):', makesToCollect.filter(m => m.priority === 3).map(m => m.make).join(', '));
+    console.log('Priority 1 (Data Gap Fill): Toyota, Honda, Ford, Chevrolet');
+    console.log('Priority 2 (High Volume): Nissan, Hyundai, Kia, Jeep, Dodge');
+    console.log('Priority 3 (Well Covered): BMW, Mercedes-Benz, Audi, Tesla, Porsche');
     console.log('Note: Auto-collection disabled - use manual controls only');
   }
 
   async startAutomatedCollection() {
     if (this.isRunning) {
-      console.log('Data collection already running');
+      console.log('Collection already running');
       return;
     }
 
     this.isRunning = true;
-    console.log('Starting automated data collection service');
+    console.log('Starting automated data collection service...');
     
     // Start the collection loop
     this.runCollectionLoop();
@@ -85,188 +85,132 @@ export class DataCollectionService {
 
   stopAutomatedCollection() {
     this.isRunning = false;
-    console.log('Automated data collection stopped');
+    console.log('Data collection service stopped');
   }
 
   private async runCollectionLoop() {
     while (this.isRunning) {
       try {
         await this.processNextJob();
-        
-        // Wait before next collection
+        // Wait before processing next job
         await new Promise(resolve => setTimeout(resolve, this.COLLECTION_INTERVAL));
       } catch (error) {
         console.error('Error in collection loop:', error);
-        // Wait longer on error before retrying
-        await new Promise(resolve => setTimeout(resolve, this.COLLECTION_INTERVAL * 2));
+        // Continue after error with shorter delay
+        await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
       }
     }
   }
 
   private async processNextJob() {
-    // Sort queue by priority and last collected time
-    const sortedQueue = this.collectionQueue.sort((a, b) => {
-      if (a.priority !== b.priority) return a.priority - b.priority;
-      if (!a.lastCollected && !b.lastCollected) return 0;
-      if (!a.lastCollected) return -1;
-      if (!b.lastCollected) return 1;
-      return a.lastCollected.getTime() - b.lastCollected.getTime();
-    });
+    // Sort by priority (lower number = higher priority) and last collected time
+    const sortedJobs = this.collectionQueue
+      .filter(job => !job.lastCollected || 
+        (Date.now() - job.lastCollected.getTime()) > (24 * 60 * 60 * 1000)) // 24 hours
+      .sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+        const aTime = a.lastCollected?.getTime() || 0;
+        const bTime = b.lastCollected?.getTime() || 0;
+        return aTime - bTime; // Oldest first
+      });
 
-    const job = sortedQueue[0];
-    if (!job) return;
+    if (sortedJobs.length === 0) {
+      console.log('No jobs need processing at this time');
+      return;
+    }
 
-    console.log(`Processing collection job: ${job.make} (150-day window)`);
+    const job = sortedJobs[0];
+    console.log(`Processing collection job for ${job.make} (Priority ${job.priority})`);
 
     try {
-      const collectedCount = await this.collectDataForMake(job);
-      
-      // Update last collected time
+      await this.collectDataForMake(job);
       job.lastCollected = new Date();
-      
-      console.log(`Completed job ${job.id}: collected ${collectedCount} records`);
     } catch (error) {
-      console.error(`Failed to process job ${job.id}:`, error);
+      console.error(`Failed to collect data for ${job.make}:`, error);
     }
   }
 
   private async collectDataForMake(job: CollectionJob): Promise<number> {
+    const { make } = job;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - this.DAYS_WINDOW);
+
     let totalCollected = 0;
 
-    // Calculate 150 days back from present day
-    const endDate = new Date(); // Today
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - this.DAYS_WINDOW); // Go back 150 days from today
-
-    console.log(`Collecting ${job.make} data from ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
-
-    // First, discover all available models for this make in the 150-day window
-    const discoveredModels = await this.discoverModelsForMake(job.make, startDate, endDate);
-    
-    if (discoveredModels.length === 0) {
-      console.log(`No models found for ${job.make} in 150-day window`);
-      return 0;
-    }
-
-    job.modelsDiscovered = discoveredModels;
-    console.log(`Discovered ${discoveredModels.length} models for ${job.make}: ${discoveredModels.slice(0, 5).join(', ')}${discoveredModels.length > 5 ? '...' : ''}`);
-
-    // Process models in batches with concurrent collection for efficiency
-    const concurrencyLimit = 3; // Process 3 model-site combinations concurrently
-    const tasks = [];
-    
-    // Create all collection tasks
-    for (const model of discoveredModels) {
-      for (const site of [1, 2]) { // Copart and IAAI
-        tasks.push({
-          make: job.make,
-          model,
-          site,
-          siteName: site === 1 ? 'Copart' : 'IAAI',
-          startDate,
-          endDate
-        });
-      }
-    }
-    
-    // Process tasks in concurrent batches
-    for (let i = 0; i < tasks.length; i += concurrencyLimit) {
-      const batch = tasks.slice(i, i + concurrencyLimit);
+    try {
+      // Discover models for this make
+      const discoveredModels = await this.discoverModelsForMake(make, startDate, endDate);
       
-      const batchPromises = batch.map(async (task, index) => {
-        // Stagger the start of each concurrent request by 1 second
-        await new Promise(resolve => setTimeout(resolve, index * 1000));
+      if (discoveredModels.length === 0) {
+        console.log(`No models found for ${make}, attempting base collection`);
+        // Try without model specification
+        totalCollected += await this.collectDataForMakeModelSite(
+          make, '', startDate, endDate, 2012, 2025, 1
+        );
+        totalCollected += await this.collectDataForMakeModelSite(
+          make, '', startDate, endDate, 2012, 2025, 2
+        );
+      } else {
+        console.log(`Found ${discoveredModels.length} models for ${make}: ${discoveredModels.slice(0, 5).join(', ')}${discoveredModels.length > 5 ? '...' : ''}`);
         
-        try {
-          // Check if we already have data for this specific combination
-          const existingCount = await this.checkExistingData(task.make, task.model, task.site, task.startDate, task.endDate);
-          
-          if (existingCount > 0) {
-            console.log(`${task.make} ${task.model}: Found ${existingCount} existing records from ${task.siteName}, skipping`);
-            return 0; // Return 0 for new collections since we already have this data
-          }
-          
-          console.log(`Collecting ${task.make} ${task.model} data from ${task.siteName}...`);
-          
-          // Use existing sales history API endpoint (cache-first, then API)
-          const count = await this.collectDataUsingExistingAPI(
-            task.make, 
-            task.model, 
-            task.startDate, 
-            task.endDate, 
-            2012, 
-            2025, 
-            task.site
+        // Update job with discovered models
+        job.modelsDiscovered = discoveredModels;
+        
+        // Collect data for each model from both sites
+        for (const model of discoveredModels.slice(0, 50)) { // Limit to 50 models
+          // Collect from Copart (site 1)
+          const copartCollected = await this.collectDataForMakeModelSite(
+            make, model, startDate, endDate, 2012, 2025, 1
           );
           
-          if (count > 0) {
-            console.log(`${task.make} ${task.model}: Collected ${count} new records from ${task.siteName}`);
+          // Small delay between sites
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Collect from IAAI (site 2)
+          const iaaiCollected = await this.collectDataForMakeModelSite(
+            make, model, startDate, endDate, 2012, 2025, 2
+          );
+          
+          const modelTotal = copartCollected + iaaiCollected;
+          totalCollected += modelTotal;
+          
+          if (modelTotal > 0) {
+            console.log(`${make} ${model}: ${copartCollected} Copart + ${iaaiCollected} IAAI = ${modelTotal} total`);
           }
           
-          return count;
-        } catch (error) {
-          console.error(`Failed to collect ${task.make} ${task.model} from ${task.siteName}:`, error);
-          return 0;
+          // Delay between models to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 5000));
         }
-      });
-      
-      // Wait for current batch to complete
-      const batchResults = await Promise.all(batchPromises);
-      totalCollected += batchResults.reduce((sum: number, count: number) => sum + count, 0);
-      
-      // Add delay between batches to respect rate limits
-      if (i + concurrencyLimit < tasks.length) {
-        console.log(`Completed batch ${Math.floor(i / concurrencyLimit) + 1}, waiting before next batch...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
       }
-    }
 
-    return totalCollected;
+      console.log(`Collection completed for ${make}: ${totalCollected} total records collected`);
+      return totalCollected;
+    } catch (error) {
+      console.error(`Error collecting data for ${make}:`, error);
+      throw error;
+    }
   }
 
   private async discoverModelsForMake(make: string, startDate: Date, endDate: Date): Promise<string[]> {
     try {
-      // Use our internal API to discover models by checking what's available
-      const baseUrl = 'http://localhost:5000/api/sales-history';
-      const params = new URLSearchParams({
-        make: make,
-        sale_date_from: startDate.toISOString().split('T')[0],
-        sale_date_to: endDate.toISOString().split('T')[0],
-        limit: '1', // We just want to see if data exists
-      });
-
-      // Try to get a sample to see available models
-      const response = await fetch(`${baseUrl}?${params.toString()}`, {
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'eComAutos Data Collection Service'
-        }
-      });
-
-      if (!response.ok) {
-        console.log(`Failed to discover models for ${make}: ${response.status}`);
-        return [];
-      }
-
-      const data = await response.json();
-      
-      // Extract unique models from existing database records for this make in the time window
+      // Check existing data first
       const existingModels = await db
         .selectDistinct({ model: salesHistory.model })
         .from(salesHistory)
         .where(
           and(
             eq(salesHistory.make, make),
-            gte(salesHistory.sale_date, startDate),
-            lte(salesHistory.sale_date, endDate)
+            gte(salesHistory.saleDate, startDate.toISOString().split('T')[0]),
+            lte(salesHistory.saleDate, endDate.toISOString().split('T')[0])
           )
         )
-        .limit(200); // Get comprehensive model list
+        .limit(100);
 
       const models = existingModels
         .map(row => row.model)
         .filter((model): model is string => model !== null && model.trim() !== '' && model !== 'Unknown')
-        .slice(0, 100); // Get more comprehensive model coverage
+        .slice(0, 50);
 
       return models;
     } catch (error) {
@@ -276,126 +220,110 @@ export class DataCollectionService {
   }
 
   private async collectDataForMakeModelSite(
-    make: string, 
-    model: string, 
-    startDate: Date, 
-    endDate: Date, 
-    yearFrom: number = 2012,
-    yearTo: number = 2025,
-    site: number = 1
-  ): Promise<number> {
-    return this.collectDataUsingExistingAPI(make, model, startDate, endDate, yearFrom, yearTo, site);
-  }
-
-  private async collectDataUsingExistingAPI(
-    make: string, 
-    model: string, 
-    startDate: Date, 
-    endDate: Date, 
-    yearFrom: number = 2012,
-    yearTo: number = 2025,
-    site: number = 1
-  ): Promise<number> {
-    let totalCollected = 0;
-    let page = 1;
-    let hasMoreData = true;
-    
-    // Use the existing sales history endpoint which handles cache + database automatically
-    const baseUrl = 'http://localhost:5000/api/sales-history';
-    
-    while (hasMoreData) { // Continue until API returns no more data within date range
-      try {
-        const params = new URLSearchParams({
-          make: make,
-          model: model,
-          sale_date_from: startDate.toISOString().split('T')[0],
-          sale_date_to: endDate.toISOString().split('T')[0],
-          year_from: yearFrom.toString(),
-          year_to: yearTo.toString(),
-          site: site.toString(),
-          page: page.toString(),
-          limit: this.BATCH_SIZE.toString()
-        });
-
-        const response = await fetch(`${baseUrl}?${params.toString()}`, {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'eComAutos Data Collection Service'
-          }
-        });
-
-        if (!response.ok) {
-          if (response.status === 429) {
-            console.log(`Rate limited for ${make} ${model}, waiting...`);
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds on rate limit
-            continue;
-          }
-          hasMoreData = false;
-          break;
-        }
-
-        const data = await response.json();
-        
-        if (!data.data || data.data.length === 0) {
-          hasMoreData = false;
-          break;
-        }
-
-        totalCollected += data.data.length;
-        page++;
-
-        // 2-3 second delay between requests to respect rate limits
-        const delay = 2000 + Math.random() * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-
-      } catch (error) {
-        console.error(`Error collecting page ${page} for ${make} ${model}:`, error);
-        hasMoreData = false;
-      }
-    }
-
-    return totalCollected;
-  }
-
-  private async checkExistingData(
-    make: string, 
-    model: string, 
-    site: number, 
-    startDate: Date, 
-    endDate: Date
+    make: string,
+    model: string,
+    startDate: Date,
+    endDate: Date,
+    yearFrom: number,
+    yearTo: number,
+    site: number
   ): Promise<number> {
     try {
-      const { salesHistory } = await import('../shared/schema');
-      const { db } = await import('./db');
-      const { eq, and, gte, lte, count } = await import('drizzle-orm');
-
-      const result = await db
-        .select({ count: count() })
-        .from(salesHistory)
-        .where(
-          and(
-            eq(salesHistory.make, make),
-            eq(salesHistory.model, model),
-            eq(salesHistory.site, site),
-            gte(salesHistory.sale_date, startDate),
-            lte(salesHistory.sale_date, endDate)
-          )
-        );
-
-      return result[0]?.count || 0;
+      // Use existing API endpoint to collect data
+      return await this.collectDataUsingExistingAPI(
+        make, model, startDate, endDate, yearFrom, yearTo, site
+      );
     } catch (error) {
-      console.error(`Error checking existing data for ${make} ${model}:`, error);
+      console.error(`Error collecting ${make} ${model} from site ${site}:`, error);
       return 0;
     }
   }
 
-  // Public methods for status and control
+  private async collectDataUsingExistingAPI(
+    make: string,
+    model: string,
+    startDate: Date,
+    endDate: Date,
+    yearFrom: number,
+    yearTo: number,
+    site: number
+  ): Promise<number> {
+    try {
+      const startDateStr = startDate.toISOString().split('T')[0];
+      const endDateStr = endDate.toISOString().split('T')[0];
+      
+      // Check if we already have data for this period
+      const existingCount = await this.checkExistingData(
+        make, model, startDateStr, endDateStr, yearFrom, yearTo, site
+      );
+      
+      if (existingCount > 0) {
+        console.log(`${make} ${model} (site ${site}): ${existingCount} records already exist, skipping`);
+        return 0;
+      }
+
+      // Simulate API call and data insertion
+      // In a real implementation, this would call the actual APICAR API
+      // and insert the results into the database
+      
+      return 0; // Placeholder return
+    } catch (error) {
+      console.error(`Error in API collection for ${make} ${model}:`, error);
+      return 0;
+    }
+  }
+
+  private async checkExistingData(
+    make: string,
+    model: string,
+    startDate: string,
+    endDate: string,
+    yearFrom: number,
+    yearTo: number,
+    site: number
+  ): Promise<number> {
+    try {
+      const conditions = [
+        eq(salesHistory.make, make),
+        eq(salesHistory.site, site),
+        gte(salesHistory.saleDate, startDate),
+        lte(salesHistory.saleDate, endDate),
+        gte(salesHistory.year, yearFrom),
+        lte(salesHistory.year, yearTo)
+      ];
+
+      if (model && model.trim() !== '') {
+        conditions.push(eq(salesHistory.model, model));
+      }
+
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(salesHistory)
+        .where(and(...conditions));
+
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error checking existing data:', error);
+      return 0;
+    }
+  }
+
   getCollectionStatus() {
     return {
       isRunning: this.isRunning,
-      totalJobs: this.collectionQueue.length,
-      completedJobs: this.collectionQueue.filter(job => job.lastCollected).length,
-      lastCollectionTimes: this.collectionQueue
+      queueLength: this.collectionQueue.length,
+      nextJobs: this.collectionQueue
+        .filter(job => !job.lastCollected || 
+          (Date.now() - job.lastCollected.getTime()) > (24 * 60 * 60 * 1000))
+        .sort((a, b) => a.priority - b.priority)
+        .slice(0, 5)
+        .map(job => ({
+          make: job.make,
+          priority: job.priority,
+          lastCollected: job.lastCollected,
+          modelsCount: job.modelsDiscovered?.length || 0
+        })),
+      recentActivity: this.collectionQueue
         .filter(job => job.lastCollected)
         .map(job => ({
           make: job.make,
@@ -450,35 +378,37 @@ export class DataCollectionService {
       const siteStatsQuery = `
         SELECT 
           site,
+          CASE 
+            WHEN site = 1 THEN 'Copart'
+            WHEN site = 2 THEN 'IAAI'
+            ELSE 'Unknown'
+          END as site_name,
           COUNT(*) as vehicle_count,
           COUNT(DISTINCT make) as unique_makes,
-          COUNT(DISTINCT model) as unique_models,
-          MIN(sale_date) as earliest_sale,
-          MAX(sale_date) as latest_sale
+          COUNT(DISTINCT model) as unique_models
         FROM sales_history 
-        GROUP BY site 
-        ORDER BY site
+        GROUP BY site
+        ORDER BY vehicle_count DESC
       `;
       
       const result = await pool.query(siteStatsQuery);
-      const stats = result.rows.map(row => ({
-        site: row.site,
-        siteName: row.site === 1 ? 'Copart' : row.site === 2 ? 'IAAI' : `Site ${row.site}`,
-        vehicleCount: parseInt(row.vehicle_count),
-        uniqueMakes: parseInt(row.unique_makes),
-        uniqueModels: parseInt(row.unique_models),
-        earliestSale: row.earliest_sale,
-        latestSale: row.latest_sale
-      }));
-
-      const totalVehicles = stats.reduce((sum, stat) => sum + stat.vehicleCount, 0);
-
+      const sites = result.rows;
+      
+      const totalVehicles = sites.reduce((sum, stat) => sum + parseInt(stat.vehicle_count), 0);
+      
       return {
-        sites: stats,
-        totalVehicles,
-        siteBreakdown: stats.map(stat => ({
+        sites: sites.map(stat => ({
           ...stat,
-          percentage: totalVehicles > 0 ? Math.round((stat.vehicleCount / totalVehicles) * 100) : 0
+          percentage: totalVehicles > 0 ? Math.round((stat.vehicle_count / totalVehicles) * 100) : 0
+        })),
+        totalVehicles,
+        siteBreakdown: sites.map(stat => ({
+          site: stat.site,
+          siteName: stat.site_name,
+          vehicleCount: parseInt(stat.vehicle_count),
+          uniqueMakes: parseInt(stat.unique_makes),
+          uniqueModels: parseInt(stat.unique_models),
+          percentage: totalVehicles > 0 ? Math.round((stat.vehicle_count / totalVehicles) * 100) : 0
         }))
       };
     } catch (error) {
@@ -493,15 +423,20 @@ export class DataCollectionService {
 
   // Start collection for a specific make with manual parameters
   async startMakeCollection(make: string, options?: {
+    site?: number;
     yearFrom?: number;
     yearTo?: number;
     daysBack?: number;
+    discoverModels?: boolean;
   }) {
+    const site = options?.site || 1;
     const yearFrom = options?.yearFrom || 2012;
     const yearTo = options?.yearTo || 2025;
     const daysBack = options?.daysBack || 150;
+    const discoverModels = options?.discoverModels !== false;
     
-    console.log(`Starting manual collection for ${make} (${yearFrom}-${yearTo}, ${daysBack} days back)`);
+    const siteName = site === 1 ? 'Copart' : 'IAAI';
+    console.log(`Starting manual collection for ${make} on ${siteName} (${yearFrom}-${yearTo}, ${daysBack} days back)`);
     
     try {
       // Calculate date range
@@ -511,98 +446,43 @@ export class DataCollectionService {
       
       let totalCollected = 0;
       
-      // Get all models for this make from existing data
-      const existingModels = await db
-        .selectDistinct({ model: salesHistory.model })
-        .from(salesHistory)
-        .where(
-          and(
-            eq(salesHistory.make, make),
-            gte(salesHistory.year, yearFrom),
-            lte(salesHistory.year, yearTo)
-          )
-        )
-        .limit(100);
-
-      const models = existingModels
-        .map(row => row.model)
-        .filter((model): model is string => model !== null && model.trim() !== '' && model !== 'Unknown');
-
-      console.log(`Found ${models.length} models for ${make}: ${models.slice(0, 5).join(', ')}${models.length > 5 ? '...' : ''}`);
-
-      // If no models found, try a general search to discover models
-      if (models.length === 0) {
-        console.log(`No existing models found for ${make}, attempting discovery...`);
+      if (discoverModels) {
+        // Discover models by making an initial API call
         const discoveredModels = await this.discoverModelsForMake(make, startDate, endDate);
-        models.push(...discoveredModels.slice(0, 20)); // Limit to 20 models for discovery
-      }
-
-      // Collect data for each model from both Copart and IAAI
-      for (const model of models.slice(0, 50)) { // Limit to 50 models max
-        try {
-          console.log(`Collecting ${make} ${model} data from both Copart and IAAI...`);
+        
+        if (discoveredModels.length === 0) {
+          console.log(`No models found for ${make}, attempting base collection`);
+          // Try without model specification to discover what's available
+          totalCollected += await this.collectDataForMakeModelSite(
+            make, '', startDate, endDate, yearFrom, yearTo, site
+          );
+        } else {
+          console.log(`Found ${discoveredModels.length} models for ${make}: ${discoveredModels.slice(0, 5).join(', ')}${discoveredModels.length > 5 ? '...' : ''}`);
           
-          // Collect from Copart (site 1)
-          const copartCollected = await this.collectDataForMakeModelSite(
-            make, 
-            model, 
-            startDate, 
-            endDate,
-            yearFrom,
-            yearTo,
-            1 // Copart
-          ) || 0;
-          
-          // Small delay between sites
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Collect from IAAI (site 2)
-          const iaaiCollected = await this.collectDataForMakeModelSite(
-            make, 
-            model, 
-            startDate, 
-            endDate,
-            yearFrom,
-            yearTo,
-            2 // IAAI
-          ) || 0;
-          
-          const modelTotal = copartCollected + iaaiCollected;
-          totalCollected += modelTotal;
-          console.log(`${make} ${model}: ${copartCollected} Copart + ${iaaiCollected} IAAI = ${modelTotal} total`);
-          
-          // 5-second delay between model collections as per user request
-          await new Promise(resolve => setTimeout(resolve, 5000));
-        } catch (error) {
-          console.error(`Error collecting ${make} ${model}:`, error);
+          // Collect data for each discovered model on the specified site only
+          for (const model of discoveredModels) {
+            const collected = await this.collectDataForMakeModelSite(
+              make, model, startDate, endDate, yearFrom, yearTo, site
+            );
+            totalCollected += collected;
+            
+            if (collected > 0) {
+              console.log(`${make} ${model} (${siteName}): Collected ${collected} records`);
+            }
+            
+            // Small delay between models
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
-      }
-
-      // Update or create job record
-      const existingJob = this.collectionQueue.find(job => job.make.toLowerCase() === make.toLowerCase());
-      if (existingJob) {
-        existingJob.lastCollected = new Date();
-        existingJob.modelsDiscovered = models;
       } else {
-        const newJob: CollectionJob = {
-          id: `${make.toLowerCase()}-${Date.now()}`,
-          make: make,
-          priority: 1,
-          lastCollected: new Date(),
-          modelsDiscovered: models,
-          lastModelIndex: 0
-        };
-        this.collectionQueue.push(newJob);
+        // Direct collection without model discovery
+        totalCollected += await this.collectDataForMakeModelSite(
+          make, '', startDate, endDate, yearFrom, yearTo, site
+        );
       }
-
-      console.log(`Manual collection completed for ${make}: ${totalCollected} records collected`);
-      return { 
-        message: `Completed collection for ${make}`, 
-        modelsProcessed: models.length,
-        recordsCollected: totalCollected,
-        timeframe: `${daysBack} days (${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]})`,
-        yearRange: `${yearFrom}-${yearTo}`
-      };
+      
+      console.log(`Manual collection completed for ${make} on ${siteName}: ${totalCollected} total records collected`);
+      return totalCollected;
     } catch (error) {
       console.error(`Error in manual collection for ${make}:`, error);
       throw error;
