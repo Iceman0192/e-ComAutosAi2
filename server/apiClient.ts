@@ -14,20 +14,20 @@ const API_URL = 'https://api.apicar.store/api/history-cars';
  */
 export async function getVehicleSalesHistory(
   make: string, 
+  site: string,
   model?: string, 
   page: number = 1, 
   size: number = 25,
   yearFrom?: number,
   yearTo?: number,
   saleFrom?: string,
-  saleTo?: string,
-  site: string
+  saleTo?: string
 ) {
   try {
     // Build URL parameters - only what we absolutely need
     const params = new URLSearchParams();
     params.append('make', make);
-    params.append('site', site); // Use provided site parameter
+    params.append('site', site);
     
     // Add pagination parameters
     params.append('page', page.toString());
@@ -67,6 +67,26 @@ export async function getVehicleSalesHistory(
         'Content-Type': 'application/json'
       }
     });
+    
+    // Log the actual response structure for debugging
+    console.log('=== APICAR API Response Debug ===');
+    console.log('Full response status:', response.status);
+    console.log('Response headers:', response.headers);
+    console.log('Response data type:', typeof response.data);
+    console.log('Is response.data an array?', Array.isArray(response.data));
+    
+    if (typeof response.data === 'object' && response.data !== null) {
+      console.log('Response data keys:', Object.keys(response.data));
+      if (response.data.data) {
+        console.log('response.data.data type:', typeof response.data.data);
+        console.log('Is response.data.data an array?', Array.isArray(response.data.data));
+        if (Array.isArray(response.data.data)) {
+          console.log('response.data.data length:', response.data.data.length);
+        }
+      }
+    }
+    
+    console.log('First 200 chars of response:', JSON.stringify(response.data).substring(0, 200));
     
     // Return the data
     return {
