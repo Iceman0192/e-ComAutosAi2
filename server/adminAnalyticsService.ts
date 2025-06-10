@@ -215,23 +215,28 @@ export class AdminAnalyticsService {
    * Get user management data
    */
   async getUserManagementData() {
-    const allUsers = await db.select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      isActive: users.isActive,
-      createdAt: users.createdAt,
-      lastLoginAt: users.lastLoginAt,
-      subscriptionStatus: users.subscriptionStatus,
-      isTrialActive: users.isTrialActive,
-      trialEndsAt: users.trialEndsAt
-    })
-    .from(users)
-    .orderBy(desc(users.createdAt))
-    .limit(100);
+    try {
+      const allUsers = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+        lastLoginAt: users.lastLoginAt,
+        subscriptionStatus: users.subscriptionStatus,
+        isTrialActive: users.isTrialActive,
+        trialEndsAt: users.trialEndsAt
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt))
+      .limit(100);
 
-    return allUsers;
+      return allUsers;
+    } catch (error) {
+      console.error('Error fetching user management data:', error);
+      throw error;
+    }
   }
 
   /**

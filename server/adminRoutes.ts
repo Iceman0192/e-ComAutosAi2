@@ -9,7 +9,7 @@ import { userManagementService } from './userManagementService';
 export function setupAdminRoutes(app: Express) {
   
   // Admin analytics endpoint with real database data
-  app.get('/api/admin/analytics', requireAdmin, async (req: Request, res: Response) => {
+  app.get('/api/admin/analytics', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const metrics = await adminAnalyticsService.getDashboardMetrics();
       res.json(metrics);
@@ -20,9 +20,11 @@ export function setupAdminRoutes(app: Express) {
   });
 
   // User management endpoint with comprehensive data
-  app.get('/api/admin/users', requireAdmin, async (req: Request, res: Response) => {
+  app.get('/api/admin/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
+      console.log('Admin users endpoint called by user:', (req as any).user?.role);
       const userData = await userManagementService.getUserManagementData();
+      console.log('User data fetched:', userData.length, 'users');
       res.json(userData);
     } catch (error) {
       console.error('Failed to fetch user data:', error);
