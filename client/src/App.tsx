@@ -17,7 +17,7 @@ import LiveIAAI from "./pages/live-iaai";
 import IAAIPage from "./pages/iaai";
 import AuctionMind from "./pages/auction-mind";
 import AuctionMindV2 from "./pages/auction-mind-v2";
-import ImportCalculator from "./pages/import-calculator";
+import PremiumImportCalculator from "./pages/import-calculator-premium";
 
 import Account from "./pages/account";
 import Billing from "./pages/billing";
@@ -114,7 +114,7 @@ function Router() {
         <Route path="/sales-history" component={SalesHistory} />
         <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
-        <Route path="/import-calculator" component={() => <ImportCalculator vehicle={undefined} />} />
+        <Route path="/import-calculator" component={() => <PremiumImportCalculator vehicle={undefined} />} />
 
         <Route path="/team" component={Team} />
         <Route path="/account" component={Account} />
