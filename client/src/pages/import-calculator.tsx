@@ -255,9 +255,9 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
   const isNorthAmericanOrigin = (vin: string): boolean => {
     if (!vin || vin.length !== 17) return false;
     const firstChar = vin.charAt(0).toUpperCase();
-    // CAFTA-DR eligible: 1,4,5 = USA, 2 = Canada
-    // VIN starting with 3 = Mexico (NOT CAFTA-DR eligible)
-    return ['1', '2', '4', '5'].includes(firstChar); // US manufactured VINs only
+    // CAFTA-DR eligible: ONLY USA (VIN 1,4,5)
+    // Canada (VIN 2) and Mexico (VIN 3) are NOT CAFTA-DR eligible
+    return ['1', '4', '5'].includes(firstChar); // US manufactured VINs only
   };
 
   // Auto-populate values from vehicle data
