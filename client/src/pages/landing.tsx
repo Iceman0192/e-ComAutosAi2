@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navigation from '@/components/layout/Navigation';
+import { DiagnosticTest } from '@/components/DiagnosticTest';
 import { 
   Car, 
   Zap, 
