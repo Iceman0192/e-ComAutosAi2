@@ -86,7 +86,7 @@ export default function TargetedCollectionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          site: data.site ? parseInt(data.site) : undefined
+          site: data.site && data.site !== 'both' ? parseInt(data.site) : undefined
         })
       });
 
@@ -121,7 +121,7 @@ export default function TargetedCollectionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          site: data.site ? parseInt(data.site) : undefined
+          site: data.site && data.site !== 'both' ? parseInt(data.site) : undefined
         })
       });
 
@@ -318,7 +318,7 @@ export default function TargetedCollectionPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Both Copart & IAAI</SelectItem>
+                            <SelectItem value="both">Both Copart & IAAI</SelectItem>
                             <SelectItem value="1">Copart Only</SelectItem>
                             <SelectItem value="2">IAAI Only</SelectItem>
                           </SelectContent>
