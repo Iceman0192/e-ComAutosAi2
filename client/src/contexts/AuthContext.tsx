@@ -147,7 +147,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (response.ok) {
           const data = await response.json();
-          
           if (data.success && data.user) {
             setUser({
               id: data.user.id.toString(),
