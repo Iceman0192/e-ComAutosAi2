@@ -22,6 +22,7 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(path, {
     ...init,
+    credentials: 'include',
     headers: {
       ...(init?.headers || {}),
       "Content-Type": "application/json",
@@ -33,18 +34,44 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => (path: string) => Promise<T> = ({ on401 }) => {
-  return async (path: string) => {
+
+const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }): Promise<any> => {
+  const path = queryKey[0] as string;
+  
+  const res = await fetch(path, {
+    credentials: 'include',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+  
+  if (!res.ok) {
+    let errorText = await res.text();
     try {
-      const res = await apiRequest(path);
-      return res.json();
+      const json = JSON.parse(errorText);
+      if (json.message) {
+        throw new Error(json.message);
+      }
+    } catch (e) {
+      throw new Error(res.statusText);
+    }
+    throw new Error(errorText);
+  }
+  
+  return res.json();
+};
+
+export const getQueryFn = <T>(options: {
+  on401: UnauthorizedBehavior;
+}) => {
+  return async ({ queryKey }: { queryKey: readonly unknown[] }): Promise<T> => {
+    try {
+      return await defaultQueryFn({ queryKey });
     } catch (e) {
       if (
         e instanceof Error &&
-        e.message === "Unauthorized" &&
-        on401 === "returnNull"
+        (e.message === "Unauthorized" || e.message.includes("401")) &&
+        options.on401 === "returnNull"
       ) {
         return null as T;
       }
@@ -56,7 +83,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn<unknown>({ on401: "throw" }),
+      queryFn: getQueryFn({ on401: "throw" }),
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: false,
       refetchOnWindowFocus: false,
