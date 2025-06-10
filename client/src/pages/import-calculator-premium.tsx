@@ -89,7 +89,7 @@ const HONDURAS_TAX_SYSTEM = {
 export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTabProps) {
   // Core calculation state
   const [selectedCountry, setSelectedCountry] = useState<string>("honduras");
-  const [vehiclePrice, setVehiclePrice] = useState<number>(0);
+  const [vehiclePrice, setVehiclePrice] = useState<number>(15000);
   const [freight, setFreight] = useState<number>(1500);
   const [insurance, setInsurance] = useState<number>(300);
   const [engineSize, setEngineSize] = useState<number>(2000);
@@ -548,15 +548,19 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   // Auto-calculate on input changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala')) {
+      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala' || selectedCountry === 'nicaragua')) {
         calculateWithAI();
-      } else if (vehiclePrice && selectedCountry === 'honduras') {
-        calculateHondurasTaxes();
+      } else if (vehiclePrice > 0 && selectedCountry) {
+        if (selectedCountry === 'honduras') {
+          calculateHondurasTaxes();
+        } else if (['el_salvador', 'guatemala', 'nicaragua'].includes(selectedCountry)) {
+          calculateWithAI();
+        }
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle]);
+  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle, nicaraguaEngineSize]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
