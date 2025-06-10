@@ -28,7 +28,7 @@ import AdminDashboard from "./pages/admin";
 import VINHistory from "./pages/vin-history";
 import SalesHistory from "./pages/sales-history";
 import Team from "./pages/team";
-import Demo from "./pages/demo";
+
 import SystemMonitor from "./pages/system-monitor";
 
 import UsageDashboard from "./pages/usage-dashboard";
@@ -117,7 +117,6 @@ function Router() {
         <Route path="/import-calculator" component={() => <ImportCalculator vehicle={undefined} />} />
 
         <Route path="/team" component={Team} />
-        <Route path="/product/demo" component={Demo} />
         <Route path="/account" component={Account} />
         <Route path="/billing" component={Billing} />
         <Route path="/usage-dashboard" component={UsageDashboard} />

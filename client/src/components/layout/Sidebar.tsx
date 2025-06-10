@@ -81,12 +81,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Calculator,
       permission: 'IMPORT_CALCULATOR'
     },
-    {
-      title: 'Product Demo',
-      href: '/product/demo',
-      icon: Brain,
-      permission: 'CACHED_SALES_HISTORY'
-    },
+
 
     {
       title: 'Team Management',
