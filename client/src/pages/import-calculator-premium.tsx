@@ -688,12 +688,126 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                             <div className="flex items-center gap-3">
                               <span className="text-2xl">{country.flag}</span>
                               <span>{country.name}</span>
+                              {country.status === 'active' && (
+                                <Badge className="bg-emerald-100 text-emerald-800 text-xs">AI Enhanced</Badge>
+                              )}
+                              {country.status === 'coming_soon' && (
+                                <Badge variant="outline" className="text-xs">Coming Soon</Badge>
+                              )}
                             </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* El Salvador Specific Options */}
+                  {selectedCountry === 'el_salvador' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-4"
+                    >
+                      {/* Age Eligibility Warning */}
+                      {ageEligibility && !ageEligibility.eligible && (
+                        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <div>
+                              <div className="font-semibold text-red-800 dark:text-red-200">Age Restriction Violation</div>
+                              <div className="text-sm text-red-600 dark:text-red-400">{ageEligibility.reason}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Vehicle Category */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Vehicle Category</Label>
+                        <Select value={vehicleCategory} onValueChange={setVehicleCategory}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="passenger">Passenger Car/SUV (8 year limit)</SelectItem>
+                            <SelectItem value="pickup">Pickup Truck (8 year limit)</SelectItem>
+                            <SelectItem value="bus">Bus/Heavy Passenger (10 year limit)</SelectItem>
+                            <SelectItem value="heavy_truck">Heavy Truck ≥3 tons (15 year limit)</SelectItem>
+                            <SelectItem value="motorcycle">Motorcycle (8 year limit)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Vehicle Specifications */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Engine Size (cc)</Label>
+                          <Input
+                            type="number"
+                            value={engineSize}
+                            onChange={(e) => setEngineSize(parseInt(e.target.value) || 2000)}
+                            placeholder="2000"
+                            className="text-center"
+                          />
+                          <div className="text-xs text-slate-500">
+                            {engineSize > 2000 ? '30% DAI rate' : '25% DAI rate'}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Drive Type</Label>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="is4x4" 
+                              checked={is4x4} 
+                              onCheckedChange={(checked) => setIs4x4(checked as boolean)}
+                            />
+                            <Label htmlFor="is4x4" className="text-sm">4x4 / AWD</Label>
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {is4x4 ? '6% registration tax' : '4-8% registration tax'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Title and Import Type */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Title Status</Label>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="salvageTitle" 
+                              checked={hasSalvageTitle} 
+                              onCheckedChange={(checked) => setHasSalvageTitle(checked as boolean)}
+                            />
+                            <Label htmlFor="salvageTitle" className="text-sm">Salvage/Damaged Title</Label>
+                          </div>
+                          {hasSalvageTitle && (
+                            <div className="text-xs text-emerald-600">
+                              40% customs value reduction applied
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Import Purpose</Label>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="personalUse" 
+                              checked={isPersonalUse} 
+                              onCheckedChange={(checked) => setIsPersonalUse(checked as boolean)}
+                            />
+                            <Label htmlFor="personalUse" className="text-sm">Personal Use</Label>
+                          </div>
+                          {!isPersonalUse && (
+                            <div className="text-xs text-orange-600">
+                              5% income tax advance applies
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
                 </CardContent>
               </Card>
 
