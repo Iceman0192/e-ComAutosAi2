@@ -415,6 +415,18 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
           isNewResident: isNewResident,
           exemptionUsed: residentExemptionUsed
         };
+      } else if (selectedCountry === 'dominican_republic') {
+        apiEndpoint = '/api/dominican-republic/calculate';
+        requestBody = {
+          ...requestBody,
+          vehicleAge: drVehicleAge,
+          isUSOrigin,
+          hasCaftaCertificate,
+          isElectricHybrid: drIsElectricHybrid,
+          hasDisability,
+          co2Emissions,
+          vehicleType: drVehicleType
+        };
       } else {
         // Fallback to local calculation for unsupported countries
         calculateHondurasTaxes();
@@ -576,6 +588,33 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
             breakdown: calculation.breakdown,
             aiInsights: calculation.aiInsights
           };
+        } else if (selectedCountry === 'dominican_republic') {
+          mappedResult = {
+            cifValue: calculation.cifValue,
+            vehicleAge: calculation.vehicleAge,
+            effectiveTaxRate: calculation.effectiveTaxRate,
+            duty: calculation.taxes.importDuty,
+            isc: calculation.taxes.isc,
+            vat: calculation.taxes.vat,
+            registrationTax: calculation.taxes.registrationTax,
+            portFees: calculation.taxes.portFees,
+            selectiveTax: calculation.taxes.isc,
+            salesTax: calculation.taxes.vat,
+            ecoTax: 0,
+            otherFees: calculation.taxes.portFees,
+            totalTaxes: calculation.totalTaxes,
+            totalCost: calculation.totalCost,
+            caftaEligible: calculation.caftaBenefit,
+            caftaSavings: calculation.caftaSavings,
+            disabilityExemption: calculation.disabilityExemption,
+            disabilitySavings: calculation.disabilitySavings,
+            taxPercentage: calculation.effectiveTaxRate,
+            marbete: calculation.annualCosts.marbete,
+            modelYear: vinAnalysis.modelYear,
+            vinAnalysis,
+            breakdown: calculation.breakdown,
+            aiInsights: calculation.aiInsights
+          };
         }
 
         setCalculationDetails(mappedResult);
@@ -597,19 +636,19 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   // Auto-calculate on input changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala' || selectedCountry === 'nicaragua' || selectedCountry === 'costa_rica')) {
+      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala' || selectedCountry === 'nicaragua' || selectedCountry === 'costa_rica' || selectedCountry === 'dominican_republic')) {
         calculateWithAI();
       } else if (vehiclePrice > 0 && selectedCountry) {
         if (selectedCountry === 'honduras') {
           calculateHondurasTaxes();
-        } else if (['el_salvador', 'guatemala', 'nicaragua', 'costa_rica'].includes(selectedCountry)) {
+        } else if (['el_salvador', 'guatemala', 'nicaragua', 'costa_rica', 'dominican_republic'].includes(selectedCountry)) {
           calculateWithAI();
         }
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle, nicaraguaEngineSize, costaRicaVehicleAge, isElectricVehicle, isNewResident, residentExemptionUsed]);
+  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle, nicaraguaEngineSize, costaRicaVehicleAge, isElectricVehicle, isNewResident, residentExemptionUsed, drVehicleAge, isUSOrigin, hasCaftaCertificate, drIsElectricHybrid, hasDisability, co2Emissions, drVehicleType]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
@@ -1191,6 +1230,157 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                       <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg">
                         <div className="text-xs text-amber-800 dark:text-amber-200">
                           <strong>Requirements:</strong> Left-hand drive only, clean title (no salvage), DEKRA inspection required
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Dominican Republic Specific Controls */}
+                  {selectedCountry === 'dominican_republic' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700"
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-blue-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">DR</span>
+                        </div>
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-200">Dominican Republic Configuration</h3>
+                      </div>
+
+                      {/* Age Compliance Check */}
+                      {drVehicleAge > 5 && drVehicleType === 'passenger' && (
+                        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <div>
+                              <div className="font-semibold text-red-800 dark:text-red-200">Age Limit Violation</div>
+                              <div className="text-sm text-red-600 dark:text-red-400">
+                                Passenger vehicles must be 5 years old or newer (Law 04-07)
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Vehicle Type */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Vehicle Type</Label>
+                        <Select value={drVehicleType} onValueChange={setDrVehicleType}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="passenger">Passenger Vehicle (5 year limit)</SelectItem>
+                            <SelectItem value="truck">Heavy Truck (over 5 tons, 15 year limit)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Vehicle Age */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Vehicle Age (Years)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="20"
+                          value={drVehicleAge}
+                          onChange={(e) => setDrVehicleAge(parseInt(e.target.value) || 3)}
+                          placeholder="3"
+                          className="text-center"
+                        />
+                        <div className="text-xs text-slate-500">
+                          {drVehicleType === 'passenger' ? 'Maximum 5 years for passenger vehicles' : 'Maximum 15 years for heavy trucks'}
+                        </div>
+                      </div>
+
+                      {/* US Origin and CAFTA */}
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="usOrigin" 
+                            checked={isUSOrigin} 
+                            onCheckedChange={(checked) => setIsUSOrigin(checked as boolean)}
+                          />
+                          <Label htmlFor="usOrigin" className="text-sm">US Manufactured Vehicle</Label>
+                        </div>
+                        
+                        {isUSOrigin && (
+                          <div className="ml-6 space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id="caftaCert" 
+                                checked={hasCaftaCertificate} 
+                                onCheckedChange={(checked) => setHasCaftaCertificate(checked as boolean)}
+                              />
+                              <Label htmlFor="caftaCert" className="text-sm">CAFTA Certificate of Origin</Label>
+                            </div>
+                            <div className="text-xs text-emerald-600">
+                              {hasCaftaCertificate 
+                                ? "0% import duty (20% savings with CAFTA)" 
+                                : "Missing CAFTA certificate - pays 20% import duty"}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Electric/Hybrid Vehicle */}
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="drElectricHybrid" 
+                            checked={drIsElectricHybrid} 
+                            onCheckedChange={(checked) => setDrIsElectricHybrid(checked as boolean)}
+                          />
+                          <Label htmlFor="drElectricHybrid" className="text-sm">Electric/Hybrid Vehicle</Label>
+                        </div>
+                        {drIsElectricHybrid && (
+                          <div className="text-xs text-emerald-600">
+                            50% reduction on ISC environmental tax under Law 103-13
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CO2 Emissions */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">CO₂ Emissions (g/km)</Label>
+                        <Input
+                          type="number"
+                          min="80"
+                          max="400"
+                          value={co2Emissions}
+                          onChange={(e) => setCo2Emissions(parseInt(e.target.value) || 150)}
+                          placeholder="150"
+                          className="text-center"
+                        />
+                        <div className="text-xs text-slate-500">
+                          ISC rates: &lt;100g/km (0%), 100-120g/km (1%), 120-150g/km (1.5%), 150-200g/km (3%), &gt;200g/km (5%)
+                        </div>
+                      </div>
+
+                      {/* Disability Exemption */}
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="disability" 
+                            checked={hasDisability} 
+                            onCheckedChange={(checked) => setHasDisability(checked as boolean)}
+                          />
+                          <Label htmlFor="disability" className="text-sm">Person with Disability</Label>
+                        </div>
+                        {hasDisability && (
+                          <div className="text-xs text-emerald-600">
+                            100% exemption on 17% first-plate registration tax under Law 5-13
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Important Requirements */}
+                      <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg">
+                        <div className="text-xs text-amber-800 dark:text-amber-200">
+                          <strong>Requirements:</strong> Clean title only (no salvage), left-hand drive, INTRANT technical inspection, Ministry of Environment emissions certificate
                         </div>
                       </div>
                     </motion.div>
