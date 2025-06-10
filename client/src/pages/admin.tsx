@@ -25,6 +25,7 @@ import {
   Settings
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import UserManagement from '@/components/admin/UserManagement';
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -380,45 +381,7 @@ export default function AdminDashboard() {
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user accounts and permissions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {usersLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading users...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {users?.slice(0, 10).map((user) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                            <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{user.name}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <Badge className={getTierColor(user.role)}>{user.role}</Badge>
-                          <Badge variant={user.isActive ? "default" : "secondary"}>
-                            {user.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Joined {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
-                          </p>
-                        </div>
-                      </div>
-                    )) || <p className="text-gray-500 dark:text-gray-400">No users found</p>}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
 
           {/* Subscriptions Tab */}
