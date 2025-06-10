@@ -80,14 +80,17 @@ export function setupHondurasRoutes(app: Express) {
         parseFloat(freight),
         parseFloat(insurance),
         {
+          vin: vinAnalysis.vin,
           isValid: true,
+          manufacturer: vinAnalysis.make,
           modelYear: vinAnalysis.modelYear,
           caftaEligible: vinAnalysis.caftaEligible,
+          isUSAOrigin: vinAnalysis.countryOfOrigin === 'United States',
+          wmi: vinAnalysis.vin.substring(0, 3),
           aiValidation: {
             confidence: vinAnalysis.confidenceScore,
             warnings: vinAnalysis.warnings,
-            make: vinAnalysis.make,
-            model: vinAnalysis.model
+            recommendations: []
           }
         }
       );
