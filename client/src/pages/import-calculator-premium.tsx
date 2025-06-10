@@ -190,10 +190,9 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
       // Step 2: Determine regime (Standard vs Amnesty)
       const modelYear = vinAnalysis.modelYear || 2020; // Default if VIN invalid
       const isAmnestyEligible = modelYear <= 2005 && currentDate <= amnestyExpiry;
-      const regime = isAmnestyEligible ? HONDURAS_TAX_SYSTEM.amnesty_regime : HONDURAS_TAX_SYSTEM.standard_regime;
       
       // Step 3: Calculate DAI (Import Duty)
-      const daiRate = vinAnalysis.isUSAOrigin && isCaftaEligible ? regime.dai_rates.cafta_eligible : regime.dai_rates.non_cafta;
+      const daiRate = vinAnalysis.isUSAOrigin && isCaftaEligible ? 0.0 : 0.15;
       const dai = cifValue * daiRate;
       
       let isc = 0;
@@ -201,37 +200,45 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
       let amnestyFee = 0;
       
       if (isAmnestyEligible) {
-        // Amnesty Regime: Flat fee instead of ISC + ISV
-        amnestyFee = (regime as any).flat_fee; // L 10,000
+        // Amnesty Regime: Flat fee L 10,000 (~$400)
+        amnestyFee = 400; // USD equivalent
       } else {
         // Standard Regime: Sequential calculation
         // Step 4: Calculate ISC (Selective Consumption Tax)
         const iscBase = cifValue + dai;
-        const iscBracket = (regime as any).isc_brackets.find((bracket: any) => iscBase <= bracket.max);
-        const iscRate = iscBracket?.rate || 0.60;
+        let iscRate = 0.10; // Default 10%
+        
+        if (iscBase > 100000) iscRate = 0.60;
+        else if (iscBase > 50000) iscRate = 0.45;
+        else if (iscBase > 20000) iscRate = 0.30;
+        else if (iscBase > 10000) iscRate = 0.20;
+        else if (iscBase > 7000) iscRate = 0.15;
+        
         isc = iscBase * iscRate;
         
-        // Step 5: Calculate ISV (Sales Tax)
+        // Step 5: Calculate ISV (Sales Tax) - 15%
         const isvBase = cifValue + dai + isc;
-        isv = isvBase * (regime as any).isv_rate;
+        isv = isvBase * 0.15;
       }
       
       // Step 6: Calculate Ecotasa (Environmental Tax)
-      const ecotasaBracket = regime.ecotasa_brackets.find(bracket => cifValue <= bracket.max);
-      const ecotasa = ecotasaBracket?.fee || 10000;
+      let ecotasa = 200; // Default ~$200 USD
+      if (cifValue > 25000) ecotasa = 400;
+      else if (cifValue > 15000) ecotasa = 280;
       
       // Step 7: Calculate totals
-      const totalTaxes = dai + isc + isv + amnestyFee + (ecotasa / 25); // Convert Lempiras to USD (~25:1)
+      const totalTaxes = dai + isc + isv + amnestyFee + ecotasa;
       const totalCost = cifValue + totalTaxes;
       const caftaSavings = vinAnalysis.isUSAOrigin && isCaftaEligible ? cifValue * 0.15 : 0;
       
       const result = {
         cifValue,
-        dai,
-        isc,
-        isv,
+        duty: dai,
+        selectiveTax: isc,
+        salesTax: isv,
+        ecoTax: ecotasa,
         amnestyFee,
-        ecotasa: ecotasa / 25, // Convert to USD
+        otherFees: 0,
         totalTaxes,
         totalCost,
         caftaEligible: vinAnalysis.isUSAOrigin && isCaftaEligible,
@@ -390,7 +397,8 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                           const vin = e.target.value.toUpperCase();
                           setVinNumber(vin);
                           if (vin.length >= 1) {
-                            setIsCaftaEligible(isNorthAmericanOrigin(vin));
+                            const analysis = analyzeVIN(vin);
+                            setIsCaftaEligible(analysis.isUSAOrigin);
                           }
                         }}
                         className="font-mono text-lg pr-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500"
@@ -411,15 +419,46 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                       <motion.div 
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className={`p-4 rounded-lg ${isCaftaEligible ? 'bg-emerald-50 dark:bg-emerald-950/20' : 'bg-orange-50 dark:bg-orange-950/20'}`}
+                        className={`p-4 rounded-lg border ${isCaftaEligible ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200' : 'bg-orange-50 dark:bg-orange-950/20 border-orange-200'}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <Badge className={isCaftaEligible ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}>
-                            {isCaftaEligible ? 'CAFTA Eligible' : 'Non-CAFTA'}
-                          </Badge>
-                          <span className="text-sm font-medium">
-                            {isCaftaEligible ? 'US manufactured - duty exemption applies' : 'Foreign origin - standard duties apply'}
-                          </span>
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Badge className={isCaftaEligible ? 'bg-emerald-100 text-emerald-800' : 'bg-orange-100 text-orange-800'}>
+                              {isCaftaEligible ? 'CAFTA Eligible' : 'Non-CAFTA'}
+                            </Badge>
+                            <span className="text-sm font-medium">
+                              {isCaftaEligible ? 'US manufactured - duty exemption applies' : 'Foreign origin - standard duties apply'}
+                            </span>
+                          </div>
+                          
+                          {/* AI-Enhanced VIN Analysis Display */}
+                          {(() => {
+                            const analysis = analyzeVIN(vinNumber);
+                            return analysis.isValid ? (
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="text-slate-500 dark:text-slate-400">Model Year:</span>
+                                  <span className="ml-2 font-semibold">{analysis.modelYear || 'Unknown'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 dark:text-slate-400">Manufacturer:</span>
+                                  <span className="ml-2 font-semibold">{analysis.manufacturer}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 dark:text-slate-400">Origin:</span>
+                                  <span className="ml-2 font-semibold">{analysis.isUSAOrigin ? 'USA' : 'Non-USA'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500 dark:text-slate-400">WMI Code:</span>
+                                  <span className="ml-2 font-mono text-xs">{analysis.wmi}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-sm text-red-600 dark:text-red-400">
+                                Invalid VIN format - Please check the 17-character VIN
+                              </div>
+                            );
+                          })()}
                         </div>
                       </motion.div>
                     )}
@@ -620,24 +659,51 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                         </TableHeader>
                         <TableBody>
                           <TableRow>
-                            <TableCell className="font-medium">Import Duty</TableCell>
+                            <TableCell className="font-medium">
+                              DAI (Import Duty)
+                              {calculationDetails.caftaEligible && <Badge className="ml-2 text-xs bg-emerald-100 text-emerald-800">CAFTA 0%</Badge>}
+                            </TableCell>
                             <TableCell className="text-right">${calculationDetails.duty.toLocaleString()}</TableCell>
                           </TableRow>
+                          
+                          {(calculationDetails as any).regime === 'amnesty' ? (
+                            <TableRow className="bg-blue-50 dark:bg-blue-950/20">
+                              <TableCell className="font-medium">
+                                Amnesty Flat Fee (≤2005 vehicles)
+                                <div className="text-xs text-slate-500">Replaces ISC + ISV + Registration</div>
+                              </TableCell>
+                              <TableCell className="text-right">${(calculationDetails as any).amnestyFee.toLocaleString()}</TableCell>
+                            </TableRow>
+                          ) : (
+                            <>
+                              <TableRow>
+                                <TableCell className="font-medium">
+                                  ISC (Selective Consumption Tax)
+                                  <div className="text-xs text-slate-500">Progressive rates: 10%-60%</div>
+                                </TableCell>
+                                <TableCell className="text-right">${calculationDetails.selectiveTax.toLocaleString()}</TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell className="font-medium">
+                                  ISV (Sales Tax)
+                                  <div className="text-xs text-slate-500">15% on taxable base</div>
+                                </TableCell>
+                                <TableCell className="text-right">${calculationDetails.salesTax.toLocaleString()}</TableCell>
+                              </TableRow>
+                            </>
+                          )}
+                          
                           <TableRow>
-                            <TableCell className="font-medium">Selective Tax (ISC)</TableCell>
-                            <TableCell className="text-right">${calculationDetails.selectiveTax.toLocaleString()}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Sales Tax (IVA)</TableCell>
-                            <TableCell className="text-right">${calculationDetails.salesTax.toLocaleString()}</TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Environmental Tax</TableCell>
+                            <TableCell className="font-medium">
+                              Ecotasa (Environmental Tax)
+                              <div className="text-xs text-slate-500">Based on vehicle value brackets</div>
+                            </TableCell>
                             <TableCell className="text-right">${calculationDetails.ecoTax.toLocaleString()}</TableCell>
                           </TableRow>
-                          <TableRow>
-                            <TableCell className="font-medium">Other Fees</TableCell>
-                            <TableCell className="text-right">${calculationDetails.otherFees.toLocaleString()}</TableCell>
+                          
+                          <TableRow className="border-t-2 border-slate-200 dark:border-slate-700 font-semibold bg-slate-50 dark:bg-slate-800/50">
+                            <TableCell>TOTAL TAXES</TableCell>
+                            <TableCell className="text-right text-lg">${calculationDetails.totalTaxes.toLocaleString()}</TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
