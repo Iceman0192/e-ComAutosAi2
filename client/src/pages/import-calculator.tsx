@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Calculator, ArrowRight, DollarSign, AlertTriangle, Info, Clipboard, 
-  RefreshCw, Share2, Download, BarChart4, FileText, Truck, Ship 
+  RefreshCw, Share2, Download, BarChart4, FileText, Truck, Ship, 
+  Moon, Sun, Menu, X, Save, History, Zap, TrendingUp, Globe,
+  CheckCircle, Shield, Star, Target, PieChart
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -16,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DutyTaxCalculatorTabProps {
   vehicle?: any;
@@ -205,6 +208,7 @@ const TAX_RULES = {
 };
 
 export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps) {
+  // Core calculation state
   const [selectedCountry, setSelectedCountry] = useState<string>("honduras");
   const [vehiclePrice, setVehiclePrice] = useState<number>(0);
   const [freight, setFreight] = useState<number>(1500);
@@ -218,6 +222,18 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
   const [viewMode, setViewMode] = useState<string>("basic");
   const [calculatorMode, setCalculatorMode] = useState<string>("new");
   const [vinNumber, setVinNumber] = useState<string>("");
+  
+  // Premium UX state
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
+  const [savedCalculations, setSavedCalculations] = useState<any[]>([]);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [showComparison, setShowComparison] = useState<boolean>(false);
+  const [activeInputField, setActiveInputField] = useState<string>("");
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState<boolean>(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   // Advanced shipping cost breakdowns
   const [portFees, setPortFees] = useState<number>(200);
@@ -506,49 +522,161 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
   }, [vehiclePrice, freight, insurance, selectedCountry, engineSize, isCaftaEligible, vinNumber]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
-      {/* Header */}
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <Calculator className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                CAFTA Import Duty Calculator
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                Professional import cost calculator for Central American markets with 2025 CAFTA-DR treaty rates
-              </p>
-            </div>
-          </div>
+    <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
+      {/* Premium Header with Gradient */}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950"
+      >
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px'
+          }} />
         </div>
-      </div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            {/* Left: Logo and Title */}
+            <motion.div 
+              className="flex items-center gap-6"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                  <Calculator className="h-9 w-9 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <h1 className="text-3xl font-bold text-white tracking-tight">
+                  CAFTA Import Calculator
+                </h1>
+                <p className="text-blue-100 text-lg max-w-md">
+                  Professional duty calculation for Central American markets with real-time CAFTA-DR benefits
+                </p>
+                <div className="flex items-center gap-4 mt-2">
+                  <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30">
+                    <Shield className="h-3 w-3 mr-1" />
+                    2025 Treaty Rates
+                  </Badge>
+                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                    <Globe className="h-3 w-3 mr-1" />
+                    8 Countries
+                  </Badge>
+                </div>
+              </div>
+            </motion.div>
 
-      <div className="container mx-auto px-6 py-8 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Input Section */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Vehicle Information
-                </CardTitle>
-                {vehicle && !dataAutoPopulated && (
-                  <Button 
-                    onClick={autoPopulateFromVehicle}
-                    variant="outline" 
-                    size="sm"
-                    className="w-full"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Auto-populate from Vehicle Data
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-4">
+            {/* Right: Actions */}
+            <motion.div 
+              className="flex items-center gap-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(!showHistory)}
+                className="text-white hover:bg-white/10 transition-colors"
+              >
+                <History className="h-4 w-4 mr-2" />
+                History
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowComparison(!showComparison)}
+                className="text-white hover:bg-white/10 transition-colors"
+              >
+                <PieChart className="h-4 w-4 mr-2" />
+                Compare
+              </Button>
+              
+              <Separator orientation="vertical" className="h-6 bg-white/20" />
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="text-white hover:bg-white/10 transition-colors"
+              >
+                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="text-white hover:bg-white/10 transition-colors lg:hidden"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </div>
+          
+          {/* Auto-save indicator */}
+          <AnimatePresence>
+            {autoSaveEnabled && lastSaved && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-4 right-6 flex items-center gap-2 text-sm text-blue-200"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Auto-saved {lastSaved.toLocaleTimeString()}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.header>
+
+      {/* Main Content */}
+      <div className="bg-gradient-to-br from-slate-50/50 to-blue-50/30 dark:from-slate-900/50 dark:to-slate-800/30 min-h-screen pt-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            
+            {/* Premium Input Section */}
+            <motion.div 
+              className="xl:col-span-5 space-y-6"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              {/* VIN Input Card */}
+              <Card className="shadow-lg border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <Target className="h-5 w-5 text-white" />
+                      </div>
+                      Vehicle Identification
+                    </CardTitle>
+                    {vehicle && !dataAutoPopulated && (
+                      <Button 
+                        onClick={autoPopulateFromVehicle}
+                        variant="outline" 
+                        size="sm"
+                        className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                      >
+                        <Zap className="h-4 w-4 mr-2" />
+                        Auto-fill
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
                 {/* VIN Number for CAFTA Eligibility */}
                 <div>
                   <Label htmlFor="vin">Vehicle VIN (for CAFTA eligibility)</Label>
