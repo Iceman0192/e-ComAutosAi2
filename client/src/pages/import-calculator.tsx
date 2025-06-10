@@ -401,7 +401,7 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
         totalImportCost: accumulatedValue,
         taxPercentage: ((accumulatedValue - cifValue) / cifValue * 100).toFixed(1),
         caftaEligible: isNorthAmerican,
-        caftaSavings: isNorthAmerican ? (cifValue * (countryRules.other_origin.duty || 0.15)) : 0
+        caftaSavings: isNorthAmerican ? (cifValue * ((countryRules.other_origin as any)?.duty || 0.15)) : 0
       };
     }
     
@@ -513,7 +513,7 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
         totalImportCost: cifValue + totalTaxes,
         taxPercentage: ((totalTaxes) / cifValue * 100).toFixed(1),
         caftaEligible: isNorthAmerican,
-        caftaSavings: isNorthAmerican ? (cifValue * (countryRules.other_origin.duty || 0.15)) : 0
+        caftaSavings: isNorthAmerican ? (cifValue * ((countryRules.other_origin as any)?.duty || 0.15)) : 0
       };
     }
   };
@@ -782,7 +782,7 @@ export default function ImportCalculator({ vehicle }: DutyTaxCalculatorTabProps)
                 </div>
               </CardContent>
             </Card>
-          </div>
+            </motion.div>
 
           {/* Results Section */}
           <div className="lg:col-span-2">
