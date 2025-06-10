@@ -23,12 +23,9 @@ import {
 import { Link } from 'wouter';
 
 export default function Dashboard() {
-  console.log('Dashboard component rendering...');
   const { user, hasPermission } = useAuth();
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  console.log('Dashboard - user:', user, 'isLoading:', isLoading);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
