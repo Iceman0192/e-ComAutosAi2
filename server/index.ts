@@ -86,12 +86,9 @@ async function startServer() {
     next();
   });
 
-  // Authentication setup FIRST
-  setupUnifiedAuth(app);
-  
-  // Add user attachment middleware after auth setup
-  const { attachUser } = await import("./middleware/auth");
-  app.use(attachUser);
+  // Authentication setup using simple auth
+  const { setupSimpleAuth } = await import("./simpleAuth");
+  setupSimpleAuth(app);
 
   // Rate limiting middleware
   app.use('/api/auth/login', rateLimiters.auth);
