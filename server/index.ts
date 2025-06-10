@@ -107,7 +107,6 @@ async function startServer() {
   setupApiRoutes(app);
   setupAuctionMindRoutes(app);
   setupAuctionMindV2Routes(app);
-  setupRecommendationRoutes(app);
   registerSubscriptionRoutes(app);
   setupAdminRoutes(app);
   setupUsageRoutes(app);
