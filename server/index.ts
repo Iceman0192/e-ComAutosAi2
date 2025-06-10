@@ -6,7 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
-
+import { setupRecommendationRoutes } from "./recommendationRoutes";
 import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupUnifiedAuth } from "./auth/unifiedAuth";
 import { trialScheduler } from "./trialScheduler";
@@ -16,6 +16,7 @@ import { setupHealthRoutes } from "./routes/healthRoutes";
 import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
 import { setupTeamRoutes } from "./routes/teamRoutes";
 import { setupVinRoutes } from "./routes/vinRoutes";
+import { setupTargetedCollectionRoutes } from "./targetedCollectionRoutes";
 import { freshDataManager } from "./freshDataManager";
 import { autoCollectionService } from "./autoCollectionService";
 import { errorHandler, notFound } from "./middleware/errorHandler";
@@ -107,6 +108,7 @@ async function startServer() {
   setupApiRoutes(app);
   setupAuctionMindRoutes(app);
   setupAuctionMindV2Routes(app);
+  setupRecommendationRoutes(app);
   registerSubscriptionRoutes(app);
   setupAdminRoutes(app);
   setupUsageRoutes(app);
@@ -114,6 +116,7 @@ async function startServer() {
   registerDataCollectionRoutes(app);
   setupTeamRoutes(app);
   setupVinRoutes(app);
+  setupTargetedCollectionRoutes(app);
 
   // Fresh data migration scheduler
   setInterval(async () => {

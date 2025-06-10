@@ -52,7 +52,7 @@ export class RecommendationEngine {
     
     // Save top recommendations to database
     const topRecommendations = scoredRecommendations
-      .sort((a, b) => b.score - a.score)
+      .sort((a: any, b: any) => b.score - a.score)
       .slice(0, maxRecommendations);
     
     await this.saveRecommendations(userId, topRecommendations);
@@ -140,7 +140,7 @@ export class RecommendationEngine {
         min: years.length ? Math.min(...years) : 2010,
         max: years.length ? Math.max(...years) : new Date().getFullYear()
       },
-      preferredDamageTypes: [...new Set(damages)]
+      preferredDamageTypes: damages.filter((damage, index) => damages.indexOf(damage) === index)
     };
   }
 
