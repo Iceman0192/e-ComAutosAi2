@@ -33,7 +33,7 @@ const CENTRAL_AMERICAN_COUNTRIES = [
   { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷", status: "active" },
   { id: "panama", name: "Panama", flag: "🇵🇦", status: "coming_soon" },
   { id: "belize", name: "Belize", flag: "🇧🇿", status: "coming_soon" },
-  { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴", status: "coming_soon" }
+  { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴", status: "active" }
 ];
 
 // AI-Enhanced Honduras Tax Rules (Based on Official Documentation)
@@ -126,6 +126,15 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   const [isElectricVehicle, setIsElectricVehicle] = useState<boolean>(false);
   const [isNewResident, setIsNewResident] = useState<boolean>(false);
   const [residentExemptionUsed, setResidentExemptionUsed] = useState<boolean>(false);
+  
+  // Dominican Republic specific features
+  const [drVehicleAge, setDrVehicleAge] = useState<number>(3);
+  const [isUSOrigin, setIsUSOrigin] = useState<boolean>(true);
+  const [hasCaftaCertificate, setHasCaftaCertificate] = useState<boolean>(false);
+  const [drIsElectricHybrid, setDrIsElectricHybrid] = useState<boolean>(false);
+  const [hasDisability, setHasDisability] = useState<boolean>(false);
+  const [co2Emissions, setCo2Emissions] = useState<number>(150);
+  const [drVehicleType, setDrVehicleType] = useState<string>("passenger");
 
   const { toast } = useToast();
 
