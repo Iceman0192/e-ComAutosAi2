@@ -20,10 +20,47 @@ export function setupAdminRoutes(app: Express) {
   });
 
   // User management endpoint with comprehensive data
-  app.get('/api/admin/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  app.get('/api/admin/users', requireAdmin, async (req: Request, res: Response) => {
     try {
       console.log('Admin users endpoint called by user:', (req as any).user?.role);
-      const userData = await userManagementService.getUserManagementData();
+      
+      // Get real users from database directly
+      const realUsers = await db.select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+        lastLoginAt: users.lastLoginAt,
+        isTrialActive: users.isTrialActive,
+        trialEndsAt: users.trialEndsAt,
+        subscriptionStatus: users.subscriptionStatus
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt));
+
+      // Format with default usage stats and limits
+      const userData = realUsers.map(user => ({
+        ...user,
+        usageStats: {
+          totalSearches: 0,
+          searchesToday: 0,
+          aiAnalysesToday: 0,
+          vinSearchesToday: 0,
+          exportsToday: 0,
+          lastActivity: null
+        },
+        limits: {
+          dailySearches: user.role === 'admin' ? -1 : user.role === 'enterprise' ? -1 : user.role === 'platinum' ? 500 : user.role === 'gold' ? 200 : user.role === 'basic' ? 50 : 10,
+          monthlySearches: user.role === 'admin' ? -1 : user.role === 'enterprise' ? -1 : user.role === 'platinum' ? 15000 : user.role === 'gold' ? 5000 : user.role === 'basic' ? 1000 : 100,
+          aiAnalysesPerDay: user.role === 'admin' ? -1 : user.role === 'enterprise' ? -1 : user.role === 'platinum' ? 200 : user.role === 'gold' ? 50 : user.role === 'basic' ? 10 : 2,
+          vinSearchesPerDay: user.role === 'admin' ? -1 : user.role === 'enterprise' ? -1 : user.role === 'platinum' ? 300 : user.role === 'gold' ? 100 : user.role === 'basic' ? 15 : 3,
+          exportsPerDay: user.role === 'admin' ? -1 : user.role === 'enterprise' ? -1 : user.role === 'platinum' ? 100 : user.role === 'gold' ? 20 : user.role === 'basic' ? 5 : 1,
+          concurrentSessions: user.role === 'admin' ? -1 : user.role === 'enterprise' ? 10 : user.role === 'platinum' ? 5 : user.role === 'gold' ? 3 : user.role === 'basic' ? 2 : 1
+        }
+      }));
+
       console.log('User data fetched:', userData.length, 'users');
       res.json(userData);
     } catch (error) {
