@@ -115,6 +115,7 @@ async function startServer() {
   setupTeamRoutes(app);
   setupVinRoutes(app);
   setupTargetedCollectionRoutes(app);
+  setupHondurasRoutes(app);
 
   // Fresh data migration scheduler
   setInterval(async () => {

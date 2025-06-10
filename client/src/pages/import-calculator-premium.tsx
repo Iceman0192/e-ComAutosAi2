@@ -9,7 +9,7 @@ import {
   Calculator, ArrowRight, DollarSign, AlertTriangle, Info, Clipboard, 
   RefreshCw, Share2, Download, BarChart4, FileText, Truck, Ship, 
   Moon, Sun, Menu, X, Save, History, Zap, TrendingUp, Globe,
-  CheckCircle, Shield, Star, Target, PieChart
+  CheckCircle, Shield, Star, Target, PieChart, Brain
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -106,6 +106,77 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const { toast } = useToast();
+
+  // Professional export functionality
+  const exportCalculationReport = (details: any) => {
+    if (!details) return;
+
+    const reportData = {
+      title: "Honduras Import Duty Calculation Report",
+      generatedAt: new Date().toLocaleString(),
+      vehicle: {
+        vin: vinNumber,
+        modelYear: details.modelYear,
+        manufacturer: details.vinAnalysis?.manufacturer || 'Unknown',
+        origin: details.vinAnalysis?.isUSAOrigin ? 'USA' : 'Non-USA'
+      },
+      calculation: {
+        regime: details.regime,
+        cifValue: details.cifValue,
+        totalTaxes: details.totalTaxes,
+        totalCost: details.totalCost,
+        taxPercentage: details.taxPercentage,
+        caftaEligible: details.caftaEligible,
+        caftaSavings: details.caftaSavings
+      },
+      breakdown: details.breakdown || [],
+      insights: details.aiInsights || {}
+    };
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
+      type: 'application/json' 
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `honduras-import-calculation-${vinNumber || 'report'}-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Report Exported",
+      description: "Professional calculation report downloaded successfully."
+    });
+  };
+
+  // Share calculation functionality
+  const shareCalculation = (details: any) => {
+    if (!details) return;
+
+    const shareText = `Honduras Import Calculator Results:
+• Vehicle: ${vinNumber} (${details.modelYear})
+• CIF Value: $${details.cifValue.toLocaleString()}
+• Total Taxes: $${details.totalTaxes.toLocaleString()} (${details.taxPercentage}%)
+• Total Cost: $${details.totalCost.toLocaleString()}
+• Regime: ${details.regime}
+• CAFTA Eligible: ${details.caftaEligible ? 'Yes' : 'No'}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Honduras Import Calculation',
+        text: shareText
+      }).catch(console.error);
+    } else {
+      navigator.clipboard.writeText(shareText).then(() => {
+        toast({
+          title: "Copied to Clipboard",
+          description: "Calculation summary copied successfully."
+        });
+      }).catch(console.error);
+    }
+  };
 
   // AI-Enhanced VIN Analysis for CAFTA Eligibility
   const analyzeVIN = (vin: string) => {
@@ -260,10 +331,86 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
     }, 500);
   };
 
+  // AI-Enhanced calculation with backend integration
+  const calculateWithAI = async () => {
+    if (!vehiclePrice || !selectedCountry || selectedCountry !== 'honduras' || !vinNumber) {
+      return;
+    }
+
+    setIsCalculating(true);
+    
+    try {
+      const response = await fetch('/api/honduras/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          vehiclePrice: parseFloat(vehiclePrice.toString()),
+          freight: parseFloat(freight.toString()),
+          insurance: parseFloat(insurance.toString()),
+          vin: vinNumber
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Calculation failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        const { calculation, vinAnalysis } = result.data;
+        
+        // Map the AI calculation to our display format
+        const mappedResult = {
+          cifValue: calculation.cifValue,
+          duty: calculation.taxes.dai,
+          selectiveTax: calculation.taxes.isc,
+          salesTax: calculation.taxes.isv,
+          ecoTax: calculation.taxes.ecotasa,
+          amnestyFee: calculation.taxes.amnestyFee,
+          otherFees: 0,
+          totalTaxes: calculation.totalTaxes,
+          totalCost: calculation.totalCost,
+          caftaEligible: vinAnalysis.caftaEligible,
+          caftaSavings: calculation.caftaSavings,
+          taxPercentage: ((calculation.totalTaxes / calculation.cifValue) * 100).toFixed(1),
+          regime: calculation.regime,
+          modelYear: vinAnalysis.modelYear,
+          vinAnalysis,
+          breakdown: calculation.breakdown,
+          aiInsights: calculation.aiInsights
+        };
+
+        setCalculationDetails(mappedResult);
+        setIsCaftaEligible(vinAnalysis.caftaEligible);
+        
+        if (autoSaveEnabled) {
+          setLastSaved(new Date());
+        }
+      }
+    } catch (error) {
+      console.error('AI calculation error:', error);
+      // Fallback to local calculation
+      calculateHondurasTaxes();
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
   // Auto-calculate on input changes
   useEffect(() => {
-    calculateHondurasTaxes();
-  }, [vehiclePrice, freight, insurance, selectedCountry, engineSize, isCaftaEligible]);
+    const timer = setTimeout(() => {
+      if (vinNumber.length === 17) {
+        calculateWithAI();
+      } else if (vehiclePrice && selectedCountry === 'honduras') {
+        calculateHondurasTaxes();
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
@@ -710,17 +857,95 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                     </CardContent>
                     <CardFooter className="bg-slate-50 dark:bg-slate-800/50">
                       <div className="flex items-center justify-between w-full">
-                        <Button className="bg-blue-600 hover:bg-blue-700">
+                        <Button 
+                          className="bg-blue-600 hover:bg-blue-700"
+                          onClick={() => exportCalculationReport(calculationDetails)}
+                        >
                           <Download className="h-4 w-4 mr-2" />
                           Export Report
                         </Button>
-                        <Button variant="outline">
+                        <Button 
+                          variant="outline"
+                          onClick={() => shareCalculation(calculationDetails)}
+                        >
                           <Share2 className="h-4 w-4 mr-2" />
                           Share Calculation
                         </Button>
                       </div>
                     </CardFooter>
                   </Card>
+
+                  {/* AI Insights Card */}
+                  {(calculationDetails as any)?.aiInsights && (
+                    <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <Brain className="h-5 w-5 text-white" />
+                          </div>
+                          AI Professional Insights
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Risk Assessment */}
+                        <div className="p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg">
+                          <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Risk Assessment</h4>
+                          <p className="text-sm text-slate-600 dark:text-slate-400">
+                            {(calculationDetails as any).aiInsights.riskAssessment}
+                          </p>
+                        </div>
+
+                        {/* Cost Optimization */}
+                        {(calculationDetails as any).aiInsights.costOptimization?.length > 0 && (
+                          <div className="p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg">
+                            <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Cost Optimization</h4>
+                            <ul className="space-y-1">
+                              {(calculationDetails as any).aiInsights.costOptimization.map((tip: string, index: number) => (
+                                <li key={index} className="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2">
+                                  <span className="text-emerald-500 mt-1">•</span>
+                                  {tip}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Compliance Notes */}
+                        {(calculationDetails as any).aiInsights.complianceNotes?.length > 0 && (
+                          <div className="p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg">
+                            <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Compliance Requirements</h4>
+                            <ul className="space-y-1">
+                              {(calculationDetails as any).aiInsights.complianceNotes.map((note: string, index: number) => (
+                                <li key={index} className="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2">
+                                  <span className="text-blue-500 mt-1">•</span>
+                                  {note}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Calculation Breakdown */}
+                        {(calculationDetails as any)?.breakdown?.length > 0 && (
+                          <div className="p-4 bg-white/60 dark:bg-slate-800/60 rounded-lg">
+                            <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Step-by-Step Calculation</h4>
+                            <div className="space-y-2">
+                              {(calculationDetails as any).breakdown.map((step: any, index: number) => (
+                                <div key={index} className="flex justify-between items-center text-sm">
+                                  <span className="text-slate-600 dark:text-slate-400">
+                                    {step.step}. {step.description}
+                                  </span>
+                                  <span className="font-semibold">
+                                    ${step.amount.toLocaleString()} {step.rate && `(${step.rate})`}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
                 </>
               ) : (
                 <Card className="shadow-lg border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
