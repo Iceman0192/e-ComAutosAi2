@@ -24,7 +24,7 @@ import Billing from "./pages/billing";
 import LandingPage from "./pages/landing";
 import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
-import DataCollectionPage from "./pages/data-collection-clean";
+
 import VINHistory from "./pages/vin-history";
 import SalesHistory from "./pages/sales-history";
 import Team from "./pages/team";
@@ -122,7 +122,7 @@ function Router() {
         <Route path="/billing" component={Billing} />
         <Route path="/usage-dashboard" component={UsageDashboard} />
         <Route path="/admin" component={AdminDashboard} />
-        <Route path="/admin/data-collection" component={DataCollectionPage} />
+
         <Route path="/admin/system-monitor" component={SystemMonitor} />
 
         <Route component={NotFound} />
