@@ -6,6 +6,7 @@
 import { Express, Request, Response } from 'express';
 import { analyzeVINWithAI } from './hondurasImportService';
 import { calculateElSalvadorImport } from './elSalvadorImportService';
+import { multiAIService } from './multiAIService';
 
 export function setupElSalvadorRoutes(app: Express) {
   
