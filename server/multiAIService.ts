@@ -273,19 +273,24 @@ export class MultiAIService {
   }
 
   /**
-   * Check CAFTA eligibility based on VIN positions 1, 4, 5
+   * Check CAFTA-DR eligibility based on VIN positions 1, 4, 5
+   * CAFTA-DR includes: USA, Canada, Dominican Republic, Costa Rica, El Salvador, Guatemala, Honduras, Nicaragua
+   * Mexico is NOT part of CAFTA-DR (has separate bilateral agreements)
    */
   private checkCaftaEligibility(vin: string): boolean {
     const pos1 = vin.charAt(0);
     const pos4 = vin.charAt(3);
     const pos5 = vin.charAt(4);
     
-    // North American manufacturers (USA, Canada, Mexico)
-    const northAmericanCodes = ['1', '2', '3', '4', '5'];
+    // CAFTA-DR eligible codes (USA and Canada only)
+    // VIN codes 1, 4, 5 = USA
+    // VIN code 2 = Canada
+    // VIN code 3 = Mexico (NOT CAFTA-DR eligible)
+    const caftaEligibleCodes = ['1', '2', '4', '5'];
     
-    return northAmericanCodes.includes(pos1) || 
-           northAmericanCodes.includes(pos4) || 
-           northAmericanCodes.includes(pos5);
+    return caftaEligibleCodes.includes(pos1) || 
+           caftaEligibleCodes.includes(pos4) || 
+           caftaEligibleCodes.includes(pos5);
   }
 
   /**
