@@ -23,9 +23,12 @@ import {
 import { Link } from 'wouter';
 
 export default function Dashboard() {
+  console.log('Dashboard component rendering...');
   const { user, hasPermission } = useAuth();
   const [dashboardStats, setDashboardStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  console.log('Dashboard - user:', user, 'isLoading:', isLoading);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -368,7 +371,7 @@ export default function Dashboard() {
               </div>
               <span className="text-xs text-muted-foreground">Last 30 days</span>
             </div>
-            {hasPermission('FULL_ANALYTICS') && dashboardStats && (
+            {hasPermission('ADVANCED_ANALYTICS') && dashboardStats && (
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
@@ -386,7 +389,7 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle className="text-blue-800 dark:text-blue-200 flex items-center gap-2">
             <Badge className="h-4 w-4" />
-            Current Plan: {user?.role.charAt(0).toUpperCase() + user?.role.slice(1)} Tier
+            Current Plan: {user ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Unknown'} Tier
           </CardTitle>
           <CardDescription className="text-blue-700 dark:text-blue-300">
             {user?.role === 'free' && "You have access to basic sales history search and VIN history."}
