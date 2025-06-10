@@ -29,7 +29,7 @@ const CENTRAL_AMERICAN_COUNTRIES = [
   { id: "honduras", name: "Honduras", flag: "🇭🇳", status: "active" },
   { id: "el_salvador", name: "El Salvador", flag: "🇸🇻", status: "active" },
   { id: "guatemala", name: "Guatemala", flag: "🇬🇹", status: "active" },
-  { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮", status: "coming_soon" },
+  { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮", status: "active" },
   { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷", status: "coming_soon" },
   { id: "panama", name: "Panama", flag: "🇵🇦", status: "coming_soon" },
   { id: "belize", name: "Belize", flag: "🇧🇿", status: "coming_soon" },
@@ -382,6 +382,13 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
           engineSize: parseFloat(engineSize.toString()),
           vehicleType: guatemalaVehicleType,
           isLuxury: isLuxuryVehicle,
+          hasSalvageTitle
+        };
+      } else if (selectedCountry === 'nicaragua') {
+        apiEndpoint = '/api/nicaragua/calculate';
+        requestBody = {
+          ...requestBody,
+          engineSize: nicaraguaEngineSize,
           hasSalvageTitle
         };
       } else {
@@ -981,6 +988,66 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                         {hasSalvageTitle && (
                           <div className="text-xs text-orange-600">
                             Must be rebuildable (not branded "irreconstruible")
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Nicaragua Specific Options */}
+                  {selectedCountry === 'nicaragua' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-4"
+                    >
+                      {/* Age Compliance Warning */}
+                      {nicaraguaAgeCompliance && !nicaraguaAgeCompliance.ageCompliant && (
+                        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <div>
+                              <div className="font-semibold text-red-800 dark:text-red-200">Age Limit Violation</div>
+                              <div className="text-sm text-red-600 dark:text-red-400">
+                                Vehicle is {nicaraguaAgeCompliance.vehicleAge} years old - exceeds Nicaragua's 10-year import limit
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Engine Size for ISC Tax */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Engine Size (Liters)</Label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0.8"
+                          max="8.0"
+                          value={nicaraguaEngineSize}
+                          onChange={(e) => setNicaraguaEngineSize(parseFloat(e.target.value) || 2.0)}
+                          placeholder="2.0"
+                          className="text-center"
+                        />
+                        <div className="text-xs text-slate-500">
+                          ISC rates: ≤1.6L (10%), 1.6-2.6L (15%), 2.6-3.0L (20%), 3.0-4.0L (30%), >4.0L (35%)
+                        </div>
+                      </div>
+
+                      {/* Salvage Title Option */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Title Status</Label>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="nicaraguaSalvageTitle" 
+                            checked={hasSalvageTitle} 
+                            onCheckedChange={(checked) => setHasSalvageTitle(checked as boolean)}
+                          />
+                          <Label htmlFor="nicaraguaSalvageTitle" className="text-sm">Salvage/Damaged Title</Label>
+                        </div>
+                        {hasSalvageTitle && (
+                          <div className="text-xs text-orange-600">
+                            Must be repairable and ≤10 years old. VIN/engine numbers must be intact.
                           </div>
                         )}
                       </div>
