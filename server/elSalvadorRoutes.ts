@@ -39,13 +39,14 @@ export function setupElSalvadorRoutes(app: Express) {
         });
       }
 
-      // First analyze the VIN
-      const vinAnalysis = await analyzeVINWithAI(vin);
+      // Multi-AI VIN analysis with consensus validation
+      const vinAnalysis = await multiAIService.analyzeVIN(vin);
       
-      if (!vinAnalysis.isValid) {
+      if (vinAnalysis.confidenceScore < 70) {
         return res.status(400).json({
-          error: 'Invalid VIN format',
-          details: vinAnalysis.aiValidation.warnings
+          error: 'VIN analysis confidence too low for reliable calculation',
+          details: vinAnalysis.warnings,
+          confidenceScore: vinAnalysis.confidenceScore
         });
       }
 
@@ -54,12 +55,41 @@ export function setupElSalvadorRoutes(app: Express) {
         parseFloat(vehiclePrice),
         parseFloat(freight),
         parseFloat(insurance),
-        vinAnalysis,
+        {
+          vin: vinAnalysis.vin,
+          isValid: true,
+          manufacturer: vinAnalysis.make,
+          modelYear: vinAnalysis.modelYear,
+          caftaEligible: vinAnalysis.caftaEligible,
+          isUSAOrigin: vinAnalysis.countryOfOrigin === 'United States',
+          wmi: vinAnalysis.vin.substring(0, 3),
+          aiValidation: {
+            confidence: vinAnalysis.confidenceScore,
+            warnings: vinAnalysis.warnings,
+            recommendations: []
+          }
+        },
         parseFloat(engineSize.toString()),
         Boolean(is4x4),
         Boolean(hasSalvageTitle),
         Boolean(isPersonalUse)
       );
+
+      // Generate professional import insights for El Salvador
+      const importInsights = await multiAIService.generateImportInsights(
+        'el_salvador',
+        { vehiclePrice, freight, insurance, engineSize, is4x4, hasSalvageTitle, isPersonalUse },
+        calculation,
+        vinAnalysis
+      );
+
+      // Add Multi-AI insights to calculation with El Salvador specific format
+      calculation.aiInsights = {
+        ageCompliance: importInsights.riskAssessment,
+        salvageStrategy: importInsights.costOptimization,
+        costOptimization: importInsights.costOptimization,
+        complianceNotes: importInsights.complianceNotes
+      };
 
       res.json({
         success: true,
