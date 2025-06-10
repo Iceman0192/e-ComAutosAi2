@@ -457,6 +457,36 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
             eligible: calculation.isEligible,
             reason: calculation.eligibilityReason
           });
+        } else if (selectedCountry === 'guatemala') {
+          mappedResult = {
+            cifValue: calculation.cifValue,
+            duty: calculation.taxes.dai,
+            iva: calculation.taxes.iva,
+            iprima: calculation.taxes.iprima,
+            selectiveTax: 0, // Guatemala doesn't have ISC for vehicles
+            salesTax: calculation.taxes.iva,
+            ecoTax: 0,
+            otherFees: calculation.fees.circulation + calculation.fees.licensePlate + calculation.fees.customsBroker,
+            totalTaxes: calculation.totalTaxes,
+            totalCost: calculation.totalCost,
+            caftaEligible: vinAnalysis.caftaEligible,
+            caftaSavings: calculation.caftaSavings,
+            taxPercentage: ((calculation.totalTaxes / calculation.cifValue) * 100).toFixed(1),
+            vehicleCategory: calculation.vehicleCategory,
+            iprimaRate: calculation.iprimaRate,
+            salvageTitle: calculation.salvagetitle,
+            modelYear: vinAnalysis.modelYear,
+            vinAnalysis,
+            breakdown: calculation.breakdown,
+            aiInsights: calculation.aiInsights
+          };
+          
+          // Update IPRIMA category info for Guatemala
+          setIprimaCategory({
+            category: calculation.vehicleCategory,
+            rate: calculation.iprimaRate,
+            amount: calculation.taxes.iprima
+          });
         }
 
         setCalculationDetails(mappedResult);
@@ -478,7 +508,7 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   // Auto-calculate on input changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador')) {
+      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala')) {
         calculateWithAI();
       } else if (vehiclePrice && selectedCountry === 'honduras') {
         calculateHondurasTaxes();
@@ -486,7 +516,7 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory]);
+  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
@@ -819,6 +849,107 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                             </div>
                           )}
                         </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Guatemala Specific Options */}
+                  {selectedCountry === 'guatemala' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="space-y-4"
+                    >
+                      {/* Guatemala Advantages Banner */}
+                      <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-5 w-5 text-emerald-500" />
+                          <div>
+                            <div className="font-semibold text-emerald-800 dark:text-emerald-200">Guatemala Import Advantages</div>
+                            <div className="text-sm text-emerald-600 dark:text-emerald-400">
+                              No age restrictions • Salvage vehicles allowed if rebuildable • No emissions requirements
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* IPRIMA Category Indicator */}
+                      {iprimaCategory && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 rounded-lg">
+                          <div className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                            IPRIMA Category: {iprimaCategory.category}
+                          </div>
+                          <div className="text-xs text-blue-600 dark:text-blue-400">
+                            Tax Rate: {(iprimaCategory.rate * 100).toFixed(0)}% • Estimated: ${iprimaCategory.amount?.toLocaleString()}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Vehicle Type Selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Vehicle Type (for IPRIMA classification)</Label>
+                        <Select value={guatemalaVehicleType} onValueChange={setGuatemalaVehicleType}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sedan">Sedan</SelectItem>
+                            <SelectItem value="suv">SUV</SelectItem>
+                            <SelectItem value="pickup">Pickup Truck</SelectItem>
+                            <SelectItem value="motorcycle">Motorcycle</SelectItem>
+                            <SelectItem value="small_car">Small Car (&lt;1000cc)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Engine Size and Luxury Options */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Engine Size (cc)</Label>
+                          <Input
+                            type="number"
+                            value={engineSize}
+                            onChange={(e) => setEngineSize(parseInt(e.target.value) || 2000)}
+                            placeholder="2000"
+                            className="text-center"
+                          />
+                          <div className="text-xs text-slate-500">
+                            Affects IPRIMA category and tax rate
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Vehicle Classification</Label>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id="luxuryVehicle" 
+                              checked={isLuxuryVehicle} 
+                              onCheckedChange={(checked) => setIsLuxuryVehicle(checked as boolean)}
+                            />
+                            <Label htmlFor="luxuryVehicle" className="text-sm">Luxury Vehicle</Label>
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {isLuxuryVehicle ? '20% IPRIMA rate' : 'Standard IPRIMA rates (5-18%)'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Salvage Title Option */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Title Status</Label>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="guatemalaSalvageTitle" 
+                            checked={hasSalvageTitle} 
+                            onCheckedChange={(checked) => setHasSalvageTitle(checked as boolean)}
+                          />
+                          <Label htmlFor="guatemalaSalvageTitle" className="text-sm">Salvage/Damaged Title</Label>
+                        </div>
+                        {hasSalvageTitle && (
+                          <div className="text-xs text-orange-600">
+                            Must be rebuildable (not branded "irreconstruible")
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   )}
