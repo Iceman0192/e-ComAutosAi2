@@ -140,17 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check if user is authenticated on app load
   useEffect(() => {
     const checkAuth = async () => {
-      console.log('AuthProvider: Starting auth check...');
       try {
         const response = await fetch('/api/auth/me', {
           credentials: 'include'
         });
         
-        console.log('AuthProvider: Response status:', response.status);
-        
         if (response.ok) {
           const data = await response.json();
-          console.log('AuthProvider: Response data:', data);
           
           if (data.success && data.user) {
             setUser({
@@ -167,21 +163,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 lastResetDate: new Date().toISOString()
               }
             });
-            console.log('AuthProvider: User set successfully');
           } else {
             setUser(null);
-            console.log('AuthProvider: No user found in response');
           }
         } else {
           setUser(null);
-          console.log('AuthProvider: Response not ok');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
         setUser(null);
       } finally {
         setIsLoading(false);
-        console.log('AuthProvider: Loading set to false');
       }
     };
 
