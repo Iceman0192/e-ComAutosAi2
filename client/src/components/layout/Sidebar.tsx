@@ -38,12 +38,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Home,
       permission: 'CACHED_SALES_HISTORY'
     },
-    {
-      title: 'Sales History',
-      href: '/copart',
-      icon: Search,
-      permission: 'CACHED_SALES_HISTORY'
-    },
+
     {
       title: 'Active Lot Finder',
       href: '/active-lots',
@@ -74,18 +69,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Brain,
       permission: 'AI_ANALYSIS'
     },
-    {
-      title: 'AI Recommendations',
-      href: '/recommendations',
-      icon: Star,
-      permission: 'AI_ANALYSIS'
-    },
-    {
-      title: 'Targeted Collection',
-      href: '/targeted-collection',
-      icon: Database,
-      permission: 'DATA_COLLECTION_MANAGEMENT'
-    },
+
     {
       title: 'Import Calculator',
       href: '/import-calculator',
@@ -98,12 +82,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Brain,
       permission: 'CACHED_SALES_HISTORY'
     },
-    {
-      title: 'Datasets',
-      href: '/datasets',
-      icon: Database,
-      permission: 'DATA_COLLECTION_MANAGEMENT'
-    },
+
     {
       title: 'Team Management',
       href: '/team',
