@@ -30,7 +30,7 @@ const CENTRAL_AMERICAN_COUNTRIES = [
   { id: "el_salvador", name: "El Salvador", flag: "🇸🇻", status: "active" },
   { id: "guatemala", name: "Guatemala", flag: "🇬🇹", status: "active" },
   { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮", status: "active" },
-  { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷", status: "coming_soon" },
+  { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷", status: "active" },
   { id: "panama", name: "Panama", flag: "🇵🇦", status: "coming_soon" },
   { id: "belize", name: "Belize", flag: "🇧🇿", status: "coming_soon" },
   { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴", status: "coming_soon" }
@@ -120,6 +120,12 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   // Nicaragua specific features
   const [nicaraguaEngineSize, setNicaraguaEngineSize] = useState<number>(2.0);
   const [nicaraguaAgeCompliance, setNicaraguaAgeCompliance] = useState<any>(null);
+  
+  // Costa Rica specific features
+  const [costaRicaVehicleAge, setCostaRicaVehicleAge] = useState<number>(5);
+  const [isElectricVehicle, setIsElectricVehicle] = useState<boolean>(false);
+  const [isNewResident, setIsNewResident] = useState<boolean>(false);
+  const [residentExemptionUsed, setResidentExemptionUsed] = useState<boolean>(false);
 
   const { toast } = useToast();
 
@@ -391,6 +397,15 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
           engineSize: nicaraguaEngineSize,
           hasSalvageTitle
         };
+      } else if (selectedCountry === 'costa_rica') {
+        apiEndpoint = '/api/costa-rica/calculate';
+        requestBody = {
+          ...requestBody,
+          vehicleAge: costaRicaVehicleAge,
+          isElectric: isElectricVehicle,
+          isNewResident: isNewResident,
+          exemptionUsed: residentExemptionUsed
+        };
       } else {
         // Fallback to local calculation for unsupported countries
         calculateHondurasTaxes();
@@ -527,6 +542,31 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
             ageCompliant: calculation.ageCompliant,
             ageLimitYears: 10
           });
+        } else if (selectedCountry === 'costa_rica') {
+          mappedResult = {
+            cifValue: calculation.cifValue,
+            vehicleAge: calculation.vehicleAge,
+            effectiveTaxRate: calculation.effectiveTaxRate,
+            duty: calculation.taxes.importDuty,
+            evExemption: calculation.taxes.evExemption,
+            residentExemption: calculation.taxes.residentExemption,
+            selectiveTax: 0, // Costa Rica uses age-based combined rates
+            salesTax: 0, // Included in combined rate
+            ecoTax: 0,
+            otherFees: calculation.totalFees,
+            totalTaxes: calculation.totalTaxes,
+            totalCost: calculation.totalCost,
+            caftaEligible: false, // Costa Rica doesn't have CAFTA benefits for vehicles
+            caftaSavings: 0,
+            taxPercentage: calculation.effectiveTaxRate,
+            isElectric: calculation.isElectric,
+            isNewResident: calculation.isNewResident,
+            marchamo: calculation.annualCosts.marchamo,
+            modelYear: vinAnalysis.modelYear,
+            vinAnalysis,
+            breakdown: calculation.breakdown,
+            aiInsights: calculation.aiInsights
+          };
         }
 
         setCalculationDetails(mappedResult);
@@ -548,19 +588,19 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   // Auto-calculate on input changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala' || selectedCountry === 'nicaragua')) {
+      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador' || selectedCountry === 'guatemala' || selectedCountry === 'nicaragua' || selectedCountry === 'costa_rica')) {
         calculateWithAI();
       } else if (vehiclePrice > 0 && selectedCountry) {
         if (selectedCountry === 'honduras') {
           calculateHondurasTaxes();
-        } else if (['el_salvador', 'guatemala', 'nicaragua'].includes(selectedCountry)) {
+        } else if (['el_salvador', 'guatemala', 'nicaragua', 'costa_rica'].includes(selectedCountry)) {
           calculateWithAI();
         }
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle, nicaraguaEngineSize]);
+  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory, guatemalaVehicleType, isLuxuryVehicle, nicaraguaEngineSize, costaRicaVehicleAge, isElectricVehicle, isNewResident, residentExemptionUsed]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
@@ -1054,6 +1094,95 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                             Must be repairable and ≤10 years old. VIN/engine numbers must be intact.
                           </div>
                         )}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Costa Rica Specific Controls */}
+                  {selectedCountry === 'costa_rica' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700"
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">CR</span>
+                        </div>
+                        <h3 className="font-semibold text-slate-800 dark:text-slate-200">Costa Rica Configuration</h3>
+                      </div>
+
+                      {/* Vehicle Age */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Vehicle Age (Years)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="30"
+                          value={costaRicaVehicleAge}
+                          onChange={(e) => setCostaRicaVehicleAge(parseInt(e.target.value) || 5)}
+                          placeholder="5"
+                          className="text-center"
+                        />
+                        <div className="text-xs text-slate-500">
+                          Tax rates: ≤3 years (52.29%), 4-5 years (63.91%), 6+ years (79.03%)
+                        </div>
+                      </div>
+
+                      {/* Electric Vehicle Option */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Vehicle Type</Label>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="electricVehicle" 
+                            checked={isElectricVehicle} 
+                            onCheckedChange={(checked) => setIsElectricVehicle(checked as boolean)}
+                          />
+                          <Label htmlFor="electricVehicle" className="text-sm">Electric Vehicle (EV)</Label>
+                        </div>
+                        {isElectricVehicle && (
+                          <div className="text-xs text-emerald-600">
+                            100% duty exemption up to $30,000 under Law 9518
+                          </div>
+                        )}
+                      </div>
+
+                      {/* New Resident Exemption */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Residency Status</Label>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="newResident" 
+                            checked={isNewResident} 
+                            onCheckedChange={(checked) => setIsNewResident(checked as boolean)}
+                          />
+                          <Label htmlFor="newResident" className="text-sm">New Costa Rica Resident</Label>
+                        </div>
+                        {isNewResident && (
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <Checkbox 
+                                id="exemptionUsed" 
+                                checked={residentExemptionUsed} 
+                                onCheckedChange={(checked) => setResidentExemptionUsed(checked as boolean)}
+                              />
+                              <Label htmlFor="exemptionUsed" className="text-sm">Already used exemption</Label>
+                            </div>
+                            <div className="text-xs text-emerald-600">
+                              {residentExemptionUsed 
+                                ? "Standard duties apply - exemption already used" 
+                                : "100% duty exemption available under Law 9996 (up to 2 vehicles)"}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Important Requirements */}
+                      <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg">
+                        <div className="text-xs text-amber-800 dark:text-amber-200">
+                          <strong>Requirements:</strong> Left-hand drive only, clean title (no salvage), DEKRA inspection required
+                        </div>
                       </div>
                     </motion.div>
                   )}
