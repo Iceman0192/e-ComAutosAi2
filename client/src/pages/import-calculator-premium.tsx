@@ -1030,7 +1030,7 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
                           className="text-center"
                         />
                         <div className="text-xs text-slate-500">
-                          ISC rates: ≤1.6L (10%), 1.6-2.6L (15%), 2.6-3.0L (20%), 3.0-4.0L (30%), >4.0L (35%)
+                          ISC rates: ≤1.6L (10%), 1.6-2.6L (15%), 2.6-3.0L (20%), 3.0-4.0L (30%), &gt;4.0L (35%)
                         </div>
                       </div>
 
