@@ -204,6 +204,91 @@ export function setupAdminRoutes(app: Express) {
     }
   });
 
+  // Delete user endpoint
+  app.delete('/api/admin/users/:userId', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid user ID'
+        });
+      }
+
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      
+      if (!existingUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Delete related data first (foreign key constraints)
+      await db.delete(userUsage).where(eq(userUsage.userId, userId));
+      await db.delete(userActivity).where(eq(userActivity.userId, userId));
+      
+      // Delete the user
+      await db.delete(users).where(eq(users.id, userId));
+
+      console.log(`User ${existingUser.email} (ID: ${userId}) deleted by admin`);
+
+      res.json({
+        success: true,
+        message: `User ${existingUser.email} has been permanently deleted`
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete user'
+      });
+    }
+  });
+
+  // Export users report endpoint
+  app.get('/api/admin/export-report', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userData = await adminAnalyticsService.getUserManagementData();
+      const analytics = await adminAnalyticsService.getDashboardMetrics();
+      
+      const reportData = {
+        generatedAt: new Date().toISOString(),
+        totalUsers: userData.length,
+        analytics: {
+          activeUsers: analytics.activeUsers,
+          newUsersThisMonth: analytics.newUsersThisMonth,
+          totalRevenue: analytics.totalRevenue,
+          activeSubscriptions: analytics.activeSubscriptions
+        },
+        users: userData.map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          lastLoginAt: user.lastLoginAt,
+          usageStats: user.usageStats
+        }))
+      };
+
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="admin-report-${new Date().toISOString().split('T')[0]}.json"`);
+      
+      res.json(reportData);
+    } catch (error) {
+      console.error('Error generating export report:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate export report'
+      });
+    }
+  });
+
   // Get system statistics
   app.get('/api/admin/system-stats', requireAdmin, async (req: Request, res: Response) => {
     try {
