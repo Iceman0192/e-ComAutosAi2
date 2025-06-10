@@ -170,6 +170,9 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) return false;
 
+    // ADMIN USERS BYPASS ALL USAGE LIMITS
+    if (user.role === 'admin') return true;
+
     const limits = PLAN_LIMITS[user.role as keyof typeof PLAN_LIMITS];
     if (!limits) return false;
 

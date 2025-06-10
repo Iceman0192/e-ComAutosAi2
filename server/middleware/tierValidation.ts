@@ -59,6 +59,12 @@ export async function validateUsageLimit(action: 'search' | 'vinAnalysis' | 'exp
 
       const userId = parseInt(req.user.id);
       const userTier = req.user.role || 'freemium';
+      
+      // ADMIN USERS BYPASS ALL USAGE RESTRICTIONS
+      if (userTier === 'admin') {
+        return next();
+      }
+      
       const tierLimits = TIER_LIMITS[userTier];
 
       if (!tierLimits) {
