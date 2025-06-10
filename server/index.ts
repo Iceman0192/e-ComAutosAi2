@@ -6,7 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { setupApiRoutes } from "./apiRoutes";
 import { setupAuctionMindRoutes } from "./auctionMindRoutes";
 import { setupAuctionMindV2Routes } from "./auctionMindV2Routes";
-import { setupRecommendationRoutes } from "./recommendationRoutes";
+
 import { registerSubscriptionRoutes } from "./subscriptionRoutes";
 import { setupUnifiedAuth } from "./auth/unifiedAuth";
 import { trialScheduler } from "./trialScheduler";

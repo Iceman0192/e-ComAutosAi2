@@ -26,13 +26,11 @@ import AuthPage from "./pages/auth";
 import AdminDashboard from "./pages/admin";
 import DataCollectionPage from "./pages/data-collection-clean";
 import VINHistory from "./pages/vin-history";
-import SalesHistory from "./pages/sales-history";
 import Team from "./pages/team";
 import Demo from "./pages/demo";
 import SystemMonitor from "./pages/system-monitor";
 import APIManagement from "./pages/api-management";
 import UsageDashboard from "./pages/usage-dashboard";
-import Recommendations from "./pages/recommendations";
 import NotFound from "./pages/not-found";
 
 // Marketing Pages
@@ -111,12 +109,10 @@ function Router() {
         <Route path="/live-iaai" component={LiveIAAI} />
         <Route path="/iaai" component={IAAIPage} />
         <Route path="/vin-history" component={VINHistory} />
-        <Route path="/sales-history" component={SalesHistory} />
         <Route path="/auction-mind" component={AuctionMind} />
         <Route path="/auction-mind-v2" component={AuctionMindV2} />
         <Route path="/import-calculator" component={() => <ImportCalculator vehicle={undefined} />} />
         <Route path="/datasets" component={Datasets} />
-        <Route path="/recommendations" component={Recommendations} />
         <Route path="/team" component={Team} />
         <Route path="/product/demo" component={Demo} />
         <Route path="/account" component={Account} />
