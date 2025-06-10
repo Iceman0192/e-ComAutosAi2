@@ -71,10 +71,14 @@ export default function UserManagement() {
   const queryClient = useQueryClient();
 
   // Fetch users with comprehensive data
-  const { data: users, isLoading } = useQuery<UserData[]>({
+  const { data: users, isLoading, error } = useQuery<UserData[]>({
     queryKey: ['/api/admin/users'],
     refetchInterval: 30000,
+    retry: 1,
+    staleTime: 0,
   });
+
+  console.log('Users query state:', { isLoading, error, users });
 
   // Update user role mutation
   const updateRoleMutation = useMutation({
@@ -177,6 +181,18 @@ export default function UserManagement() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="ml-4 text-gray-600 dark:text-gray-400">Loading users...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <p className="text-red-600 dark:text-red-400 mb-4">Failed to load users: {error.message}</p>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] })}>
+          Retry
+        </Button>
       </div>
     );
   }
