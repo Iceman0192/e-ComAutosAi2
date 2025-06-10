@@ -1,4 +1,4 @@
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "./components/ui/toaster";
@@ -50,6 +50,7 @@ import StatusPage from "./pages/support/status";
 
 function Router() {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Debug: Add console logging
   console.log('Router render - isLoading:', isLoading, 'user:', user);
@@ -70,7 +71,10 @@ function Router() {
   if (!user) {
     return (
       <Switch>
-        <Route path="/" component={LandingPage} />
+        <Route path="/" component={() => {
+          const [, navigate] = useLocation();
+          return <div className="min-h-screen bg-white p-8"><h1 className="text-3xl font-bold text-center">e-ComAutos</h1><p className="text-center mt-4">Welcome to e-ComAutos - The vehicle auction platform</p><div className="text-center mt-8"><button onClick={() => navigate('/auth')} className="bg-blue-600 text-white px-6 py-2 rounded">Login</button></div></div>;
+        }} />
         <Route path="/auth" component={AuthPage} />
         <Route path="/login" component={AuthPage} />
         <Route path="/signup" component={AuthPage} />
@@ -94,10 +98,10 @@ function Router() {
         <Route path="/support/status" component={StatusPage} />
         
         {/* Pricing */}
-        <Route path="/pricing" component={LandingPage} />
+        <Route path="/pricing" component={() => <div className="min-h-screen bg-white p-8"><h1 className="text-3xl font-bold text-center">e-ComAutos Pricing</h1></div>} />
         
         {/* Catch all other routes for unauthenticated users */}
-        <Route component={LandingPage} />
+        <Route component={() => <div className="min-h-screen bg-white p-8"><h1 className="text-3xl font-bold text-center">e-ComAutos</h1><p className="text-center mt-4">Welcome to e-ComAutos</p></div>} />
       </Switch>
     );
   }
@@ -107,8 +111,8 @@ function Router() {
     <MainLayout>
       <Switch>
         <Route path="/copart" component={Home} />
-        <Route path="/" component={Dashboard} />
-        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/" component={() => <div className="p-4"><h1 className="text-2xl font-bold">Dashboard Loading...</h1><p>User: {user?.email}</p></div>} />
+        <Route path="/dashboard" component={() => <div className="p-4"><h1 className="text-2xl font-bold">Dashboard</h1><p>User: {user?.email}</p></div>} />
         <Route path="/active-lots" component={ActiveLots} />
         <Route path="/live-copart" component={LiveCopart} />
         <Route path="/live-iaai" component={LiveIAAI} />
