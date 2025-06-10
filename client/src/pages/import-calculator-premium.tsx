@@ -26,14 +26,14 @@ interface DutyTaxCalculatorTabProps {
 
 // Central American countries supported in our system
 const CENTRAL_AMERICAN_COUNTRIES = [
-  { id: "honduras", name: "Honduras", flag: "🇭🇳" },
-  { id: "guatemala", name: "Guatemala", flag: "🇬🇹" },
-  { id: "el_salvador", name: "El Salvador", flag: "🇸🇻" },
-  { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮" },
-  { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷" },
-  { id: "panama", name: "Panama", flag: "🇵🇦" },
-  { id: "belize", name: "Belize", flag: "🇧🇿" },
-  { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴" }
+  { id: "honduras", name: "Honduras", flag: "🇭🇳", status: "active" },
+  { id: "el_salvador", name: "El Salvador", flag: "🇸🇻", status: "active" },
+  { id: "guatemala", name: "Guatemala", flag: "🇬🇹", status: "coming_soon" },
+  { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮", status: "coming_soon" },
+  { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷", status: "coming_soon" },
+  { id: "panama", name: "Panama", flag: "🇵🇦", status: "coming_soon" },
+  { id: "belize", name: "Belize", flag: "🇧🇿", status: "coming_soon" },
+  { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴", status: "coming_soon" }
 ];
 
 // AI-Enhanced Honduras Tax Rules (Based on Official Documentation)
@@ -104,6 +104,13 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState<boolean>(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
+  // El Salvador specific features
+  const [vehicleCategory, setVehicleCategory] = useState<string>("passenger");
+  const [is4x4, setIs4x4] = useState<boolean>(false);
+  const [hasSalvageTitle, setHasSalvageTitle] = useState<boolean>(false);
+  const [isPersonalUse, setIsPersonalUse] = useState<boolean>(true);
+  const [ageEligibility, setAgeEligibility] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -331,26 +338,46 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
     }, 500);
   };
 
-  // AI-Enhanced calculation with backend integration
+  // Multi-Country AI-Enhanced calculation
   const calculateWithAI = async () => {
-    if (!vehiclePrice || !selectedCountry || selectedCountry !== 'honduras' || !vinNumber) {
+    if (!vehiclePrice || !selectedCountry || !vinNumber) {
       return;
     }
 
     setIsCalculating(true);
     
     try {
-      const response = await fetch('/api/honduras/calculate', {
+      let apiEndpoint = '';
+      let requestBody: any = {
+        vehiclePrice: parseFloat(vehiclePrice.toString()),
+        freight: parseFloat(freight.toString()),
+        insurance: parseFloat(insurance.toString()),
+        vin: vinNumber
+      };
+
+      if (selectedCountry === 'honduras') {
+        apiEndpoint = '/api/honduras/calculate';
+      } else if (selectedCountry === 'el_salvador') {
+        apiEndpoint = '/api/elsalvador/calculate';
+        requestBody = {
+          ...requestBody,
+          engineSize: parseFloat((engineSize / 1000).toString()), // Convert cc to liters
+          is4x4,
+          hasSalvageTitle,
+          isPersonalUse
+        };
+      } else {
+        // Fallback to local calculation for unsupported countries
+        calculateHondurasTaxes();
+        return;
+      }
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          vehiclePrice: parseFloat(vehiclePrice.toString()),
-          freight: parseFloat(freight.toString()),
-          insurance: parseFloat(insurance.toString()),
-          vin: vinNumber
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -362,26 +389,61 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
       if (result.success) {
         const { calculation, vinAnalysis } = result.data;
         
-        // Map the AI calculation to our display format
-        const mappedResult = {
-          cifValue: calculation.cifValue,
-          duty: calculation.taxes.dai,
-          selectiveTax: calculation.taxes.isc,
-          salesTax: calculation.taxes.isv,
-          ecoTax: calculation.taxes.ecotasa,
-          amnestyFee: calculation.taxes.amnestyFee,
-          otherFees: 0,
-          totalTaxes: calculation.totalTaxes,
-          totalCost: calculation.totalCost,
-          caftaEligible: vinAnalysis.caftaEligible,
-          caftaSavings: calculation.caftaSavings,
-          taxPercentage: ((calculation.totalTaxes / calculation.cifValue) * 100).toFixed(1),
-          regime: calculation.regime,
-          modelYear: vinAnalysis.modelYear,
-          vinAnalysis,
-          breakdown: calculation.breakdown,
-          aiInsights: calculation.aiInsights
-        };
+        let mappedResult: any;
+        
+        if (selectedCountry === 'honduras') {
+          mappedResult = {
+            cifValue: calculation.cifValue,
+            duty: calculation.taxes.dai,
+            selectiveTax: calculation.taxes.isc,
+            salesTax: calculation.taxes.isv,
+            ecoTax: calculation.taxes.ecotasa,
+            amnestyFee: calculation.taxes.amnestyFee,
+            otherFees: 0,
+            totalTaxes: calculation.totalTaxes,
+            totalCost: calculation.totalCost,
+            caftaEligible: vinAnalysis.caftaEligible,
+            caftaSavings: calculation.caftaSavings,
+            taxPercentage: ((calculation.totalTaxes / calculation.cifValue) * 100).toFixed(1),
+            regime: calculation.regime,
+            modelYear: vinAnalysis.modelYear,
+            vinAnalysis,
+            breakdown: calculation.breakdown,
+            aiInsights: calculation.aiInsights
+          };
+        } else if (selectedCountry === 'el_salvador') {
+          mappedResult = {
+            cifValue: calculation.cifValue,
+            isEligible: calculation.isEligible,
+            eligibilityReason: calculation.eligibilityReason,
+            duty: calculation.taxes.dai,
+            iva: calculation.taxes.iva,
+            firstRegistration: calculation.taxes.firstRegistration,
+            incomeTaxAdvance: calculation.taxes.incomeTaxAdvance,
+            selectiveTax: 0, // El Salvador doesn't have ISC for vehicles
+            salesTax: calculation.taxes.iva,
+            ecoTax: 0,
+            otherFees: calculation.taxes.incomeTaxAdvance,
+            totalTaxes: calculation.totalTaxes,
+            totalCost: calculation.totalCost,
+            caftaEligible: vinAnalysis.caftaEligible,
+            caftaSavings: calculation.caftaSavings,
+            taxPercentage: ((calculation.totalTaxes / calculation.cifValue) * 100).toFixed(1),
+            vehicleCategory: calculation.vehicleCategory,
+            hasSalvageDiscount: calculation.hasSalvageDiscount,
+            adjustedValue: calculation.adjustedValue,
+            modelYear: vinAnalysis.modelYear,
+            vinAnalysis,
+            breakdown: calculation.breakdown,
+            aiInsights: calculation.aiInsights
+          };
+          
+          // Update age eligibility state for El Salvador
+          setAgeEligibility({
+            eligible: calculation.isEligible,
+            reason: calculation.eligibilityReason
+          });
+        }
 
         setCalculationDetails(mappedResult);
         setIsCaftaEligible(vinAnalysis.caftaEligible);
@@ -402,7 +464,7 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   // Auto-calculate on input changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (vinNumber.length === 17) {
+      if (vinNumber.length === 17 && (selectedCountry === 'honduras' || selectedCountry === 'el_salvador')) {
         calculateWithAI();
       } else if (vehiclePrice && selectedCountry === 'honduras') {
         calculateHondurasTaxes();
@@ -410,7 +472,7 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber]);
+  }, [vehiclePrice, freight, insurance, selectedCountry, vinNumber, engineSize, is4x4, hasSalvageTitle, isPersonalUse, vehicleCategory]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
