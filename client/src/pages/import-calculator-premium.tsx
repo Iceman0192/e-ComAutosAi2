@@ -116,6 +116,10 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   const [guatemalaVehicleType, setGuatemalaVehicleType] = useState<string>("sedan");
   const [isLuxuryVehicle, setIsLuxuryVehicle] = useState<boolean>(false);
   const [iprimaCategory, setIprimaCategory] = useState<any>(null);
+  
+  // Nicaragua specific features
+  const [nicaraguaEngineSize, setNicaraguaEngineSize] = useState<number>(2.0);
+  const [nicaraguaAgeCompliance, setNicaraguaAgeCompliance] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -486,6 +490,35 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
             category: calculation.vehicleCategory,
             rate: calculation.iprimaRate,
             amount: calculation.taxes.iprima
+          });
+        } else if (selectedCountry === 'nicaragua') {
+          mappedResult = {
+            cifValue: calculation.cifValue,
+            vehicleAge: calculation.vehicleAge,
+            ageCompliant: calculation.ageCompliant,
+            duty: calculation.taxes.dai,
+            isc: calculation.taxes.isc,
+            iva: calculation.taxes.iva,
+            selectiveTax: calculation.taxes.isc,
+            salesTax: calculation.taxes.iva,
+            ecoTax: 0,
+            otherFees: calculation.taxes.registrationFee,
+            totalTaxes: calculation.totalTaxes,
+            totalCost: calculation.totalCost,
+            caftaEligible: vinAnalysis.caftaEligible,
+            caftaSavings: calculation.caftaSavings,
+            taxPercentage: ((calculation.totalTaxes / calculation.cifValue) * 100).toFixed(1),
+            modelYear: vinAnalysis.modelYear,
+            vinAnalysis,
+            breakdown: calculation.breakdown,
+            aiInsights: calculation.aiInsights
+          };
+          
+          // Update age compliance info for Nicaragua
+          setNicaraguaAgeCompliance({
+            vehicleAge: calculation.vehicleAge,
+            ageCompliant: calculation.ageCompliant,
+            ageLimitYears: 10
           });
         }
 
