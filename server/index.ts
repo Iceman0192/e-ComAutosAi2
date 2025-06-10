@@ -22,6 +22,7 @@ import { setupElSalvadorRoutes } from "./elSalvadorRoutes";
 import { setupGuatemalaRoutes } from "./guatemalaRoutes";
 import { setupNicaraguaRoutes } from "./nicaraguaRoutes";
 import { setupCostaRicaRoutes } from "./costaRicaRoutes";
+import { setupDominicanRepublicRoutes } from "./dominicanRepublicRoutes";
 import { freshDataManager } from "./freshDataManager";
 import { autoCollectionService } from "./autoCollectionService";
 import { errorHandler, notFound } from "./middleware/errorHandler";
@@ -124,6 +125,7 @@ async function startServer() {
   setupGuatemalaRoutes(app);
   setupNicaraguaRoutes(app);
   setupCostaRicaRoutes(app);
+  setupDominicanRepublicRoutes(app);
 
   // Fresh data migration scheduler
   setInterval(async () => {
