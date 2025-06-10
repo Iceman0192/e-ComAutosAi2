@@ -19,6 +19,7 @@ import { setupVinRoutes } from "./routes/vinRoutes";
 import { setupTargetedCollectionRoutes } from "./targetedCollectionRoutes";
 import { setupHondurasRoutes } from "./hondurasRoutes";
 import { setupElSalvadorRoutes } from "./elSalvadorRoutes";
+import { setupGuatemalaRoutes } from "./guatemalaRoutes";
 import { freshDataManager } from "./freshDataManager";
 import { autoCollectionService } from "./autoCollectionService";
 import { errorHandler, notFound } from "./middleware/errorHandler";
@@ -118,6 +119,7 @@ async function startServer() {
   setupTargetedCollectionRoutes(app);
   setupHondurasRoutes(app);
   setupElSalvadorRoutes(app);
+  setupGuatemalaRoutes(app);
 
   // Fresh data migration scheduler
   setInterval(async () => {

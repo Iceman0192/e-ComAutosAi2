@@ -28,7 +28,7 @@ interface DutyTaxCalculatorTabProps {
 const CENTRAL_AMERICAN_COUNTRIES = [
   { id: "honduras", name: "Honduras", flag: "🇭🇳", status: "active" },
   { id: "el_salvador", name: "El Salvador", flag: "🇸🇻", status: "active" },
-  { id: "guatemala", name: "Guatemala", flag: "🇬🇹", status: "coming_soon" },
+  { id: "guatemala", name: "Guatemala", flag: "🇬🇹", status: "active" },
   { id: "nicaragua", name: "Nicaragua", flag: "🇳🇮", status: "coming_soon" },
   { id: "costa_rica", name: "Costa Rica", flag: "🇨🇷", status: "coming_soon" },
   { id: "panama", name: "Panama", flag: "🇵🇦", status: "coming_soon" },
@@ -111,6 +111,11 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
   const [hasSalvageTitle, setHasSalvageTitle] = useState<boolean>(false);
   const [isPersonalUse, setIsPersonalUse] = useState<boolean>(true);
   const [ageEligibility, setAgeEligibility] = useState<any>(null);
+  
+  // Guatemala specific features
+  const [guatemalaVehicleType, setGuatemalaVehicleType] = useState<string>("sedan");
+  const [isLuxuryVehicle, setIsLuxuryVehicle] = useState<boolean>(false);
+  const [iprimaCategory, setIprimaCategory] = useState<any>(null);
 
   const { toast } = useToast();
 
@@ -365,6 +370,15 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
           is4x4,
           hasSalvageTitle,
           isPersonalUse
+        };
+      } else if (selectedCountry === 'guatemala') {
+        apiEndpoint = '/api/guatemala/calculate';
+        requestBody = {
+          ...requestBody,
+          engineSize: parseFloat(engineSize.toString()),
+          vehicleType: guatemalaVehicleType,
+          isLuxury: isLuxuryVehicle,
+          hasSalvageTitle
         };
       } else {
         // Fallback to local calculation for unsupported countries
