@@ -152,16 +152,38 @@ async function startServer() {
   // Enterprise error handler
   app.use(errorHandler);
 
-  // Start server
-  const port = 5000;
-  server.listen(port, "0.0.0.0", () => {
-    log(`Server running on port ${port} in ${app.get("env")} mode`);
-    if (app.get("env") === "development") {
-      log(`Frontend: http://localhost:${port}`);
-      log(`API: http://localhost:${port}/api`);
-      log(`Health: http://localhost:${port}/health`);
-    }
-  });
+  // Start server with port fallback
+  const basePort = parseInt(process.env.PORT || "5000");
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  const tryListen = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const tryPort = basePort + attempts;
+      server.listen(tryPort, "0.0.0.0", () => {
+        log(`Server running on port ${tryPort} in ${app.get("env")} mode`);
+        if (app.get("env") === "development") {
+          log(`Frontend: http://localhost:${tryPort}`);
+          log(`API: http://localhost:${tryPort}/api`);
+          log(`Health: http://localhost:${tryPort}/health`);
+        }
+        resolve();
+      }).on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE' && attempts < maxAttempts) {
+          attempts++;
+          log(`Port ${tryPort} is busy, trying port ${basePort + attempts}`);
+          server.close();
+          setTimeout(() => {
+            tryListen().then(resolve).catch(reject);
+          }, 100);
+        } else {
+          reject(err);
+        }
+      });
+    });
+  };
+
+  await tryListen();
 
   return server;
 }
