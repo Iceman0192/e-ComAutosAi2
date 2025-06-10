@@ -109,8 +109,12 @@ export function setupNicaraguaRoutes(app: Express) {
         vinAnalysis
       );
 
-      // Add Multi-AI insights to calculation
-      calculation.aiInsights = importInsights;
+      // Add Multi-AI insights to calculation with required structure
+      calculation.aiInsights = {
+        importFeasibility: importInsights.riskAssessment,
+        costOptimization: importInsights.costOptimization,
+        complianceNotes: importInsights.complianceNotes
+      };
 
       // Enhanced response with comprehensive data
       res.json({
