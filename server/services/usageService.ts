@@ -130,6 +130,11 @@ export class UsageService {
     userRole: string,
     eventType: 'search' | 'vin_lookup' | 'export' | 'ai_analysis'
   ): Promise<{ allowed: boolean; reason?: string }> {
+    // ADMIN USERS BYPASS ALL USAGE LIMITS
+    if (userRole === 'admin') {
+      return { allowed: true };
+    }
+    
     const usage = await this.getUserUsage(userId);
     const limits = this.getLimitsForRole(userRole);
     

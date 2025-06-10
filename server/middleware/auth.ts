@@ -90,6 +90,11 @@ export function requireRole(roles: string[]) {
 
     const userRole = req.user.role || 'freemium';
     
+    // ADMIN USERS BYPASS ALL ROLE RESTRICTIONS
+    if (userRole === 'admin') {
+      return next();
+    }
+    
     if (!roles.includes(userRole)) {
       return res.status(403).json({
         success: false,
@@ -127,7 +132,12 @@ export function requirePremium(req: SessionRequest, res: Response, next: NextFun
     });
   }
 
-  const premiumRoles = ['platinum', 'enterprise', 'admin'];
+  // ADMIN USERS BYPASS ALL PREMIUM RESTRICTIONS
+  if (req.user.role === 'admin') {
+    return next();
+  }
+
+  const premiumRoles = ['platinum', 'enterprise'];
   if (!premiumRoles.includes(req.user.role)) {
     return res.status(403).json({
       success: false,

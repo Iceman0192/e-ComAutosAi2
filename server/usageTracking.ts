@@ -20,7 +20,54 @@ export async function trackUsage(action: 'search' | 'aiAnalysis' | 'vinSearch' |
     today.setHours(0, 0, 0, 0);
 
     try {
-      // Get today's usage
+      // ADMIN USERS BYPASS ALL USAGE LIMITS
+      if (userRole === 'admin') {
+        req.trackUsage = async () => {
+          // Track usage for admin users without limits
+          const [todayUsage] = await db
+            .select()
+            .from(userUsage)
+            .where(
+              and(
+                eq(userUsage.userId, userId),
+                gte(userUsage.date, today)
+              )
+            )
+            .limit(1);
+
+          if (todayUsage) {
+            const updateData: any = {};
+            updateData[action === 'search' ? 'searches' : 
+                       action === 'aiAnalysis' ? 'aiAnalyses' :
+                       action === 'vinSearch' ? 'vinSearches' : 'exports'] = 
+                       todayUsage[action === 'search' ? 'searches' : 
+                                 action === 'aiAnalysis' ? 'aiAnalyses' :
+                                 action === 'vinSearch' ? 'vinSearches' : 'exports'] + 1;
+
+            await db
+              .update(userUsage)
+              .set(updateData)
+              .where(eq(userUsage.id, todayUsage.id));
+          } else {
+            const newUsageData: any = {
+              userId,
+              date: today,
+              searches: 0,
+              aiAnalyses: 0,
+              vinSearches: 0,
+              exports: 0,
+            };
+            newUsageData[action === 'search' ? 'searches' : 
+                        action === 'aiAnalysis' ? 'aiAnalyses' :
+                        action === 'vinSearch' ? 'vinSearches' : 'exports'] = 1;
+
+            await db.insert(userUsage).values(newUsageData);
+          }
+        };
+        return next();
+      }
+
+      // Get today's usage for non-admin users
       const [todayUsage] = await db
         .select()
         .from(userUsage)
