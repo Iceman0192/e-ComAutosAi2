@@ -36,27 +36,53 @@ const CENTRAL_AMERICAN_COUNTRIES = [
   { id: "dominican_republic", name: "Dominican Republic", flag: "🇩🇴" }
 ];
 
-// Tax calculation rules per country - based on official 2025 rates per CAFTA Treaty
-const TAX_RULES = {
-  honduras: {
-    north_american_origin: {
-      duty: 0.0,
-      selectiveTaxBrackets: {
-        0: 0.10, 7000: 0.15, 10000: 0.20, 20000: 0.30, 50000: 0.45, 100000: 0.60,
-      },
-      ecoTaxBrackets: { 0: 200, 15000: 280, 25000: 400 },
-      salesTax: 0.15,
-      otherFees: 0.10
+// AI-Enhanced Honduras Tax Rules (Based on Official Documentation)
+const HONDURAS_TAX_SYSTEM = {
+  // Sequential tax calculation: CIF → DAI → ISC → ISV → Ecotasa
+  standard_regime: {
+    // 2006+ vehicles - no age restrictions
+    applicable_years: "2006+",
+    dai_rates: {
+      cafta_eligible: 0.0,     // 0% for US-manufactured under CAFTA-DR
+      non_cafta: 0.15          // Up to 15% for non-CAFTA countries
     },
-    other_origin: {
-      duty: 0.15,
-      selectiveTaxBrackets: {
-        0: 0.10, 7000: 0.15, 10000: 0.20, 20000: 0.30, 50000: 0.45, 100000: 0.60,
-      },
-      ecoTaxBrackets: { 0: 205, 15000: 280, 25000: 410 },
-      salesTax: 0.15,
-      otherFees: 0.03
-    }
+    isc_brackets: [
+      { max: 7000, rate: 0.10 },     // 10% up to $7,000
+      { max: 10000, rate: 0.15 },    // 15% for $7,001-$10,000
+      { max: 20000, rate: 0.20 },    // 20% for $10,001-$20,000
+      { max: 50000, rate: 0.30 },    // 30% for $20,001-$50,000
+      { max: 100000, rate: 0.45 },   // 45% for $50,001-$100,000
+      { max: Infinity, rate: 0.60 }  // 60% for over $100,000
+    ],
+    isv_rate: 0.15,           // 15% sales tax
+    ecotasa_brackets: [
+      { max: 15000, fee: 5000 },     // L 5,000 (~$200) up to $15,000
+      { max: 25000, fee: 7000 },     // L 7,000 (~$280) for $15,001-$25,000
+      { max: Infinity, fee: 10000 }  // L 10,000 (~$400) for $25,001+
+    ]
+  },
+  amnesty_regime: {
+    // 2005 and older vehicles - special flat fee
+    applicable_years: "≤2005",
+    expires: "2026-04-04",
+    dai_rates: {
+      cafta_eligible: 0.0,
+      non_cafta: 0.15
+    },
+    flat_fee: 10000,          // L 10,000 replaces ISC + ISV + registration
+    ecotasa_brackets: [
+      { max: 15000, fee: 5000 },
+      { max: 25000, fee: 7000 },
+      { max: Infinity, fee: 10000 }
+    ]
+  },
+  prohibited_titles: [
+    "junk", "parts only", "non-repairable", "certificate of destruction", "scrap only"
+  ],
+  requirements: {
+    steering: "left_hand_drive_only",
+    age_restriction_suspended: true,  // Per Decreto 14-2023
+    rhd_banned: true
   }
 };
 
@@ -81,51 +107,141 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
 
   const { toast } = useToast();
 
-  // VIN analysis for CAFTA eligibility
-  const isNorthAmericanOrigin = (vin: string): boolean => {
-    if (!vin || vin.length < 1) return false;
-    const firstChar = vin.charAt(0).toUpperCase();
-    return ['1', '2', '3', '4', '5'].includes(firstChar);
+  // AI-Enhanced VIN Analysis for CAFTA Eligibility
+  const analyzeVIN = (vin: string) => {
+    if (!vin || vin.length !== 17) {
+      return { isValid: false, modelYear: null, isUSAOrigin: false, manufacturer: null };
+    }
+
+    const cleanVIN = vin.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, '');
+    if (cleanVIN.length !== 17) {
+      return { isValid: false, modelYear: null, isUSAOrigin: false, manufacturer: null };
+    }
+
+    // Extract model year from 10th character (VIN position 10)
+    const yearCode = cleanVIN.charAt(9);
+    const modelYear = decodeVINYear(yearCode);
+    
+    // Extract World Manufacturer Identifier (first 3 characters)
+    const wmi = cleanVIN.substring(0, 3);
+    
+    // USA manufacturing identification (1, 4, 5 only - corrected from documentation)
+    const firstChar = cleanVIN.charAt(0);
+    const isUSAOrigin = ['1', '4', '5'].includes(firstChar);
+    
+    // Get manufacturer info
+    const manufacturer = getManufacturerFromWMI(wmi);
+    
+    return {
+      isValid: true,
+      modelYear,
+      isUSAOrigin,
+      manufacturer,
+      wmi,
+      yearCode
+    };
   };
 
-  // Real-time calculation
-  const calculateTaxes = () => {
-    if (!vehiclePrice || !selectedCountry) return null;
+  // VIN Year Decoding (10th character) - Corrected cycle
+  const decodeVINYear = (yearCode: string): number | null => {
+    // VIN year codes cycle every 30 years
+    const baseYearMap: Record<string, number> = {
+      'A': 1980, 'B': 1981, 'C': 1982, 'D': 1983, 'E': 1984, 'F': 1985, 'G': 1986, 'H': 1987,
+      'J': 1988, 'K': 1989, 'L': 1990, 'M': 1991, 'N': 1992, 'P': 1993, 'R': 1994, 'S': 1995,
+      'T': 1996, 'V': 1997, 'W': 1998, 'X': 1999, 'Y': 2000, '1': 2001, '2': 2002, '3': 2003,
+      '4': 2004, '5': 2005, '6': 2006, '7': 2007, '8': 2008, '9': 2009
+    };
+    
+    // Handle 2010+ cycle (letters repeat)
+    const cycle2010Map: Record<string, number> = {
+      'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014, 'F': 2015, 'G': 2016, 'H': 2017,
+      'J': 2018, 'K': 2019, 'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024, 'S': 2025
+    };
+    
+    // First check 2010+ cycle, then fall back to 1980+ cycle
+    return cycle2010Map[yearCode] || baseYearMap[yearCode] || null;
+  };
+
+  // Basic manufacturer identification from WMI
+  const getManufacturerFromWMI = (wmi: string): string => {
+    const manufacturers: Record<string, string> = {
+      '1FA': 'Ford', '1FD': 'Ford', '1FT': 'Ford', '1G1': 'Chevrolet', '1G6': 'Cadillac',
+      '1GC': 'Chevrolet', '1GM': 'Pontiac', '1J4': 'Jeep', '1N4': 'Nissan', '1N6': 'Nissan',
+      '4F2': 'Mazda', '4F4': 'Mazda', '4T1': 'Toyota', '4T3': 'Lexus', '5N1': 'Nissan',
+      '5NP': 'Hyundai', '5TD': 'Toyota', '5TE': 'Toyota'
+    };
+    return manufacturers[wmi] || 'Unknown';
+  };
+
+  // AI-Enhanced Honduras Tax Calculation Engine
+  const calculateHondurasTaxes = () => {
+    if (!vehiclePrice || !selectedCountry || selectedCountry !== 'honduras') return null;
 
     setIsCalculating(true);
     
     setTimeout(() => {
+      const vinAnalysis = analyzeVIN(vinNumber);
+      const currentDate = new Date();
+      const amnestyExpiry = new Date('2026-04-04');
+      
+      // Step 1: Calculate CIF Value
       const cifValue = vehiclePrice + freight + insurance;
-      const origin = isCaftaEligible ? 'north_american_origin' : 'other_origin';
-      const rules = TAX_RULES[selectedCountry as keyof typeof TAX_RULES]?.[origin];
       
-      if (!rules) {
-        setIsCalculating(false);
-        return null;
+      // Step 2: Determine regime (Standard vs Amnesty)
+      const modelYear = vinAnalysis.modelYear || 2020; // Default if VIN invalid
+      const isAmnestyEligible = modelYear <= 2005 && currentDate <= amnestyExpiry;
+      const regime = isAmnestyEligible ? HONDURAS_TAX_SYSTEM.amnesty_regime : HONDURAS_TAX_SYSTEM.standard_regime;
+      
+      // Step 3: Calculate DAI (Import Duty)
+      const daiRate = vinAnalysis.isUSAOrigin && isCaftaEligible ? regime.dai_rates.cafta_eligible : regime.dai_rates.non_cafta;
+      const dai = cifValue * daiRate;
+      
+      let isc = 0;
+      let isv = 0;
+      let amnestyFee = 0;
+      
+      if (isAmnestyEligible) {
+        // Amnesty Regime: Flat fee instead of ISC + ISV
+        amnestyFee = (regime as any).flat_fee; // L 10,000
+      } else {
+        // Standard Regime: Sequential calculation
+        // Step 4: Calculate ISC (Selective Consumption Tax)
+        const iscBase = cifValue + dai;
+        const iscBracket = (regime as any).isc_brackets.find((bracket: any) => iscBase <= bracket.max);
+        const iscRate = iscBracket?.rate || 0.60;
+        isc = iscBase * iscRate;
+        
+        // Step 5: Calculate ISV (Sales Tax)
+        const isvBase = cifValue + dai + isc;
+        isv = isvBase * (regime as any).isv_rate;
       }
-
-      const duty = cifValue * rules.duty;
-      const selectiveTax = cifValue * 0.15; // Simplified for demo
-      const salesTax = (cifValue + selectiveTax) * rules.salesTax;
-      const ecoTax = rules.ecoTaxBrackets[0] || 200;
-      const otherFees = cifValue * rules.otherFees;
       
-      const totalTaxes = duty + selectiveTax + salesTax + ecoTax + otherFees;
+      // Step 6: Calculate Ecotasa (Environmental Tax)
+      const ecotasaBracket = regime.ecotasa_brackets.find(bracket => cifValue <= bracket.max);
+      const ecotasa = ecotasaBracket?.fee || 10000;
+      
+      // Step 7: Calculate totals
+      const totalTaxes = dai + isc + isv + amnestyFee + (ecotasa / 25); // Convert Lempiras to USD (~25:1)
       const totalCost = cifValue + totalTaxes;
-      const caftaSavings = isCaftaEligible ? cifValue * 0.15 : 0;
-
+      const caftaSavings = vinAnalysis.isUSAOrigin && isCaftaEligible ? cifValue * 0.15 : 0;
+      
       const result = {
         cifValue,
-        duty,
-        selectiveTax,
-        salesTax,
-        ecoTax,
-        otherFees,
+        dai,
+        isc,
+        isv,
+        amnestyFee,
+        ecotasa: ecotasa / 25, // Convert to USD
         totalTaxes,
         totalCost,
-        caftaEligible: isCaftaEligible,
+        caftaEligible: vinAnalysis.isUSAOrigin && isCaftaEligible,
         caftaSavings,
-        taxPercentage: ((totalTaxes / cifValue) * 100).toFixed(1)
+        taxPercentage: ((totalTaxes / cifValue) * 100).toFixed(1),
+        regime: isAmnestyEligible ? 'amnesty' : 'standard',
+        modelYear,
+        vinAnalysis,
+        isAmnestyEligible,
+        amnestyExpiry: amnestyExpiry.toLocaleDateString()
       };
 
       setCalculationDetails(result);
@@ -139,7 +255,7 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
 
   // Auto-calculate on input changes
   useEffect(() => {
-    calculateTaxes();
+    calculateHondurasTaxes();
   }, [vehiclePrice, freight, insurance, selectedCountry, engineSize, isCaftaEligible]);
 
   return (
