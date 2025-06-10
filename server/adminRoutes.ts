@@ -228,7 +228,6 @@ export function setupAdminRoutes(app: Express) {
 
       // Delete related data first (foreign key constraints)
       await db.delete(userUsage).where(eq(userUsage.userId, userId));
-      await db.delete(userActivity).where(eq(userActivity.userId, userId));
       
       // Delete the user
       await db.delete(users).where(eq(users.id, userId));
@@ -270,8 +269,7 @@ export function setupAdminRoutes(app: Express) {
           role: user.role,
           isActive: user.isActive,
           createdAt: user.createdAt,
-          lastLoginAt: user.lastLoginAt,
-          usageStats: user.usageStats
+          lastLoginAt: user.lastLoginAt
         }))
       };
 

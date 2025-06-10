@@ -22,7 +22,10 @@ import {
   Clock,
   BarChart3,
   PieChart,
-  Settings
+  Settings,
+  X,
+  Save,
+  RefreshCw
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import UserManagement from '@/components/admin/UserManagement';
@@ -78,6 +81,7 @@ interface UserData {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showSettings, setShowSettings] = useState(false);
 
   // Fetch dashboard metrics
   const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
@@ -133,6 +137,36 @@ export default function AdminDashboard() {
     return <IconComponent className="h-4 w-4" />;
   };
 
+  // Export Report functionality
+  const handleExportReport = async () => {
+    try {
+      const response = await fetch('/api/admin/export-report', {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate report');
+      }
+      
+      const reportData = await response.json();
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `admin-report-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export report. Please try again.');
+    }
+  };
+
   if (metricsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -163,11 +197,11 @@ export default function AdminDashboard() {
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                 ADMIN
               </Badge>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleExportReport}>
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Button>
@@ -504,6 +538,123 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Admin Settings</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowSettings(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Platform Configuration */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Platform Configuration</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Platform Name
+                    </label>
+                    <input 
+                      type="text" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      defaultValue="EcomAutos"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Contact Email
+                    </label>
+                    <input 
+                      type="email" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      defaultValue="admin@ecomautos.com"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* User Management Settings */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">User Management</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Allow new user registrations</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Require email verification</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable trial accounts</span>
+                    <input type="checkbox" defaultChecked className="rounded" />
+                  </div>
+                </div>
+              </div>
+
+              {/* System Maintenance */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">System Maintenance</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button variant="outline" className="flex items-center justify-center">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Clear Cache
+                  </Button>
+                  <Button variant="outline" className="flex items-center justify-center">
+                    <Download className="h-4 w-4 mr-2" />
+                    Database Backup
+                  </Button>
+                </div>
+              </div>
+
+              {/* API Configuration */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">API Configuration</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      APICAR Rate Limit (requests/minute)
+                    </label>
+                    <input 
+                      type="number" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      defaultValue="60"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      OpenAI API Rate Limit (requests/hour)
+                    </label>
+                    <input 
+                      type="number" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      defaultValue="100"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+              <Button variant="outline" onClick={() => setShowSettings(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                alert('Settings saved successfully!');
+                setShowSettings(false);
+              }}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
