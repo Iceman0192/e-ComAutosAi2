@@ -38,7 +38,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: Home,
       permission: 'CACHED_SALES_HISTORY'
     },
-
+    {
+      title: 'Sales History',
+      href: '/copart',
+      icon: Search,
+      permission: 'CACHED_SALES_HISTORY'
+    },
     {
       title: 'Active Lot Finder',
       href: '/active-lots',
