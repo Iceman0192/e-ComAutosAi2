@@ -30,6 +30,8 @@ import {
   Plus
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface UserData {
@@ -141,6 +143,29 @@ export default function UserManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     }
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({
+        title: "Success",
+        description: "User deleted permanently",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   // Filter users based on search and filters
@@ -365,6 +390,26 @@ export default function UserManagement() {
                               </div>
                             </div>
                           )}
+
+                          {/* Delete User Section */}
+                          <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                            <h4 className="font-medium text-red-800 dark:text-red-200 mb-2">Danger Zone</h4>
+                            <p className="text-red-600 dark:text-red-300 text-sm mb-3">
+                              Permanently delete this user and all associated data. This action cannot be undone.
+                            </p>
+                            <Button 
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to permanently delete ${user.name}? This action cannot be undone.`)) {
+                                  deleteUserMutation.mutate(user.id);
+                                }
+                              }}
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User'}
+                            </Button>
+                          </div>
                         </TabsContent>
 
                         <TabsContent value="permissions" className="space-y-4">
