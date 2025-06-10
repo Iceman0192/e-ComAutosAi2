@@ -131,12 +131,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
       icon: BarChart3,
       permission: 'SYSTEM_MONITORING'
     },
-    {
-      title: 'API Management',
-      href: '/admin/api-management',
-      icon: Settings,
-      permission: 'API_ACCESS'
-    }
+
   ];
 
   const isActiveRoute = (href: string) => {
