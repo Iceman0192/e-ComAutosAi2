@@ -17,6 +17,7 @@ import { registerDataCollectionRoutes } from "./dataCollectionRoutes";
 import { setupTeamRoutes } from "./routes/teamRoutes";
 import { setupVinRoutes } from "./routes/vinRoutes";
 import { setupTargetedCollectionRoutes } from "./targetedCollectionRoutes";
+import { setupHondurasRoutes } from "./hondurasRoutes";
 import { freshDataManager } from "./freshDataManager";
 import { autoCollectionService } from "./autoCollectionService";
 import { errorHandler, notFound } from "./middleware/errorHandler";
