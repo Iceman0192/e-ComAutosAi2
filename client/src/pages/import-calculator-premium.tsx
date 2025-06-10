@@ -208,9 +208,9 @@ export default function PremiumImportCalculator({ vehicle }: DutyTaxCalculatorTa
     // Extract World Manufacturer Identifier (first 3 characters)
     const wmi = cleanVIN.substring(0, 3);
     
-    // CAFTA-DR eligibility (USA = 1,4,5; Canada = 2; Mexico = 3 NOT eligible)
+    // CAFTA-DR eligibility (ONLY USA = 1,4,5; Canada = 2 and Mexico = 3 NOT eligible)
     const firstChar = cleanVIN.charAt(0);
-    const isUSAOrigin = ['1', '2', '4', '5'].includes(firstChar);
+    const isUSAOrigin = ['1', '4', '5'].includes(firstChar);
     
     // Get manufacturer info
     const manufacturer = getManufacturerFromWMI(wmi);
