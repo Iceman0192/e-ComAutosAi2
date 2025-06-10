@@ -51,6 +51,9 @@ import StatusPage from "./pages/support/status";
 function Router() {
   const { user, isLoading } = useAuth();
 
+  // Debug: Add console logging
+  console.log('Router render - isLoading:', isLoading, 'user:', user);
+
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
